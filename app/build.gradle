@@ -33,6 +33,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    
+    // Customize APK output filename
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildType = variant.buildType.name
+            
+            def apkName = "QuickCards"
+            if (buildType == "debug") {
+                apkName += "-debug"
+            }
+            apkName += ".apk"
+            
+            outputFileName = apkName
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
