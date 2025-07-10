@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(./gradlew:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:webaim.org)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)"
+    ],
+    "deny": []
+  }
+}

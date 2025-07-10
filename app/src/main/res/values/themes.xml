@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.QuickCards" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary_teal</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/secondary_gold</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+        
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/background_light</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+    
+    <style name="Theme.QuickCards.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    
+    <style name="Theme.QuickCards.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    
+    <style name="Theme.QuickCards.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>
