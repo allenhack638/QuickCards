@@ -89,6 +89,7 @@ fun AddEditCardScreen(
     var selectedCardIssuer by remember { mutableStateOf("Visa") }
     var selectedCardVariant by remember { mutableStateOf("Standard") }
     var cardType by remember { mutableStateOf(PaymentInputFormatter.CardType.UNKNOWN) }
+    var isLoading by remember { mutableStateOf(false) }
     
     // Observe data
     val banks by bankViewModel.allBanks.observeAsState(emptyList())
@@ -165,37 +166,12 @@ fun AddEditCardScreen(
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
-            )
-        },
-        bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 4.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(20.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Cancel Button - Subtle and transparent
+                },
+                actions = {
+                    // Save/Update Button - Elegant and clean in top right with proper margin
                     TextButton(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 16.sp
-                        )
-                    }
-                    
-                    // Save Button - Subtle but prominent
-                    Button(
                         onClick = {
+                            isLoading = true
                             val card = Card(
                                 id = cardId ?: "",
                                 cardNumber = cardNumber,
@@ -222,30 +198,40 @@ fun AddEditCardScreen(
                                 launchSingleTop = true
                             }
                         },
-                        modifier = Modifier.weight(1f),
-                        enabled = cardNumber.isNotBlank() && owner.isNotBlank() && 
-                                expiryDate.isNotBlank() && cvv.isNotBlank(),
+                        // Updated enabled condition to include selectedBank check
+                        enabled = !isLoading && cardNumber.isNotBlank() && owner.isNotBlank() && 
+                                expiryDate.isNotBlank() && cvv.isNotBlank() && selectedBank.isNotBlank(),
+                        modifier = Modifier.padding(end = 12.dp), // Increased right margin from 4.dp to 12.dp
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            containerColor = if (cardNumber.isNotBlank() && owner.isNotBlank() && 
+                                               expiryDate.isNotBlank() && cvv.isNotBlank() && selectedBank.isNotBlank()) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+                            },
+                            contentColor = if (cardNumber.isNotBlank() && owner.isNotBlank() && 
+                                             expiryDate.isNotBlank() && cvv.isNotBlank() && selectedBank.isNotBlank()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            }
                         ),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(18.dp),
                         elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
-                            pressedElevation = 4.dp,
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
                             disabledElevation = 0.dp
                         )
                     ) {
                         Text(
                             text = if (isEditing) "Update" else "Save",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(horizontal = 2.dp, vertical = 1.dp)
                         )
                     }
                 }
-            }
+            )
         }
     ) { paddingValues ->
         Column(

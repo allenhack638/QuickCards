@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.data.model.Card
 import com.quickcards.app.security.BiometricAuthHelper
+import com.quickcards.app.security.CVVVisibilityManager
 import com.quickcards.app.viewmodel.CardViewModel
 import kotlinx.coroutines.delay
 
@@ -44,22 +46,16 @@ fun CardDetailScreen(
     
     var card by remember { mutableStateOf<Card?>(null) }
     var decryptedCard by remember { mutableStateOf<Card?>(null) }
-    var showCvv by remember { mutableStateOf(false) }
-    var cvvVisibilityTimer by remember { mutableStateOf(0) }
     var isLoading by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     
-    // Auto-hide CVV after 10 seconds
-    LaunchedEffect(showCvv) {
-        if (showCvv) {
-            cvvVisibilityTimer = 10
-            while (cvvVisibilityTimer > 0) {
-                delay(1000)
-                cvvVisibilityTimer--
-            }
-            showCvv = false
-        }
-    }
+    // Get CVV visibility manager
+    val cvvManager = CVVVisibilityManager.getInstance()
+    val visibleCardId by cvvManager.visibleCardId.observeAsState(null)
+    val cvvTimer by cvvManager.cvvTimer.observeAsState(0)
+    
+    // Check if this card's CVV is currently visible
+    val showCvv = visibleCardId == cardId
     
     // Load card data
     LaunchedEffect(cardId) {
@@ -236,14 +232,6 @@ fun CardDetailScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
-                                    if (showCvv) {
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "${cvvVisibilityTimer}s",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -277,13 +265,13 @@ fun CardDetailScreen(
                 OutlinedButton(
                     onClick = {
                         if (showCvv) {
-                            showCvv = false
+                            cvvManager.hideCVV()
                         } else {
                             biometricAuthHelper.authenticateForCVV(
                                 context as androidx.fragment.app.FragmentActivity,
                                 object : BiometricAuthHelper.AuthenticationCallback {
                                     override fun onAuthenticationSuccess() {
-                                        showCvv = true
+                                        cvvManager.showCVV(cardId)
                                     }
                                     
                                     override fun onAuthenticationError(errorCode: Int, errorMessage: String) {

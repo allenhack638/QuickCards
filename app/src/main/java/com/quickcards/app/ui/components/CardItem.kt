@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.quickcards.app.data.model.Card
 import com.quickcards.app.security.BiometricAuthHelper
+import com.quickcards.app.security.CVVVisibilityManager
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -48,18 +50,16 @@ fun CardItem(
     val clipboardManager = LocalClipboardManager.current
     val hapticFeedback = LocalHapticFeedback.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var showCvv by remember { mutableStateOf(false) }
     var isAuthenticating by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     
-    // CVV timeout functionality
-    LaunchedEffect(showCvv) {
-        if (showCvv) {
-            // Hide CVV after 10 seconds
-            delay(10000)
-            showCvv = false
-        }
-    }
+    // Get CVV visibility manager
+    val cvvManager = CVVVisibilityManager.getInstance()
+    val visibleCardId by cvvManager.visibleCardId.observeAsState(null)
+    val cvvTimer by cvvManager.cvvTimer.observeAsState(0)
+    
+    // Check if this card's CVV is currently visible
+    val showCvv = visibleCardId == card.id
     
     // Handle lifecycle changes to hide CVV when app goes to background
     DisposableEffect(lifecycleOwner) {
@@ -67,7 +67,7 @@ fun CardItem(
             when (event) {
                 Lifecycle.Event.ON_PAUSE,
                 Lifecycle.Event.ON_STOP -> {
-                    showCvv = false
+                    cvvManager.hideCVV()
                 }
                 else -> {}
             }
@@ -161,7 +161,7 @@ fun CardItem(
                 object : BiometricAuthHelper.AuthenticationCallback {
                     override fun onAuthenticationSuccess() {
                         isAuthenticating = false
-                        showCvv = true
+                        cvvManager.showCVV(card.id)
                     }
                     
                     override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
@@ -385,7 +385,7 @@ fun CardItem(
                     IconButton(
                         onClick = { 
                             if (showCvv) {
-                                showCvv = false
+                                cvvManager.hideCVV()
                             } else {
                                 authenticateAndShowCvv()
                             }

@@ -19,7 +19,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     private val cardDao = database.cardDao()
     private val encryptionHelper = EncryptionHelper.getInstance()
     
-    private val _isLoading = MutableLiveData<Boolean>()
+    private val _isLoading = MutableLiveData<Boolean>(true) // Start with loading true
     val isLoading: LiveData<Boolean> = _isLoading
     
     private val _allCards = MutableLiveData<List<Card>>()
@@ -30,11 +30,13 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     private fun observeCards() {
+        _isLoading.postValue(true)
         cardDao.getAllCards().asLiveData().observeForever { encryptedCards ->
             val decryptedCards = encryptedCards.map { card: Card ->
                 getDecryptedCard(card)
             }
             _allCards.postValue(decryptedCards)
+            _isLoading.postValue(false)
         }
     }
     
