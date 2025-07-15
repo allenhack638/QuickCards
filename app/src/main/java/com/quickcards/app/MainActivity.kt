@@ -28,13 +28,13 @@ class MainActivity : BaseActivity() {
     private lateinit var database: QuickCardsDatabase
     private lateinit var timeoutManager: UnifiedTimeoutManager
     private var isAuthenticated = false
-    private var isAuthenticationInProgress = false // ✅ Prevent multiple auth attempts
-    private var hasInitialAuthCompleted = false // ✅ Track initial authentication
-    private var showInitialLockScreen = false // NEW: Track if LockScreen should be shown on denied auth
+    private var isAuthenticationInProgress = false
+    private var hasInitialAuthCompleted = false
+    private var showLockScreen = true // Always start with lock screen
     
     companion object {
         private const val TAG = "MainActivity"
-        private const val DEBUG = false // ✅ Disabled for better performance
+        private const val DEBUG = false
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,9 +46,10 @@ class MainActivity : BaseActivity() {
         database = QuickCardsDatabase.getDatabase(this, lifecycleScope)
         timeoutManager = UnifiedTimeoutManager.getInstance(application)
         
-        // ✅ Fixed: Remove problematic lock callback that caused the loop
-        // The callback should only handle UI updates, not trigger new auth checks
+        // Always start with lock screen - unified UI approach
+        showMainContent()
         
+        // Perform initial authentication check
         performInitialAuthenticationCheck()
     }
     
@@ -56,9 +57,9 @@ class MainActivity : BaseActivity() {
         super.onResume()
         debugLog("onResume() - isAuthenticated: $isAuthenticated, hasInitialAuthCompleted: $hasInitialAuthCompleted, isAuthenticationInProgress: $isAuthenticationInProgress")
         
-        // The unified timeout manager handles background/foreground transitions
-        // We only need to check the initial authentication
-        if (!hasInitialAuthCompleted && !isAuthenticationInProgress && !showInitialLockScreen) {
+        // Check if we need to show lock screen (timeout or initial launch)
+        if (!isAuthenticated && !isAuthenticationInProgress) {
+            showLockScreen = true
             performInitialAuthenticationCheck()
         }
     }
@@ -67,7 +68,7 @@ class MainActivity : BaseActivity() {
         debugLog("performInitialAuthenticationCheck() called")
         
         if (biometricAuthHelper.isAuthenticationAvailable()) {
-            // Authentication is available - ALWAYS require it regardless of card count
+            // Authentication is available - require it
             debugLog("Authentication available - requiring authentication for app access")
             authenticateUser()
         } else {
@@ -75,8 +76,8 @@ class MainActivity : BaseActivity() {
             debugLog("No authentication available - showing content with security recommendation")
             isAuthenticated = true
             hasInitialAuthCompleted = true
+            showLockScreen = false
             appLockManager.unlock()
-            // Unlock the unified timeout manager as well
             timeoutManager.unlockApp()
             showMainContent()
             showSecuritySetupRecommendation()
@@ -86,7 +87,7 @@ class MainActivity : BaseActivity() {
     private fun authenticateUser() {
         debugLog("authenticateUser() called - inProgress: $isAuthenticationInProgress")
         
-        // ✅ Prevent multiple simultaneous authentication attempts
+        // Prevent multiple simultaneous authentication attempts
         if (isAuthenticationInProgress) {
             debugLog("Authentication already in progress, skipping")
             return
@@ -102,38 +103,25 @@ class MainActivity : BaseActivity() {
                     isAuthenticated = true
                     isAuthenticationInProgress = false
                     hasInitialAuthCompleted = true
+                    showLockScreen = false
                     appLockManager.unlock()
-                    // Unlock the unified timeout manager as well
                     timeoutManager.unlockApp()
-                    showInitialLockScreen = false // Reset flag
                     showMainContent()
                 }
                 
                 override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
                     debugLog("Authentication ERROR: code=$errorCode, message=$errorMessage")
                     isAuthenticationInProgress = false
-                    // If user cancels, show LockScreen instead of finishing
-                    if (errorCode == 13) { // User cancelled
-                        debugLog("User cancelled authentication, showing LockScreen")
-                        showInitialLockScreen = true
-                        showMainContent()
-                    } else {
-                        // For other errors, try again after a delay
-                        debugLog("Authentication error, retrying after delay")
-                        lifecycleScope.launch {
-                            kotlinx.coroutines.delay(1000)
-                            if (!isAuthenticated && !showInitialLockScreen) {
-                                authenticateUser()
-                            }
-                        }
-                    }
+                    // Keep showing lock screen for any authentication error
+                    showLockScreen = true
+                    showMainContent()
                 }
                 
                 override fun onAuthenticationFailed() {
                     debugLog("Authentication FAILED")
                     isAuthenticationInProgress = false
-                    // Show LockScreen for failed authentication
-                    showInitialLockScreen = true
+                    // Keep showing lock screen for failed authentication
+                    showLockScreen = true
                     showMainContent()
                 }
             }
@@ -156,36 +144,39 @@ class MainActivity : BaseActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Show LockScreen if initial authentication was denied
-                    if (showInitialLockScreen) {
+                    // Unified lock screen logic
+                    if (showLockScreen || !isAuthenticated) {
+                        // Show lock screen for initial launch or when locked
                         LockScreen(
                             onUnlock = {
                                 timeoutManager.unlockApp()
                                 isAuthenticated = true
                                 hasInitialAuthCompleted = true
-                                showInitialLockScreen = false
+                                showLockScreen = false
                                 showMainContent()
                             }
                         )
-                    } else if (hasInitialAuthCompleted) {
-                        // Observe the unified timeout manager
+                    } else {
+                        // Show main content when authenticated
+                        // Observe the unified timeout manager for idle locking
                         val isLocked by timeoutManager.isLocked.observeAsState(false)
                         
                         if (isLocked) {
-                            // Show lock screen when app is locked
+                            // Show lock screen when app times out
+                            showLockScreen = true
+                            isAuthenticated = false
                             LockScreen(
                                 onUnlock = {
                                     timeoutManager.unlockApp()
                                     isAuthenticated = true
+                                    showLockScreen = false
+                                    showMainContent()
                                 }
                             )
                         } else {
                             // Show main content when unlocked
                             MainScreen()
                         }
-                    } else {
-                        // Show main content during initial authentication
-                        MainScreen()
                     }
                 }
             }
@@ -195,8 +186,7 @@ class MainActivity : BaseActivity() {
     override fun onPause() {
         super.onPause()
         debugLog("onPause() called")
-        // ✅ Reset authentication state when app goes to background
-        // The AppLockManager will handle timing
+        // Reset authentication state when app goes to background
     }
     
     override fun onDestroy() {
