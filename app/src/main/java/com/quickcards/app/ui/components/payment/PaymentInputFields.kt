@@ -12,15 +12,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+
 import com.quickcards.app.utils.PaymentInputFormatter
+
+
 
 /**
  * Formatted Card Number Input Field with real-time validation and formatting
+ * Enhanced with reliable "Scan a Card" functionality
  * Uses professional-grade state management for smooth UX
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -62,7 +69,7 @@ fun FormattedCardNumberField(
     
     OutlinedTextField(
         value = textFieldValue,
-        onValueChange = { newValue ->
+        onValueChange = { newValue: TextFieldValue ->
             // Format the input
             val result = PaymentInputFormatter.formatCardNumber(
                 newValue.text,
@@ -77,8 +84,8 @@ fun FormattedCardNumberField(
             
             // Always update with formatted value for smooth UX
             textFieldValue = TextFieldValue(
-                text = result.formattedNumber,
-                selection = TextRange(result.cursorPosition)
+                result.formattedNumber,
+                TextRange(result.cursorPosition)
             )
             
             // Notify parent with clean number only if it changed
@@ -96,7 +103,10 @@ fun FormattedCardNumberField(
             )
         },
         trailingIcon = null,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next
+        ),
         isError = isError,
         supportingText = supportingText?.let { { Text(it) } },
         singleLine = true
@@ -144,7 +154,7 @@ fun FormattedExpirationField(
     
     OutlinedTextField(
         value = textFieldValue,
-        onValueChange = { newValue ->
+        onValueChange = { newValue: TextFieldValue ->
             // Format the input
             val result = PaymentInputFormatter.formatExpirationDate(
                 newValue.text,
@@ -155,8 +165,8 @@ fun FormattedExpirationField(
             
             // Always update with formatted value for smooth UX
             textFieldValue = TextFieldValue(
-                text = result.formattedDate,
-                selection = TextRange(result.cursorPosition)
+                result.formattedDate,
+                TextRange(result.cursorPosition)
             )
             
             // Notify parent with clean date only if it changed
@@ -224,7 +234,7 @@ fun FormattedCVVField(
     
     OutlinedTextField(
         value = textFieldValue,
-        onValueChange = { newValue ->
+        onValueChange = { newValue: TextFieldValue ->
             // Format the input
             val result = PaymentInputFormatter.formatCVV(
                 newValue.text,
@@ -236,8 +246,8 @@ fun FormattedCVVField(
             
             // Always update with formatted value for smooth UX
             textFieldValue = TextFieldValue(
-                text = result.formattedCVV,
-                selection = TextRange(result.cursorPosition)
+                result.formattedCVV,
+                TextRange(result.cursorPosition)
             )
             
             // Notify parent with clean CVV only if it changed

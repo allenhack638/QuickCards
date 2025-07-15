@@ -31,6 +31,7 @@ import com.quickcards.app.data.model.Card
 import com.quickcards.app.ui.components.CardItem
 import com.quickcards.app.ui.components.SearchBar
 import com.quickcards.app.viewmodel.CardViewModel
+import com.quickcards.app.utils.KeyboardVisibilityHandler
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +45,9 @@ fun CardsScreen(
     val searchQuery by cardViewModel.searchQuery.observeAsState("")
     val searchResults by cardViewModel.searchResults.observeAsState(emptyList())
     val isLoading by cardViewModel.isLoading.observeAsState(false)
+    
+    // Detect keyboard visibility
+    val isKeyboardVisible by KeyboardVisibilityHandler.rememberKeyboardVisibilityState()
     
     // Scroll-to-top functionality
     val listState = rememberLazyListState()
@@ -236,7 +240,9 @@ fun CardsScreen(
                 LazyColumn(
                     state = listState,
                     verticalArrangement = Arrangement.spacedBy(24.dp), // ✅ Increased spacing for larger cards
-                    contentPadding = PaddingValues(bottom = 100.dp), // ✅ Extra bottom padding for FAB
+                    contentPadding = PaddingValues(
+                        bottom = if (isKeyboardVisible) 16.dp else 100.dp // ✅ Dynamic padding based on keyboard visibility
+                    ),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(
@@ -271,8 +277,8 @@ fun CardsScreen(
             }
         }
         
-        // Floating Action Button (only show when not in selection mode)
-        if (!isSelectionMode) {
+        // Floating Action Button (only show when not in selection mode and keyboard is hidden)
+        if (!isSelectionMode && !isKeyboardVisible) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.BottomEnd

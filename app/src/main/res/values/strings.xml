@@ -12,6 +12,7 @@
     <string name="edit_card">Edit Card</string>
     <string name="card_details">Card Details</string>
     <string name="scan_card">Scan Card</string>
+    <string name="scan_card_hint">Tap to scan your card</string>
     <string name="copy_card_number">Copy Card Number</string>
     <string name="copy_expiry_date">Copy Expiry Date</string>
     <string name="show_cvv">Show CVV</string>

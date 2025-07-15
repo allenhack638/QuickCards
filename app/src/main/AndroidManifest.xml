@@ -46,7 +46,8 @@
             android:theme="@style/Theme.QuickCards"
             android:launchMode="singleTask"
             android:excludeFromRecents="false"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
