@@ -1,6 +1,9 @@
 package com.quickcards.app.ui.components.payment
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard
@@ -22,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 import com.quickcards.app.utils.PaymentInputFormatter
+import com.quickcards.app.utils.ResponsiveDimensions
 
 
 
@@ -174,7 +178,7 @@ fun FormattedExpirationField(
                 onValueChange(result.cleanDate)
             }
         },
-        modifier = modifier.width(120.dp),
+        modifier = modifier.fillMaxWidth(0.5f),
         label = { Text(label) },
         leadingIcon = {
             Icon(
@@ -255,7 +259,7 @@ fun FormattedCVVField(
                 onValueChange(result.cleanCVV)
             }
         },
-        modifier = modifier.width(100.dp),
+        modifier = modifier.fillMaxWidth(0.5f),
         label = { Text(label) },
         leadingIcon = {
             Icon(
@@ -294,7 +298,7 @@ fun ExpirationAndCVVRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().medium)
     ) {
         FormattedExpirationField(
             value = expirationValue,
@@ -341,7 +345,7 @@ fun PaymentForm(
     
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().medium)
     ) {
         FormattedCardNumberField(
             value = cardNumber,

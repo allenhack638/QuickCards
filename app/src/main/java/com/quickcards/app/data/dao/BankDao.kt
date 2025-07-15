@@ -10,6 +10,9 @@ interface BankDao {
     @Query("SELECT * FROM banks ORDER BY name ASC")
     fun getAllBanks(): Flow<List<Bank>>
     
+    @Query("SELECT * FROM banks ORDER BY name ASC")
+    suspend fun getAllBanksSync(): List<Bank>
+    
     @Query("SELECT * FROM banks WHERE id = :id")
     suspend fun getBankById(id: String): Bank?
     

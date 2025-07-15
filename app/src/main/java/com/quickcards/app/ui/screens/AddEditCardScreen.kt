@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.quickcards.app.utils.ResponsiveDimensions
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.autofill.AutofillNode
 import androidx.compose.ui.autofill.AutofillType
@@ -187,21 +188,29 @@ fun AddEditCardScreen(
                             )
                             
                             if (isEditing) {
-                                cardViewModel.updateCard(card)
+                                cardViewModel.updateCard(card) {
+                                    isLoading = false
+                                    // Navigate after successful update
+                                    navController.navigate("cards") {
+                                        popUpTo("cards") { inclusive = false }
+                                        launchSingleTop = true
+                                    }
+                                }
                             } else {
-                                cardViewModel.insertCard(card)
-                            }
-                            
-                            // Navigate directly to the Cards screen
+                                cardViewModel.insertCard(card) {
+                                    isLoading = false
+                                    // Navigate after successful insert
                             navController.navigate("cards") {
                                 popUpTo("cards") { inclusive = false }
                                 launchSingleTop = true
+                                    }
+                                }
                             }
                         },
                         // Updated enabled condition to include selectedBank check
                         enabled = !isLoading && cardNumber.isNotBlank() && owner.isNotBlank() && 
                                 expiryDate.isNotBlank() && cvv.isNotBlank() && selectedBank.isNotBlank(),
-                        modifier = Modifier.padding(end = 12.dp), // Increased right margin from 4.dp to 12.dp
+                        modifier = Modifier.padding(end = ResponsiveDimensions.getResponsiveSpacing().medium), // Responsive right margin
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (cardNumber.isNotBlank() && owner.isNotBlank() && 
                                                expiryDate.isNotBlank() && cvv.isNotBlank() && selectedBank.isNotBlank()) {
@@ -238,9 +247,9 @@ fun AddEditCardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().medium)
         ) {
             // Card Number with autofill support
             FormattedCardNumberField(
@@ -426,7 +435,7 @@ fun AddEditCardScreen(
             // Expiry and CVV Row with autofill support
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().medium)
             ) {
                 FormattedExpirationField(
                     value = expiryDate,
@@ -529,7 +538,7 @@ fun AddEditCardScreen(
             )
             
             // Add space at bottom for better scrolling
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
         }
     }
 }

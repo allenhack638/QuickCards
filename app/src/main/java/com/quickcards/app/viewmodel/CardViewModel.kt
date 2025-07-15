@@ -12,12 +12,17 @@ import com.quickcards.app.security.EncryptionHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 class CardViewModel(application: Application) : AndroidViewModel(application) {
     
     private val database = QuickCardsDatabase.getDatabase(application, viewModelScope)
     private val cardDao = database.cardDao()
     private val encryptionHelper = EncryptionHelper.getInstance()
+    
+    // Cache for decrypted cards to avoid repeated decryption
+    private val decryptedCardCache = ConcurrentHashMap<String, Card>()
     
     private val _isLoading = MutableLiveData<Boolean>(true) // Start with loading true
     val isLoading: LiveData<Boolean> = _isLoading
@@ -32,11 +37,13 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     private fun observeCards() {
         _isLoading.postValue(true)
         cardDao.getAllCards().asLiveData().observeForever { encryptedCards ->
-            val decryptedCards = encryptedCards.map { card: Card ->
-                getDecryptedCard(card)
+            viewModelScope.launch(Dispatchers.IO) {
+                val decryptedCards = encryptedCards.map { card: Card ->
+                    getDecryptedCardCached(card)
+                }
+                _allCards.postValue(decryptedCards)
+                _isLoading.postValue(false)
             }
-            _allCards.postValue(decryptedCards)
-            _isLoading.postValue(false)
         }
     }
     
@@ -57,7 +64,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 cardDao.searchCards(query).collect { encryptedCards ->
                     val decryptedResults = encryptedCards.map { card: Card ->
-                        getDecryptedCard(card)
+                        getDecryptedCardCached(card)
                     }
                     _searchResults.postValue(decryptedResults)
                 }
@@ -67,7 +74,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
-    fun insertCard(card: Card) {
+    fun insertCard(card: Card, onComplete: (() -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // Ensure card has a valid ID
@@ -83,14 +90,26 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                     cvv = encryptionHelper.encrypt(cardWithValidId.cvv)
                 )
                 cardDao.insertCard(encryptedCard)
-                // LiveData will automatically update
+                
+                // Add to cache
+                decryptedCardCache[cardWithValidId.id] = cardWithValidId
+                
+                // Force refresh the cards list to ensure UI updates
+                refreshCardsList()
+                
+                withContext(Dispatchers.Main) {
+                    onComplete?.invoke()
+                }
             } catch (e: Exception) {
                 // Handle error
+                withContext(Dispatchers.Main) {
+                    onComplete?.invoke()
+                }
             }
         }
     }
     
-    fun updateCard(card: Card) {
+    fun updateCard(card: Card, onComplete: (() -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val encryptedCard = card.copy(
@@ -100,7 +119,34 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                     updatedAt = System.currentTimeMillis()
                 )
                 cardDao.updateCard(encryptedCard)
-                // LiveData will automatically update
+                
+                // Update cache
+                decryptedCardCache[card.id] = card
+                
+                // Force refresh the cards list to ensure UI updates
+                refreshCardsList()
+                
+                withContext(Dispatchers.Main) {
+                    onComplete?.invoke()
+                }
+            } catch (e: Exception) {
+                // Handle error
+                withContext(Dispatchers.Main) {
+                    onComplete?.invoke()
+                }
+            }
+        }
+    }
+    
+    // Force refresh the cards list
+    fun refreshCardsList() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val encryptedCards = cardDao.getAllCardsSync()
+                val decryptedCards = encryptedCards.map { card: Card ->
+                    getDecryptedCardCached(card)
+                }
+                _allCards.postValue(decryptedCards)
             } catch (e: Exception) {
                 // Handle error
             }
@@ -111,7 +157,10 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 cardDao.deleteCard(card)
-                // LiveData will automatically update
+                // Remove from cache
+                decryptedCardCache.remove(card.id)
+                // Force refresh the cards list to ensure UI updates
+                refreshCardsList()
             } catch (e: Exception) {
                 // Handle error
             }
@@ -122,7 +171,10 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 cardDao.deleteCardById(id)
-                // LiveData will automatically update
+                // Remove from cache
+                decryptedCardCache.remove(id)
+                // Force refresh the cards list to ensure UI updates
+                refreshCardsList()
             } catch (e: Exception) {
                 // Handle error
             }
@@ -133,7 +185,10 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 cardDao.deleteAllCards()
-                // LiveData will automatically update
+                // Clear cache
+                decryptedCardCache.clear()
+                // Force refresh the cards list to ensure UI updates
+                refreshCardsList()
             } catch (e: Exception) {
                 // Handle error
             }
@@ -156,14 +211,17 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         return try {
             val encryptedCard = cardDao.getCardById(id)
             encryptedCard?.let { card ->
-                card.copy(
-                    cardNumber = encryptionHelper.decrypt(card.cardNumber),
-                    expiryDate = encryptionHelper.decrypt(card.expiryDate),
-                    cvv = encryptionHelper.decrypt(card.cvv)
-                )
+                getDecryptedCardCached(card)
             }
         } catch (e: Exception) {
             null
+        }
+    }
+    
+    // Cached version of getDecryptedCard
+    fun getDecryptedCardCached(card: Card): Card {
+        return decryptedCardCache.getOrPut(card.id) {
+            getDecryptedCard(card)
         }
     }
     
@@ -179,12 +237,31 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
+    // Clear cache when needed
+    fun clearCache() {
+        decryptedCardCache.clear()
+    }
+    
+    // Force refresh all cards from database
+    fun forceRefreshCards() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Clear cache first
+                decryptedCardCache.clear()
+                // Then refresh the list
+                refreshCardsList()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+    
     // Export cards to JSON
     suspend fun exportCardsToJson(): String {
         return try {
             val encryptedCards = cardDao.getAllCardsSync()
             val decryptedCards = encryptedCards.map { card: Card ->
-                getDecryptedCard(card)
+                getDecryptedCardCached(card)
             }
             // Convert to JSON using Gson or similar
             val gson = com.google.gson.Gson()
@@ -217,6 +294,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                         cvv = encryptionHelper.encrypt(cardWithNewId.cvv)
                     )
                     cardDao.insertCard(encryptedCard)
+                    
+                    // Add to cache
+                    decryptedCardCache[cardWithNewId.id] = cardWithNewId
                     importedCount++
                 }
             }

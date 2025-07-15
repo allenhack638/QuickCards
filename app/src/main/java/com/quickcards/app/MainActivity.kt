@@ -18,6 +18,7 @@ import com.quickcards.app.ui.base.BaseActivity
 import com.quickcards.app.ui.components.LockScreen
 import com.quickcards.app.ui.screens.MainScreen
 import com.quickcards.app.ui.theme.QuickCardsTheme
+import com.quickcards.app.viewmodel.BankViewModel
 import kotlinx.coroutines.launch
 import android.widget.Toast
 
@@ -27,6 +28,7 @@ class MainActivity : BaseActivity() {
     private lateinit var appLockManager: AppLockManager
     private lateinit var database: QuickCardsDatabase
     private lateinit var timeoutManager: UnifiedTimeoutManager
+    private lateinit var bankViewModel: BankViewModel
     private var isAuthenticated = false
     private var isAuthenticationInProgress = false
     private var hasInitialAuthCompleted = false
@@ -45,6 +47,10 @@ class MainActivity : BaseActivity() {
         appLockManager = AppLockManager.getInstance(this)
         database = QuickCardsDatabase.getDatabase(this, lifecycleScope)
         timeoutManager = UnifiedTimeoutManager.getInstance(application)
+        bankViewModel = BankViewModel(application)
+        
+        // Ensure default banks exist
+        bankViewModel.ensureDefaultBanksExist()
         
         // Always start with lock screen - unified UI approach
         showMainContent()

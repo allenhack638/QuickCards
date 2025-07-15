@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.quickcards.app.utils.ResponsiveDimensions
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,6 +64,11 @@ fun CardsScreen(
     
     // Track card count for scroll-to-top
     var previousCardCount by remember { mutableStateOf(0) }
+    
+    // Refresh cards when screen becomes active
+    LaunchedEffect(Unit) {
+        cardViewModel.forceRefreshCards()
+    }
     
     // Scroll to top when new cards are added
     LaunchedEffect(cards.size) {
@@ -163,7 +169,7 @@ fun CardsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(ResponsiveDimensions.getResponsivePadding().horizontal)
         ) {
             if (!isSelectionMode) {
                 // Header
@@ -188,7 +194,7 @@ fun CardsScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
                 
                 // Search Bar
                 if (showSearchBar) {
@@ -198,7 +204,7 @@ fun CardsScreen(
                         onClearQuery = { cardViewModel.searchCards("") },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
                 }
             }
             
@@ -228,7 +234,7 @@ fun CardsScreen(
                             text = if (searchQuery.isNotBlank()) "No cards found" else "No cards added yet",
                             style = MaterialTheme.typography.bodyLarge
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
                         Text(
                             text = if (searchQuery.isNotBlank()) "Try a different search term" else "Tap the + button to add your first card",
                             style = MaterialTheme.typography.bodyMedium,
@@ -239,9 +245,9 @@ fun CardsScreen(
             } else {
                 LazyColumn(
                     state = listState,
-                    verticalArrangement = Arrangement.spacedBy(24.dp), // ✅ Increased spacing for larger cards
+                    verticalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().extraLarge), // ✅ Responsive spacing for larger cards
                     contentPadding = PaddingValues(
-                        bottom = if (isKeyboardVisible) 16.dp else 100.dp // ✅ Dynamic padding based on keyboard visibility
+                        bottom = if (isKeyboardVisible) ResponsiveDimensions.getResponsiveSpacing().medium else (ResponsiveDimensions.getResponsiveSpacing().large * 5) // ✅ Dynamic responsive padding based on keyboard visibility
                     ),
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -249,10 +255,9 @@ fun CardsScreen(
                         items = displayCards,
                         key = { card -> card.id } // ✅ Add key for better performance
                     ) { card ->
-                        // Decrypt card data for display
-                        val decryptedCard = cardViewModel.getDecryptedCard(card)
+                        // Use cached decrypted card data
                         CardItem(
-                            card = decryptedCard,
+                            card = card,
                             onClick = { 
                                 if (isSelectionMode) {
                                     toggleCardSelection(card.id)
@@ -265,7 +270,7 @@ fun CardsScreen(
                             },
                             onLongClick = {
                                 if (!isSelectionMode) {
-                                    longPressedCard = decryptedCard
+                                    longPressedCard = card
                                     showLongPressMenu = true
                                 }
                             },
@@ -288,7 +293,7 @@ fun CardsScreen(
                         // Navigate to add card screen
                         navController.navigate("add_card")
                     },
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Card")
                 }
@@ -308,18 +313,18 @@ fun CardsScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(ResponsiveDimensions.getResponsiveCardDimensions().cornerRadius)),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+                tonalElevation = ResponsiveDimensions.getResponsiveCardDimensions().elevation
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 ) {
                     Text(
                         text = "Card Actions",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = ResponsiveDimensions.getResponsiveSpacing().medium)
                     )
                     
                     // Edit Option
@@ -332,7 +337,7 @@ fun CardsScreen(
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = "Edit",
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = ResponsiveDimensions.getResponsiveSpacing().small)
                         )
                         Text("Edit Card")
                     }
@@ -347,7 +352,7 @@ fun CardsScreen(
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "Delete",
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = ResponsiveDimensions.getResponsiveSpacing().small)
                         )
                         Text("Delete Card")
                     }
@@ -362,12 +367,12 @@ fun CardsScreen(
                         Icon(
                             Icons.Default.Add,
                             contentDescription = "Select",
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = ResponsiveDimensions.getResponsiveSpacing().small)
                         )
                         Text("Select Cards")
                     }
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
                     
                     // Cancel Button
                     OutlinedButton(

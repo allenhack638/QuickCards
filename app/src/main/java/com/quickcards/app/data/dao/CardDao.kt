@@ -16,16 +16,22 @@ interface CardDao {
     @Query("SELECT * FROM cards WHERE id = :id")
     suspend fun getCardById(id: String): Card?
     
-    @Query("SELECT * FROM cards WHERE cardNumber LIKE '%' || :query || '%' " +
-           "OR bankName LIKE '%' || :query || '%' " +
-           "OR description LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM cards WHERE bankName LIKE '%' || :query || '%' " +
+           "OR description LIKE '%' || :query || '%' " +
+           "ORDER BY updatedAt DESC")
     fun searchCards(query: String): Flow<List<Card>>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCard(card: Card)
     
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCards(cards: List<Card>)
+    
     @Update
     suspend fun updateCard(card: Card)
+    
+    @Update
+    suspend fun updateCards(cards: List<Card>)
     
     @Delete
     suspend fun deleteCard(card: Card)

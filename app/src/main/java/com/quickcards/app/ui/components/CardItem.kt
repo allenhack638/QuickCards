@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.quickcards.app.utils.ResponsiveDimensions
 import androidx.compose.ui.graphics.Brush
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -193,10 +194,12 @@ fun CardItem(
     }
     
     // Single Card Design with all content
+    val responsiveCardDimensions = ResponsiveDimensions.getResponsiveCardDimensions()
+    
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(responsiveCardDimensions.cornerRadius))
             .combinedClickable(
                 onClick = {
                     if (isSelectionMode) {
@@ -212,7 +215,7 @@ fun CardItem(
                 }
             ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 16.dp else 12.dp
+            defaultElevation = if (isSelected) responsiveCardDimensions.elevation else (responsiveCardDimensions.elevation * 0.75f)
         ),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) 
@@ -235,11 +238,11 @@ fun CardItem(
                     else 
                         cardGradient
                 )
-                .padding(24.dp)
+                .padding(responsiveCardDimensions.padding)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().large)
             ) {
                 // Top Row: Bank Name and Card Issuer
                 Row(
@@ -258,7 +261,7 @@ fun CardItem(
                             modifier = Modifier.size(32.dp)
                         )
                         
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().medium))
                         
                         Column {
                             Text(
@@ -294,7 +297,7 @@ fun CardItem(
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = Color.White.copy(alpha = 0.15f),
-                            modifier = Modifier.padding(top = 6.dp)
+                            modifier = Modifier.padding(top = ResponsiveDimensions.getResponsiveSpacing().small)
                         ) {
                             Text(
                                 text = card.cardType,
@@ -302,7 +305,7 @@ fun CardItem(
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium,
                                 letterSpacing = 0.5.sp,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                modifier = Modifier.padding(horizontal = ResponsiveDimensions.getResponsiveSpacing().medium, vertical = ResponsiveDimensions.getResponsiveSpacing().small)
                             )
                         }
                     }
@@ -374,14 +377,14 @@ fun CardItem(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                     Text(
                         text = if (showCvv) card.cvv else "***",
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                     IconButton(
                         onClick = { 
                             if (showCvv) {
@@ -421,7 +424,7 @@ fun CardItem(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
                         Text(
                             text = card.description,
                             color = Color.White.copy(alpha = 0.8f),
@@ -437,7 +440,7 @@ fun CardItem(
                 // Tags (if exist) - compact display
                 if (card.tags.isNotEmpty()) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().small),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         card.tags.take(3).forEach { tag ->

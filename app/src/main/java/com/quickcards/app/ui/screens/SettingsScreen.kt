@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.quickcards.app.utils.ResponsiveDimensions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.security.BiometricAuthHelper
@@ -157,9 +158,9 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(ResponsiveDimensions.getResponsivePadding().horizontal)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().medium)
     ) {
         // Header with Animation
         AnimatedVisibility(
@@ -179,7 +180,7 @@ fun SettingsScreen(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(32.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().medium))
                 Text(
                     text = "Settings",
                     style = MaterialTheme.typography.headlineMedium,
@@ -198,13 +199,13 @@ fun SettingsScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = ResponsiveDimensions.getResponsiveCardDimensions().elevation * 0.5f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -215,7 +216,7 @@ fun SettingsScreen(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                         Text(
                             text = "Data Management",
                             style = MaterialTheme.typography.titleMedium,
@@ -234,12 +235,12 @@ fun SettingsScreen(
                         StatCard("Banks", banks.size.toString())
                     }
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
                     
                     // Export/Import Buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().small)
                     ) {
                         OutlinedButton(
                             onClick = {
@@ -264,7 +265,7 @@ fun SettingsScreen(
                             } else {
                                 Icon(Icons.Default.FileUpload, contentDescription = "Export")
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                             Text(if (isExporting) "Exporting..." else "Export Cards")
                         }
                         
@@ -286,7 +287,7 @@ fun SettingsScreen(
                             } else {
                                 Icon(Icons.Default.FileDownload, contentDescription = "Import")
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                             Text(if (isImporting) "Importing..." else "Import Cards")
                         }
                     }
@@ -302,7 +303,7 @@ fun SettingsScreen(
                         )
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = "Clear Data")
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                         Text("Clear All Data")
                     }
                 }
@@ -319,13 +320,13 @@ fun SettingsScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = ResponsiveDimensions.getResponsiveCardDimensions().elevation * 0.5f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -341,7 +342,7 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                             Text(
                                 text = "Manage Banks",
                                 style = MaterialTheme.typography.titleMedium,
@@ -356,7 +357,7 @@ fun SettingsScreen(
                             )
                         ) {
                             Text("View All")
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                             Icon(
                                 Icons.Default.ArrowForward,
                                 contentDescription = "View Banks",
@@ -365,7 +366,7 @@ fun SettingsScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
                     
                     Text(
                         text = "Add, edit, or remove banks from your dropdown list",
@@ -386,13 +387,13 @@ fun SettingsScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = ResponsiveDimensions.getResponsiveCardDimensions().elevation * 0.5f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -403,7 +404,7 @@ fun SettingsScreen(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                         Text(
                             text = "Card Management",
                             style = MaterialTheme.typography.titleMedium,
@@ -411,7 +412,7 @@ fun SettingsScreen(
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
                     
                     // Card Types and Issuers info
                     Text(
@@ -420,7 +421,7 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
                     
                     Text(
                         text = "Card Issuers: Visa, Mastercard, RuPay, American Express, Discover, Diners Club, JCB, UnionPay, Bajaj Finserv, HDFC Bank",
@@ -428,7 +429,7 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
                     
                     Text(
                         text = "Card types and issuers are automatically detected when adding cards",
@@ -449,13 +450,13 @@ fun SettingsScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = ResponsiveDimensions.getResponsiveCardDimensions().elevation * 0.5f),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -466,7 +467,7 @@ fun SettingsScreen(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(ResponsiveDimensions.getResponsiveSpacing().small))
                         Text(
                             text = "App Information",
                             style = MaterialTheme.typography.titleMedium,
@@ -499,15 +500,15 @@ fun SettingsScreen(
 @Composable
 private fun StatCard(title: String, value: String) {
     Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = ResponsiveDimensions.getResponsiveCardDimensions().elevation * 0.25f),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(ResponsiveDimensions.getResponsiveCardDimensions().cornerRadius))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(ResponsiveDimensions.getResponsivePadding().horizontal),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -516,7 +517,7 @@ private fun StatCard(title: String, value: String) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().small))
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,

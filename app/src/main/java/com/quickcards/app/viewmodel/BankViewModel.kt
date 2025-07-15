@@ -56,4 +56,19 @@ class BankViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    
+    // Ensure default banks exist
+    fun ensureDefaultBanksExist() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val existingBanks = bankDao.getAllBanksSync()
+                if (existingBanks.isEmpty()) {
+                    // Insert default banks if none exist
+                    bankDao.insertBanks(Bank.getDefaultBanks())
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
 }
