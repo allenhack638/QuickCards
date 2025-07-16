@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
-import com.quickcards.app.data.database.QuickCardsDatabase
+import com.quickcards.app. data.database.QuickCardsDatabase
 import com.quickcards.app.security.AppLockManager
 import com.quickcards.app.security.BiometricAuthHelper
 import com.quickcards.app.security.UnifiedTimeoutManager

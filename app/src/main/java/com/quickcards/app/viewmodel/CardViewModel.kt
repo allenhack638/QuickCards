@@ -77,11 +77,16 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     fun insertCard(card: Card, onComplete: (() -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Ensure card has a valid ID
+                // Ensure card has a valid ID and color
                 val cardWithValidId = if (card.id.isBlank()) {
-                    card.copy(id = java.util.UUID.randomUUID().toString())
+                    card.copy(
+                        id = java.util.UUID.randomUUID().toString(),
+                        cardColor = Card.validateCardColor(card.cardColor, card.cardIssuer)
+                    )
                 } else {
-                    card
+                    card.copy(
+                        cardColor = Card.validateCardColor(card.cardColor, card.cardIssuer)
+                    )
                 }
                 
                 val encryptedCard = cardWithValidId.copy(
@@ -112,10 +117,15 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     fun updateCard(card: Card, onComplete: (() -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val encryptedCard = card.copy(
-                    cardNumber = encryptionHelper.encrypt(card.cardNumber),
-                    expiryDate = encryptionHelper.encrypt(card.expiryDate),
-                    cvv = encryptionHelper.encrypt(card.cvv),
+                // Validate and fix card color
+                val cardWithValidColor = card.copy(
+                    cardColor = Card.validateCardColor(card.cardColor, card.cardIssuer)
+                )
+                
+                val encryptedCard = cardWithValidColor.copy(
+                    cardNumber = encryptionHelper.encrypt(cardWithValidColor.cardNumber),
+                    expiryDate = encryptionHelper.encrypt(cardWithValidColor.expiryDate),
+                    cvv = encryptionHelper.encrypt(cardWithValidColor.cvv),
                     updatedAt = System.currentTimeMillis()
                 )
                 cardDao.updateCard(encryptedCard)
@@ -195,12 +205,46 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
-    // Method to fix any cards with empty IDs
+    // Method to fix any cards with empty IDs or invalid colors
     fun fixCardsWithEmptyIds() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // This would need to be implemented in DAO if needed
                 // For now, clearing all data and restarting should fix the issue
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+    
+    // Method to fix cards with missing or invalid colors
+    fun fixCardsWithInvalidColors() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val encryptedCards = cardDao.getAllCardsSync()
+                for (encryptedCard in encryptedCards) {
+                    val decryptedCard = getDecryptedCard(encryptedCard)
+                    val fixedCard = decryptedCard.copy(
+                        cardColor = Card.validateCardColor(decryptedCard.cardColor, decryptedCard.cardIssuer)
+                    )
+                    
+                    // Only update if color was actually fixed
+                    if (fixedCard.cardColor != decryptedCard.cardColor) {
+                        val updatedEncryptedCard = fixedCard.copy(
+                            cardNumber = encryptionHelper.encrypt(fixedCard.cardNumber),
+                            expiryDate = encryptionHelper.encrypt(fixedCard.expiryDate),
+                            cvv = encryptionHelper.encrypt(fixedCard.cvv),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                        cardDao.updateCard(updatedEncryptedCard)
+                        
+                        // Update cache
+                        decryptedCardCache[fixedCard.id] = fixedCard
+                    }
+                }
+                
+                // Refresh the cards list
+                refreshCardsList()
             } catch (e: Exception) {
                 // Handle error
             }
@@ -284,6 +328,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                 if (isValidCard(card)) {
                     val cardWithNewId = card.copy(
                         id = java.util.UUID.randomUUID().toString(),
+                        cardColor = Card.validateCardColor(card.cardColor, card.cardIssuer),
                         createdAt = System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis()
                     )

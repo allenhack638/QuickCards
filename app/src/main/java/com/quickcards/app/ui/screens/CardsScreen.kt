@@ -12,10 +12,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,9 +31,13 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.data.model.Card
+import com.quickcards.app.data.model.CardFilter
 import com.quickcards.app.security.CardOperationAuthManager
 import com.quickcards.app.ui.components.CardItem
+import com.quickcards.app.ui.components.FilterChipsRow
+import com.quickcards.app.ui.components.FilterDialog
 import com.quickcards.app.ui.components.SearchBar
+import com.quickcards.app.utils.FilterManager
 import com.quickcards.app.viewmodel.CardViewModel
 import com.quickcards.app.utils.KeyboardVisibilityHandler
 import kotlinx.coroutines.launch
@@ -44,11 +50,13 @@ fun CardsScreen(
 ) {
     val context = LocalContext.current
     val cardAuthManager = CardOperationAuthManager.getInstance(context)
+    val filterManager = FilterManager.getInstance(context)
     val scope = rememberCoroutineScope()
     val cards by cardViewModel.allCards.observeAsState(emptyList())
     val searchQuery by cardViewModel.searchQuery.observeAsState("")
     val searchResults by cardViewModel.searchResults.observeAsState(emptyList())
     val isLoading by cardViewModel.isLoading.observeAsState(false)
+    val filterState by filterManager.filterState.collectAsState()
     
     // Detect keyboard visibility
     val isKeyboardVisible by KeyboardVisibilityHandler.rememberKeyboardVisibilityState()
@@ -58,6 +66,7 @@ fun CardsScreen(
     val coroutineScope = rememberCoroutineScope()
     
     var showSearchBar by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
     var isSelectionMode by remember { mutableStateOf(false) }
     var selectedCards by remember { mutableStateOf<Set<String>>(emptySet()) }
     var showLongPressMenu by remember { mutableStateOf(false) }
@@ -71,6 +80,11 @@ fun CardsScreen(
     // Refresh cards when screen becomes active
     LaunchedEffect(Unit) {
         cardViewModel.forceRefreshCards()
+    }
+    
+    // Update filter options when cards change
+    LaunchedEffect(cards) {
+        filterManager.updateAvailableOptions(cards)
     }
     
     // Scroll to top when new cards are added
@@ -183,10 +197,28 @@ fun CardsScreen(
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete")
                         }
-                    }
-                )
-            }
-        }
+                                }
+        )
+    }
+    
+    // Filter Dialog
+    if (showFilterDialog) {
+        FilterDialog(
+            filterState = filterState,
+            onFilterSelected = { filter ->
+                filterManager.addFilter(filter)
+                // Show brief feedback
+                android.widget.Toast.makeText(context, "Filter applied", android.widget.Toast.LENGTH_SHORT).show()
+            },
+            onFilterDeselected = { filter ->
+                filterManager.removeFilter(filter)
+                // Show brief feedback
+                android.widget.Toast.makeText(context, "Filter removed", android.widget.Toast.LENGTH_SHORT).show()
+            },
+            onDismiss = { showFilterDialog = false }
+        )
+    }
+}
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -214,10 +246,33 @@ fun CardsScreen(
                                 contentDescription = "Search Cards"
                             )
                         }
+                        IconButton(
+                            onClick = { showFilterDialog = true }
+                        ) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = "Filter Cards",
+                                tint = if (filterState.hasActiveFilters()) 
+                                    MaterialTheme.colorScheme.primary 
+                                else 
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
+                
+                // Filter Chips
+                FilterChipsRow(
+                    activeFilters = filterState.activeFilters,
+                    onRemoveFilter = { filter ->
+                        filterManager.removeFilter(filter)
+                    },
+                    onClearAll = {
+                        filterManager.clearAllFilters()
+                    }
+                )
                 
                 // Search Bar
                 if (showSearchBar) {
@@ -232,9 +287,21 @@ fun CardsScreen(
             }
             
             // Cards List (optimized with derivedStateOf)
-            val displayCards by remember {
+            val displayCards by remember(filterState) {
                 derivedStateOf {
-                    if (searchQuery.isNotBlank()) searchResults else cards
+                    val filteredCards = filterManager.applyFilters(cards)
+                    if (searchQuery.isNotBlank()) {
+                        // Apply search to filtered cards
+                        filteredCards.filter { card ->
+                            card.bankName.contains(searchQuery, ignoreCase = true) ||
+                            card.cardIssuer.contains(searchQuery, ignoreCase = true) ||
+                            card.cardType.contains(searchQuery, ignoreCase = true) ||
+                            card.owner.contains(searchQuery, ignoreCase = true) ||
+                            card.description.contains(searchQuery, ignoreCase = true)
+                        }
+                    } else {
+                        filteredCards
+                    }
                 }
             }
             

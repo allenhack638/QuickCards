@@ -23,6 +23,20 @@ data class Card(
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     companion object {
+        // Default colors for different card issuers
+        private val DEFAULT_COLORS = mapOf(
+            "Visa" to "#1A1F71",
+            "Mastercard" to "#EB001B",
+            "American Express" to "#006FCF",
+            "Discover" to "#FF6000",
+            "RuPay" to "#E31837",
+            "Diners Club" to "#0079BE",
+            "JCB" to "#0B4EA2",
+            "UnionPay" to "#E31837",
+            "Bajaj Finserv" to "#FF6B35",
+            "HDFC Bank" to "#00A651"
+        )
+        
         // Helper function to determine card type from number
         fun getCardTypeFromNumber(number: String): String {
             return when {
@@ -31,6 +45,21 @@ data class Card(
                 number.startsWith("3") -> "American Express"
                 number.startsWith("6") -> "Discover"
                 else -> "Unknown"
+            }
+        }
+        
+        // Helper function to get default color for card issuer
+        fun getDefaultColorForIssuer(issuer: String): String {
+            return DEFAULT_COLORS[issuer] ?: "#2196F3" // Default blue if issuer not found
+        }
+        
+        // Helper function to validate and fix card color
+        fun validateCardColor(color: String?, issuer: String): String {
+            return when {
+                color.isNullOrBlank() -> getDefaultColorForIssuer(issuer)
+                !color.startsWith("#") -> "#$color"
+                color.length != 7 -> getDefaultColorForIssuer(issuer) // Invalid hex color
+                else -> color
             }
         }
     }
