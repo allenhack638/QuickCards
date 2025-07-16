@@ -29,6 +29,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.data.model.Card
+import com.quickcards.app.security.CardOperationAuthManager
 import com.quickcards.app.ui.components.CardItem
 import com.quickcards.app.ui.components.SearchBar
 import com.quickcards.app.viewmodel.CardViewModel
@@ -42,6 +43,8 @@ fun CardsScreen(
     cardViewModel: CardViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val cardAuthManager = CardOperationAuthManager.getInstance(context)
+    val scope = rememberCoroutineScope()
     val cards by cardViewModel.allCards.observeAsState(emptyList())
     val searchQuery by cardViewModel.searchQuery.observeAsState("")
     val searchResults by cardViewModel.searchResults.observeAsState(emptyList())
@@ -111,8 +114,17 @@ fun CardsScreen(
                 navController.navigate("edit_card/${card.id}")
             }
             "delete" -> {
-                cardToDelete = card
-                showDeleteDialog = true
+                scope.launch {
+                    // Require authentication for deleting
+                    val isAuthenticated = cardAuthManager.authenticateForCardDelete(context as androidx.fragment.app.FragmentActivity)
+                    if (isAuthenticated) {
+                        cardToDelete = card
+                        showDeleteDialog = true
+                    } else {
+                        // Show user feedback for authentication failure
+                        android.widget.Toast.makeText(context, "Authentication required to delete card", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             "select" -> {
                 isSelectionMode = true
@@ -156,7 +168,18 @@ fun CardsScreen(
                         
                         // Delete button
                         IconButton(
-                            onClick = { showDeleteDialog = true }
+                            onClick = {
+                                scope.launch {
+                                    // Require authentication for deleting
+                                    val isAuthenticated = cardAuthManager.authenticateForCardDelete(context as androidx.fragment.app.FragmentActivity)
+                                    if (isAuthenticated) {
+                                        showDeleteDialog = true
+                                    } else {
+                                        // Show user feedback for authentication failure
+                                        android.widget.Toast.makeText(context, "Authentication required to delete cards", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete")
                         }
@@ -412,14 +435,30 @@ fun CardsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        if (isSelectionMode) {
-                            deleteSelectedCards()
-                        } else {
-                            cardToDelete?.let { card ->
-                                cardViewModel.deleteCardById(card.id)
+                        scope.launch {
+                            if (isSelectionMode) {
+                                // For multiple deletion, authenticate once
+                                val isAuthenticated = cardAuthManager.authenticateForCardDelete(context as androidx.fragment.app.FragmentActivity)
+                                if (isAuthenticated) {
+                                    deleteSelectedCards()
+                                } else {
+                                    // Show user feedback for authentication failure
+                                    android.widget.Toast.makeText(context, "Authentication required to delete cards", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                // For single deletion, authenticate
+                                val isAuthenticated = cardAuthManager.authenticateForCardDelete(context as androidx.fragment.app.FragmentActivity)
+                                if (isAuthenticated) {
+                                    cardToDelete?.let { card ->
+                                        cardViewModel.deleteCardById(card.id)
+                                    }
+                                    showDeleteDialog = false
+                                    cardToDelete = null
+                                } else {
+                                    // Show user feedback for authentication failure
+                                    android.widget.Toast.makeText(context, "Authentication required to delete card", android.widget.Toast.LENGTH_SHORT).show()
+                                }
                             }
-                            showDeleteDialog = false
-                            cardToDelete = null
                         }
                     }
                 ) {

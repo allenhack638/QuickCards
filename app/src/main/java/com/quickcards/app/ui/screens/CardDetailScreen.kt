@@ -31,8 +31,10 @@ import androidx.navigation.NavController
 import com.quickcards.app.data.model.Card
 import com.quickcards.app.security.BiometricAuthHelper
 import com.quickcards.app.security.CVVVisibilityManager
+import com.quickcards.app.security.CardOperationAuthManager
 import com.quickcards.app.viewmodel.CardViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +45,8 @@ fun CardDetailScreen(
 ) {
     val context = LocalContext.current
     val biometricAuthHelper = BiometricAuthHelper(context)
+    val cardAuthManager = CardOperationAuthManager.getInstance(context)
+    val scope = rememberCoroutineScope()
     
     var card by remember { mutableStateOf<Card?>(null) }
     var decryptedCard by remember { mutableStateOf<Card?>(null) }
@@ -91,9 +95,19 @@ fun CardDetailScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        card?.let { cardViewModel.deleteCard(it) }
-                        showDeleteDialog = false
-                        navController.popBackStack()
+                        scope.launch {
+                            // Require authentication before deleting
+                            val isAuthenticated = cardAuthManager.authenticateForCardDelete(context as androidx.fragment.app.FragmentActivity)
+                            if (isAuthenticated) {
+                                card?.let { cardViewModel.deleteCard(it) }
+                                showDeleteDialog = false
+                                navController.popBackStack()
+                            } else {
+                                showDeleteDialog = false
+                                // Show user feedback for authentication failure
+                                android.widget.Toast.makeText(context, "Authentication required to delete card", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 ) {
                     Text("Delete")
@@ -117,7 +131,9 @@ fun CardDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate("edit_card/$cardId") }) {
+                    IconButton(
+                        onClick = { navController.navigate("edit_card/$cardId") }
+                    ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
                     IconButton(onClick = { showDeleteDialog = true }) {

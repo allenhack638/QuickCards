@@ -35,12 +35,14 @@ import androidx.compose.ui.platform.LocalAutofillTree
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.data.model.Card
+import com.quickcards.app.security.CardOperationAuthManager
 import com.quickcards.app.ui.components.payment.FormattedCardNumberField
 import com.quickcards.app.ui.components.payment.FormattedExpirationField
 import com.quickcards.app.ui.components.payment.FormattedCVVField
 import com.quickcards.app.utils.PaymentInputFormatter
 import com.quickcards.app.viewmodel.BankViewModel
 import com.quickcards.app.viewmodel.CardViewModel
+import kotlinx.coroutines.launch
 
 // Extension function to add autofill support
 @ExperimentalComposeUiApi
@@ -77,6 +79,8 @@ fun AddEditCardScreen(
 ) {
     val context = LocalContext.current
     val isEditing = cardId != null
+    val cardAuthManager = CardOperationAuthManager.getInstance(context)
+    val scope = rememberCoroutineScope()
     
     // State variables
     var cardNumber by remember { mutableStateOf("") }
@@ -172,37 +176,50 @@ fun AddEditCardScreen(
                     // Save/Update Button - Elegant and clean in top right with proper margin
                     TextButton(
                         onClick = {
-                            isLoading = true
-                            val card = Card(
-                                id = cardId ?: "",
-                                cardNumber = cardNumber,
-                                owner = owner,
-                                expiryDate = expiryDate,
-                                cvv = cvv,
-                                description = description,
-                                bankName = selectedBank,
-                                cardType = selectedCardType,
-                                cardIssuer = selectedCardIssuer,
-                                cardVariant = selectedCardVariant,
-                                tags = emptyList() // Remove tags functionality
-                            )
-                            
-                            if (isEditing) {
-                                cardViewModel.updateCard(card) {
-                                    isLoading = false
-                                    // Navigate after successful update
-                                    navController.navigate("cards") {
-                                        popUpTo("cards") { inclusive = false }
-                                        launchSingleTop = true
+                            scope.launch {
+                                if (isEditing) {
+                                    // Require authentication for editing
+                                    val isAuthenticated = cardAuthManager.authenticateForCardEdit(context as androidx.fragment.app.FragmentActivity)
+                                    if (!isAuthenticated) {
+                                        isLoading = false
+                                        // Show user feedback for authentication failure
+                                        android.widget.Toast.makeText(context, "Authentication required to edit card", android.widget.Toast.LENGTH_SHORT).show()
+                                        return@launch
                                     }
                                 }
-                            } else {
-                                cardViewModel.insertCard(card) {
-                                    isLoading = false
-                                    // Navigate after successful insert
-                            navController.navigate("cards") {
-                                popUpTo("cards") { inclusive = false }
-                                launchSingleTop = true
+                                
+                                isLoading = true
+                                val card = Card(
+                                    id = cardId ?: "",
+                                    cardNumber = cardNumber,
+                                    owner = owner,
+                                    expiryDate = expiryDate,
+                                    cvv = cvv,
+                                    description = description,
+                                    bankName = selectedBank,
+                                    cardType = selectedCardType,
+                                    cardIssuer = selectedCardIssuer,
+                                    cardVariant = selectedCardVariant,
+                                    tags = emptyList() // Remove tags functionality
+                                )
+                                
+                                if (isEditing) {
+                                    cardViewModel.updateCard(card) {
+                                        isLoading = false
+                                        // Navigate after successful update
+                                        navController.navigate("cards") {
+                                            popUpTo("cards") { inclusive = false }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                } else {
+                                    cardViewModel.insertCard(card) {
+                                        isLoading = false
+                                        // Navigate after successful insert
+                                navController.navigate("cards") {
+                                    popUpTo("cards") { inclusive = false }
+                                    launchSingleTop = true
+                                        }
                                     }
                                 }
                             }
