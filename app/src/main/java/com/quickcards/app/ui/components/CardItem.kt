@@ -81,72 +81,19 @@ fun CardItem(
         }
     }
     
-    // Define gradient colors based on card issuer
-    val cardGradient = when (card.cardIssuer) {
-        "Visa" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF4A90E2), // Blue
-                Color(0xFF357ABD)  // Darker blue
-            )
+    // Define gradient colors based on card's custom color
+    val cardGradient = try {
+        val baseColor = Color(android.graphics.Color.parseColor(card.cardColor))
+        val darkerColor = baseColor.copy(alpha = 0.8f)
+        Brush.linearGradient(
+            colors = listOf(baseColor, darkerColor)
         )
-        "Mastercard" -> Brush.linearGradient(
+    } catch (e: Exception) {
+        // Fallback to default blue gradient if color parsing fails
+        Brush.linearGradient(
             colors = listOf(
-                Color(0xFF2C3E50), // Dark blue-gray
-                Color(0xFF34495E)  // Lighter dark
-            )
-        )
-        "American Express" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF00B894), // Green
-                Color(0xFF00A085)  // Darker green
-            )
-        )
-        "Discover" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFE17055), // Orange
-                Color(0xFFD63031)  // Red-orange
-            )
-        )
-        "RuPay" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF9B59B6), // Purple
-                Color(0xFF8E44AD)  // Darker purple
-            )
-        )
-        "Diners Club" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF34495E), // Dark gray
-                Color(0xFF2C3E50)  // Darker gray
-            )
-        )
-        "JCB" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFE74C3C), // Red
-                Color(0xFFC0392B)  // Darker red
-            )
-        )
-        "UnionPay" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF3498DB), // Light blue
-                Color(0xFF2980B9)  // Darker blue
-            )
-        )
-        "Bajaj Finserv" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFFF7675), // Light red
-                Color(0xFFE84393)  // Pink
-            )
-        )
-        "HDFC Bank" -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF00B894), // Teal
-                Color(0xFF00A085)  // Darker teal
-            )
-        )
-        else -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF636E72), // Gray
-                Color(0xFF2D3436)  // Darker gray
+                Color(0xFF2196F3), // Blue
+                Color(0xFF1976D2)  // Darker blue
             )
         )
     }

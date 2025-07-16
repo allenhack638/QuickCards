@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -176,78 +177,101 @@ fun CardDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = cardData.bankName,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                try {
+                                    val baseColor = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(cardData.cardColor))
+                                    val darkerColor = baseColor.copy(alpha = 0.8f)
+                                    androidx.compose.ui.graphics.Brush.linearGradient(
+                                        colors = listOf(baseColor, darkerColor)
+                                    )
+                                } catch (e: Exception) {
+                                    androidx.compose.ui.graphics.Brush.linearGradient(
+                                        colors = listOf(
+                                            androidx.compose.ui.graphics.Color(0xFF2196F3),
+                                            androidx.compose.ui.graphics.Color(0xFF1976D2)
+                                        )
+                                    )
+                                }
                             )
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.surface
+                            .padding(20.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = Card.getCardTypeFromNumber(cardData.cardNumber),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
-                        }
-                        
-                        Spacer(modifier = Modifier.height(32.dp))
-                        
-                        Text(
-                            text = formatCardNumber(cardData.cardNumber),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column {
-                                Text(
-                                    text = "VALID THRU",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = cardData.expiryDate,
-                                    style = MaterialTheme.typography.titleMedium,
+                                    text = cardData.bankName,
+                                    style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = androidx.compose.ui.graphics.Color.White
                                 )
-                            }
-                            
-                            Column {
-                                Text(
-                                    text = "CVV",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f)
                                 ) {
                                     Text(
-                                        text = if (showCvv) cardData.cvv else "***",
+                                        text = Card.getCardTypeFromNumber(cardData.cardNumber),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = androidx.compose.ui.graphics.Color.White,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.height(32.dp))
+                            
+                            Text(
+                                text = formatCardNumber(cardData.cardNumber),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = androidx.compose.ui.graphics.Color.White
+                            )
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "VALID THRU",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f)
+                                    )
+                                    Text(
+                                        text = cardData.expiryDate,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        color = androidx.compose.ui.graphics.Color.White
                                     )
+                                }
+                                
+                                Column {
+                                    Text(
+                                        text = "CVV",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f)
+                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = if (showCvv) cardData.cvv else "***",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = androidx.compose.ui.graphics.Color.White
+                                        )
+                                    }
                                 }
                             }
                         }

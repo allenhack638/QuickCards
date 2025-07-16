@@ -18,6 +18,7 @@ data class Card(
     val owner: String = "me", // Card owner name
     val tags: List<String> = emptyList(),
     val description: String = "",
+    val cardColor: String = "#2196F3", // Default blue color for card theme
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {

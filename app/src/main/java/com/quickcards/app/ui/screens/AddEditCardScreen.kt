@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.data.model.Card
 import com.quickcards.app.security.CardOperationAuthManager
+import com.quickcards.app.ui.components.ColorPalette
 import com.quickcards.app.ui.components.payment.FormattedCardNumberField
 import com.quickcards.app.ui.components.payment.FormattedExpirationField
 import com.quickcards.app.ui.components.payment.FormattedCVVField
@@ -93,6 +94,7 @@ fun AddEditCardScreen(
     var selectedCardType by remember { mutableStateOf("Credit") }
     var selectedCardIssuer by remember { mutableStateOf("Visa") }
     var selectedCardVariant by remember { mutableStateOf("Standard") }
+    var selectedCardColor by remember { mutableStateOf("#2196F3") } // Default blue color
     var cardType by remember { mutableStateOf(PaymentInputFormatter.CardType.UNKNOWN) }
     var isLoading by remember { mutableStateOf(false) }
     
@@ -156,6 +158,7 @@ fun AddEditCardScreen(
                     selectedCardType = it.cardType
                     selectedCardIssuer = it.cardIssuer
                     selectedCardVariant = it.cardVariant
+                    selectedCardColor = it.cardColor
                 }
             } catch (e: Exception) {
                 // Handle error
@@ -197,10 +200,11 @@ fun AddEditCardScreen(
                                     cvv = cvv,
                                     description = description,
                                     bankName = selectedBank,
-                                    cardType = selectedCardType,
-                                    cardIssuer = selectedCardIssuer,
-                                    cardVariant = selectedCardVariant,
-                                    tags = emptyList() // Remove tags functionality
+                                                                    cardType = selectedCardType,
+                                cardIssuer = selectedCardIssuer,
+                                cardVariant = selectedCardVariant,
+                                cardColor = selectedCardColor,
+                                tags = emptyList() // Remove tags functionality
                                 )
                                 
                                 if (isEditing) {
@@ -544,6 +548,13 @@ fun AddEditCardScreen(
                     }
                 }
             }
+            
+            // Card Color Selection
+            ColorPalette(
+                selectedColor = selectedCardColor,
+                onColorSelected = { selectedCardColor = it },
+                modifier = Modifier.fillMaxWidth()
+            )
             
             // Description (Now positioned at the bottom as requested)
             OutlinedTextField(
