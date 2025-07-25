@@ -72,4 +72,4 @@ class CardOperationAuthManager private constructor(private val context: Context)
     suspend fun authenticateForCardDelete(activity: FragmentActivity): Boolean {
         return authenticateForCardOperation(activity, "delete card")
     }
-} 
+}

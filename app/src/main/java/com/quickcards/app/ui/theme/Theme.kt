@@ -17,17 +17,36 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryTeal,
-    secondary = SecondaryGold,
+    // Primary colors - using brighter variants for better contrast on black
+    primary = PrimaryTealDark,
+    secondary = SecondaryGoldDark,
     tertiary = SuccessGreen,
-    background = Color(0xFF121212),
-    surface = Color(0xFF1E1E1E),
-    onPrimary = BackgroundLight,
-    onSecondary = TextPrimary,
-    onTertiary = BackgroundLight,
-    onBackground = BackgroundLight,
-    onSurface = BackgroundLight,
-    error = ErrorRed
+    
+    // Pure pitch black backgrounds
+    background = BackgroundDark,           // Pure black #000000
+    surface = SurfaceDark,                 // Pure black #000000
+    surfaceVariant = SurfaceVariantDark,   // Slightly elevated black #0A0A0A
+    
+    // Text colors on backgrounds
+    onPrimary = TextPrimaryDark,           // White text on primary
+    onSecondary = BackgroundDark,          // Black text on gold/yellow
+    onTertiary = TextPrimaryDark,          // White text on green
+    onBackground = TextPrimaryDark,        // White text on black background
+    onSurface = TextPrimaryDark,           // White text on black surface
+    onSurfaceVariant = TextSecondaryDark,  // Light grey text on surface variant
+    
+    // Additional surface colors
+    surfaceContainer = SurfaceDark,
+    surfaceContainerHigh = SurfaceVariantDark,
+    surfaceContainerHighest = BorderDark,
+    
+    // Outline and borders
+    outline = DividerDark,
+    outlineVariant = BorderDark,
+    
+    // Error colors
+    error = ErrorRed,
+    onError = TextPrimaryDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -63,8 +82,11 @@ fun QuickCardsTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            // Set status bar to pure black in dark theme, primary color in light theme
+            window.statusBarColor = if (darkTheme) BackgroundDark.toArgb() else colorScheme.primary.toArgb()
+            // Set navigation bar to match background
+            window.navigationBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

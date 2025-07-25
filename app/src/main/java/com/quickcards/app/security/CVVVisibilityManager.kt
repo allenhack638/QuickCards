@@ -91,4 +91,4 @@ class CVVVisibilityManager : ViewModel() {
         super.onCleared()
         hideJob?.cancel()
     }
-} 
+}
