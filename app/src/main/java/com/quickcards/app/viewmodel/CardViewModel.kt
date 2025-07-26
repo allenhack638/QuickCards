@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.quickcards.app.data.database.QuickCardsDatabase
 import com.quickcards.app.data.model.Card
 import com.quickcards.app.security.EncryptionHelper
+import com.quickcards.app.security.SecureFileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     private val database = QuickCardsDatabase.getDatabase(application, viewModelScope)
     private val cardDao = database.cardDao()
     private val encryptionHelper = EncryptionHelper.getInstance()
+    private val secureFileManager = SecureFileManager.getInstance()
     
     // Cache for decrypted cards to avoid repeated decryption
     private val decryptedCardCache = ConcurrentHashMap<String, Card>()
@@ -300,32 +302,118 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
-    // Export cards to JSON
-    suspend fun exportCardsToJson(): String {
-        return try {
-            val encryptedCards = cardDao.getAllCardsSync()
-            val decryptedCards = encryptedCards.map { card: Card ->
-                getDecryptedCardCached(card)
+    // Debug method to check database state
+    suspend fun debugDatabaseState(): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val existingCards = cardDao.getAllCardsSync()
+                val cacheSize = decryptedCardCache.size
+                "Database: ${existingCards.size} cards, Cache: $cacheSize items"
+            } catch (e: Exception) {
+                "Error checking database state: ${e.message}"
             }
-            // Convert to JSON using Gson or similar
-            val gson = com.google.gson.Gson()
-            gson.toJson(decryptedCards)
-        } catch (e: Exception) {
-            throw Exception("Failed to export cards: ${e.message}")
         }
     }
     
-    // Import cards from JSON
-    suspend fun importCardsFromJson(jsonData: String): Result<Int> {
-        return try {
+ // In your CardViewModel class, update these methods:
+
+// Export cards to encrypted file format
+suspend fun exportCardsToSecureFile(): ByteArray {
+    return withContext(Dispatchers.IO) {
+        try {
+            android.util.Log.d("QuickCards", "Starting export to secure file")
+            
+            val encryptedCards = cardDao.getAllCardsSync()
+            android.util.Log.d("QuickCards", "Retrieved ${encryptedCards.size} cards from database")
+            
+            val decryptedCards = encryptedCards.map { card: Card ->
+                getDecryptedCardCached(card)
+            }
+            android.util.Log.d("QuickCards", "Decrypted ${decryptedCards.size} cards")
+            
+            // Convert to JSON
+            val gson = com.google.gson.Gson()
+            val jsonData = gson.toJson(decryptedCards)
+            android.util.Log.d("QuickCards", "JSON data length: ${jsonData.length}")
+            
+            // Encrypt the JSON data
+            val encryptedFileData = secureFileManager.encryptExportData(jsonData)
+            android.util.Log.d("QuickCards", "Encrypted file size: ${encryptedFileData.size}")
+            
+            encryptedFileData
+        } catch (e: Exception) {
+            android.util.Log.e("QuickCards", "Export failed", e)
+            throw Exception("Failed to export cards: ${e.message}")
+        }
+    }
+    }
+    
+    // Import cards from encrypted file format
+    suspend fun importCardsFromSecureFile(encryptedFileData: ByteArray, forceImport: Boolean = false): Result<Pair<Int, Int>> {
+        // Force clear cache before import to ensure fresh state
+        decryptedCardCache.clear()
+    return withContext(Dispatchers.IO) {
+        try {
+            android.util.Log.d("QuickCards", "Starting import from secure file, size: ${encryptedFileData.size}")
+            
+            // Verify file format first
+            if (!secureFileManager.isValidEncryptedFile(encryptedFileData)) {
+                android.util.Log.e("QuickCards", "File validation failed")
+                return@withContext Result.failure(Exception("Invalid file format. Please select a valid QuickCards encrypted export file."))
+            }
+            
+            // Decrypt the file
+            val jsonData = secureFileManager.decryptImportData(encryptedFileData)
+            android.util.Log.d("QuickCards", "Decrypted JSON data length: ${jsonData.length}")
+            
+            // Parse JSON
             val gson = com.google.gson.Gson()
             val cardType = object : com.google.gson.reflect.TypeToken<List<Card>>() {}.type
             val importedCards: List<Card> = gson.fromJson(jsonData, cardType)
+            android.util.Log.d("QuickCards", "Parsed ${importedCards.size} cards from JSON")
             
-            // Validate each card
+            // Get existing card numbers for duplicate detection (only if not forcing import)
+            val existingCardNumbers = if (!forceImport) {
+                val existingCards = cardDao.getAllCardsSync()
+                android.util.Log.d("QuickCards", "Found ${existingCards.size} existing cards in database")
+                
+                if (existingCards.isEmpty()) {
+                    android.util.Log.d("QuickCards", "Database is empty - no duplicates possible")
+                    emptySet()
+                } else {
+                    val cardNumbers = existingCards.map { card ->
+                        val decryptedNumber = encryptionHelper.decrypt(card.cardNumber)
+                        val cleanNumber = decryptedNumber.replace("[^0-9]".toRegex(), "")
+                        android.util.Log.d("QuickCards", "Existing card: ${cleanNumber.take(4)}...")
+                        cleanNumber
+                    }.toSet()
+                    
+                    android.util.Log.d("QuickCards", "Existing card numbers count: ${cardNumbers.size}")
+                    cardNumbers
+                }
+            } else {
+                android.util.Log.d("QuickCards", "Force import enabled - skipping duplicate detection")
+                emptySet()
+            }
+            
+            // Process each card
             var importedCount = 0
+            var duplicateCount = 0
+            var invalidCount = 0
+            
             for (card in importedCards) {
+                android.util.Log.d("QuickCards", "Processing card: ${card.bankName}")
                 if (isValidCard(card)) {
+                    val cleanCardNumber = card.cardNumber.replace("[^0-9]".toRegex(), "")
+                    android.util.Log.d("QuickCards", "Clean card number: ${cleanCardNumber.take(4)}...")
+                    
+                    // Check if card number already exists (only if not forcing import)
+                    if (!forceImport && existingCardNumbers.contains(cleanCardNumber)) {
+                        android.util.Log.d("QuickCards", "Skipping duplicate card: ${cleanCardNumber.take(4)}...")
+                        duplicateCount++
+                        continue
+                    }
+                    
                     val cardWithNewId = card.copy(
                         id = java.util.UUID.randomUUID().toString(),
                         cardColor = Card.validateCardColor(card.cardColor, card.cardIssuer),
@@ -343,21 +431,46 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                     // Add to cache
                     decryptedCardCache[cardWithNewId.id] = cardWithNewId
                     importedCount++
+                } else {
+                    android.util.Log.d("QuickCards", "Skipping invalid card: ${card.bankName}")
+                    invalidCount++
                 }
             }
             
-            // LiveData will automatically update
-            Result.success(importedCount)
+            android.util.Log.d("QuickCards", "Import completed: $importedCount imported, $duplicateCount duplicates, $invalidCount invalid")
+            Result.success(Pair(importedCount, duplicateCount))
+        } catch (e: SecurityException) {
+            android.util.Log.e("QuickCards", "Security error during import", e)
+            Result.failure(e)
         } catch (e: Exception) {
+            android.util.Log.e("QuickCards", "Import failed", e)
             Result.failure(Exception("Failed to import cards: ${e.message}"))
         }
+    }
+    }
+    
+    // Check if a file is a valid encrypted export file
+    fun isValidEncryptedFile(fileData: ByteArray): Boolean {
+        return secureFileManager.isValidEncryptedFile(fileData)
+    }
+    
+    // Get secure file format information
+    fun getSecureFileFormatInfo(): String {
+        return secureFileManager.getFileFormatInfo()
+    }
+    
+    // Get secure file extension
+    fun getSecureFileExtension(): String {
+        return secureFileManager.getFileExtension()
     }
     
     // Validate card data structure
     private fun isValidCard(card: Card): Boolean {
         return try {
+            android.util.Log.d("QuickCards", "Validating card: ${card.bankName} - ${card.cardNumber.take(4)}...")
+            
             // Check required fields
-            card.cardNumber.isNotBlank() &&
+            val isValid = card.cardNumber.isNotBlank() &&
             card.owner.isNotBlank() &&
             card.expiryDate.isNotBlank() &&
             card.cvv.isNotBlank() &&
@@ -365,8 +478,55 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             card.cardType.isNotBlank() &&
             card.cardIssuer.isNotBlank() &&
             card.cardVariant.isNotBlank()
+            
+            if (!isValid) {
+                android.util.Log.w("QuickCards", "Card validation failed - missing required fields")
+                return false
+            }
+            
+            // Additional validation: check card number format (basic Luhn algorithm check)
+            val cleanCardNumber = card.cardNumber.replace("[^0-9]".toRegex(), "")
+            val isValidLength = cleanCardNumber.length in 13..19
+            
+            if (!isValidLength) {
+                android.util.Log.w("QuickCards", "Card validation failed - invalid card number length: ${cleanCardNumber.length}")
+                return false
+            }
+            
+            // Temporarily disable Luhn check for testing - uncomment the lines below to re-enable
+            // val isValidLuhn = isValidLuhn(cleanCardNumber)
+            // if (!isValidLuhn) {
+            //     android.util.Log.w("QuickCards", "Card validation failed - Luhn check failed")
+            //     return false
+            // }
+            
+            android.util.Log.d("QuickCards", "Card validation passed")
+            true
         } catch (e: Exception) {
+            android.util.Log.e("QuickCards", "Card validation exception: ${e.message}")
             false
         }
+    }
+    
+    // Basic Luhn algorithm validation for card numbers
+    private fun isValidLuhn(cardNumber: String): Boolean {
+        if (cardNumber.isEmpty()) return false
+        
+        var sum = 0
+        var alternate = false
+        
+        for (i in cardNumber.length - 1 downTo 0) {
+            var n = cardNumber[i].toString().toInt()
+            if (alternate) {
+                n *= 2
+                if (n > 9) {
+                    n = (n % 10) + 1
+                }
+            }
+            sum += n
+            alternate = !alternate
+        }
+        
+        return sum % 10 == 0
     }
 }

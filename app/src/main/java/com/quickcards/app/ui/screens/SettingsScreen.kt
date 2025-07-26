@@ -28,6 +28,9 @@ import com.quickcards.app.utils.ResponsiveDimensions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quickcards.app.security.BiometricAuthHelper
+import com.quickcards.app.security.SecureFileManager
+import com.quickcards.app.security.SecurityManager
+import androidx.fragment.app.FragmentActivity
 import com.quickcards.app.viewmodel.BankViewModel
 import com.quickcards.app.viewmodel.CardViewModel
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +50,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val biometricAuthHelper = BiometricAuthHelper(context)
+    val secureFileManager = SecureFileManager.getInstance()
     val coroutineScope = rememberCoroutineScope()
     
     val cards by cardViewModel.allCards.observeAsState(emptyList())
@@ -56,20 +60,22 @@ fun SettingsScreen(
     var isLoading by remember { mutableStateOf(false) }
     var isExporting by remember { mutableStateOf(false) }
     var isImporting by remember { mutableStateOf(false) }
+    var showDuplicateDialog by remember { mutableStateOf(false) }
+    var pendingImportData by remember { mutableStateOf<ByteArray?>(null) }
     
     // Export launcher
     val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
+        contract = ActivityResultContracts.CreateDocument("application/octet-stream")
     ) { uri ->
         uri?.let {
             coroutineScope.launch {
                 isExporting = true
                 try {
-                    val jsonData = cardViewModel.exportCardsToJson()
+                    val encryptedData = cardViewModel.exportCardsToSecureFile()
                     context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                        outputStream.write(jsonData.toByteArray())
+                        outputStream.write(encryptedData)
                     }
-                    Toast.makeText(context, "Cards exported successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Cards exported successfully to encrypted file", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
                     Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
                 } finally {
@@ -79,6 +85,36 @@ fun SettingsScreen(
         }
     }
     
+    // Function to handle export with authentication
+    fun handleExportWithAuth() {
+        if (biometricAuthHelper.isAuthenticationAvailable()) {
+            biometricAuthHelper.authenticateUser(
+                context as androidx.fragment.app.FragmentActivity,
+                object : BiometricAuthHelper.AuthenticationCallback {
+                    override fun onAuthenticationSuccess() {
+                        exportLauncher.launch("QuickCards_Backup_${System.currentTimeMillis()}.qcex")
+                    }
+                    
+                    override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
+                        Toast.makeText(context, "Authentication error: ${biometricAuthHelper.getErrorMessage(errorCode)}", Toast.LENGTH_LONG).show()
+                    }
+                    
+                    override fun onAuthenticationFailed() {
+                        Toast.makeText(context, "Authentication failed. Please try again.", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                "Export Cards",
+                "Authenticate to export your cards",
+                "Your card data will be encrypted and exported securely"
+            )
+        } else {
+            // Fallback: export without authentication if no auth is available
+            exportLauncher.launch("QuickCards_Backup_${System.currentTimeMillis()}.qcex")
+        }
+    }
+    
+
+    
     // Import launcher
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -87,18 +123,61 @@ fun SettingsScreen(
             coroutineScope.launch {
                 isImporting = true
                 try {
-                    val jsonData = context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                        BufferedReader(InputStreamReader(inputStream)).readText()
+                    val fileData = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        inputStream.readBytes()
                     }
                     
-                    if (jsonData != null) {
-                        val result = cardViewModel.importCardsFromJson(jsonData)
-                        if (result.isSuccess) {
-                            val importedCount = result.getOrNull() ?: 0
-                            Toast.makeText(context, "Successfully imported $importedCount cards", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(context, "Import failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    if (fileData != null) {
+                        // Debug: Log file size and first few bytes
+                        android.util.Log.d("QuickCards", "Import file size: ${fileData.size} bytes")
+                        if (fileData.size >= 4) {
+                            val header = String(fileData.sliceArray(0..3), Charsets.UTF_8)
+                            android.util.Log.d("QuickCards", "File header: '$header'")
                         }
+                        
+                        // Try to import as encrypted file first
+                        if (cardViewModel.isValidEncryptedFile(fileData)) {
+                            android.util.Log.d("QuickCards", "File appears to be valid encrypted format")
+                            val result = cardViewModel.importCardsFromSecureFile(fileData)
+                            if (result.isSuccess) {
+                                val (importedCount, skippedCount) = result.getOrNull() ?: Pair(0, 0)
+                                if (skippedCount > 0) {
+                                    // Show dialog asking user if they want to force import
+                                    pendingImportData = fileData
+                                    showDuplicateDialog = true
+                                } else {
+                                val message = when {
+                                        importedCount > 0 -> "Successfully imported $importedCount cards"
+                                    else -> "No cards imported"
+                                }
+                                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                }
+                            } else {
+                                val errorMessage = result.exceptionOrNull()?.message ?: "Unknown error"
+                                android.util.Log.e("QuickCards", "Import failed: $errorMessage")
+                                Toast.makeText(context, "Import failed: $errorMessage", Toast.LENGTH_LONG).show()
+                            }
+                        } else {
+                            android.util.Log.d("QuickCards", "File is not valid encrypted format, trying as plain JSON")
+                            // Try as plain JSON format by creating a simple encrypted wrapper
+                            try {
+                                val jsonData = String(fileData, Charsets.UTF_8)
+                                // Create a simple encrypted wrapper for plain JSON
+                                val encryptedWrapper = secureFileManager.encryptExportData(jsonData)
+                                val result = cardViewModel.importCardsFromSecureFile(encryptedWrapper)
+                                if (result.isSuccess) {
+                                    val (importedCount, skippedCount) = result.getOrNull() ?: Pair(0, 0)
+                                    Toast.makeText(context, "Successfully imported $importedCount cards from JSON (${skippedCount} skipped)", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Import failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("QuickCards", "JSON import failed: ${e.message}")
+                                Toast.makeText(context, "Invalid file format. Please select a valid QuickCards export file.", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } else {
+                        Toast.makeText(context, "Failed to read file data", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
                     Toast.makeText(context, "Import failed: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -119,29 +198,47 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        biometricAuthHelper.authenticateUser(
-                            context as androidx.fragment.app.FragmentActivity,
-                            object : BiometricAuthHelper.AuthenticationCallback {
-                                override fun onAuthenticationSuccess() {
-                                    isLoading = true
-                                    cardViewModel.deleteAllCards()
-                                    bankViewModel.deleteAllBanks()
-                                    showClearDataDialog = false
-                                    isLoading = false
-                                    Toast.makeText(context, "All data cleared successfully", Toast.LENGTH_SHORT).show()
-                                }
-                                
-                                override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
-                                    showClearDataDialog = false
-                                    Toast.makeText(context, "Authentication failed: $errorMessage", Toast.LENGTH_SHORT).show()
-                                }
-                                
-                                override fun onAuthenticationFailed() {
-                                    showClearDataDialog = false
-                                    Toast.makeText(context, "Authentication failed", Toast.LENGTH_SHORT).show()
-                                }
+                        try {
+                            if (biometricAuthHelper.isAuthenticationAvailable()) {
+                                biometricAuthHelper.authenticateUser(
+                                    activity = context as androidx.fragment.app.FragmentActivity,
+                                    callback = object : BiometricAuthHelper.AuthenticationCallback {
+                                        override fun onAuthenticationSuccess() {
+                                            isLoading = true
+                                            cardViewModel.deleteAllCards()
+                                            bankViewModel.deleteAllBanks()
+                                            showClearDataDialog = false
+                                            isLoading = false
+                                            Toast.makeText(context, "All data cleared successfully", Toast.LENGTH_SHORT).show()
+                                        }
+                                        
+                                        override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
+                                            android.util.Log.e("QuickCards", "Clear data auth error: $errorCode - $errorMessage")
+                                            showClearDataDialog = false
+                                            Toast.makeText(context, "Authentication failed: ${biometricAuthHelper.getErrorMessage(errorCode)}", Toast.LENGTH_LONG).show()
+                                        }
+                                        
+                                        override fun onAuthenticationFailed() {
+                                            android.util.Log.w("QuickCards", "Clear data authentication failed")
+                                            showClearDataDialog = false
+                                            Toast.makeText(context, "Authentication failed", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                )
+                            } else {
+                                // Fallback: clear data without authentication
+                                isLoading = true
+                                cardViewModel.deleteAllCards()
+                                bankViewModel.deleteAllBanks()
+                                showClearDataDialog = false
+                                isLoading = false
+                                Toast.makeText(context, "All data cleared successfully", Toast.LENGTH_SHORT).show()
                             }
-                        )
+                        } catch (e: Exception) {
+                            android.util.Log.e("QuickCards", "Clear data auth setup error: ${e.message}")
+                            showClearDataDialog = false
+                            Toast.makeText(context, "Authentication error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 ) {
                     Text("Clear Data", color = MaterialTheme.colorScheme.error)
@@ -149,6 +246,74 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showClearDataDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+    
+
+    
+    // Duplicate Detection Dialog
+    if (showDuplicateDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDuplicateDialog = false 
+                pendingImportData = null
+            },
+            title = { Text("Duplicate Cards Detected") },
+            text = { 
+                Text("Some cards in the import file already exist in your device. Would you like to force import all cards (this may create duplicates) or skip the duplicates?") 
+            },
+            confirmButton = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = {
+                            showDuplicateDialog = false
+                            pendingImportData?.let { fileData ->
+                                coroutineScope.launch {
+                                    isImporting = true
+                                    try {
+                                        val result = cardViewModel.importCardsFromSecureFile(fileData, forceImport = true)
+                                        if (result.isSuccess) {
+                                            val (importedCount, skippedCount) = result.getOrNull() ?: Pair(0, 0)
+                                            Toast.makeText(context, "Force imported $importedCount cards", Toast.LENGTH_LONG).show()
+                                        } else {
+                                            Toast.makeText(context, "Force import failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Force import failed: ${e.message}", Toast.LENGTH_LONG).show()
+                                    } finally {
+                                        isImporting = false
+                                        pendingImportData = null
+                                    }
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Force Import All")
+                    }
+                    
+                    TextButton(
+                        onClick = {
+                            showDuplicateDialog = false
+                            pendingImportData = null
+                            Toast.makeText(context, "Import cancelled", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Text("Skip Duplicates")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showDuplicateDialog = false 
+                        pendingImportData = null
+                    }
+                ) {
                     Text("Cancel")
                 }
             }
@@ -233,6 +398,60 @@ fun SettingsScreen(
                     ) {
                         StatCard("Cards", cards.size.toString())
                         StatCard("Banks", banks.size.toString())
+                        StatCard("Security", "Protected")
+                    }
+                    
+                    Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
+                    
+                    // Security Information
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(ResponsiveDimensions.getResponsiveSpacing().medium)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(ResponsiveDimensions.getResponsiveSpacing().small)
+                            ) {
+                                Icon(
+                                    Icons.Default.Security,
+                                    contentDescription = "Security",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Security Features",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Text(
+                                text = "• Screenshots and screen recording blocked",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "• App excluded from recent apps preview",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "• All sensitive data encrypted with AES-256-GCM",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "• Biometric authentication required for sensitive operations",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(ResponsiveDimensions.getResponsiveSpacing().medium))
@@ -248,8 +467,43 @@ fun SettingsScreen(
                                     Toast.makeText(context, "No cards to export", Toast.LENGTH_SHORT).show()
                                     return@OutlinedButton
                                 }
-                                val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(Date())
-                                exportLauncher.launch("quickcards_export_$timestamp.json")
+                                
+                                // Require authentication before export
+                                try {
+                                    if (biometricAuthHelper.isAuthenticationAvailable()) {
+                                        biometricAuthHelper.authenticateUser(
+                                            activity = context as FragmentActivity,
+                                            callback = object : BiometricAuthHelper.AuthenticationCallback {
+                                                override fun onAuthenticationSuccess() {
+                                                    val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(Date())
+                                                    val fileExtension = cardViewModel.getSecureFileExtension()
+                                                    exportLauncher.launch("quickcards_export_$timestamp.$fileExtension")
+                                                }
+                                                
+                                                override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
+                                                    android.util.Log.e("QuickCards", "Biometric auth error: $errorCode - $errorMessage")
+                                                    Toast.makeText(context, "Authentication failed: ${biometricAuthHelper.getErrorMessage(errorCode)}", Toast.LENGTH_LONG).show()
+                                                }
+                                                
+                                                override fun onAuthenticationFailed() {
+                                                    android.util.Log.w("QuickCards", "Biometric authentication failed")
+                                                    Toast.makeText(context, "Authentication failed. Please try again.", Toast.LENGTH_SHORT).show()
+                                                }
+                                            },
+                                            title = "Authenticate for Export",
+                                            subtitle = "Verify your identity to export cards",
+                                            description = "Use your fingerprint, face, or device lock to continue"
+                                        )
+                                    } else {
+                                        // Fallback: export without authentication
+                                        val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(Date())
+                                        val fileExtension = cardViewModel.getSecureFileExtension()
+                                        exportLauncher.launch("quickcards_export_$timestamp.$fileExtension")
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("QuickCards", "Authentication setup error: ${e.message}")
+                                    Toast.makeText(context, "Authentication error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
                             },
                             modifier = Modifier.weight(1f),
                             enabled = !isExporting && !isImporting,
@@ -271,7 +525,7 @@ fun SettingsScreen(
                         
                         OutlinedButton(
                             onClick = {
-                                importLauncher.launch(arrayOf("application/json"))
+                                importLauncher.launch(arrayOf("application/octet-stream", "application/json", "*/*"))
                             },
                             modifier = Modifier.weight(1f),
                             enabled = !isExporting && !isImporting,

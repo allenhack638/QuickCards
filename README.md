@@ -5,6 +5,7 @@ QuickCards is a secure, local-first Android application that allows users to saf
 ## Features
 
 ### 🔒 Security
+
 - **Biometric Authentication**: Fingerprint/face unlock and device lock integration
 - **AES-256 GCM Encryption**: All sensitive card data encrypted at rest
 - **Local Storage Only**: No cloud sync, all data stays on your device
@@ -13,6 +14,7 @@ QuickCards is a secure, local-first Android application that allows users to saf
 - **Screenshot Prevention**: App prevents screenshots for security
 
 ### 📱 User Interface
+
 - **Two-Tab Navigation**: Clean bottom navigation between Cards and Settings
 - **Material Design 3**: Modern, consistent UI following Material Design guidelines
 - **Search Functionality**: Search cards by number, bank, tags, or description
@@ -21,6 +23,7 @@ QuickCards is a secure, local-first Android application that allows users to saf
 - **Copy Functionality**: One-tap copying of card numbers and expiry dates
 
 ### 🛠 Technical Features
+
 - **System Card Scanning**: Integration with Android's built-in card scanning capabilities
 - **Room Database**: Local SQLite database with encryption
 - **MVVM Architecture**: Clean architecture with ViewModels and LiveData
@@ -58,6 +61,7 @@ app/
 ## Setup and Installation
 
 ### Prerequisites
+
 - Android Studio Arctic Fox or later
 - Android SDK API 26 or higher
 - Device with biometric authentication (recommended)
@@ -65,21 +69,25 @@ app/
 ### Build Instructions
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd QuickCards
    ```
 
 2. **Open in Android Studio**:
+
    - Open Android Studio
    - Select "Open an existing Android Studio project"
    - Navigate to the QuickCards directory and select it
 
 3. **Sync dependencies**:
+
    - Android Studio will automatically sync Gradle dependencies
    - If not, click "Sync Now" in the notification bar
 
 4. **Build the project**:
+
    ```bash
    ./gradlew build
    ```
@@ -119,17 +127,20 @@ implementation 'androidx.activity:activity-compose'
 ## Security Features
 
 ### Data Encryption
+
 - All sensitive card data (number, expiry, CVV) is encrypted using AES-256 GCM
 - Encryption keys are stored in Android Keystore for hardware-backed security
 - Database files are not backed up or synchronized
 
 ### Authentication
+
 - App requires biometric authentication on launch
 - CVV viewing requires separate authentication
 - Auto-lock after 30 seconds of inactivity (configurable)
 - App locks when backgrounded and returns to foreground
 
 ### Privacy
+
 - No network permissions - app works entirely offline
 - Screenshots and screen recording blocked
 - App excluded from recent apps preview
@@ -138,6 +149,7 @@ implementation 'androidx.activity:activity-compose'
 ## Usage
 
 ### Adding Cards
+
 1. Tap the "+" button on the Cards tab
 2. Use "Scan Card" to automatically detect card number and expiry
 3. Manually enter CVV (never auto-detected for security)
@@ -145,12 +157,14 @@ implementation 'androidx.activity:activity-compose'
 5. Add tags and description as needed
 
 ### Viewing Card Details
+
 1. Tap any card from the list
 2. View masked card information
 3. Copy card number or expiry date with one tap
 4. Authenticate to view CVV (auto-hides after 10 seconds)
 
 ### Managing Data
+
 1. Go to Settings tab
 2. Manage banks and tags for better organization
 3. View app statistics and security information
@@ -171,10 +185,43 @@ This is a security-focused application. When contributing:
 ⚠️ **Important Security Notes**:
 
 - This app stores financial information - security is paramount
-- Regular security audits and updates are recommended
-- Users should keep their device OS updated for latest security patches
-- Biometric authentication should be properly configured on the device
-- App should only be installed from trusted sources
+- All sensitive data is encrypted using AES-256-GCM
+- Biometric authentication is required for sensitive operations
+- App works entirely offline - no data is transmitted
+
+## Troubleshooting
+
+### Biometric Authentication Issues
+
+If you encounter "caller provided 4 no permitted" error during export or other operations:
+
+**Error Code 4 (ERROR_LOCKOUT)**: This occurs when biometric authentication is temporarily locked due to too many failed attempts.
+
+**Solutions:**
+
+1. **Wait and retry**: The lockout is temporary and will automatically clear
+2. **Use device lock**: The app will automatically offer device lock (PIN, pattern, password) as a fallback
+3. **Check biometric settings**: Ensure your fingerprint/face recognition is properly configured
+4. **Restart device**: In rare cases, a device restart may resolve persistent lockout issues
+
+**Prevention:**
+
+- Ensure your finger/face is clean and dry when using biometric authentication
+- Position your finger/face correctly on the sensor
+- Avoid rapid repeated attempts
+
+### Export/Import Issues
+
+- **File format**: Export files use the `.qcex` extension and are encrypted
+- **Compatibility**: Import only files exported from this app
+- **Authentication**: Export requires biometric or device lock authentication
+- **Storage**: Ensure sufficient storage space for export files
+
+### General Issues
+
+- **App crashes**: Restart the app and try again
+- **Data not saving**: Check if you have sufficient storage space
+- **Authentication not working**: Verify biometric settings in device Settings
 
 ## License
 
@@ -183,6 +230,7 @@ This project is created for educational and personal use. Please ensure complian
 ## Disclaimer
 
 This application is designed for personal card management. Users are responsible for:
+
 - Keeping their devices secure
 - Using strong device authentication
 - Regular app updates

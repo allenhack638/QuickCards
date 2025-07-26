@@ -8,6 +8,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.quickcards.app.data.database.QuickCardsDatabase
+import com.quickcards.app.security.SecurityManager
 import com.quickcards.app.ui.base.BaseActivity
 import com.quickcards.app.ui.screens.MainScreen
 import com.quickcards.app.ui.theme.QuickCardsTheme
@@ -21,6 +22,9 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Prevent screenshots and screen recording for security
+        SecurityManager.enableScreenshotPrevention(this)
+        
         // Initialize database and view models
         database = QuickCardsDatabase.getDatabase(this, lifecycleScope)
         bankViewModel = BankViewModel(application)
@@ -30,6 +34,12 @@ class MainActivity : BaseActivity() {
         
         // Show main content directly
         showMainContent()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Ensure security flags are maintained when app is resumed
+        SecurityManager.ensureSecurityFlags(this)
     }
     
     private fun showMainContent() {

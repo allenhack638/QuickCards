@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +36,7 @@ import com.quickcards.app.data.model.Card
 import com.quickcards.app.security.BiometricAuthHelper
 import com.quickcards.app.security.CVVVisibilityManager
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -126,7 +128,68 @@ fun CardItem(
         }
     }
     
-    // Handle card number copy
+    // Handle card tap with authentication, then copy and show CVV
+    fun authenticateAndCopyCardDetails() {
+        if (activity != null && !isAuthenticating) {
+            isAuthenticating = true
+            val biometricHelper = BiometricAuthHelper(context)
+            
+            biometricHelper.authenticateForCVV(
+                activity,
+                object : BiometricAuthHelper.AuthenticationCallback {
+                    override fun onAuthenticationSuccess() {
+                        isAuthenticating = false
+                        
+                        // Copy card number to clipboard
+                        val cleanCardNumber = card.cardNumber.replace("[^0-9]".toRegex(), "")
+                        clipboardManager.setText(AnnotatedString(cleanCardNumber))
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        
+                        // Show CVV after authentication
+                        cvvManager.showCVV(card.id)
+                        
+                        // Show toast notification
+                        android.widget.Toast.makeText(
+                            context,
+                            "Card number copied • CVV visible",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                        
+                        // Auto-clear clipboard after 30 seconds for security
+                        coroutineScope.launch {
+                            delay(30000) // 30 seconds
+                            clipboardManager.setText(AnnotatedString(""))
+                            android.widget.Toast.makeText(
+                                context,
+                                "Clipboard cleared for security",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                    
+                    override fun onAuthenticationError(errorCode: Int, errorMessage: String) {
+                        isAuthenticating = false
+                        android.widget.Toast.makeText(
+                            context,
+                            "Authentication failed: $errorMessage",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    
+                    override fun onAuthenticationFailed() {
+                        isAuthenticating = false
+                        android.widget.Toast.makeText(
+                            context,
+                            "Authentication failed",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            )
+        }
+    }
+    
+    // Handle card number copy only (for legacy use)
     fun copyCardNumberToClipboard() {
         val cleanCardNumber = card.cardNumber.replace("[^0-9]".toRegex(), "")
         clipboardManager.setText(AnnotatedString(cleanCardNumber))
@@ -138,6 +201,17 @@ fun CardItem(
             "Card number copied to clipboard",
             android.widget.Toast.LENGTH_SHORT
         ).show()
+        
+        // Auto-clear clipboard after 30 seconds for security
+        coroutineScope.launch {
+            delay(30000) // 30 seconds
+            clipboardManager.setText(AnnotatedString(""))
+            android.widget.Toast.makeText(
+                context,
+                "Clipboard cleared for security",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
     }
     
     // Single Card Design with all content
@@ -152,8 +226,8 @@ fun CardItem(
                     if (isSelectionMode) {
                         onClick()
                     } else {
-                        // Copy card number when clicking upper part
-                        copyCardNumberToClipboard()
+                        // Authenticate first, then copy card details and show CVV
+                        authenticateAndCopyCardDetails()
                     }
                 },
                 onLongClick = {
