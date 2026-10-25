@@ -47,13 +47,12 @@ class AutofillPickerActivity : BaseActivity() {
             val themeSettings = ThemeSettings(getSharedPreferences("quickcards_settings", MODE_PRIVATE))
             setContent {
                 val themeMode by themeSettings.themeMode.collectAsState()
-                val dynamicColor by themeSettings.dynamicColor.collectAsState()
                 val dark = when (themeMode) {
                     ThemeMode.SYSTEM -> isSystemInDarkTheme()
                     ThemeMode.LIGHT -> false
                     ThemeMode.DARK -> true
                 }
-                QuickCardsTheme(darkTheme = dark, dynamicColor = dynamicColor) {
+                QuickCardsTheme(darkTheme = dark) {
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                         AutofillPickerContent(
                             cards = cards,

@@ -107,7 +107,6 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
 
     val theme by settings.theme.collectAsState()
-    val dynamicColor by settings.dynamicColor.collectAsState()
     val clipClearSec by settings.clipClearSec.collectAsState()
     val maskNumbers by settings.maskNumbers.collectAsState()
     val expiredCards by settings.expiredCards.collectAsState()
@@ -199,13 +198,6 @@ fun SettingsScreen(
                         }
                     )
                 }
-            )
-            SwitchRow(
-                icon = QcIcons.palette,
-                title = stringResource(R.string.settings_dynamic_title),
-                subtitle = stringResource(R.string.settings_dynamic_subtitle),
-                checked = dynamicColor,
-                onCheckedChange = settings::setDynamicColor
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_cards))

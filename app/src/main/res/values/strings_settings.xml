@@ -17,9 +17,6 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
 
-    <string name="settings_dynamic_title">Use system colours</string>
-    <string name="settings_dynamic_subtitle">Use colours from your wallpaper</string>
-
     <string name="settings_mask_title">Hide card numbers</string>
     <string name="settings_mask_subtitle">Show only the last 4 digits</string>
 

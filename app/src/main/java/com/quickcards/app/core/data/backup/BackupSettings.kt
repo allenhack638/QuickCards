@@ -9,7 +9,6 @@ object BackupSettings {
 
     fun defaultMap(): Map<String, Any> = linkedMapOf(
         AppSettings.KEY_THEME_NAME to AppSettingsDefaults.THEME.name.lowercase(Locale.ROOT),
-        AppSettings.KEY_DYNAMIC_COLOR_NAME to AppSettingsDefaults.DYNAMIC_COLOR,
         AppSettings.KEY_COPY_WINDOW_SEC_NAME to AppSettingsDefaults.COPY_WINDOW_SEC,
         AppSettings.KEY_CLIP_CLEAR_SEC_NAME to AppSettingsDefaults.CLIP_CLEAR_SEC,
         AppSettings.KEY_MASK_NUMBERS_NAME to AppSettingsDefaults.MASK_NUMBERS,

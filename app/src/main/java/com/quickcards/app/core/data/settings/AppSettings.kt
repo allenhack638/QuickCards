@@ -17,7 +17,6 @@ enum class AppTheme {
 /** Defaults and allowed values; must match CFG0 in prototype/v2.html. */
 object AppSettingsDefaults {
     val THEME = AppTheme.DARK
-    const val DYNAMIC_COLOR = false
 
     const val COPY_WINDOW_SEC = 60
     val COPY_WINDOW_OPTIONS = listOf(30, 60, 120)
@@ -77,11 +76,6 @@ class AppSettings(private val preferences: SharedPreferences) {
 
     private val _theme = MutableStateFlow(readTheme())
     val theme: StateFlow<AppTheme> = _theme.asStateFlow()
-
-    private val _dynamicColor = MutableStateFlow(
-        preferences.getBoolean(KEY_DYNAMIC_COLOR, AppSettingsDefaults.DYNAMIC_COLOR)
-    )
-    val dynamicColor: StateFlow<Boolean> = _dynamicColor.asStateFlow()
 
     private val _copyWindowSec = MutableStateFlow(
         readInt(KEY_COPY_WINDOW_SEC, AppSettingsDefaults.COPY_WINDOW_SEC, AppSettingsDefaults.COPY_WINDOW_OPTIONS)
@@ -168,11 +162,6 @@ class AppSettings(private val preferences: SharedPreferences) {
     fun setTheme(theme: AppTheme) {
         preferences.edit().putString(KEY_THEME, theme.name).apply()
         _theme.value = theme
-    }
-
-    fun setDynamicColor(enabled: Boolean) {
-        preferences.edit().putBoolean(KEY_DYNAMIC_COLOR, enabled).apply()
-        _dynamicColor.value = enabled
     }
 
     fun setCopyWindowSec(seconds: Int) {
@@ -262,7 +251,6 @@ class AppSettings(private val preferences: SharedPreferences) {
 
     fun toMap(): Map<String, Any> = linkedMapOf(
         KEY_THEME_NAME to theme.value.name.lowercase(Locale.ROOT),
-        KEY_DYNAMIC_COLOR_NAME to dynamicColor.value,
         KEY_COPY_WINDOW_SEC_NAME to copyWindowSec.value,
         KEY_CLIP_CLEAR_SEC_NAME to clipClearSec.value,
         KEY_MASK_NUMBERS_NAME to maskNumbers.value,
@@ -290,7 +278,6 @@ class AppSettings(private val preferences: SharedPreferences) {
                 .getOrNull()
                 ?.let(::setTheme)
         }
-        (values[KEY_DYNAMIC_COLOR_NAME] as? Boolean)?.let(::setDynamicColor)
         (values[KEY_COPY_WINDOW_SEC_NAME] as? Number)?.toInt()?.let(::setCopyWindowSec)
         (values[KEY_CLIP_CLEAR_SEC_NAME] as? Number)?.toInt()?.let(::setClipClearSec)
         (values[KEY_MASK_NUMBERS_NAME] as? Boolean)?.let(::setMaskNumbers)
@@ -336,7 +323,6 @@ class AppSettings(private val preferences: SharedPreferences) {
         const val PREFS_NAME = "quickcards_settings"
 
         const val KEY_THEME = "theme_mode"
-        const val KEY_DYNAMIC_COLOR = "dynamic_color"
         const val KEY_COPY_WINDOW_SEC = "copy_window_sec"
         const val KEY_CLIP_CLEAR_SEC = "clip_clear_sec"
         const val KEY_MASK_NUMBERS = "mask_numbers"
@@ -359,7 +345,6 @@ class AppSettings(private val preferences: SharedPreferences) {
         const val KEY_PAYMENT_REMINDERS = "payment_reminders"
 
         const val KEY_THEME_NAME = "theme"
-        const val KEY_DYNAMIC_COLOR_NAME = "dynamicColor"
         const val KEY_COPY_WINDOW_SEC_NAME = "copyWindowSec"
         const val KEY_CLIP_CLEAR_SEC_NAME = "clipClearSec"
         const val KEY_MASK_NUMBERS_NAME = "maskNumbers"

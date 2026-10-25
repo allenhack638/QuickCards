@@ -34,14 +34,13 @@ class MainActivity : BaseActivity() {
         )
 
         setContent {
-            val dynamicColor by themeSettings.dynamicColor.collectAsState()
             val themeMode by themeSettings.themeMode.collectAsState()
             val darkTheme = when (themeMode) {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
             }
-            QuickCardsTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
+            QuickCardsTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

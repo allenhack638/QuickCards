@@ -7,12 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 
 typealias ThemeMode = AppTheme
 
-/** Read-only theme view over [AppSettings]; keys stay "theme_mode"/"dynamic_color" for upgrades. */
+/** Read-only theme view over [AppSettings]; the "theme_mode" key stays for upgrades. */
 class ThemeSettings(preferences: SharedPreferences) {
 
     private val settings = AppSettings.from(preferences)
-
-    val dynamicColor: StateFlow<Boolean> = settings.dynamicColor
 
     val themeMode: StateFlow<ThemeMode> = settings.theme
 }

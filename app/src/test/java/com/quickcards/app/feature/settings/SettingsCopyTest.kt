@@ -25,7 +25,6 @@ class SettingsCopyTest {
     )
 
     private val descriptionNames = listOf(
-        "settings_dynamic_subtitle",
         "settings_mask_subtitle",
         "settings_notes_subtitle",
         "settings_clipboard_after",
