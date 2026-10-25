@@ -2,17 +2,20 @@
 <!-- One autofill suggestion row: the framework renders this, so it is a plain RemoteViews layout. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="UseCompoundDrawables"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:minHeight="48dp"
     android:paddingStart="16dp"
-    android:paddingEnd="16dp">
+    android:paddingEnd="16dp"
+    tools:ignore="UseCompoundDrawables">
     <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:id="@+id/autofill_icon"
+        android:layout_width="40dp"
+        android:layout_height="20dp"
+        android:background="@drawable/autofill_mark_plate"
+        android:scaleType="fitCenter"
         android:src="@drawable/qc_app_mark"
         android:contentDescription="@null" />
     <TextView
@@ -22,5 +25,6 @@
         android:layout_marginStart="12dp"
         android:textSize="14sp"
         android:textColor="?android:attr/textColorPrimary"
-        android:singleLine="true" />
+        android:singleLine="true"
+        android:ellipsize="end" />
 </LinearLayout>

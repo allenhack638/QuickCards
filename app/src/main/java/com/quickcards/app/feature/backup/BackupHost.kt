@@ -1,6 +1,7 @@
 package com.quickcards.app.feature.backup
 
 import android.app.NotificationManager
+import com.quickcards.app.core.autofill.CardUsage
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.quickcards.app.core.reminders.Reminders
@@ -352,6 +353,7 @@ class BackupHostState internal constructor(
                 ClipboardHelper.clearNow()
                 cancelCopyNotification()
                 Reminders.clearAll(appContext)
+                CardUsage.clear(appContext)
                 eraseOpen = false
                 eraseAcknowledged = false
                 snackbar.show(text(R.string.backup_snack_erased))

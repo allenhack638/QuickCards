@@ -4,19 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.service.autofill.Dataset
-import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager
-import android.view.autofill.AutofillValue
-import android.widget.RemoteViews
 import androidx.lifecycle.lifecycleScope
-import com.quickcards.app.QuickCardsApplication
-import com.quickcards.app.R
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.base.BaseActivity
-import com.quickcards.domain.AutofillFields
-import com.quickcards.domain.CardFieldKind
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -28,24 +19,16 @@ class AutofillAuthActivity : BaseActivity() {
 
     override fun onSecureCreate(savedInstanceState: Bundle?) {
         val cardId = intent.getStringExtra(EXTRA_CARD_ID)
-        val kinds = intent.getStringArrayExtra(EXTRA_KINDS)
-        val ids = intent.getParcelableArrayExtra(EXTRA_IDS)?.filterIsInstance<AutofillId>()
-        if (cardId == null || kinds == null || ids == null || kinds.size != ids.size) {
+        val target = FillTarget.from(intent)
+        if (cardId == null || target == null) {
             setResult(Activity.RESULT_CANCELED)
             finish()
             return
         }
-        val twoDigitYear = intent.getBooleanExtra(EXTRA_TWO_DIGIT_YEAR, false)
-        val fourDigitYear = intent.getBooleanExtra(EXTRA_FOUR_DIGIT_YEAR, false)
         lifecycleScope.launch {
-            val requester = intent.getStringExtra(EXTRA_REQUESTER)
-            val reason = if (requester.isNullOrBlank()) {
-                getString(R.string.autofill_unlock_reason)
-            } else {
-                getString(R.string.autofill_unlock_reason_for, requester)
-            }
+            val reason = AutofillFill.unlockReason(this@AutofillAuthActivity, target.requester)
             val granted = UnlockSession.requireUnlock(this@AutofillAuthActivity, reason, fresh = true)
-            val dataset = if (granted) buildDataset(cardId, kinds, ids, twoDigitYear, fourDigitYear) else null
+            val dataset = if (granted) AutofillFill.dataset(this@AutofillAuthActivity, cardId, target) else null
             if (dataset == null) {
                 setResult(Activity.RESULT_CANCELED)
             } else {
@@ -55,46 +38,10 @@ class AutofillAuthActivity : BaseActivity() {
         }
     }
 
-    private suspend fun buildDataset(
-        cardId: String,
-        kinds: Array<String>,
-        ids: List<AutofillId>,
-        twoDigitYear: Boolean,
-        fourDigitYear: Boolean
-    ): Dataset? {
-        val app = application as QuickCardsApplication
-        val card = app.repository.cards.first().firstOrNull { it.id == cardId } ?: return null
-        val holder = card.holderId?.let { id -> app.repository.holders.first().firstOrNull { it.id == id }?.name }
-        val name = card.nameOnCard.ifBlank { holder.orEmpty() }
-        val presentation = RemoteViews(packageName, R.layout.autofill_suggestion).apply {
-            setTextViewText(R.id.autofill_title, getString(R.string.app_name))
-        }
-        val builder = Dataset.Builder(presentation)
-        var filled = 0
-        kinds.forEachIndexed { index, kindName ->
-            val kind = CardFieldKind.valueOf(kindName)
-            val value = AutofillFields.valueFor(kind, card.number, card.expiry, card.cvv, name, twoDigitYear, fourDigitYear) ?: return@forEachIndexed
-            builder.setValue(ids[index], AutofillValue.forText(value))
-            filled++
-        }
-        return if (filled == 0) null else builder.build()
-    }
-
     companion object {
         private const val EXTRA_CARD_ID = "card_id"
-        private const val EXTRA_KINDS = "kinds"
-        private const val EXTRA_IDS = "ids"
-        private const val EXTRA_TWO_DIGIT_YEAR = "two_digit_year"
-        private const val EXTRA_FOUR_DIGIT_YEAR = "four_digit_year"
-        private const val EXTRA_REQUESTER = "requester"
 
-        fun intent(context: Context, cardId: String, form: AutofillForm, requester: String?): Intent =
-            Intent(context, AutofillAuthActivity::class.java)
-                .putExtra(EXTRA_CARD_ID, cardId)
-                .putExtra(EXTRA_KINDS, form.fields.keys.map { it.name }.toTypedArray())
-                .putExtra(EXTRA_IDS, form.fields.values.toTypedArray())
-                .putExtra(EXTRA_TWO_DIGIT_YEAR, form.twoDigitYear)
-                .putExtra(EXTRA_FOUR_DIGIT_YEAR, form.fourDigitYear)
-                .putExtra(EXTRA_REQUESTER, requester)
+        fun intent(context: Context, cardId: String, target: FillTarget): Intent =
+            target.writeTo(Intent(context, AutofillAuthActivity::class.java).putExtra(EXTRA_CARD_ID, cardId))
     }
 }

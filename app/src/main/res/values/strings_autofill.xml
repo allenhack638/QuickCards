@@ -3,4 +3,14 @@
     <string name="autofill_suggestion">%1$s ···%2$s</string>
     <string name="autofill_unlock_reason_for">Confirm it’s you to fill this card in %1$s</string>
     <string name="autofill_unlock_reason">Confirm it’s you to fill this card</string>
+    <plurals name="autofill_search_all">
+        <item quantity="one">Search %1$d card…</item>
+        <item quantity="other">Search all %1$d cards…</item>
+    </plurals>
+    <string name="autofill_picker_title">Choose a card</string>
+    <string name="autofill_picker_for">To fill in %1$s</string>
+    <string name="autofill_picker_empty">No cards match</string>
+    <string name="autofill_picker_empty_hint">Try the bank, holder, a tag, or the first or last digits</string>
+    <string name="autofill_picker_last_four">···%1$s</string>
+    <string name="autofill_picker_expired">Expired</string>
 </resources>

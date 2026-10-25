@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.cards
 
 import android.Manifest
+import com.quickcards.app.core.ui.components.SearchTopBar
+import com.quickcards.app.core.autofill.CardUsage
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.quickcards.app.core.reminders.Reminders
@@ -152,6 +154,7 @@ fun HomeScreen(
             PassField.NAME -> card.holderName
         }
         val clearSec = state.options.clipClearSec
+        CardUsage.record(context, card.id)
         ClipboardHelper.copySensitive(
             context,
             context.getString(R.string.cards_clipboard_field, card.title, label),

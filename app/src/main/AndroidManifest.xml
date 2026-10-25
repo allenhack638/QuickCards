@@ -66,6 +66,12 @@
                 android:resource="@xml/autofill_service" />
         </service>
         <activity
+            android:name=".core.autofill.AutofillPickerActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.QuickCards"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".core.autofill.AutofillAuthActivity"
             android:excludeFromRecents="true"
             android:exported="false"

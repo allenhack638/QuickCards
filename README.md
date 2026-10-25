@@ -63,7 +63,7 @@ encrypted backup that you export yourself and open with its backup password.
   grouping, CVV length and Luhn check; 10 built-in networks plus custom ones. Built-in networks show their official mark on the card. Duplicate
   numbers are rejected across all holders.
 - **Reminders.** A notification 30 days before a card expires and, if you set a payment due day on a card, 3 days before it, with a "Bill due" strip on the card and a Paid button on both; both can be switched off.
-- **Autofill in other apps.** Set QuickCards as Android's autofill service and checkout forms offer your cards; one fingerprint fills number, expiry, CVV and name straight into the form, with no clipboard. It can be switched off in Settings.
+- **Autofill in other apps.** Set QuickCards as Android's autofill service and checkout forms offer your cards, with a "Search all cards" list for when you have many; one fingerprint fills number, expiry, CVV and name straight into the form, with no clipboard. It can be switched off in Settings.
 - **Share a card.** From a card's menu, after the unlock prompt; you choose whether the CVV goes along (off by default) before the system share sheet opens.
 - **Pinning, notes, archive.** Pin up to 10 cards to the top, show notes on
   cards, archive cards with an optional reason and restore them later.
