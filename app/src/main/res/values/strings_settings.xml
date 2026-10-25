@@ -18,7 +18,7 @@
     <string name="settings_theme_dark">Dark</string>
 
     <string name="settings_dynamic_title">Use system colours</string>
-    <string name="settings_dynamic_subtitle">Match your wallpaper on Android 12+</string>
+    <string name="settings_dynamic_subtitle">Use colours from your wallpaper</string>
 
     <string name="settings_mask_title">Hide card numbers</string>
     <string name="settings_mask_subtitle">Show only the last 4 digits</string>
@@ -44,13 +44,13 @@
     <string name="settings_clipboard_body">Copied details are removed from the clipboard after this time.</string>
 
     <string name="settings_notification_title">Show expiry and CVV after copying</string>
-    <string name="settings_notification_subtitle">For the time set below, hidden on the lock screen</string>
+    <string name="settings_notification_subtitle">For the time below, hidden when locked</string>
     <string name="settings_notification_time_title">Notification time</string>
     <string name="settings_notification_time_subtitle">Disappears after %1$s</string>
     <string name="settings_notification_time_body">How long expiry and CVV stay in the notification.</string>
 
     <string name="settings_tags_show_title">Show tags on cards</string>
-    <string name="settings_tags_show_subtitle">Tags appear under the stub</string>
+    <string name="settings_tags_show_subtitle">Tags appear under each card</string>
 
     <string name="settings_app_lock_title">App lock</string>
     <string name="settings_app_lock_subtitle">Fingerprint needed to open QuickCards</string>
@@ -59,17 +59,17 @@
     <string name="settings_inactivity_subtitle">After %1$s without use</string>
     <string name="settings_inactivity_body">QuickCards locks itself when you haven’t touched it for this long.</string>
     <string name="settings_lock_on_leave_title">Lock when you leave the app</string>
-    <string name="settings_lock_on_leave_subtitle">When you switch apps or lock the phone</string>
+    <string name="settings_lock_on_leave_subtitle">When you leave or lock the phone</string>
     <string name="settings_copy_window_title">Instant copy window</string>
-    <string name="settings_copy_window_subtitle">Copy without a fingerprint until %1$s of no use</string>
+    <string name="settings_copy_window_subtitle">No fingerprint needed for %1$s</string>
     <string name="settings_copy_window_body">How long copies stay instant after a fingerprint.</string>
     <string name="settings_lock_now_title">Lock now</string>
     <string name="settings_lock_now_subtitle">Lock QuickCards right away</string>
 
     <string name="settings_backup_export_title">Export backup</string>
-    <string name="settings_backup_export_subtitle">Encrypted file protected by a backup password</string>
+    <string name="settings_backup_export_subtitle">Protected by a password you choose</string>
     <string name="settings_backup_import_title">Import backup</string>
-    <string name="settings_backup_import_subtitle">QuickCards backups, including older versions</string>
+    <string name="settings_backup_import_subtitle">Restore from a QuickCards backup</string>
     <string name="settings_backup_erase_title">Erase all data</string>
     <string name="settings_backup_erase_subtitle">Cards, holders, banks, types and tags</string>
 
@@ -89,16 +89,16 @@
     <string name="settings_action_cancel">Cancel</string>
     <string name="settings_action_ok">OK</string>
     <string name="settings_autofill_title">Fill cards in other apps</string>
-    <string name="settings_autofill_subtitle_off">Suggest your cards in checkout forms, after your fingerprint</string>
-    <string name="settings_autofill_subtitle_choose">Not yet chosen in Android’s autofill settings</string>
-    <string name="settings_autofill_subtitle_on">On · suggestions appear in checkout forms</string>
+    <string name="settings_autofill_subtitle_off">Fill cards after your fingerprint</string>
+    <string name="settings_autofill_subtitle_choose">Not chosen in Android settings yet</string>
+    <string name="settings_autofill_subtitle_on">On, cards appear in checkout forms</string>
     <string name="settings_autofill_choose_title">Choose QuickCards for autofill</string>
     <string name="settings_autofill_choose_subtitle">Opens Android’s autofill settings</string>
     <string name="settings_nfc_title">Add cards by tapping</string>
-    <string name="settings_nfc_subtitle">Hold a card to the back of the phone to read its number and expiry</string>
+    <string name="settings_nfc_subtitle">Tap a card on the phone to read it</string>
     <string name="settings_section_reminders">Reminders</string>
     <string name="settings_expiry_reminders_title">Expiry reminders</string>
-    <string name="settings_expiry_reminders_subtitle">A notification 30 days before a card expires</string>
+    <string name="settings_expiry_reminders_subtitle">Reminder 30 days before a card expires</string>
     <string name="settings_payment_reminders_title">Payment reminders</string>
-    <string name="settings_payment_reminders_subtitle">3 days before a card’s due day, when you set one</string>
+    <string name="settings_payment_reminders_subtitle">3 days before a card’s due day</string>
 </resources>
