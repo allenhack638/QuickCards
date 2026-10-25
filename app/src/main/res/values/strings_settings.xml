@@ -44,7 +44,7 @@
     <string name="settings_clipboard_body">Copied details are removed from the clipboard after this time.</string>
 
     <string name="settings_notification_title">Show expiry and CVV after copying</string>
-    <string name="settings_notification_subtitle">For the time below, hidden when locked</string>
+    <string name="settings_notification_subtitle">For this time, hidden when locked</string>
     <string name="settings_notification_time_title">Notification time</string>
     <string name="settings_notification_time_subtitle">Disappears after %1$s</string>
     <string name="settings_notification_time_body">How long expiry and CVV stay in the notification.</string>
@@ -53,7 +53,7 @@
     <string name="settings_tags_show_subtitle">Tags appear under each card</string>
 
     <string name="settings_app_lock_title">App lock</string>
-    <string name="settings_app_lock_subtitle">Fingerprint needed to open QuickCards</string>
+    <string name="settings_app_lock_subtitle">Use your fingerprint to open</string>
     <string name="settings_inactivity_title">Lock after inactivity</string>
     <string name="settings_inactivity_never">Never locks while open</string>
     <string name="settings_inactivity_subtitle">After %1$s without use</string>
@@ -98,7 +98,7 @@
     <string name="settings_nfc_subtitle">Tap a card on the phone to read it</string>
     <string name="settings_section_reminders">Reminders</string>
     <string name="settings_expiry_reminders_title">Expiry reminders</string>
-    <string name="settings_expiry_reminders_subtitle">Reminder 30 days before a card expires</string>
+    <string name="settings_expiry_reminders_subtitle">Reminder 30 days before expiry</string>
     <string name="settings_payment_reminders_title">Payment reminders</string>
     <string name="settings_payment_reminders_subtitle">3 days before a card’s due day</string>
 </resources>

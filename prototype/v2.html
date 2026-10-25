@@ -792,17 +792,17 @@ function settingsHTML() {
     ${row('soonmonths', 'soon', 'Expires soon', C.expiresSoonMonths === 1 ? 'Within 1 month' : `Within ${C.expiresSoonMonths} months`)}
     ${sw('shownotes', C.showNotes, 'notes', 'Show notes on cards', 'Up to 2 lines on each card')}
     <div class="subhead">Reminders</div>
-    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'Reminder 30 days before a card expires')}
+    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'Reminder 30 days before expiry')}
     ${sw('paymentrem', C.paymentReminders, 'payments', 'Payment reminders', '3 days before a card’s due day')}
     <div class="subhead">Copying</div>
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
-    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For the time below, hidden when locked')}
+    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For this time, hidden when locked')}
     ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
     ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On, cards appear in checkout forms' : 'Fill cards after your fingerprint')}
     <div class="subhead">Tags</div>
     ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under each card')}
     <div class="subhead">Security</div>
-    ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Fingerprint needed to open QuickCards')}
+    ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Use your fingerprint to open')}
     ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}
     ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'When you leave or lock the phone', !C.appLock.on)}
     ${row('window', 'copy', 'Instant copy window', `No fingerprint needed for ${secText(C.windowSec)}`)}
