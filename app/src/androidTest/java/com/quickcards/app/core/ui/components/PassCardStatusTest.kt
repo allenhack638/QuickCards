@@ -91,7 +91,6 @@ class PassCardStatusTest {
                     PassCard(
                         card = card,
                         maskNumbers = true,
-                        showCardType = true,
                         tagsShow = true,
                         expiryState = expiryState,
                         needsReview = needsReview,

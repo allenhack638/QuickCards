@@ -84,7 +84,6 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
 
     private val app = application as QuickCardsApplication
     private val repository = app.repository
-    private val settings = app.settings
 
     private data class Lists(
         val holders: List<Holder>,
@@ -115,8 +114,6 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
             usageCards = buildUsageCards(lists, cards)
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), EntityEditorData())
-
-    val tagMaxLen: StateFlow<Int> = settings.tagsMaxLen
 
     suspend fun save(
         kind: EntityKind,

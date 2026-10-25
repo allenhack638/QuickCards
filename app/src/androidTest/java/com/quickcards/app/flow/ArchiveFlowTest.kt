@@ -7,7 +7,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.quickcards.domain.ArchivedVisibility
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -64,7 +63,6 @@ class ArchiveFlowTest : FlowTestBase() {
 
     @Test
     fun searchFindsAnArchivedCardAndOffersRestore() {
-        app.settings.setArchivedCards(ArchivedVisibility.IN_SEARCH)
         val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
         val bank = runBlocking { app.repository.createBank("HDFC Bank") }
         val card = seedCard("4532778103492211", holder.id, bank.id)

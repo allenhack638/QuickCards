@@ -54,8 +54,8 @@
     <string name="form_band_custom_desc">Custom colour, %1$s</string>
     <string name="form_tags_count">%1$d of %2$d</string>
     <plurals name="form_tags_selected">
-        <item quantity="one">%1$d of %2$d selected. Change the limit in Settings.</item>
-        <item quantity="other">%1$d of %2$d selected. Change the limit in Settings.</item>
+        <item quantity="one">%1$d of %2$d selected.</item>
+        <item quantity="other">%1$d of %2$d selected.</item>
     </plurals>
 
     <string name="form_action_add">Add</string>

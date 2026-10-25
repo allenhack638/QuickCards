@@ -17,7 +17,6 @@ import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.data.repository.VaultRepository
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
-import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.CardQuery
@@ -40,18 +39,12 @@ import kotlinx.coroutines.launch
 
 data class HomeOptions(
     val maskNumbers: Boolean = AppSettingsDefaults.MASK_NUMBERS,
-    val showCardType: Boolean = AppSettingsDefaults.SHOW_CARD_TYPE,
-    val pinnedMax: Int = AppSettingsDefaults.PINNED_MAX,
     val tagsShow: Boolean = AppSettingsDefaults.TAGS_SHOW,
-    val tagsSearch: Boolean = AppSettingsDefaults.TAGS_SEARCH,
     val clipClearSec: Int = AppSettingsDefaults.CLIP_CLEAR_SEC,
     val notifEnabled: Boolean = AppSettingsDefaults.NOTIF_ENABLED,
     val notifSec: Int = AppSettingsDefaults.NOTIF_SEC,
-    val notifShowExpiry: Boolean = AppSettingsDefaults.NOTIF_SHOW_EXPIRY,
-    val notifShowCvv: Boolean = AppSettingsDefaults.NOTIF_SHOW_CVV,
     val expiredCards: ExpiredPlacement = AppSettingsDefaults.EXPIRED_CARDS,
     val expiresSoonMonths: Int = AppSettingsDefaults.EXPIRES_SOON_MONTHS,
-    val archivedCards: ArchivedVisibility = AppSettingsDefaults.ARCHIVED_CARDS,
     val showNotes: Boolean = AppSettingsDefaults.SHOW_NOTES
 )
 
@@ -121,27 +114,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private data class CoreOptions(
         val maskNumbers: Boolean,
-        val showCardType: Boolean,
-        val pinnedMax: Int,
-        val tagsShow: Boolean,
-        val tagsSearch: Boolean
+        val tagsShow: Boolean
     )
 
     private data class CopyOptions(
         val clipClearSec: Int,
-        val notifEnabled: Boolean
-    )
-
-    private data class NotifOptions(
-        val notifSec: Int,
-        val notifShowExpiry: Boolean,
-        val notifShowCvv: Boolean
+        val notifEnabled: Boolean,
+        val notifSec: Int
     )
 
     private data class ListOptions(
         val expiredCards: ExpiredPlacement,
         val expiresSoonMonths: Int,
-        val archivedCards: ArchivedVisibility,
         val showNotes: Boolean
     )
 
@@ -159,58 +143,40 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val coreOptions = combine(
         settings.maskNumbers,
-        settings.showCardType,
-        settings.pinnedMax,
-        settings.tagsShow,
-        settings.tagsSearch
-    ) { mask, showType, pinnedMax, tagsShow, tagsSearch ->
-        CoreOptions(mask, showType, pinnedMax, tagsShow, tagsSearch)
+        settings.tagsShow
+    ) { mask, tagsShow ->
+        CoreOptions(mask, tagsShow)
     }
 
     private val copyOptions = combine(
         settings.clipClearSec,
-        settings.notifEnabled
-    ) { clipClearSec, notifEnabled ->
-        CopyOptions(clipClearSec, notifEnabled)
-    }
-
-    private val notifOptions = combine(
-        settings.notifSec,
-        settings.notifShowExpiry,
-        settings.notifShowCvv
-    ) { notifSec, showExpiry, showCvv ->
-        NotifOptions(notifSec, showExpiry, showCvv)
+        settings.notifEnabled,
+        settings.notifSec
+    ) { clipClearSec, notifEnabled, notifSec ->
+        CopyOptions(clipClearSec, notifEnabled, notifSec)
     }
 
     private val listOptions = combine(
         settings.expiredCards,
         settings.expiresSoonMonths,
-        settings.archivedCards,
         settings.showNotes
-    ) { expiredCards, expiresSoonMonths, archivedCards, showNotes ->
-        ListOptions(expiredCards, expiresSoonMonths, archivedCards, showNotes)
+    ) { expiredCards, expiresSoonMonths, showNotes ->
+        ListOptions(expiredCards, expiresSoonMonths, showNotes)
     }
 
     private val options = combine(
         coreOptions,
         copyOptions,
-        notifOptions,
         listOptions
-    ) { core, copy, notif, list ->
+    ) { core, copy, list ->
         HomeOptions(
             maskNumbers = core.maskNumbers,
-            showCardType = core.showCardType,
-            pinnedMax = core.pinnedMax,
             tagsShow = core.tagsShow,
-            tagsSearch = core.tagsSearch,
             clipClearSec = copy.clipClearSec,
             notifEnabled = copy.notifEnabled,
-            notifSec = notif.notifSec,
-            notifShowExpiry = notif.notifShowExpiry,
-            notifShowCvv = notif.notifShowCvv,
+            notifSec = copy.notifSec,
             expiredCards = list.expiredCards,
             expiresSoonMonths = list.expiresSoonMonths,
-            archivedCards = list.archivedCards,
             showNotes = list.showNotes
         )
     }
@@ -408,10 +374,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             cards = allCards,
             filters = ui.cardFilters,
             query = activeQuery,
-            tagsSearch = options.tagsSearch,
             options = CardsListOptions(
                 placement = options.expiredCards,
-                archived = options.archivedCards,
                 searching = searching,
                 status = CardsStatusFilter.states(ui.status),
                 reviewOnly = ui.reviewOnly

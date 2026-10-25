@@ -6,18 +6,18 @@
 
     <string name="backup_export_title">Export backup</string>
     <plurals name="backup_export_body">
-        <item quantity="one">%1$d card with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this passphrase. You’ll need it to import, and it can’t be recovered.</item>
-        <item quantity="other">%1$d cards with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this passphrase. You’ll need it to import, and it can’t be recovered.</item>
+        <item quantity="one">%1$d card with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this backup password. You’ll need it to import, and it can’t be recovered.</item>
+        <item quantity="other">%1$d cards with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this backup password. You’ll need it to import, and it can’t be recovered.</item>
     </plurals>
     <string name="backup_include_settings">Include settings</string>
-    <string name="backup_passphrase">Passphrase</string>
-    <string name="backup_passphrase_helper">At least 8 characters</string>
-    <string name="backup_confirm_passphrase">Confirm passphrase</string>
-    <string name="backup_passphrase_mismatch">Passphrases don’t match</string>
+    <string name="backup_password">Backup password</string>
+    <string name="backup_password_helper">At least 8 characters</string>
+    <string name="backup_confirm_password">Confirm backup password</string>
+    <string name="backup_password_mismatch">Backup passwords don’t match</string>
     <string name="backup_action_export">Export</string>
 
     <string name="backup_import_title">Import backup</string>
-    <string name="backup_import_body">Choose a QuickCards backup and enter its passphrase. You’ll see what it contains before anything changes.</string>
+    <string name="backup_import_body">Choose a QuickCards backup and enter its backup password. You’ll see what it contains before anything changes.</string>
     <string name="backup_choose_file">Choose backup file</string>
     <string name="backup_file_encrypted">Encrypted backup</string>
     <string name="backup_file_quickcards">QuickCards backup</string>
@@ -27,7 +27,7 @@
     </plurals>
     <string name="backup_action_open">Open</string>
     <string name="backup_action_import">Import</string>
-    <string name="backup_wrong_passphrase">That passphrase doesn’t open this backup</string>
+    <string name="backup_wrong_password">That backup password doesn’t open this backup</string>
 
     <string name="backup_review_title">Review backup</string>
     <string name="backup_review_exported">%1$s · exported %2$s</string>
@@ -77,8 +77,8 @@
     <string name="backup_action_change">Change</string>
     <string name="backup_action_cancel">Cancel</string>
 
-    <string name="backup_a11y_show_passphrase">Show passphrase</string>
-    <string name="backup_a11y_hide_passphrase">Hide passphrase</string>
+    <string name="backup_a11y_show_password">Show backup password</string>
+    <string name="backup_a11y_hide_password">Hide backup password</string>
 
     <string name="backup_snack_saved_settings">Backup with settings saved to Downloads</string>
     <string name="backup_snack_saved">Backup saved to Downloads</string>

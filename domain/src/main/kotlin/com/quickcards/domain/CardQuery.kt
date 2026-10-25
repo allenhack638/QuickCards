@@ -95,8 +95,7 @@ object CardQuery {
     fun visibleCards(
         cards: List<CardQueryEntry>,
         filters: CardFilters,
-        query: String,
-        tagsSearch: Boolean
+        query: String
     ): List<CardQueryEntry> {
         val text = query.trim().lowercase()
         val digits = text.replace(Regex("\\s+"), "")
@@ -114,7 +113,7 @@ object CardQuery {
                 entry.networkName,
                 entry.networkCode
             )
-            if (tagsSearch) fields.addAll(entry.tagNames)
+            fields.addAll(entry.tagNames)
             fields.any { it.lowercase().contains(text) }
         }
     }

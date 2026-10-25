@@ -51,7 +51,6 @@ class LockCoversOverlaysTest {
     fun setUp() {
         app = ApplicationProvider.getApplicationContext()
         app.settings.setAppLockEnabled(false)
-        app.settings.setPinnedMax(1)
         runBlocking {
             withContext(Dispatchers.IO) {
                 BackupImporter.eraseAll(app.database)

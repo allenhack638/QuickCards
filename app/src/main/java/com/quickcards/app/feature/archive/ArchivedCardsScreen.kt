@@ -140,8 +140,8 @@ fun ArchivedCardsScreen(
             ),
             expiry = card.card.expiry,
             cvv = card.card.cvv,
-            showExpiry = state.options.notifShowExpiry,
-            showCvv = state.options.notifShowCvv,
+            showExpiry = state.options.notifEnabled,
+            showCvv = state.options.notifEnabled,
             seconds = state.options.notifSec
         )
     }
@@ -574,7 +574,6 @@ private fun ArchivedList(
                 PassCard(
                     card = item.card,
                     maskNumbers = state.options.maskNumbers,
-                    showCardType = state.options.showCardType,
                     tagsShow = state.options.tagsShow,
                     modifier = Modifier.fillMaxWidth(),
                     expiryState = item.card.expiryState,

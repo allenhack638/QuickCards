@@ -2,6 +2,7 @@ package com.quickcards.app.feature.cardform
 
 import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.model.VaultCard
+import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.domain.CardDraft
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
@@ -134,8 +135,8 @@ data class CardFormLists(
     val networks: List<CardNetwork> = emptyList(),
     val types: List<NamedRef> = emptyList(),
     val tags: List<NamedRef> = emptyList(),
-    val tagLimit: Int = 3,
-    val tagMaxLen: Int = 16,
+    val tagLimit: Int = AppSettingsDefaults.TAGS_MAX,
+    val tagMaxLen: Int = AppSettingsDefaults.TAGS_MAX_LEN,
     val duplicates: Map<String, ExistingCardRef> = emptyMap()
 ) {
     fun holderName(id: String?): String? = holders.firstOrNull { it.id == id }?.name
@@ -165,7 +166,6 @@ data class CardFormLists(
 }
 
 data class CardFormOptions(
-    val showCardType: Boolean = true,
     val tagsShow: Boolean = true,
     val showNotes: Boolean = true,
     val expiresSoonMonths: Int = 1

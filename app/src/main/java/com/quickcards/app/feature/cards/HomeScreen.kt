@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.quickcards.app.R
+import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.notifications.CopyCompanionNotifier
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
@@ -105,8 +106,8 @@ fun HomeScreen(
             ),
             expiry = card.card.expiry,
             cvv = card.card.cvv,
-            showExpiry = state.options.notifShowExpiry,
-            showCvv = state.options.notifShowCvv,
+            showExpiry = state.options.notifEnabled,
+            showCvv = state.options.notifEnabled,
             seconds = state.options.notifSec
         )
     }
@@ -273,7 +274,8 @@ fun HomeScreen(
         }
     }
 
-    val pinLimitReached = state.cards.count { it.card.pinned } >= state.options.pinnedMax
+    val pinLimitReached =
+        state.cards.count { it.card.pinned } >= AppSettingsDefaults.PINNED_MAX
 
     fun togglePin(card: HomeCard) {
         actionsCard = null
@@ -327,7 +329,6 @@ fun HomeScreen(
         if (state.searchOn) {
             SearchTopBar(
                 query = state.query,
-                tagsSearch = state.options.tagsSearch,
                 onQueryChange = viewModel::setQuery,
                 onBack = { viewModel.setSearchActive(false) }
             )
@@ -353,13 +354,7 @@ fun HomeScreen(
             )
             if (state.searchOn && state.query.isBlank()) {
                 Text(
-                    text = context.getString(
-                        if (state.options.tagsSearch) {
-                            R.string.cards_search_hint_tags
-                        } else {
-                            R.string.cards_search_hint
-                        }
-                    ),
+                    text = context.getString(R.string.cards_search_hint_tags),
                     style = QcType.Body,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(
@@ -450,8 +445,7 @@ fun HomeScreen(
             onArchive = { requestArchive(sheetCard) },
             onRestore = { restoreArchived(sheetCard) },
             onDelete = { requestDelete(sheetCard) },
-            pinLimitReached = pinLimitReached,
-            pinnedMax = state.options.pinnedMax
+            pinLimitReached = pinLimitReached
         )
     }
 

@@ -2,11 +2,14 @@ package com.quickcards.app.flow
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.model.VaultCard
 import org.junit.Assert.assertEquals
@@ -25,7 +28,6 @@ class PinFlowTest : FlowTestBase() {
 
     @Test
     fun pinAndUnpinKeepThePinnedGroupFirst() {
-        app.settings.setPinnedMax(3)
         val cards = seedThreeBanks()
 
         pin("HDFC Bank")
@@ -60,20 +62,13 @@ class PinFlowTest : FlowTestBase() {
 
     @Test
     fun pinIsDisabledAtTheLimit() {
-        app.settings.setPinnedMax(1)
-        val cards = seedThreeBanks()
-
-        pin("HDFC Bank")
-        awaitCardsWhere("HDFC Bank pinned") { list ->
-            list.first { it.id == cards[0].id }.pinned
-        }
+        val target = seedPinnedLimit()
 
         openActions("Axis Bank")
-        compose.onNodeWithText("1 of 1 pinned. Unpin a card or raise the limit in Settings.").assertExists()
+        compose.onNodeWithText("10 of 10 pinned. Unpin a card.").assertExists()
         compose.onNodeWithText("Pin").performClick()
-        assertFalse(cardsNow().first { it.id == cards[1].id }.pinned)
-        assertTrue(cardsNow().first { it.id == cards[0].id }.pinned)
-        compose.onAllNodesWithContentDescription("Pinned").assertCountEquals(1)
+        assertFalse(cardsNow().first { it.id == target.id }.pinned)
+        assertTrue(cardsNow().count { it.pinned } == 10)
     }
 
     private fun seedThreeBanks(): List<VaultCard> {
@@ -88,6 +83,25 @@ class PinFlowTest : FlowTestBase() {
         )
         revealCard("HDFC Bank")
         return cards
+    }
+
+    private fun seedPinnedLimit(): VaultCard {
+        val holder = runBlockingSeed { app.repository.createHolder("Aarav Mehta") }
+        repeat(10) { index ->
+            val bank = runBlockingSeed { app.repository.createBank("Bank $index") }
+            seedCard(
+                number = "41111111111111${(index + 1).toString().padStart(2, '0')}",
+                holderId = holder.id,
+                bankId = bank.id,
+                pinned = true,
+                pinnedAt = index.toLong() + 1,
+                sortOrder = index
+            )
+        }
+        val axisBank = runBlockingSeed { app.repository.createBank("Axis Bank") }
+        val target = seedCard(icici, holder.id, axisBank.id, sortOrder = 10)
+        awaitCards(11)
+        return target
     }
 
     private fun openActions(title: String) {
@@ -111,6 +125,13 @@ class PinFlowTest : FlowTestBase() {
     }
 
     private fun revealCard(title: String) {
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasScrollAction() and hasScrollToIndexAction())
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasScrollAction() and hasScrollToIndexAction())
+            .performScrollToNode(hasContentDescription("More for $title"))
+        compose.waitForIdle()
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasContentDescription("More for $title"))
                 .fetchSemanticsNodes().isNotEmpty()

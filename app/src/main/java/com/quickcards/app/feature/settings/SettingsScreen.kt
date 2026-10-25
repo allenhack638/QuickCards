@@ -51,7 +51,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.quickcards.app.BuildConfig
-import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
@@ -65,7 +64,6 @@ import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 import com.quickcards.app.core.ui.theme.qcSwitchColors
-import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.ExpiredPlacement
 import com.quickcards.domain.SecurityConfirmation
 import com.quickcards.domain.TimeText
@@ -86,8 +84,6 @@ private fun localizedReason(context: Context, reason: String?): String? = when (
         context.getString(R.string.settings_reason_inactivity_never)
     SecurityConfirmation.LOCK_ON_LEAVE_OFF ->
         context.getString(R.string.settings_reason_lock_on_leave_off)
-    SecurityConfirmation.NOTIF_CVV_ON ->
-        context.getString(R.string.settings_reason_notification_cvv)
     else -> reason
 }
 
@@ -101,9 +97,6 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val settings = remember(context) { AppSettings.get(context) }
-    val repository = remember(context) {
-        (context.applicationContext as QuickCardsApplication).repository
-    }
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
 
@@ -111,20 +104,12 @@ fun SettingsScreen(
     val dynamicColor by settings.dynamicColor.collectAsState()
     val clipClearSec by settings.clipClearSec.collectAsState()
     val maskNumbers by settings.maskNumbers.collectAsState()
-    val showCardType by settings.showCardType.collectAsState()
-    val pinnedMax by settings.pinnedMax.collectAsState()
     val expiredCards by settings.expiredCards.collectAsState()
     val expiresSoonMonths by settings.expiresSoonMonths.collectAsState()
-    val archivedCards by settings.archivedCards.collectAsState()
     val showNotes by settings.showNotes.collectAsState()
     val notifEnabled by settings.notifEnabled.collectAsState()
     val notifSec by settings.notifSec.collectAsState()
-    val notifShowExpiry by settings.notifShowExpiry.collectAsState()
-    val notifShowCvv by settings.notifShowCvv.collectAsState()
     val tagsShow by settings.tagsShow.collectAsState()
-    val tagsSearch by settings.tagsSearch.collectAsState()
-    val tagsMax by settings.tagsMax.collectAsState()
-    val tagsMaxLen by settings.tagsMaxLen.collectAsState()
     val appLockEnabled by settings.appLockEnabled.collectAsState()
     val appLockAfterSec by settings.appLockAfterSec.collectAsState()
     val lockOnLeave by settings.lockOnLeave.collectAsState()
@@ -225,45 +210,6 @@ fun SettingsScreen(
                 checked = maskNumbers,
                 onCheckedChange = settings::setMaskNumbers
             )
-            SwitchRow(
-                icon = QcIcons.type,
-                title = stringResource(R.string.settings_show_type_title),
-                subtitle = stringResource(R.string.settings_show_type_subtitle),
-                checked = showCardType,
-                onCheckedChange = settings::setShowCardType
-            )
-            ValueRow(
-                icon = QcIcons.pin,
-                title = stringResource(R.string.settings_pinned_title),
-                subtitle = pluralStringResource(
-                    R.plurals.settings_pinned_subtitle,
-                    pinnedMax,
-                    pinnedMax
-                ),
-                onClick = {
-                    openRadio(
-                        title = context.getString(R.string.settings_pinned_title),
-                        body = context.getString(R.string.settings_pinned_body),
-                        options = AppSettingsDefaults.PINNED_MAX_OPTIONS.map { it to it.toString() },
-                        current = pinnedMax,
-                        onConfirm = { value ->
-                            settings.setPinnedMax(value)
-                            scope.launch {
-                                val removed = repository.trimPinned(value)
-                                if (removed > 0) {
-                                    snackbar.show(
-                                        context.resources.getQuantityString(
-                                            R.plurals.settings_unpinned_cards,
-                                            removed,
-                                            removed
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    )
-                }
-            )
 
             SettingsSubhead(stringResource(R.string.settings_section_card_list))
             ValueRow(
@@ -315,36 +261,6 @@ fun SettingsScreen(
                         },
                         current = expiresSoonMonths,
                         onConfirm = settings::setExpiresSoonMonths
-                    )
-                }
-            )
-            ValueRow(
-                icon = QcIcons.inventory2,
-                title = stringResource(R.string.settings_archived_title),
-                subtitle = when (archivedCards) {
-                    ArchivedVisibility.ONLY_ARCHIVE ->
-                        stringResource(R.string.settings_archived_only)
-                    ArchivedVisibility.IN_SEARCH ->
-                        stringResource(R.string.settings_archived_search)
-                },
-                onClick = {
-                    openRadio(
-                        title = context.getString(R.string.settings_archived_title),
-                        body = context.getString(R.string.settings_archived_body),
-                        options = AppSettingsDefaults.ARCHIVED_CARDS_OPTIONS.map { visibility ->
-                            visibility.ordinal to context.getString(
-                                when (visibility) {
-                                    ArchivedVisibility.ONLY_ARCHIVE ->
-                                        R.string.settings_archived_only
-                                    ArchivedVisibility.IN_SEARCH ->
-                                        R.string.settings_archived_search
-                                }
-                            )
-                        },
-                        current = archivedCards.ordinal,
-                        onConfirm = { value ->
-                            settings.setArchivedCards(ArchivedVisibility.entries[value])
-                        }
                     )
                 }
             )
@@ -411,31 +327,6 @@ fun SettingsScreen(
                     )
                 }
             )
-            SwitchRow(
-                icon = QcIcons.visibility,
-                title = stringResource(R.string.settings_notification_expiry_title),
-                subtitle = stringResource(R.string.settings_notification_expiry_subtitle),
-                checked = notifShowExpiry,
-                enabled = notifEnabled,
-                onCheckedChange = settings::setNotifShowExpiry
-            )
-            SwitchRow(
-                icon = QcIcons.visibility,
-                title = stringResource(R.string.settings_notification_cvv_title),
-                subtitle = stringResource(R.string.settings_notification_cvv_subtitle),
-                checked = notifShowCvv,
-                enabled = notifEnabled,
-                onCheckedChange = { enabled ->
-                    guarded(
-                        localizedReason(
-                            context,
-                            SecurityConfirmation.reasonForNotificationCvv(enabled)
-                        )
-                    ) {
-                        settings.setNotifShowCvv(enabled)
-                    }
-                }
-            )
 
             SettingsSubhead(stringResource(R.string.settings_section_tags))
             SwitchRow(
@@ -444,51 +335,6 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_tags_show_subtitle),
                 checked = tagsShow,
                 onCheckedChange = settings::setTagsShow
-            )
-            SwitchRow(
-                icon = QcIcons.search,
-                title = stringResource(R.string.settings_tags_search_title),
-                subtitle = stringResource(R.string.settings_tags_search_subtitle),
-                checked = tagsSearch,
-                onCheckedChange = settings::setTagsSearch
-            )
-            ValueRow(
-                icon = QcIcons.filter3,
-                title = stringResource(R.string.settings_tags_max_title),
-                subtitle = stringResource(R.string.settings_tags_max_subtitle, tagsMax),
-                onClick = {
-                    openRadio(
-                        title = context.getString(R.string.settings_tags_max_title),
-                        body = context.getString(R.string.settings_tags_max_body),
-                        options = AppSettingsDefaults.TAGS_MAX_OPTIONS.map { it to it.toString() },
-                        current = tagsMax,
-                        onConfirm = settings::setTagsMax
-                    )
-                }
-            )
-            ValueRow(
-                icon = QcIcons.ruler,
-                title = stringResource(R.string.settings_tag_length_title),
-                subtitle = pluralStringResource(
-                    R.plurals.settings_tag_length_subtitle,
-                    tagsMaxLen,
-                    tagsMaxLen
-                ),
-                onClick = {
-                    openRadio(
-                        title = context.getString(R.string.settings_tag_length_title),
-                        body = context.getString(R.string.settings_tag_length_body),
-                        options = AppSettingsDefaults.TAGS_MAX_LEN_OPTIONS.map {
-                            it to context.resources.getQuantityString(
-                                R.plurals.settings_tag_length_option,
-                                it,
-                                it
-                            )
-                        },
-                        current = tagsMaxLen,
-                        onConfirm = settings::setTagsMaxLen
-                    )
-                }
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_security))

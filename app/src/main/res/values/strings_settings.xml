@@ -23,20 +23,6 @@
     <string name="settings_mask_title">Hide card numbers</string>
     <string name="settings_mask_subtitle">Show only the last 4 digits</string>
 
-    <string name="settings_show_type_title">Show card type</string>
-    <string name="settings_show_type_subtitle">Credit, debit and more on cards</string>
-
-    <string name="settings_pinned_title">Pinned cards</string>
-    <plurals name="settings_pinned_subtitle">
-        <item quantity="one">Up to %1$d card at the top</item>
-        <item quantity="other">Up to %1$d cards at the top</item>
-    </plurals>
-    <string name="settings_pinned_body"></string>
-    <plurals name="settings_unpinned_cards">
-        <item quantity="one">Unpinned %1$d card</item>
-        <item quantity="other">Unpinned %1$d cards</item>
-    </plurals>
-
     <string name="settings_expired_title">Expired cards</string>
     <string name="settings_expired_body">Expired cards keep working; this only changes where they appear.</string>
     <string name="settings_expired_keep">Keep in place</string>
@@ -50,11 +36,6 @@
         <item quantity="other">Within %1$d months</item>
     </plurals>
 
-    <string name="settings_archived_title">Archived cards</string>
-    <string name="settings_archived_body">Choose whether search also finds archived cards.</string>
-    <string name="settings_archived_only">Only in Archived cards</string>
-    <string name="settings_archived_search">Also in search results</string>
-
     <string name="settings_notes_title">Show notes on cards</string>
     <string name="settings_notes_subtitle">Up to 2 lines on each card</string>
 
@@ -62,33 +43,14 @@
     <string name="settings_clipboard_after">After %1$s</string>
     <string name="settings_clipboard_body">Copied details are removed from the clipboard after this time.</string>
 
-    <string name="settings_notification_title">Expiry and CVV notification</string>
-    <string name="settings_notification_subtitle">After you copy a number</string>
+    <string name="settings_notification_title">Show expiry and CVV after copying</string>
+    <string name="settings_notification_subtitle">For the time set below, hidden on the lock screen</string>
     <string name="settings_notification_time_title">Notification time</string>
     <string name="settings_notification_time_subtitle">Disappears after %1$s</string>
     <string name="settings_notification_time_body">How long expiry and CVV stay in the notification.</string>
-    <string name="settings_notification_expiry_title">Show expiry in notification</string>
-    <string name="settings_notification_expiry_subtitle">Month and year in the notification</string>
-    <string name="settings_notification_cvv_title">Show CVV in notification</string>
-    <string name="settings_notification_cvv_subtitle">Hidden on the lock screen</string>
 
     <string name="settings_tags_show_title">Show tags on cards</string>
     <string name="settings_tags_show_subtitle">Tags appear under the stub</string>
-    <string name="settings_tags_search_title">Search by tag</string>
-    <string name="settings_tags_search_subtitle">Include tag names in search</string>
-    <string name="settings_tags_max_title">Tags per card</string>
-    <string name="settings_tags_max_subtitle">Up to %1$d</string>
-    <string name="settings_tags_max_body">Cards that already have more keep them.</string>
-    <string name="settings_tag_length_title">Tag length</string>
-    <plurals name="settings_tag_length_subtitle">
-        <item quantity="one">Up to %1$d character</item>
-        <item quantity="other">Up to %1$d characters</item>
-    </plurals>
-    <string name="settings_tag_length_body">Longest tag name you can create.</string>
-    <plurals name="settings_tag_length_option">
-        <item quantity="one">%1$d character</item>
-        <item quantity="other">%1$d characters</item>
-    </plurals>
 
     <string name="settings_app_lock_title">App lock</string>
     <string name="settings_app_lock_subtitle">Fingerprint needed to open QuickCards</string>
@@ -105,7 +67,7 @@
     <string name="settings_lock_now_subtitle">Lock QuickCards right away</string>
 
     <string name="settings_backup_export_title">Export backup</string>
-    <string name="settings_backup_export_subtitle">Encrypted file protected by a passphrase</string>
+    <string name="settings_backup_export_subtitle">Encrypted file protected by a backup password</string>
     <string name="settings_backup_import_title">Import backup</string>
     <string name="settings_backup_import_subtitle">QuickCards backups, including older versions</string>
     <string name="settings_backup_erase_title">Erase all data</string>
@@ -119,7 +81,6 @@
     <string name="settings_reason_app_lock_off">Confirm it’s you to turn off app lock</string>
     <string name="settings_reason_inactivity_never">Confirm it’s you to turn off the inactivity lock</string>
     <string name="settings_reason_lock_on_leave_off">Confirm it’s you to stop locking when you leave</string>
-    <string name="settings_reason_notification_cvv">Confirm it’s you to show the CVV in notifications</string>
 
     <string name="settings_snackbar_copying_locked">Copying locked</string>
 

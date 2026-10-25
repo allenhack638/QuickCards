@@ -13,7 +13,6 @@
     <string name="cards_search_clear">Clear search</string>
     <string name="cards_search_placeholder">Search cards</string>
     <string name="cards_search_placeholder_tags">Search cards and tags</string>
-    <string name="cards_search_hint">Search by digits, bank, holder, network or note</string>
     <string name="cards_search_hint_tags">Search by digits, bank, holder, network, tag or note</string>
 
     <!-- Holder and filter chips -->
@@ -137,8 +136,8 @@
 
     <!-- Pin and delete dialogs -->
     <plurals name="cards_pin_limit_reached">
-        <item quantity="one">%1$d of %1$d pinned. Unpin a card or raise the limit in Settings.</item>
-        <item quantity="other">%1$d of %1$d pinned. Unpin a card or raise the limit in Settings.</item>
+        <item quantity="one">%1$d of %1$d pinned. Unpin a card.</item>
+        <item quantity="other">%1$d of %1$d pinned. Unpin a card.</item>
     </plurals>
     <string name="cards_cancel">Cancel</string>
     <string name="cards_pinned">Pinned</string>

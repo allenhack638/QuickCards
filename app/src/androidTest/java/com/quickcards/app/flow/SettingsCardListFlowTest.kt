@@ -10,7 +10,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
-import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.ExpiredPlacement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,7 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** The Card list section writes its four settings. */
+/** The Card list section writes its three settings. */
 @RunWith(AndroidJUnit4::class)
 class SettingsCardListFlowTest : FlowTestBase() {
 
@@ -26,7 +25,6 @@ class SettingsCardListFlowTest : FlowTestBase() {
     fun resetCardListSettings() {
         app.settings.setExpiredCards(AppSettingsDefaults.EXPIRED_CARDS)
         app.settings.setExpiresSoonMonths(AppSettingsDefaults.EXPIRES_SOON_MONTHS)
-        app.settings.setArchivedCards(AppSettingsDefaults.ARCHIVED_CARDS)
         app.settings.setShowNotes(AppSettingsDefaults.SHOW_NOTES)
     }
 
@@ -53,19 +51,7 @@ class SettingsCardListFlowTest : FlowTestBase() {
         awaitDialogClosed()
         compose.waitUntil(10_000) { app.settings.expiresSoonMonths.value == 3 }
 
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Archived cards"))
-        compose.onNodeWithText("Archived cards").performClick()
-        waitForText("Also in search results")
-        compose.onNodeWithText("Also in search results").performClick()
-        compose.onNodeWithText("OK").performClick()
-        awaitDialogClosed()
-        compose.waitUntil(10_000) {
-            app.settings.archivedCards.value == ArchivedVisibility.IN_SEARCH
-        }
-
-        compose.onNode(hasScrollAction()).performScrollToNode(
-            hasText("Show notes on cards")
-        )
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Show notes on cards"))
         compose.onNode(hasText("Show notes on cards") and isToggleable()).performClick()
         compose.waitUntil(10_000) { !app.settings.showNotes.value }
         assertFalse(app.settings.showNotes.value)

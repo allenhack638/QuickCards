@@ -72,7 +72,6 @@ class PassCardTest {
                 PassCard(
                     card = card,
                     maskNumbers = true,
-                    showCardType = true,
                     tagsShow = true,
                     onCopy = { false },
                     onReveal = { true },

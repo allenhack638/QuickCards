@@ -205,7 +205,6 @@ private fun CardGrid(
                 PassCard(
                     card = card,
                     maskNumbers = options.maskNumbers,
-                    showCardType = options.showCardType,
                     tagsShow = options.tagsShow,
                     modifier = if (columns > 1) {
                         Modifier.widthIn(max = QcDimens.CardMaxWidth)

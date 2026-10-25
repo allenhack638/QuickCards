@@ -9,7 +9,7 @@ import android.content.Intent
 import com.quickcards.app.MainActivity
 import com.quickcards.app.R
 
-/** Post-copy notification: shows the expiry and/or CVV chosen in Settings; no actions. */
+/** Post-copy notification: shows the expiry and CVV when enabled in Settings; no actions. */
 object CopyCompanionNotifier {
 
     const val CHANNEL_ID = "card_details"

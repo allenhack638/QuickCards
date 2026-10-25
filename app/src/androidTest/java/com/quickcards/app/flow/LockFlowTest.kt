@@ -27,7 +27,6 @@ class LockFlowTest : FlowTestBase() {
         runBlockingSeed { app.repository.pin(hdfcCard.id) }
 
         app.settings.setAppLockEnabled(true)
-        app.settings.setPinnedMax(1)
         waitForContentDescription("More for HDFC Bank")
 
         compose.onNodeWithContentDescription("More for HDFC Bank").performClick()

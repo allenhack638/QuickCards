@@ -13,22 +13,13 @@ object BackupSettings {
         AppSettings.KEY_COPY_WINDOW_SEC_NAME to AppSettingsDefaults.COPY_WINDOW_SEC,
         AppSettings.KEY_CLIP_CLEAR_SEC_NAME to AppSettingsDefaults.CLIP_CLEAR_SEC,
         AppSettings.KEY_MASK_NUMBERS_NAME to AppSettingsDefaults.MASK_NUMBERS,
-        AppSettings.KEY_SHOW_CARD_TYPE_NAME to AppSettingsDefaults.SHOW_CARD_TYPE,
-        AppSettings.KEY_PINNED_MAX_NAME to AppSettingsDefaults.PINNED_MAX,
         AppSettings.KEY_EXPIRED_CARDS_NAME to
             AppSettingsDefaults.EXPIRED_CARDS.name.lowercase(Locale.ROOT),
         AppSettings.KEY_EXPIRES_SOON_MONTHS_NAME to AppSettingsDefaults.EXPIRES_SOON_MONTHS,
-        AppSettings.KEY_ARCHIVED_CARDS_NAME to
-            AppSettingsDefaults.ARCHIVED_CARDS.name.lowercase(Locale.ROOT),
         AppSettings.KEY_SHOW_NOTES_NAME to AppSettingsDefaults.SHOW_NOTES,
         AppSettings.KEY_NOTIF_ENABLED_NAME to AppSettingsDefaults.NOTIF_ENABLED,
         AppSettings.KEY_NOTIF_SEC_NAME to AppSettingsDefaults.NOTIF_SEC,
-        AppSettings.KEY_NOTIF_SHOW_EXPIRY_NAME to AppSettingsDefaults.NOTIF_SHOW_EXPIRY,
-        AppSettings.KEY_NOTIF_SHOW_CVV_NAME to AppSettingsDefaults.NOTIF_SHOW_CVV,
         AppSettings.KEY_TAGS_SHOW_NAME to AppSettingsDefaults.TAGS_SHOW,
-        AppSettings.KEY_TAGS_SEARCH_NAME to AppSettingsDefaults.TAGS_SEARCH,
-        AppSettings.KEY_TAGS_MAX_NAME to AppSettingsDefaults.TAGS_MAX,
-        AppSettings.KEY_TAGS_MAX_LEN_NAME to AppSettingsDefaults.TAGS_MAX_LEN,
         AppSettings.KEY_APP_LOCK_ENABLED_NAME to AppSettingsDefaults.APP_LOCK_ENABLED,
         AppSettings.KEY_APP_LOCK_AFTER_SEC_NAME to AppSettingsDefaults.APP_LOCK_AFTER_SEC,
         AppSettings.KEY_LOCK_ON_LEAVE_NAME to AppSettingsDefaults.LOCK_ON_LEAVE
@@ -52,8 +43,7 @@ object BackupSettings {
         val copyWindowSec: Int,
         val clipClearSec: Int,
         val maskNumbers: Boolean,
-        val notifShowExpiry: Boolean,
-        val notifShowCvv: Boolean
+        val notifEnabled: Boolean
     ) {
         fun stricterWith(other: Protection) = Protection(
             appLockEnabled = appLockEnabled || other.appLockEnabled,
@@ -62,8 +52,7 @@ object BackupSettings {
             copyWindowSec = minOf(copyWindowSec, other.copyWindowSec),
             clipClearSec = shorterTimeout(clipClearSec, other.clipClearSec),
             maskNumbers = maskNumbers || other.maskNumbers,
-            notifShowExpiry = notifShowExpiry && other.notifShowExpiry,
-            notifShowCvv = notifShowCvv && other.notifShowCvv
+            notifEnabled = notifEnabled && other.notifEnabled
         )
 
         fun applyTo(settings: AppSettings) {
@@ -73,8 +62,7 @@ object BackupSettings {
             settings.setCopyWindowSec(copyWindowSec)
             settings.setClipClearSec(clipClearSec)
             settings.setMaskNumbers(maskNumbers)
-            settings.setNotifShowExpiry(notifShowExpiry)
-            settings.setNotifShowCvv(notifShowCvv)
+            settings.setNotifEnabled(notifEnabled)
         }
 
         companion object {
@@ -85,8 +73,7 @@ object BackupSettings {
                 copyWindowSec = settings.copyWindowSec.value,
                 clipClearSec = settings.clipClearSec.value,
                 maskNumbers = settings.maskNumbers.value,
-                notifShowExpiry = settings.notifShowExpiry.value,
-                notifShowCvv = settings.notifShowCvv.value
+                notifEnabled = settings.notifEnabled.value
             )
 
             /** 0 means "never", the weakest choice. */

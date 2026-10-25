@@ -122,7 +122,6 @@ internal fun HomeTopBar(
 @Composable
 internal fun SearchTopBar(
     query: String,
-    tagsSearch: Boolean,
     onQueryChange: (String) -> Unit,
     onBack: () -> Unit
 ) {
@@ -175,13 +174,7 @@ internal fun SearchTopBar(
             Box(modifier = Modifier.weight(1f)) {
                 if (value.text.isEmpty()) {
                     Text(
-                        text = stringResource(
-                            if (tagsSearch) {
-                                R.string.cards_search_placeholder_tags
-                            } else {
-                                R.string.cards_search_placeholder
-                            }
-                        ),
+                        text = stringResource(R.string.cards_search_placeholder_tags),
                         style = QcType.BodyLarge.copy(fontWeight = FontWeight(400)),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1

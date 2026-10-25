@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.quickcards.app.R
+import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.components.QcModalBottomSheet
 import com.quickcards.app.core.ui.theme.PassColors
@@ -306,8 +307,7 @@ internal fun ActionsSheet(
     onArchive: () -> Unit,
     onRestore: () -> Unit,
     onDelete: () -> Unit,
-    pinLimitReached: Boolean,
-    pinnedMax: Int
+    pinLimitReached: Boolean
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val subtitleParts = buildList {
@@ -395,7 +395,11 @@ internal fun ActionsSheet(
                         if (card.card.pinned) R.string.cards_action_unpin else R.string.cards_action_pin
                     ),
                     supporting = if (pinBlocked) {
-                        pluralStringResource(R.plurals.cards_pin_limit_reached, pinnedMax, pinnedMax)
+                        pluralStringResource(
+                            R.plurals.cards_pin_limit_reached,
+                            AppSettingsDefaults.PINNED_MAX,
+                            AppSettingsDefaults.PINNED_MAX
+                        )
                     } else {
                         null
                     },

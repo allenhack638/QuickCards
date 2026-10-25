@@ -24,7 +24,7 @@ Captured from `prototype/v2.html` at a 390×844 phone frame (images are ~1.78× 
 | 18-settings-copying-tags.png | Settings: Copying, Tags |
 | 19-settings-security.png | Settings: Security (app lock, inactivity, copy window) |
 | 20-settings-backup-about.png | Settings: Backup, About |
-| 21-export-dialog.png | Export with Include settings + passphrase mismatch error |
+| 21-export-dialog.png | Export with Include settings + backup password mismatch error |
 | 22-import-review.png | Import review: new/changed/same, update or keep, restore settings |
 | 23-home-light.png | Home, light theme |
 | 24-edit-card-light.png | Edit card (full number shown), light theme |

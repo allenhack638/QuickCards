@@ -1,7 +1,6 @@
 package com.quickcards.app.feature.cards
 
 import com.quickcards.app.core.ui.HomeCard
-import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.CardListOrder
 import com.quickcards.domain.CardQuery
@@ -38,7 +37,6 @@ object CardsStatusFilter {
 
 data class CardsListOptions(
     val placement: ExpiredPlacement,
-    val archived: ArchivedVisibility,
     val searching: Boolean,
     val status: Set<ExpiryState>,
     val reviewOnly: Boolean
@@ -57,7 +55,6 @@ object CardsListState {
         cards: List<HomeCard>,
         filters: CardFilters,
         query: String,
-        tagsSearch: Boolean,
         options: CardsListOptions
     ): List<HomeCard> {
         val pool = if (options.reviewOnly) {
@@ -68,8 +65,7 @@ object CardsListState {
         val visibleIds = CardQuery.visibleCards(
             pool.map { it.entry },
             filters,
-            query,
-            tagsSearch
+            query
         ).mapTo(mutableSetOf()) { it.id }
 
         return CardListOrder.arrangeCards(
@@ -78,7 +74,6 @@ object CardsListState {
             state = { it.expiryState },
             isArchived = { it.card.archived },
             placement = options.placement,
-            archived = options.archived,
             searching = options.searching,
             statusFilter = options.status
         )

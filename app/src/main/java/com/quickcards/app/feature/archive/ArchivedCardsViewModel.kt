@@ -54,7 +54,6 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
 
     private data class ListOptions(
         val maskNumbers: Boolean,
-        val showCardType: Boolean,
         val tagsShow: Boolean,
         val showNotes: Boolean,
         val expiresSoonMonths: Int
@@ -63,9 +62,7 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
     private data class CopyOptions(
         val clipClearSec: Int,
         val notifEnabled: Boolean,
-        val notifSec: Int,
-        val notifShowExpiry: Boolean,
-        val notifShowCvv: Boolean
+        val notifSec: Int
     )
 
     private val lists = combine(
@@ -89,35 +86,29 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
 
     private val listOptions = combine(
         settings.maskNumbers,
-        settings.showCardType,
         settings.tagsShow,
         settings.showNotes,
         settings.expiresSoonMonths
-    ) { maskNumbers, showCardType, tagsShow, showNotes, expiresSoonMonths ->
-        ListOptions(maskNumbers, showCardType, tagsShow, showNotes, expiresSoonMonths)
+    ) { maskNumbers, tagsShow, showNotes, expiresSoonMonths ->
+        ListOptions(maskNumbers, tagsShow, showNotes, expiresSoonMonths)
     }
 
     private val copyOptions = combine(
         settings.clipClearSec,
         settings.notifEnabled,
-        settings.notifSec,
-        settings.notifShowExpiry,
-        settings.notifShowCvv
-    ) { clipClearSec, notifEnabled, notifSec, notifShowExpiry, notifShowCvv ->
-        CopyOptions(clipClearSec, notifEnabled, notifSec, notifShowExpiry, notifShowCvv)
+        settings.notifSec
+    ) { clipClearSec, notifEnabled, notifSec ->
+        CopyOptions(clipClearSec, notifEnabled, notifSec)
     }
 
     private val options = combine(listOptions, copyOptions) { list, copy ->
         ArchivedCardsOptions(
             maskNumbers = list.maskNumbers,
-            showCardType = list.showCardType,
             tagsShow = list.tagsShow,
             showNotes = list.showNotes,
             clipClearSec = copy.clipClearSec,
             notifEnabled = copy.notifEnabled,
             notifSec = copy.notifSec,
-            notifShowExpiry = copy.notifShowExpiry,
-            notifShowCvv = copy.notifShowCvv,
             expiresSoonMonths = list.expiresSoonMonths
         )
     }

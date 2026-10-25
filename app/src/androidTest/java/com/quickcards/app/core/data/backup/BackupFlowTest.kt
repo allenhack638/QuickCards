@@ -107,7 +107,6 @@ class BackupFlowTest {
 
         settings.setTheme(AppTheme.LIGHT)
         settings.setCopyWindowSec(120)
-        settings.setPinnedMax(5)
 
         val content = BackupSnapshot.capture(
             repository = repository,
@@ -152,7 +151,6 @@ class BackupFlowTest {
         assertEquals(AppTheme.LIGHT, settings.theme.value)
         // Protection never loosens on restore: the phone's 30 s beats the backup's 120 s.
         assertEquals(30, settings.copyWindowSec.value)
-        assertEquals(5, settings.pinnedMax.value)
 
         val restored = repository.cards.first()
         assertEquals(2, restored.size)
@@ -382,7 +380,7 @@ class BackupFlowTest {
         settings.setTheme(AppTheme.LIGHT)
         settings.setCopyWindowSec(120)
         settings.setMaskNumbers(false)
-        settings.setTagsMax(10)
+        settings.setExpiresSoonMonths(3)
 
         val content = BackupSnapshot.capture(
             repository = repository,
@@ -396,7 +394,7 @@ class BackupFlowTest {
         settings.setTheme(AppTheme.DARK)
         settings.setCopyWindowSec(30)
         settings.setMaskNumbers(true)
-        settings.setTagsMax(1)
+        settings.setExpiresSoonMonths(2)
 
         BackupImporter.import(
             database = database,
@@ -410,7 +408,7 @@ class BackupFlowTest {
         // Missing keys use defaults, but protection never loosens: 30 s beats the 60 s default.
         assertEquals(30, settings.copyWindowSec.value)
         assertEquals(true, settings.maskNumbers.value)
-        assertEquals(3, settings.tagsMax.value)
+        assertEquals(1, settings.expiresSoonMonths.value)
     }
 
     @Test

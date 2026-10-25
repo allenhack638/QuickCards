@@ -17,6 +17,7 @@ import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.model.toDomain
 import com.quickcards.app.core.data.repository.DuplicateCardException
+import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
 import com.quickcards.domain.EntityKind
@@ -83,9 +84,6 @@ class CardFormViewModel(
     )
 
     private data class Options(
-        val tagsMax: Int,
-        val tagsMaxLen: Int,
-        val showCardType: Boolean,
         val tagsShow: Boolean,
         val showNotes: Boolean,
         val expiresSoonMonths: Int
@@ -102,29 +100,11 @@ class CardFormViewModel(
     }.combine(repository.tags) { lists, tags -> lists.copy(tags = tags) }
 
     private val optionsFlow = combine(
-        combine(
-            settings.tagsMax,
-            settings.tagsMaxLen,
-            settings.showCardType
-        ) { tagsMax, tagsMaxLen, showCardType ->
-            Triple(tagsMax, tagsMaxLen, showCardType)
-        },
-        combine(
-            settings.tagsShow,
-            settings.showNotes,
-            settings.expiresSoonMonths
-        ) { tagsShow, showNotes, expiresSoonMonths ->
-            Triple(tagsShow, showNotes, expiresSoonMonths)
-        }
-    ) { list, preview ->
-        Options(
-            tagsMax = list.first,
-            tagsMaxLen = list.second,
-            showCardType = list.third,
-            tagsShow = preview.first,
-            showNotes = preview.second,
-            expiresSoonMonths = preview.third
-        )
+        settings.tagsShow,
+        settings.showNotes,
+        settings.expiresSoonMonths
+    ) { tagsShow, showNotes, expiresSoonMonths ->
+        Options(tagsShow, showNotes, expiresSoonMonths)
     }
 
     init {
@@ -192,12 +172,11 @@ class CardFormViewModel(
                     .sortedWith(compareBy({ it.sortOrder }, { it.name.lowercase(Locale.ROOT) }))
                     .map { NamedRef(it.id, it.name) },
                 tags = tagRefs,
-                tagLimit = options.tagsMax,
-                tagMaxLen = options.tagsMaxLen,
+                tagLimit = AppSettingsDefaults.TAGS_MAX,
+                tagMaxLen = AppSettingsDefaults.TAGS_MAX_LEN,
                 duplicates = duplicates
             ),
             options = CardFormOptions(
-                showCardType = options.showCardType,
                 tagsShow = options.tagsShow,
                 showNotes = options.showNotes,
                 expiresSoonMonths = options.expiresSoonMonths

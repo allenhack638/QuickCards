@@ -129,7 +129,7 @@ class BackupHostState internal constructor(
         get() {
             val confirm = exportConfirm.text
             return if (confirm.isNotEmpty() && exportPassphrase.text != confirm) {
-                text(R.string.backup_passphrase_mismatch)
+                text(R.string.backup_password_mismatch)
             } else {
                 null
             }
@@ -282,7 +282,7 @@ class BackupHostState internal constructor(
                 importError = null
                 importStep = ImportStep.REVIEW
             } catch (_: WrongPassphraseException) {
-                importError = text(R.string.backup_wrong_passphrase)
+                importError = text(R.string.backup_wrong_password)
             } catch (_: BackupFormatException) {
                 importError = null
                 snackbar.show(text(R.string.backup_error_format))

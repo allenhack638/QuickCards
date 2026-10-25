@@ -70,6 +70,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.quickcards.app.R
+import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.ui.components.FormSupportingLine
 import com.quickcards.app.core.ui.components.LocalSnackbar
@@ -107,7 +108,6 @@ fun EntityDialog(
 ) {
     val viewModel: EntityEditorViewModel = viewModel()
     val data by viewModel.data.collectAsState()
-    val tagMaxLen by viewModel.tagMaxLen.collectAsState()
 
     if (!data.ready) return
 
@@ -117,7 +117,7 @@ fun EntityDialog(
         editingId = editingId,
         before = before,
         data = data,
-        tagMaxLen = tagMaxLen,
+        tagMaxLen = AppSettingsDefaults.TAGS_MAX_LEN,
         onDismiss = onDismiss,
         onSaved = onSaved,
         save = { draft -> viewModel.save(kind, editingId, draft) }

@@ -133,9 +133,9 @@ internal fun BackupPasswordField(
                         imageVector = if (visible) QcIcons.visibilityOff else QcIcons.visibility,
                         contentDescription = stringResource(
                             if (visible) {
-                                R.string.backup_a11y_hide_passphrase
+                                R.string.backup_a11y_hide_password
                             } else {
-                                R.string.backup_a11y_show_passphrase
+                                R.string.backup_a11y_show_password
                             }
                         ),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,

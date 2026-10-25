@@ -138,15 +138,15 @@ class CardQueryTest {
 
     @Test
     fun `digit search matches anywhere in the number and ignores spaces`() {
-        assertEquals(listOf("1"), CardQuery.visibleCards(cards, CardFilters(), "2211", true).map { it.id })
-        assertEquals(listOf("1"), CardQuery.visibleCards(cards, CardFilters(), " 2211 ", true).map { it.id })
-        assertEquals(listOf("1"), CardQuery.visibleCards(cards, CardFilters(), "2778 1034", true).map { it.id })
-        assertTrue(CardQuery.visibleCards(cards, CardFilters(), "9999", true).isEmpty())
+        assertEquals(listOf("1"), CardQuery.visibleCards(cards, CardFilters(), "2211").map { it.id })
+        assertEquals(listOf("1"), CardQuery.visibleCards(cards, CardFilters(), " 2211 ").map { it.id })
+        assertEquals(listOf("1"), CardQuery.visibleCards(cards, CardFilters(), "2778 1034").map { it.id })
+        assertTrue(CardQuery.visibleCards(cards, CardFilters(), "9999").isEmpty())
     }
 
     @Test
     fun `text search covers bank holder note type and network`() {
-        fun ids(query: String) = CardQuery.visibleCards(cards, CardFilters(), query, true).map { it.id }
+        fun ids(query: String) = CardQuery.visibleCards(cards, CardFilters(), query).map { it.id }
         assertEquals(listOf("1"), ids("hdfc"))
         assertEquals(listOf("2"), ids("icici"))
         assertEquals(listOf("3"), ids("priya"))
@@ -169,9 +169,8 @@ class CardQueryTest {
     }
 
     @Test
-    fun `tags are searched only when tagsSearch is on`() {
-        assertEquals(listOf("1", "3"), CardQuery.visibleCards(cards, CardFilters(), "travel", true).map { it.id })
-        assertTrue(CardQuery.visibleCards(cards, CardFilters(), "travel", false).isEmpty())
+    fun `tags are always searched`() {
+        assertEquals(listOf("1", "3"), CardQuery.visibleCards(cards, CardFilters(), "travel").map { it.id })
     }
 
     @Test
@@ -179,9 +178,9 @@ class CardQueryTest {
         val filters = CardFilters(banks = setOf("icici"))
         assertEquals(
             listOf("2"),
-            CardQuery.visibleCards(cards, filters, "icici", true).map { it.id }
+            CardQuery.visibleCards(cards, filters, "icici").map { it.id }
         )
-        assertTrue(CardQuery.visibleCards(cards, filters, "hdfc", true).isEmpty())
+        assertTrue(CardQuery.visibleCards(cards, filters, "hdfc").isEmpty())
     }
 
     @Test

@@ -174,7 +174,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 - Never add `android.permission.INTERNET`, `android.permission.ACCESS_NETWORK_STATE` or `android.permission.CAMERA`; keep `verifyOfflineManifest` and `OfflineManifestGuardTest` green.
 - Pasted or keyboard-scanned text fills only the number and expiry: never read a CVV or a holder name from it, and never store or log the pasted text.
 - Never make a sensitive action succeed after a cancelled/failed prompt.
-- Never store the export passphrase. Clear passphrase char arrays after use.
+- Never store the export backup password. Clear backup password char arrays after use.
 - New sensitive fields must use `encrypt`/`decrypt` (not metadata) unless they are
   explicitly non-secret.
 - The lock screen must cover dialogs and sheets, not sit behind them. Back does nothing
@@ -372,7 +372,7 @@ scan tool) or the clipboard instead.
   and tags by name ignoring case (the phone's item is reused); networks by name (the
   phone's rules win); settings replace the phone's values when “Restore settings” is
   ticked. Existing cards are updated or kept as chosen; new cards are appended.
-- Never included: unlock state, clipboard, search/filters, passphrase, Keystore keys.
+- Never included: unlock state, clipboard, search/filters, backup password, Keystore keys.
 - File name: `quickcards-backup-YYYY-MM-DD.qcb`. Export is the only way data leaves the
   app.
 
@@ -389,21 +389,13 @@ restore fills missing keys with defaults, not the phone's current values.
 | Appearance | Theme | System default / Light / Dark | Dark | `theme` |
 | Appearance | Use system colours | On / Off (Android 12+) | Off | `dynamicColor` |
 | Cards | Hide card numbers | On / Off | On | `maskNumbers` |
-| Cards | Show card type | On / Off | On | `showCardType` |
-| Cards | Pinned cards | 1 / 3 / 5 / 10 | 3 | `pinnedMax` |
 | Card list | Expired cards | Keep in place / Move to the end / Hide from the list | Move to the end | `expiredCards` |
 | Card list | Expires soon | Within 1 / 2 / 3 months | Within 1 month | `expiresSoonMonths` |
-| Card list | Archived cards | Only in Archived cards / Also in search results | Only in Archived cards | `archivedCards` |
 | Card list | Show notes on cards | On / Off | On | `showNotes` |
 | Copying | Clear clipboard | Never / 30 s / 1 min / 2 min | 1 min | `clipClearSec` |
-| Copying | Expiry and CVV notification | On / Off | On | `notifEnabled` |
+| Copying | Show expiry and CVV after copying | On / Off | On | `notifEnabled` |
 | Copying | Notification time | 15 s / 30 s / 1 min | 30 s | `notifSec` |
-| Copying | Show expiry in notification | On / Off | On | `notifShowExpiry` |
-| Copying | Show CVV in notification | On / Off | On | `notifShowCvv` |
 | Tags | Show tags on cards | On / Off | On | `tagsShow` |
-| Tags | Search by tag | On / Off | On | `tagsSearch` |
-| Tags | Tags per card | 1 / 2 / 3 / 5 / 8 / 10 | 3 | `tagsMax` |
-| Tags | Tag length | 8 / 12 / 16 / 24 characters | 16 | `tagsMaxLen` |
 | Security | App lock | On / Off | On | `appLockEnabled` |
 | Security | Lock after inactivity | 10 s / 30 s / 1 min / 2 min / 5 min / 10 min / 30 min / Never | 1 min | `appLockAfterSec` |
 | Security | Lock when you leave the app | On / Off | On | `lockOnLeave` |
@@ -416,16 +408,18 @@ restore fills missing keys with defaults, not the phone's current values.
 | Backup | Erase all data | needs “I understand” | — | — |
 
 SharedPreferences file: `quickcards_settings`. Internal keys are `theme_mode`,
-`dynamic_color`, `copy_window_sec`, `clip_clear_sec`, `mask_numbers`, `show_card_type`,
-`pinned_max`, `notif_enabled`, `notif_sec`, `notif_show_expiry`, `notif_show_cvv`,
-`tags_show`, `tags_search`, `tags_max`, `tags_max_len`, `expired_cards`,
-`expires_soon_months`, `archived_cards`, `show_notes`, `app_lock_enabled`,
-`app_lock_after_sec`, `lock_on_leave`. Do not rename them casually: they are existing
-users' data.
+`dynamic_color`, `copy_window_sec`, `clip_clear_sec`, `mask_numbers`, `notif_enabled`,
+`notif_sec`, `tags_show`, `expired_cards`, `expires_soon_months`, `show_notes`,
+`app_lock_enabled`, `app_lock_after_sec`, `lock_on_leave`. Do not rename them casually: they
+are existing users' data. Older backups may still carry `pinnedMax`, `tagsMax`, `tagsMaxLen`,
+`showCardType`, `archivedCards`, `tagsSearch`, `notifShowExpiry` or `notifShowCvv`;
+`AppSettings.applyMap()` ignores unknown keys, so they import silently. Pinned cards are capped
+at 10, tags at 10 per card and 16 characters, search always includes tag names, archived cards
+always join search, and a card type always shows when set.
 
 Security-sensitive reversals require a prompt before changing:
 `SecurityConfirmation.reasonForAppLock(false)`, `reasonForInactivity(0)`,
-`reasonForLockOnLeave(false)`, `reasonForNotificationCvv(true)`.
+`reasonForLockOnLeave(false)`.
 
 ### Default card networks
 

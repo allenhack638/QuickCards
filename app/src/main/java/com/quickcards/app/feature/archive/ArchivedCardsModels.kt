@@ -14,14 +14,11 @@ data class ArchivedCardItem(
 
 data class ArchivedCardsOptions(
     val maskNumbers: Boolean = AppSettingsDefaults.MASK_NUMBERS,
-    val showCardType: Boolean = AppSettingsDefaults.SHOW_CARD_TYPE,
     val tagsShow: Boolean = AppSettingsDefaults.TAGS_SHOW,
     val showNotes: Boolean = AppSettingsDefaults.SHOW_NOTES,
     val clipClearSec: Int = AppSettingsDefaults.CLIP_CLEAR_SEC,
     val notifEnabled: Boolean = AppSettingsDefaults.NOTIF_ENABLED,
     val notifSec: Int = AppSettingsDefaults.NOTIF_SEC,
-    val notifShowExpiry: Boolean = AppSettingsDefaults.NOTIF_SHOW_EXPIRY,
-    val notifShowCvv: Boolean = AppSettingsDefaults.NOTIF_SHOW_CVV,
     val expiresSoonMonths: Int = AppSettingsDefaults.EXPIRES_SOON_MONTHS
 )
 

@@ -135,7 +135,6 @@ private val ExpiredChipStyle = QcType.Label.copy(
 fun PassCard(
     card: HomeCard,
     maskNumbers: Boolean,
-    showCardType: Boolean,
     tagsShow: Boolean,
     modifier: Modifier = Modifier,
     onCopy: suspend (PassField) -> Boolean = { false },
@@ -269,7 +268,7 @@ fun PassCard(
                     isUnlocked = isUnlocked,
                     interactive = !preview,
                     placeholder = preview && card.card.number.isBlank(),
-                    trailing = if (showCardType && !card.typeName.isNullOrBlank()) {
+                    trailing = if (!card.typeName.isNullOrBlank()) {
                         {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),

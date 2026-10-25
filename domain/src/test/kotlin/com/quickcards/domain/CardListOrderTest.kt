@@ -15,7 +15,6 @@ class CardListOrderTest {
     private fun arrange(
         cards: List<TestCard>,
         placement: ExpiredPlacement = ExpiredPlacement.END,
-        archived: ArchivedVisibility = ArchivedVisibility.ONLY_ARCHIVE,
         searching: Boolean = false,
         statusFilter: Set<ExpiryState> = emptySet()
     ): List<String> = CardListOrder.arrangeCards(
@@ -24,7 +23,6 @@ class CardListOrderTest {
         state = { it.state },
         isArchived = { it.archived },
         placement = placement,
-        archived = archived,
         searching = searching,
         statusFilter = statusFilter
     ).map { it.id }
@@ -145,44 +143,25 @@ class CardListOrderTest {
     }
 
     @Test
-    fun `archived cards are removed unless search includes them`() {
+    fun `archived cards appear only in search`() {
         val cards = listOf(validA, archivedCard)
 
         assertEquals(listOf("valid-a"), arrange(cards))
         assertEquals(
-            listOf("valid-a"),
-            arrange(cards, archived = ArchivedVisibility.IN_SEARCH)
-        )
-        assertEquals(
             listOf("valid-a", "archived"),
-            arrange(
-                cards,
-                archived = ArchivedVisibility.IN_SEARCH,
-                searching = true
-            )
+            arrange(cards, searching = true)
         )
     }
 
     @Test
-    fun `only archive keeps archived cards out even while searching`() {
-        val cards = listOf(validA, archivedCard)
-
-        assertEquals(
-            listOf("valid-a"),
-            arrange(cards, archived = ArchivedVisibility.ONLY_ARCHIVE, searching = true)
-        )
-    }
-
-    @Test
-    fun `archive removal wins over the expired filter`() {
+    fun `an archived card matches the expired filter while searching`() {
         val archivedExpired = TestCard("archived-expired", state = ExpiryState.EXPIRED, archived = true)
         val cards = listOf(validA, archivedExpired)
 
         assertEquals(
-            listOf<String>(),
+            listOf("archived-expired"),
             arrange(
                 cards,
-                archived = ArchivedVisibility.ONLY_ARCHIVE,
                 searching = true,
                 statusFilter = setOf(ExpiryState.EXPIRED)
             )

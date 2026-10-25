@@ -2,7 +2,6 @@ package com.quickcards.app.feature.cards
 
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.ui.HomeCard
-import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.CardField
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.ExpiredPlacement
@@ -45,11 +44,10 @@ class CardsListStateTest {
 
     private fun options(
         placement: ExpiredPlacement = ExpiredPlacement.END,
-        archived: ArchivedVisibility = ArchivedVisibility.ONLY_ARCHIVE,
         searching: Boolean = false,
         status: Set<ExpiryState> = emptySet(),
         reviewOnly: Boolean = false
-    ) = CardsListOptions(placement, archived, searching, status, reviewOnly)
+    ) = CardsListOptions(placement, searching, status, reviewOnly)
 
     private fun ids(cards: List<HomeCard>) = cards.map { it.id }
 
@@ -61,35 +59,28 @@ class CardsListStateTest {
         )
 
         val visible = CardsListState.visibleCards(
-            cards, CardFilters(), "", true, options()
+            cards, CardFilters(), "", options()
         )
 
         assertEquals(listOf("active"), ids(visible))
     }
 
     @Test
-    fun archivedCardsAppearOnlyWhenSearchingWithTheSearchSetting() {
+    fun archivedCardsAppearOnlyWhileSearching() {
         val cards = listOf(
             card("active"),
             card("archived", archived = true, bank = "Closed Bank")
         )
 
-        val onlyArchive = CardsListState.visibleCards(
-            cards, CardFilters(), "closed", true, options(searching = true)
+        val notSearching = CardsListState.visibleCards(
+            cards, CardFilters(), "closed", options()
         )
-        assertEquals(emptyList<String>(), ids(onlyArchive))
+        assertEquals(emptyList<String>(), ids(notSearching))
 
-        val inSearch = CardsListState.visibleCards(
-            cards,
-            CardFilters(),
-            "closed",
-            true,
-            options(
-                archived = ArchivedVisibility.IN_SEARCH,
-                searching = true
-            )
+        val searching = CardsListState.visibleCards(
+            cards, CardFilters(), "closed", options(searching = true)
         )
-        assertEquals(listOf("archived"), ids(inSearch))
+        assertEquals(listOf("archived"), ids(searching))
     }
 
     @Test
@@ -101,7 +92,7 @@ class CardsListStateTest {
         )
 
         val visible = CardsListState.visibleCards(
-            cards, CardFilters(), "", true, options(placement = ExpiredPlacement.END)
+            cards, CardFilters(), "", options(placement = ExpiredPlacement.END)
         )
 
         assertEquals(listOf("valid", "soon", "expired"), ids(visible))
@@ -116,7 +107,7 @@ class CardsListStateTest {
         )
 
         val visible = CardsListState.visibleCards(
-            cards, CardFilters(), "", true, options(placement = ExpiredPlacement.END)
+            cards, CardFilters(), "", options(placement = ExpiredPlacement.END)
         )
 
         assertEquals(listOf("pinnedExpired", "valid", "expired"), ids(visible))
@@ -131,7 +122,7 @@ class CardsListStateTest {
         )
 
         val visible = CardsListState.visibleCards(
-            cards, CardFilters(), "", true, options(placement = ExpiredPlacement.KEEP)
+            cards, CardFilters(), "", options(placement = ExpiredPlacement.KEEP)
         )
 
         assertEquals(listOf("one", "expired", "two"), ids(visible))
@@ -145,19 +136,19 @@ class CardsListStateTest {
         )
 
         val hidden = CardsListState.visibleCards(
-            cards, CardFilters(), "", true,
+            cards, CardFilters(), "",
             options(placement = ExpiredPlacement.HIDE)
         )
         assertEquals(listOf("valid"), ids(hidden))
 
         val searched = CardsListState.visibleCards(
-            cards, CardFilters(), "federal", true,
+            cards, CardFilters(), "federal",
             options(placement = ExpiredPlacement.HIDE, searching = true)
         )
         assertEquals(listOf("expired"), ids(searched))
 
         val filtered = CardsListState.visibleCards(
-            cards, CardFilters(), "", true,
+            cards, CardFilters(), "",
             options(
                 placement = ExpiredPlacement.HIDE,
                 status = setOf(ExpiryState.EXPIRED)
@@ -175,7 +166,7 @@ class CardsListStateTest {
         )
 
         val visible = CardsListState.visibleCards(
-            cards, CardFilters(), "", true,
+            cards, CardFilters(), "",
             options(
                 status = setOf(ExpiryState.EXPIRED, ExpiryState.EXPIRES_SOON)
             )
@@ -193,7 +184,7 @@ class CardsListStateTest {
         )
 
         val visible = CardsListState.visibleCards(
-            cards, CardFilters(), "", true, options(reviewOnly = true)
+            cards, CardFilters(), "", options(reviewOnly = true)
         )
 
         assertEquals(listOf("review"), ids(visible))

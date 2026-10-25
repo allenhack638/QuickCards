@@ -60,8 +60,8 @@ internal fun ExportBackupDialog(state: BackupHostState) {
         BackupPasswordField(
             value = state.exportPassphrase,
             onValueChange = { state.exportPassphrase = it },
-            label = stringResource(R.string.backup_passphrase),
-            helper = stringResource(R.string.backup_passphrase_helper),
+            label = stringResource(R.string.backup_password),
+            helper = stringResource(R.string.backup_password_helper),
             error = null,
             visible = state.exportShowPassphrase,
             onToggleVisible = { state.exportShowPassphrase = !state.exportShowPassphrase },
@@ -72,7 +72,7 @@ internal fun ExportBackupDialog(state: BackupHostState) {
         BackupPasswordField(
             value = state.exportConfirm,
             onValueChange = { state.exportConfirm = it },
-            label = stringResource(R.string.backup_confirm_passphrase),
+            label = stringResource(R.string.backup_confirm_password),
             helper = "",
             error = state.exportPasswordError,
             visible = state.exportShowConfirm,
@@ -157,7 +157,7 @@ internal fun ImportBackupDialog(state: BackupHostState) {
                         state.importPassphrase = it
                         state.importError = null
                     },
-                    label = stringResource(R.string.backup_passphrase),
+                    label = stringResource(R.string.backup_password),
                     helper = "",
                     error = state.importError,
                     visible = state.importShowPassphrase,

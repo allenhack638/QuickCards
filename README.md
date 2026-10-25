@@ -4,8 +4,8 @@ QuickCards is a local-first, offline Android vault for credit and debit cards. I
 for the shortest path from opening the app to copying the value you need: the card
 number, expiry and CVV copy straight from the card list, while every sensitive value stays
 encrypted at rest with an Android Keystore key and gated behind your fingerprint or device
-PIN. The app has no internet or camera permission; data leaves the phone only as a
-passphrase-encrypted backup that you export yourself.
+PIN. The app has no internet or camera permission; data leaves the phone only as an
+encrypted backup that you export yourself and open with its backup password.
 
 <p align="center">
   <img src="docs/screenshots/lock-dark.png" alt="Lock screen with the Stub Lock mark and Unlock button" width="240">
@@ -58,14 +58,14 @@ passphrase-encrypted backup that you export yourself.
   grouping, CVV length and Luhn check; 10 built-in networks plus custom ones. Duplicate
   numbers are rejected across all holders.
 - **Share a card.** From a card's menu, after the unlock prompt; you choose whether the CVV goes along (off by default) before the system share sheet opens.
-- **Pinning, notes, archive.** Pin cards to the top (configurable limit), show notes on
+- **Pinning, notes, archive.** Pin up to 10 cards to the top, show notes on
   cards, archive cards with an optional reason and restore them later.
 - **Expired / expires soon.** Expired cards turn graphite and can stay in place, move to
   the end or be hidden; cards expiring within 1–3 months get a label.
 - **Keyboard scan and smart paste.** Pasting (or using your keyboard's scan-text tool)
   fills the number and expiry. The CVV is never filled from pasted text, and the app
   requests no camera permission.
-- **Encrypted backup.** Export to a passphrase-protected file and import it on another
+- **Encrypted backup.** Export to a file protected by a backup password and import it on another
   phone, with a review of new, changed and unchanged cards. Older backup formats still
   import, and legacy values are repaired (with a 30-day undo) on upgrade and on import.
 - **Look and feel.** Material 3, pitch-black dark and light themes, optional Material You
@@ -85,7 +85,7 @@ passphrase-encrypted backup that you export yourself.
 | Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into, and the keyboard's clipboard preview shows them |
 | Network and camera | No `INTERNET`, `ACCESS_NETWORK_STATE` or `CAMERA` permission. Unit tests and a Gradle task check the merged manifests, and CI checks the release APK's permissions before publishing |
 | Android backup | `allowBackup=false`; app data is not copied to cloud backups |
-| Export / import | PBKDF2-HMAC-SHA256 (600,000 iterations, 16-byte salt) + AES-256-GCM with an authenticated header. The passphrase is never stored |
+| Export / import | PBKDF2-HMAC-SHA256 (600,000 iterations, 16-byte salt) + AES-256-GCM with an authenticated header. The backup password is never stored |
 | Keystore key lost | If the key disappears (uninstall, clearing app data, some lock-screen resets), encrypted cards cannot be decrypted. QuickCards detects this with an encrypted sentinel, hides the unreadable cards instead of showing ciphertext and does not offer to delete them. Recovery is only possible from an exported backup, so export regularly |
 
 Debug builds deliberately allow screenshots for visual QA. Only install release builds

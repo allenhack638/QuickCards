@@ -158,7 +158,7 @@
   </div>
   <h2>More</h2>
   <a href="timeline.html">Open the timeline and design system</a>
-  <p class="note">Card numbers are synthetic test numbers. The sample backup file uses the passphrase <b>quickcards</b>.</p>
+  <p class="note">Card numbers are synthetic test numbers. The sample backup file uses the backup password <b>quickcards</b>.</p>
 </aside>
 
 <div class="bezel">
@@ -260,11 +260,19 @@ const isExpired = c => { const p = parseExpiry(c.exp); return !!p && ymValue(p) 
 const isSoon = c => { const p = parseExpiry(c.exp); if (!p) return false; const d = ymValue(p) - todayYM(); return d >= 0 && d <= S.cfg.expiresSoonMonths; };
 const expiryStatus = c => isExpired(c) ? 'expired' : isSoon(c) ? 'soon' : '';
 const EXPIRED_LABEL = { keep: 'Keep in place', end: 'Move to the end', hide: 'Hide from the list' };
-const ARCHIVED_LABEL = { only: 'Only in Archived cards', search: 'Also in search results' };
+const PINNED_MAX = 10, TAGS_MAX = 10, TAGS_LEN = 16;
 
 /* ---------- Data ---------- */
 const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
-const CFG0 = () => ({ theme: 'dark', dynamic: false, windowSec: 60, clipSec: 60, mask: true, showType: true, pinned: 3, expiredCards: 'end', expiresSoonMonths: 1, archivedCards: 'only', showNotes: true, notif: { on: true, sec: 30, exp: true, cvv: true }, tags: { show: true, search: true, max: 3, len: 16 }, appLock: { on: true, after: 60, onLeave: true } });
+const CFG0 = () => ({ theme: 'dark', dynamic: false, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
+const cleanCfg = c => ({
+  theme: c.theme ?? 'dark', dynamic: c.dynamic ?? false, windowSec: c.windowSec ?? 60,
+  clipSec: c.clipSec ?? 60, mask: c.mask ?? true, expiredCards: c.expiredCards ?? 'end',
+  expiresSoonMonths: c.expiresSoonMonths ?? 1, showNotes: c.showNotes ?? true,
+  notif: { on: c.notif?.on ?? true, sec: c.notif?.sec ?? 30 },
+  tags: { show: c.tags?.show ?? true },
+  appLock: { on: c.appLock?.on ?? true, after: c.appLock?.after ?? 60, onLeave: c.appLock?.onLeave ?? true }
+});
 const REPAIR0 = () => ({ fixed: 12, need: 3, done: false });
 function seed() {
   const holders = [{ id: 'h1', name: 'Aarav Mehta' }, { id: 'h2', name: 'Priya Mehta' }];
@@ -291,7 +299,7 @@ function seed() {
   return { holders, banks, types, tags, cards, networks: NETWORKS0(), cfg: CFG0(), repair: REPAIR0() };
 }
 const KEY = 'qc-proto-v2';
-function load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.cards && d.cfg) { const D = CFG0(); d.cfg = { ...D, ...d.cfg, notif: { ...D.notif, ...d.cfg.notif }, tags: { ...D.tags, ...d.cfg.tags }, appLock: { ...D.appLock, ...d.cfg.appLock } }; d.cards.forEach(c => { c.pinned = !!c.pinned; c.pinnedAt = c.pinned ? (c.pinnedAt || 0) : null; c.archived = !!c.archived; c.archivedAt = c.archived ? (c.archivedAt ?? null) : null; c.archiveReason = c.archived ? (c.archiveReason ?? null) : null; c.needsReview = Array.isArray(c.needsReview) ? c.needsReview : []; c.repairs = c.repairs || {}; }); d.repair = { ...REPAIR0(), ...(d.repair || {}) }; return d; } } catch (_) {} return seed(); }
+function load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.cards && d.cfg) { d.cfg = cleanCfg(d.cfg); d.cards.forEach(c => { c.pinned = !!c.pinned; c.pinnedAt = c.pinned ? (c.pinnedAt || 0) : null; c.archived = !!c.archived; c.archivedAt = c.archived ? (c.archivedAt ?? null) : null; c.archiveReason = c.archived ? (c.archiveReason ?? null) : null; c.needsReview = Array.isArray(c.needsReview) ? c.needsReview : []; c.repairs = c.repairs || {}; }); d.repair = { ...REPAIR0(), ...(d.repair || {}) }; return d; } } catch (_) {} return seed(); }
 const S = Object.assign(load(), {
   unlockedUntil: 0, stack: [{ name: 'home' }], tab: 'cards', search: { on: false, q: '' }, archSearch: { on: false, q: '' },
   filters: { holders: new Set(), banks: new Set(), networks: new Set(), types: new Set(), tags: new Set(), status: new Set(), review: false },
@@ -412,11 +420,11 @@ function renderClip() { const el = $('#clip'); if (el) el.innerHTML = S.clip ? `
 /* ---------- Heads-up notification ---------- */
 let hunT, hunI;
 function showHun(c) {
-  const n = S.cfg.notif; if (!n.on || (!n.exp && !n.cvv)) return;
+  const n = S.cfg.notif; if (!n.on) return;
   const last4 = c.number.slice(-4);
   hun.innerHTML = `<div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum" id="hunT">${fmtT(n.sec)}</span><button class="x" data-hun="x" aria-label="Dismiss notification">${I('close', 'sm')}</button></div>
     <div class="t">${esc(cardTitle(c))} · <span class="tnum">${last4}</span></div>
-    <div class="vals">${n.exp ? `<div><div class="l">Expiry</div><div class="v">${esc(c.exp)}</div></div>` : ''}${n.cvv ? `<div><div class="l">CVV</div><div class="v">${esc(c.cvv)}</div></div>` : ''}</div>
+    <div class="vals"><div><div class="l">Expiry</div><div class="v">${esc(c.exp)}</div></div><div><div class="l">CVV</div><div class="v">${esc(c.cvv)}</div></div></div>
 <div class="bar" id="hunBar"></div>`;
   hun._card = c; hun.classList.add('show');
   const bar = $('#hunBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth; bar.style.transition = `transform ${n.sec}s linear`; bar.style.transform = 'scaleX(0)';
@@ -475,13 +483,13 @@ function passes(c, f) {
 function matchesSearch(c, q, qd) {
   if (/^\d+$/.test(qd) && c.number.includes(qd)) return true;
   const fields = [byId('banks', c.bankId)?.name, byId('holders', c.holderId)?.name, c.note, byId('types', c.typeId)?.name, netOf(c)?.name, netOf(c)?.code];
-  if (S.cfg.tags.search) c.tagIds.forEach(t => fields.push(byId('tags', t)?.name));
+  c.tagIds.forEach(t => fields.push(byId('tags', t)?.name));
   return fields.some(v => String(v || '').toLowerCase().includes(q));
 }
 function visibleCards() {
   const q = S.search.on ? S.search.q.trim().toLowerCase() : '', qd = q.replace(/\s+/g, '');
   return orderCards(S.cards.filter(c => {
-    if (c.archived && !(S.cfg.archivedCards === 'search' && S.search.on && q)) return false;
+    if (c.archived && !(S.search.on && q)) return false;
     if (!passes(c, S.filters)) return false;
     if (q) return matchesSearch(c, q, qd);
     if (isExpired(c) && S.cfg.expiredCards === 'hide' && !S.filters.status.has('expired')) return false;
@@ -502,8 +510,8 @@ function passFlags(c) {
 }
 function typePillHTML(c, preview) {
   const type = byId('types', c.typeId);
-  if (preview) return `<span class="type" id="pv-type" ${type && S.cfg.showType ? '' : 'hidden'}>${esc(type?.name || '')}</span>`;
-  return S.cfg.showType && type ? `<span class="type">${esc(type.name)}</span>` : '';
+  if (preview) return `<span class="type" id="pv-type" ${type ? '' : 'hidden'}>${esc(type?.name || '')}</span>`;
+  return type ? `<span class="type">${esc(type.name)}</span>` : '';
 }
 function passHTML(c, preview) {
   const net = netOf(c), type = byId('types', c.typeId), mask = !preview && S.cfg.mask;
@@ -589,7 +597,7 @@ function homeHTML() {
   const cards = visibleCards(), q = S.search.q;
   const head = S.search.on
     ? `<header class="searchbar"><div class="box"><button class="iconbtn on-surface" data-act="back" aria-label="Close search">${I('back')}</button>
-        <input id="q" type="search" placeholder="Search cards${S.cfg.tags.search ? ' and tags' : ''}" value="${esc(q)}" autocomplete="off" aria-label="Search cards">
+        <input id="q" type="search" placeholder="Search cards and tags" value="${esc(q)}" autocomplete="off" aria-label="Search cards">
         ${q ? `<button class="iconbtn" data-act="clearq" aria-label="Clear search">${I('close')}</button>` : ''}</div></header>`
     : `<header class="appbar"><h1 class="t-display">Cards</h1>
         <button class="iconbtn" data-act="search" aria-label="Search">${I('search')}</button>
@@ -605,7 +613,7 @@ function homeHTML() {
   const list = cards.length ? `<div class="list">${repair}${cards.map(c => passHTML(c)).join('')}</div>`
     : `<div class="noresult"><div class="t-title">${S.search.on && q ? `No cards match “${esc(q)}”` : 'No cards match these filters'}</div><div class="t-body t-muted">${S.search.on && q ? 'Check the digits, or try a bank, holder or tag.' : 'Remove a filter to see more cards.'}</div></div>`;
   return `${head}<div class="chiprow">${holderChips}${fchips}${reviewChip}</div>
-    ${S.search.on && !q ? `<div class="hint">Search by digits, bank, holder, network${S.cfg.tags.search ? ', tag' : ''} or note</div>` : ''}
+    ${S.search.on && !q ? `<div class="hint">Search by digits, bank, holder, network, tag or note</div>` : ''}
     <div class="scroll">${list}</div>`;
 }
 
@@ -669,7 +677,7 @@ function entityHTML(kind) {
 }
 function entityDialog(kind, id, onCreated) {
   const K = KINDS[kind], x = id ? byId(kind, id) : null, isNet = kind === 'networks', isTag = kind === 'tags';
-  const maxLen = isTag ? S.cfg.tags.len : kind === 'types' ? 20 : kind === 'networks' ? 24 : 40;
+  const maxLen = isTag ? TAGS_LEN : kind === 'types' ? 20 : kind === 'networks' ? 24 : 40;
   let cvv = x?.cvv || 3, luhn = x ? x.luhn : true;
   const initial = x ? JSON.stringify({ name: x.name ?? '', ...(isNet ? { code: x.code ?? '', prefixes: x.prefixes ?? '', lengths: x.lengths || '16', cvv, luhn } : {}) }) : '';
   const entityState = () => JSON.stringify({ name: $('#en-name')?.value ?? '', ...(isNet ? { code: $('#en-code')?.value ?? '', prefixes: $('#en-pre')?.value ?? '', lengths: $('#en-len')?.value ?? '', cvv, luhn } : {}) });
@@ -759,24 +767,16 @@ function settingsHTML() {
     ${sw('dynamic', C.dynamic, 'palette', 'Use system colours', 'Match your wallpaper on Android 12+')}
     <div class="subhead">Cards</div>
     ${sw('mask', C.mask, 'mask', 'Hide card numbers', 'Show only the last 4 digits')}
-    ${sw('showtype', C.showType, 'type', 'Show card type', 'Credit, debit and others on each card')}
-    ${row('pinnedmax', 'pin', 'Pinned cards', `Up to ${C.pinned} ${C.pinned === 1 ? "card" : "cards"} at the top`)}
     <div class="subhead">Card list</div>
     ${row('expiredcards', 'expired', 'Expired cards', EXPIRED_LABEL[C.expiredCards] || EXPIRED_LABEL.end)}
     ${row('soonmonths', 'soon', 'Expires soon', C.expiresSoonMonths === 1 ? 'Within 1 month' : `Within ${C.expiresSoonMonths} months`)}
-    ${row('archivedcards', 'archive', 'Archived cards', ARCHIVED_LABEL[C.archivedCards] || ARCHIVED_LABEL.only)}
     ${sw('shownotes', C.showNotes, 'notes', 'Show notes on cards', 'Up to 2 lines on each card')}
     <div class="subhead">Copying</div>
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
-    ${sw('notif', C.notif.on, 'bell', 'Expiry and CVV notification', 'Shown after you copy a card number')}
+    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For the time set below, hidden on the lock screen')}
     ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
-    ${sw('notifexp', C.notif.exp, 'eye', 'Show expiry in notification', 'Month and year in the notification', !C.notif.on)}
-    ${sw('notifcvv', C.notif.cvv, 'eye', 'Show CVV in notification', 'Hidden on the lock screen', !C.notif.on)}
     <div class="subhead">Tags</div>
     ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under the stub')}
-    ${sw('tagsearch', C.tags.search, 'search', 'Search by tag', 'Include tag names in search')}
-    ${row('tagmax', 'listnum', 'Tags per card', `Up to ${C.tags.max}`)}
-    ${row('taglen', 'ruler', 'Tag length', `Up to ${C.tags.len} characters`)}
     <div class="subhead">Security</div>
     ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Fingerprint needed to open QuickCards')}
     ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}
@@ -784,7 +784,7 @@ function settingsHTML() {
     ${row('window', 'copy', 'Instant copy window', `Copy without a fingerprint until ${secText(C.windowSec)} of no use`)}
     <button class="li two sl" data-act="locknow"><span class="lead">${I('lock')}</span><span class="txt"><span class="h">Lock now</span><span class="s">Lock QuickCards right away</span></span></button>
     <div class="subhead">Backup</div>
-    ${row('export', 'upload', 'Export backup', 'Encrypted file protected by a passphrase', !S.cards.length, false)}
+    ${row('export', 'upload', 'Export backup', 'Encrypted file protected by a backup password', !S.cards.length, false)}
     ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
@@ -835,7 +835,7 @@ function formHTML() {
       ${tf('cvv', 'CVV', F.cvv, { help: `${net?.cvv || '3 or 4'} digits`, attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
     ${tf('bank', 'Bank', byId('banks', F.bankId)?.name, { ro: 'banks', trail: caret })}
     ${tf('type', 'Card type (optional)', byId('types', F.typeId)?.name, { ro: 'types', trail: caret, help: 'Leave empty to show nothing on the card' })}
-    <div class="grp"><div class="glab">Tags<span class="counter" id="tagCount">${F.tagIds.length} of ${S.cfg.tags.max}</span></div><div class="tagbox" id="tagBox">${tagChips()}</div></div>
+    <div class="grp"><div class="glab">Tags<span class="counter" id="tagCount">${F.tagIds.length} of ${TAGS_MAX}</span></div><div class="tagbox" id="tagBox">${tagChips()}</div></div>
     <div class="grp"><div class="glab">Card colour</div><div class="swatches" role="radiogroup" aria-label="Card colour">
       ${COLORS.map(c => `<button type="button" class="swatch" role="radio" aria-label="${BAND_NAMES[c]} colour" aria-checked="${F.color === c}" data-act="fcolor" data-v="${c}" style="--sw:var(--band-${c})">${I('check')}</button>`).join('')}
       ${isCurated(F.color)
@@ -848,9 +848,9 @@ function formHTML() {
 function tagChips() {
   const F = S.form;
   return F.tagIds.map(id => byId('tags', id)).filter(Boolean).map(t => `<span class="chip input">${esc(t.name)}<button class="x" data-act="untag" data-v="${t.id}" aria-label="Remove tag ${esc(t.name)}">${I('close', 'sm')}</button></span>`).join('')
-    + (F.tagIds.length < S.cfg.tags.max ? `<button class="chip add sl" data-act="tagsheet">${I('plus')}Add tag</button>` : '');
+    + (F.tagIds.length < TAGS_MAX ? `<button class="chip add sl" data-act="tagsheet">${I('plus')}Add tag</button>` : '');
 }
-function refreshTags() { $('#tagBox').innerHTML = tagChips(); $('#tagCount').textContent = `${S.form.tagIds.length} of ${S.cfg.tags.max}`; updatePreview(); }
+function refreshTags() { $('#tagBox').innerHTML = tagChips(); $('#tagCount').textContent = `${S.form.tagIds.length} of ${TAGS_MAX}`; updatePreview(); }
 function setErr(key, msg) {
   const w = $(`[data-tf="${key}"]`); if (!w) return;
   w.classList.toggle('err', !!msg); help(w).textContent = msg || w.dataset.help;
@@ -982,14 +982,14 @@ scrimSheet.addEventListener('click', closeSheet);
 scrimDialog.addEventListener('click', () => { if (!bio.hidden) closeBio(); else closeDialog(); });
 
 function tagSheet() {
-  const F = S.form, max = S.cfg.tags.max, maxLen = S.cfg.tags.len;
+  const F = S.form, max = TAGS_MAX, maxLen = TAGS_LEN;
   const draw = () => S.tags.map(t => { const on = F.tagIds.includes(t.id); return `<button class="checkrow sl" role="checkbox" aria-checked="${on}" data-t="${t.id}" ${!on && F.tagIds.length >= max ? 'disabled' : ''}><span class="cb">${I('check')}</span>${esc(t.name)}</button>`; }).join('');
   openSheet(`<div class="sh-title t-headline">Tags</div>
     <div class="newtag"><div class="tf" data-tf="nt" data-help=""><input id="nt" placeholder=" " maxlength="${maxLen}" autocomplete="off"><label for="nt">New tag</label><div class="help"><span class="hm"></span><span class="hc" id="ntc">0/${maxLen}</span></div></div><button class="btn tonal" data-nt="add">Add</button></div>
-    <div class="sh-note" id="tagNote">${F.tagIds.length} of ${max} selected. Change the limit in Settings.</div>
+    <div class="sh-note" id="tagNote">${F.tagIds.length} of ${max} selected.</div>
     <div class="sh-body" id="tl">${draw()}</div>
     <div class="sh-foot"><button class="btn tonal" data-nt="done">Done</button></div>`, () => {
-    const upd = () => { $('#tl').innerHTML = draw(); $('#tagNote').textContent = `${F.tagIds.length} of ${max} selected. Change the limit in Settings.`; refreshTags(); };
+    const upd = () => { $('#tl').innerHTML = draw(); $('#tagNote').textContent = `${F.tagIds.length} of ${max} selected.`; refreshTags(); };
     $('#nt').addEventListener('input', e => { const v = e.target.value.slice(0, maxLen); if (v !== e.target.value) { e.target.value = v; try { e.target.setSelectionRange(v.length, v.length); } catch (_) {} } const w = $('[data-tf="nt"]'); w.classList.remove('err'); help(w).textContent = ''; $('#ntc').textContent = `${v.length}/${maxLen}`; });
     sheet.onclick = e => {
       const r = e.target.closest('[data-t]'); if (r) { const id = r.dataset.t; F.tagIds.includes(id) ? F.tagIds.splice(F.tagIds.indexOf(id), 1) : F.tagIds.push(id); return upd(); }
@@ -1089,7 +1089,7 @@ function customColorSheet() {
 }
 function actionsSheet(id) {
   const c = S.cards.find(x => x.id === id), net = netOf(c);
-  const pinRow = (() => { const full = !c.pinned && S.cards.filter(x => x.pinned).length >= S.cfg.pinned; return `<button class="li ${full ? 'two' : ''} sl" role="menuitem" data-sa="pin" ${full ? 'disabled aria-disabled="true" style="opacity:.38"' : ''}><span class="lead">${I('pin', c.pinned ? 'filled' : '')}</span><span class="txt"><span class="h">${c.pinned ? 'Unpin' : 'Pin'}</span>${full ? `<span class="s">${S.cfg.pinned} of ${S.cfg.pinned} pinned. Unpin a card or raise the limit in Settings.</span>` : ''}</span></button>`; })();
+  const pinRow = (() => { const full = !c.pinned && S.cards.filter(x => x.pinned).length >= PINNED_MAX; return `<button class="li ${full ? 'two' : ''} sl" role="menuitem" data-sa="pin" ${full ? 'disabled aria-disabled="true" style="opacity:.38"' : ''}><span class="lead">${I('pin', c.pinned ? 'filled' : '')}</span><span class="txt"><span class="h">${c.pinned ? 'Unpin' : 'Pin'}</span>${full ? `<span class="s">${PINNED_MAX} of ${PINNED_MAX} pinned. Unpin a card.</span>` : ''}</span></button>`; })();
   const menu = c.archived
     ? `<button class="li sl" role="menuitem" data-sa="restore"><span class="lead">${I('unarchive')}</span><span class="txt"><span class="h">Restore</span></span></button>
       <button class="li sl" role="menuitem" data-sa="edit"><span class="lead">${I('edit')}</span><span class="txt"><span class="h">Edit card</span></span></button>
@@ -1142,7 +1142,7 @@ function togglePin(c) {
     snackbar('Unpinned', 'Undo', () => { c.pinned = true; c.pinnedAt = at; render(); });
     return;
   }
-  if (S.cards.filter(x => x.pinned).length >= S.cfg.pinned) return;
+  if (S.cards.filter(x => x.pinned).length >= PINNED_MAX) return;
   c.pinned = true; c.pinnedAt = nextPinAt(); render();
   snackbar('Pinned', 'Undo', () => { c.pinned = false; c.pinnedAt = null; render(); });
 }
@@ -1182,16 +1182,16 @@ function filterSheet() {
     };
   });
 }
-const pwField = (id, label, help) => `<div class="tf has-trail" data-tf="${id}" data-help="${esc(help)}"><input id="${id}" type="password" placeholder=" " autocomplete="new-password"><label for="${id}">${label}</label><span class="trail"><button class="iconbtn" data-eye="${id}" aria-label="Show passphrase">${I('eye')}</button></span><div class="help">${esc(help)}</div></div>`;
-function eyeToggle(e) { const b = e.target.closest('[data-eye]'); if (!b) return false; const inp = $('#' + b.dataset.eye); const show = inp.type === 'password'; inp.type = show ? 'text' : 'password'; b.innerHTML = I(show ? 'eyeoff' : 'eye'); b.setAttribute('aria-label', (show ? 'Hide' : 'Show') + ' passphrase'); return true; }
+const pwField = (id, label, help) => `<div class="tf has-trail" data-tf="${id}" data-help="${esc(help)}"><input id="${id}" type="password" placeholder=" " autocomplete="new-password"><label for="${id}">${label}</label><span class="trail"><button class="iconbtn" data-eye="${id}" aria-label="Show backup password">${I('eye')}</button></span><div class="help">${esc(help)}</div></div>`;
+function eyeToggle(e) { const b = e.target.closest('[data-eye]'); if (!b) return false; const inp = $('#' + b.dataset.eye); const show = inp.type === 'password'; inp.type = show ? 'text' : 'password'; b.innerHTML = I(show ? 'eyeoff' : 'eye'); b.setAttribute('aria-label', (show ? 'Hide' : 'Show') + ' backup password'); return true; }
 const snapshot = withSettings => JSON.parse(JSON.stringify({ meta: { app: 'QuickCards', format: 2, version: '2.1', exportedAt: '2026-10-23' }, holders: S.holders, banks: S.banks, types: S.types, tags: S.tags, networks: S.networks, cards: S.cards.map(c => { const { repairs, ...rest } = c; return rest; }), ...(withSettings ? { cfg: S.cfg } : {}) }));
 function exportDialog() {
   let withSettings = true;
-  openDialog(`<h2>Export backup</h2><div class="body">${plural(S.cards.length, 'card')} with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this passphrase. You’ll need it to import, and it can’t be recovered.</div>
+  openDialog(`<h2>Export backup</h2><div class="body">${plural(S.cards.length, 'card')} with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this backup password. You’ll need it to import, and it can’t be recovered.</div>
     <button class="checkrow" role="checkbox" aria-checked="true" id="exSet"><span class="cb">${I('check')}</span>Include settings</button>
-    ${pwField('p1', 'Passphrase', 'At least 8 characters')}${pwField('p2', 'Confirm passphrase', '')}
+    ${pwField('p1', 'Backup password', 'At least 8 characters')}${pwField('p2', 'Confirm backup password', '')}
     <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok" disabled id="expOk">Export</button></div>`, () => {
-    const chk = () => { const a = $('#p1').value, b = $('#p2').value, w = $('[data-tf="p2"]'); const mm = b && a !== b; w.classList.toggle('err', mm); help(w).textContent = mm ? 'Passphrases don’t match' : ''; $('#expOk').toggleAttribute('disabled', !(a.length >= 8 && a === b)); };
+    const chk = () => { const a = $('#p1').value, b = $('#p2').value, w = $('[data-tf="p2"]'); const mm = b && a !== b; w.classList.toggle('err', mm); help(w).textContent = mm ? 'Backup passwords don’t match' : ''; $('#expOk').toggleAttribute('disabled', !(a.length >= 8 && a === b)); };
     $('#p1').addEventListener('input', chk); $('#p2').addEventListener('input', chk);
     dialog.onclick = e => { if (eyeToggle(e)) return;
       if (e.target.closest('#exSet')) { withSettings = !withSettings; $('#exSet').setAttribute('aria-checked', withSettings); return; }
@@ -1269,8 +1269,8 @@ function importDialog() {
         ${D.cfg ? `<button class="checkrow" role="checkbox" aria-checked="${restore}" id="imSet"><span class="cb">${I('check')}</span>Restore settings from the backup</button>` : ''}
         <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="go">Import</button></div>`;
     }
-    return `<h2>Import backup</h2><div class="body">Choose a QuickCards backup and enter its passphrase. You’ll see what it contains before anything changes.</div>
-    ${file ? `<div class="file"><span style="color:var(--on-surface-variant)">${I('file')}</span><div><div class="n">${esc(file.file)}</div><div class="m">${plural(file.data.cards.length, 'card')} · Downloads</div></div><button class="btn text sl" data-d="pick">Change</button></div>${pwField('ip', 'Passphrase', '')}`
+    return `<h2>Import backup</h2><div class="body">Choose a QuickCards backup and enter its backup password. You’ll see what it contains before anything changes.</div>
+    ${file ? `<div class="file"><span style="color:var(--on-surface-variant)">${I('file')}</span><div><div class="n">${esc(file.file)}</div><div class="m">${plural(file.data.cards.length, 'card')} · Downloads</div></div><button class="btn text sl" data-d="pick">Change</button></div>${pwField('ip', 'Backup password', '')}`
       : `<button class="btn outlined" data-d="pick" style="width:100%;margin-bottom:16px">${I('file')}Choose backup file</button>`}
     <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="open" ${file ? '' : 'disabled'}>Open</button></div>`;
   };
@@ -1281,7 +1281,7 @@ function importDialog() {
       const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
       if (d === 'cancel') return closeDialog();
       if (d === 'pick') { file = S.lastExport || sampleBackup(); dialog.innerHTML = draw(); setTimeout(() => $('#ip').focus({ preventScroll: true }), 30); return; }
-      if (d === 'open') { const w = $('[data-tf="ip"]'); if ($('#ip').value !== file.pass) { w.classList.add('err'); help(w).textContent = 'That passphrase doesn’t open this backup'; return; } step = 'review'; dialog.innerHTML = draw(); return; }
+      if (d === 'open') { const w = $('[data-tf="ip"]'); if ($('#ip').value !== file.pass) { w.classList.add('err'); help(w).textContent = 'That backup password doesn’t open this backup'; return; } step = 'review'; dialog.innerHTML = draw(); return; }
       if (d !== 'go') return;
       const D = file.data, map = {};
       for (const k of ['holders', 'banks', 'types', 'tags', 'networks']) (D[k] || []).forEach(x => { let y = S[k].find(z => z.name.toLowerCase() === x.name.toLowerCase()); if (!y) { y = { ...x, id: uid() }; S[k].push(y); } map[x.id] = y.id; });
@@ -1295,7 +1295,7 @@ function importDialog() {
         if (!differs) same++; else if (mode === 'update') { Object.assign(ex, next); updated++; } else kept++;
       });
       let setMsg = '';
-      if (D.cfg && restore) { const B = CFG0(); S.cfg = { ...B, ...D.cfg, notif: { ...B.notif, ...D.cfg.notif }, tags: { ...B.tags, ...D.cfg.tags }, appLock: { ...B.appLock, ...D.cfg.appLock } }; applyTheme(); setMsg = ' · settings restored'; }
+      if (D.cfg && restore) { S.cfg = cleanCfg(D.cfg); applyTheme(); setMsg = ' · settings restored'; }
       closeDialog(); render();
       const parts = [added && `${added} added`, updated && `${updated} updated`, kept && `${kept} kept`, same && `${same} unchanged`].filter(Boolean);
       snackbar((parts.join(' · ') || 'Nothing to import') + setMsg);
@@ -1362,7 +1362,7 @@ screens.addEventListener('pointerdown', e => {
 screens.addEventListener('contextmenu', e => { if (e.target.closest('[data-copy], [data-note]')) e.preventDefault(); });
 
 /* ---------- Click routing ---------- */
-const CFG_TOGGLES = { applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, dynamic: c => { c.dynamic = !c.dynamic; applyTheme(); }, mask: c => c.mask = !c.mask, showtype: c => c.showType = !c.showType, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, notifexp: c => c.notif.exp = !c.notif.exp, notifcvv: c => c.notif.cvv = !c.notif.cvv, tagshow: c => c.tags.show = !c.tags.show, tagsearch: c => c.tags.search = !c.tags.search };
+const CFG_TOGGLES = { applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, dynamic: c => { c.dynamic = !c.dynamic; applyTheme(); }, mask: c => c.mask = !c.mask, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, tagshow: c => c.tags.show = !c.tags.show };
 app.addEventListener('click', e => {
   const cp = e.target.closest('[data-copy]');
   if (cp && screens.contains(cp)) { if (longFired) { longFired = false; return; } return copyField(cp); }
@@ -1383,14 +1383,10 @@ app.addEventListener('click', e => {
     case 'appunlock': return openBio(unlockApp, 'Unlock to see your cards');
     case 'idle': return radioDialog('Lock after inactivity', 'QuickCards locks itself when you haven’t touched it for this long.', [[10, '10 seconds'], [30, '30 seconds'], [60, '1 minute'], [120, '2 minutes'], [300, '5 minutes'], [600, '10 minutes'], [1800, '30 minutes'], [0, 'Never']], C.appLock.after, v => { C.appLock.after = v; });
     case 'theme': return radioDialog('Theme', 'Choose how QuickCards looks.', [['system', 'System default'], ['light', 'Light'], ['dark', 'Dark']], C.theme, v => { C.theme = v; applyTheme(); });
-    case 'pinnedmax': return radioDialog('Pinned cards', 'Cards you pin stay at the top of the list.', [[1, '1'], [3, '3'], [5, '5'], [10, '10']], C.pinned, v => { C.pinned = v; const pinned = S.cards.filter(c => c.pinned); if (pinned.length > v) { const extras = pinned.sort((a, b) => (b.pinnedAt || 0) - (a.pinnedAt || 0)).slice(0, pinned.length - v); extras.forEach(c => { c.pinned = false; c.pinnedAt = null; }); setTimeout(() => snackbar(`Unpinned ${plural(extras.length, 'card')}`), 0); } });
     case 'clipsec': return radioDialog('Clear clipboard', 'Copied details are removed from the clipboard after this time.', [[0, 'Never'], [30, '30 seconds'], [60, '1 minute'], [120, '2 minutes']], C.clipSec, v => { C.clipSec = v; });
     case 'notifsec': return radioDialog('Notification time', 'How long expiry and CVV stay in the notification.', [[15, '15 seconds'], [30, '30 seconds'], [60, '1 minute']], C.notif.sec, v => { C.notif.sec = v; });
-    case 'tagmax': return radioDialog('Tags per card', 'Cards that already have more keep them.', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [8, '8'], [10, '10']], C.tags.max, v => { C.tags.max = v; });
-    case 'taglen': return radioDialog('Tag length', 'Longest tag name you can create.', [[8, '8 characters'], [12, '12 characters'], [16, '16 characters'], [24, '24 characters']], C.tags.len, v => { C.tags.len = v; });
     case 'expiredcards': return radioDialog('Expired cards', 'Expired cards keep working; this only changes where they appear.', [['keep', 'Keep in place'], ['end', 'Move to the end'], ['hide', 'Hide from the list']], C.expiredCards, v => { C.expiredCards = v; });
     case 'soonmonths': return radioDialog('Expires soon', 'Label cards that expire within this time.', [[1, 'Within 1 month'], [2, 'Within 2 months'], [3, 'Within 3 months']], C.expiresSoonMonths, v => { C.expiresSoonMonths = v; });
-    case 'archivedcards': return radioDialog('Archived cards', 'Choose whether search also finds archived cards.', [['only', 'Only in Archived cards'], ['search', 'Also in search results']], C.archivedCards, v => { C.archivedCards = v; });
     case 'window': return radioDialog('Instant copy window', 'How long copies stay instant after a fingerprint, counting only time without use.', [[30, '30 seconds'], [60, '1 minute'], [120, '2 minutes']], C.windowSec, v => { C.windowSec = v; });
     case 'entity': return push({ name: 'entity', kind: t.dataset.k });
     case 'archived': S.archSearch = { on: false, q: '' }; return push({ name: 'archived' });

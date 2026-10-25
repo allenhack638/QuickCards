@@ -267,7 +267,6 @@ internal fun CardFormContent(
     } else {
         null
     }
-    val showType = session.options.showCardType
     val tagsShow = session.options.tagsShow
     val compactPreview = configuration.screenHeightDp < 700 && !previewExpanded
     val expandPreviewLabel = stringResource(R.string.form_expand_preview)
@@ -297,7 +296,6 @@ internal fun CardFormContent(
                         PassCard(
                             card = previewCard,
                             maskNumbers = false,
-                            showCardType = showType,
                             tagsShow = tagsShow,
                             preview = true,
                             compact = true,
@@ -312,7 +310,6 @@ internal fun CardFormContent(
                     PassCard(
                         card = previewCard,
                         maskNumbers = false,
-                        showCardType = showType,
                         tagsShow = tagsShow,
                         modifier = Modifier.sharedPass(form.editingId),
                         preview = true,

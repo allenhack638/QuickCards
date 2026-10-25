@@ -6,15 +6,10 @@ enum class ExpiredPlacement {
     HIDE
 }
 
-enum class ArchivedVisibility {
-    ONLY_ARCHIVE,
-    IN_SEARCH
-}
-
 /**
  * END moves expired unpinned cards last (pinned cards never move); HIDE drops expired cards
  * unless searching or filtering Expired; a status filter never reorders; archived cards
- * appear only in search with [ArchivedVisibility.IN_SEARCH].
+ * appear in search.
  */
 object CardListOrder {
 
@@ -24,16 +19,11 @@ object CardListOrder {
         state: (T) -> ExpiryState?,
         isArchived: (T) -> Boolean,
         placement: ExpiredPlacement,
-        archived: ArchivedVisibility,
         searching: Boolean,
         statusFilter: Set<ExpiryState>
     ): List<T> {
         val visible = cards.filter { card ->
-            if (isArchived(card) &&
-                !(searching && archived == ArchivedVisibility.IN_SEARCH)
-            ) {
-                return@filter false
-            }
+            if (isArchived(card) && !searching) return@filter false
             if (statusFilter.isNotEmpty()) {
                 val cardState = state(card)
                 if (cardState == null || cardState !in statusFilter) return@filter false

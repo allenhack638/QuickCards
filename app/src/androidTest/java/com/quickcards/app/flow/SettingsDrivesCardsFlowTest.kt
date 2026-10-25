@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.ExpiredPlacement
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -72,7 +71,7 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
     }
 
     @Test
-    fun archivedVisibilityChangesMainSearchLive() {
+    fun archivedCardsAppearInMainSearchWithTheArchivedLabel() {
         val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
         val active = runBlocking { app.repository.createBank("HDFC Bank") }
         val closed = runBlocking { app.repository.createBank("Closed Bank") }
@@ -81,11 +80,6 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         runBlocking { app.repository.archive(archived.id, "Card closed") }
         waitForContentDescription("More for HDFC Bank")
 
-        openCardListSection()
-        choose("Archived cards", "Also in search results")
-        awaitSetting { app.settings.archivedCards.value == ArchivedVisibility.IN_SEARCH }
-
-        openCards()
         compose.onNodeWithContentDescription("Search").performClick()
         compose.onNodeWithContentDescription("Search cards").performTextInput("Closed")
         waitForContentDescription("More for Closed Bank")

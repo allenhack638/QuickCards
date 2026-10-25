@@ -258,8 +258,8 @@
     <h3>Backups carry settings and update saved cards</h3>
     <p>Export now includes your settings, and import shows a review of the backup before anything changes. Cards you’ve already saved can be updated with the backup’s details (the default) or kept as they are, and settings can be restored or left alone. The full flow is documented under <a href="#backup" style="color:var(--on-surface)">Backup and restore</a>.</p>
     <div class="cols" style="grid-template-columns:1fr 1fr">
-      <div class="box"><h4>Export</h4><ul><li>Cards with every field, all five managed lists, and settings (on by default).</li><li>Passphrase of at least 8 characters, entered twice.</li><li>File records the app, format version and export date.</li></ul></div>
-      <div class="box"><h4>Import</h4><ul><li>Open with the passphrase, then review counts: new, changed and same cards; new list items; settings.</li><li>Choose: update saved cards, or keep what’s on this phone.</li><li>Choose: restore settings, or not.</li><li>Result: “1 added · 1 updated · 6 unchanged · settings restored”.</li></ul></div>
+      <div class="box"><h4>Export</h4><ul><li>Cards with every field, all five managed lists, and settings (on by default).</li><li>Backup password of at least 8 characters, entered twice.</li><li>File records the app, format version and export date.</li></ul></div>
+      <div class="box"><h4>Import</h4><ul><li>Open with the backup password, then review counts: new, changed and same cards; new list items; settings.</li><li>Choose: update saved cards, or keep what’s on this phone.</li><li>Choose: restore settings, or not.</li><li>Result: “1 added · 1 updated · 6 unchanged · settings restored”.</li></ul></div>
     </div>
   </article>
 
@@ -393,7 +393,7 @@
     <div class="box"><ul>
       <li><b>Status on the bottom row.</b> Expired, Check details, Expires soon and Archived move from the crowded CARD NUMBER row to the right end of the tags row; the number row keeps only the type pill. Cards without tags still get the row when they have a status.</li>
       <li><b>Slightly more room.</b> Passes sit 16dp apart; the number, details and bottom rows each gain a few dp; every Add/Edit field has the same 36dp gap to the next; Undo for a repaired value sits on its "Changed from" line.</li>
-      <li><b>Small fixes.</b> Archived cards use the full list width; Manage › Archived cards shows its count like the other rows; old-app files import without a passphrase field; the repair banner reads "Fixed the format of {n} cards."</li>
+      <li><b>Small fixes.</b> Archived cards use the full list width; Manage › Archived cards shows its count like the other rows; old-app files import without a backup password field; the repair banner reads "Fixed the format of {n} cards."</li>
       <li><b>Sixteen bands, one grid.</b> Navy, Rust, Forest, Plum and Graphite keep their keys and hexes; Teal, Ocean, Indigo, Violet, Magenta, Wine, Crimson, Burnt orange, Olive, Moss and Slate join them. Swatches are 40dp discs in 48dp targets, eight per row at 412dp and six at 360dp, with the neutral selected ring and a white check as before. Every band clears 7:1 against white.</li>
       <li><b>Custom colour.</b> A seventeenth swatch with a conic rainbow outline opens <b>Custom colour</b>: an HSV wheel and brightness slider, a six-character uppercase <b>Hex</b> field with the reserved helper line, a live mini pass preview (“Preview” band over its body tint) and up to five <b>Recent</b> swatches. A colour under 4.5:1 against white shows “Too light for white card text. Choose a darker shade.” and disables <b>Use colour</b>. Actions are Cancel / Use colour.</li>
       <li><b>Stored as text.</b> The band column accepts a curated key or <code>#RRGGBB</code>; <code>PassColors.band(key)</code> parses the hex and an unknown value falls back to navy. No schema change. Format 2 round-trips a custom hex; format 1 keeps a readable legacy hex exactly and snaps an unreadable one to the nearest of the sixteen curated bands.</li>
@@ -528,20 +528,13 @@
   <tr><td>Appearance</td><td>Theme</td><td class="m">System default, Light, Dark — a row opening a radio dialog</td><td>Dark</td></tr>
   <tr><td></td><td>Use system colours</td><td class="m">On, Off (Android 12+)</td><td>Off</td></tr>
   <tr><td>Cards</td><td>Hide card numbers</td><td class="m">Last 4 only until hold or edit</td><td>On</td></tr>
-  <tr><td></td><td>Show card type</td><td class="m">Pill on the card</td><td>On</td></tr>
-  <tr><td></td><td>Pinned cards</td><td class="m">1, 3, 5, 10</td><td>3</td></tr>
   <tr><td>Card list</td><td>Expired cards</td><td class="m">Keep in place, Move to the end, Hide from the list</td><td>Move to the end</td></tr>
   <tr><td></td><td>Expires soon</td><td class="m">Within 1 month, Within 2 months, Within 3 months</td><td>Within 1 month</td></tr>
-  <tr><td></td><td>Archived cards</td><td class="m">Only in Archived cards, Also in search results</td><td>Only in Archived cards</td></tr>
   <tr><td></td><td>Show notes on cards</td><td class="m">On, Off. Up to 2 lines on each card</td><td>On</td></tr>
   <tr><td>Copying</td><td>Clear clipboard</td><td class="m">Never, 30s, 1 min, 2 min</td><td>1 min</td></tr>
-  <tr><td></td><td>Expiry and CVV notification</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Show expiry and CVV after copying</td><td class="m">On, Off; both hidden on the lock screen</td><td>On</td></tr>
   <tr><td></td><td>Notification time</td><td class="m">15s, 30s, 1 min</td><td>30s</td></tr>
-  <tr><td></td><td>Show expiry / CVV in notification</td><td class="m">On, Off each; hidden on the lock screen</td><td>On</td></tr>
   <tr><td>Tags</td><td>Show tags on cards</td><td class="m">On, Off</td><td>On</td></tr>
-  <tr><td></td><td>Search by tag</td><td class="m">On, Off</td><td>On</td></tr>
-  <tr><td></td><td>Tags per card</td><td class="m">1, 2, 3, 5, 8, 10</td><td>3</td></tr>
-  <tr><td></td><td>Tag length</td><td class="m">8, 12, 16, 24 characters</td><td>16</td></tr>
   <tr><td>Security</td><td>App lock</td><td class="m">On, Off. Fingerprint or PIN to open the app</td><td>On</td></tr>
   <tr><td></td><td>Lock after inactivity</td><td class="m">10s, 30s, 1 min, 2 min, 5 min, 10 min, 30 min, Never</td><td>1 min</td></tr>
   <tr><td></td><td>Lock when you leave the app</td><td class="m">On, Off</td><td>On</td></tr>
@@ -569,7 +562,7 @@
 <ol style="margin:0 0 12px;padding-left:20px">
   <li>Settings, Backup, <b>Export backup</b>. If the copy window has ended, the fingerprint prompt opens first: “Confirm it’s you to export your cards”.</li>
   <li><b>Include settings</b> is ticked by default; untick it for a cards-only backup.</li>
-  <li>Enter a passphrase (at least 8 characters) and confirm it. <b>Export</b> stays disabled until both match; a mismatch shows “Passphrases don’t match”.</li>
+  <li>Enter a backup password (at least 8 characters) and confirm it. <b>Export</b> stays disabled until both match; a mismatch shows “Backup passwords don’t match”.</li>
   <li>The file is saved to Downloads as <code>quickcards-backup-YYYY-MM-DD.qcb</code>, and a snackbar confirms: “Backup with settings saved to Downloads”.</li>
 </ol>
 <h3>What a backup contains</h3>
@@ -580,14 +573,14 @@
   <tr><td>Banks</td><td class="m">Names and monograms</td><td>Always</td></tr>
   <tr><td>Card networks</td><td class="m">Name, label, starting digits, lengths, CVV digits, Luhn, grouping, including your custom networks</td><td>Always</td></tr>
   <tr><td>Card types and tags</td><td class="m">Names</td><td>Always</td></tr>
-  <tr><td>Settings</td><td class="m">Theme, system colours, number masking, type pill, pinned-card limit, Card list (expired placement, expires-soon window, archived in search, notes on cards), clipboard time, notification on, time and contents, tag display, search, limits, app lock, inactivity time, lock on leave, copy window</td><td>When ticked (default)</td></tr>
-  <tr><td>Not included</td><td class="m">Unlock state, clipboard, search and filters, the passphrase itself, Android Keystore keys</td><td>Never</td></tr>
+  <tr><td>Settings</td><td class="m">Theme, system colours, number masking, Card list (expired placement, expires-soon window, notes on cards), clipboard time, show expiry and CVV after copying (with its time), tag display, app lock, inactivity time, lock on leave, copy window</td><td>When ticked (default)</td></tr>
+  <tr><td>Not included</td><td class="m">Unlock state, clipboard, search and filters, the backup password itself, Android Keystore keys</td><td>Never</td></tr>
 </tbody></table></div>
-<p>The whole file is encrypted with the passphrase: AES-256-GCM with a key derived by PBKDF2-HMAC-SHA256 over 600,000 iterations. The passphrase cannot be recovered; without it the file is unreadable.</p>
+<p>The whole file is encrypted with the backup password: AES-256-GCM with a key derived by PBKDF2-HMAC-SHA256 over 600,000 iterations. The backup password cannot be recovered; without it the file is unreadable.</p>
 <h3>Import, step by step</h3>
 <ol style="margin:0 0 12px;padding-left:20px">
   <li>Settings, Backup, <b>Import backup</b>, after the fingerprint prompt if needed.</li>
-  <li><b>Choose backup file</b>, enter its passphrase, tap <b>Open</b>. A wrong passphrase shows “That passphrase doesn’t open this backup” and nothing changes.</li>
+  <li><b>Choose backup file</b>, enter its backup password, tap <b>Open</b>. A wrong backup password shows “That backup password doesn’t open this backup” and nothing changes.</li>
   <li><b>Review backup</b> shows the file and export date, then: cards as <i>new · changed · same</i>, <b>Formats fixed: {n} · Need a check: {m}</b>, and for each list how many items are new. Settings show as “included” when present.</li>
   <li>If any saved cards differ, choose <b>Update with the backup’s details</b> (default) or <b>Keep what’s on this phone</b>.</li>
   <li>If the backup has settings, <b>Restore settings from the backup</b> is ticked by default.</li>
@@ -636,7 +629,7 @@
   <tr><td><b>Expired cards setting</b></td><td class="m">Keep in place · Move to the end (default) · Hide from the list. Pinned expired cards stay pinned. Hidden cards still appear in search results and whenever the Status › Expired filter is on.</td></tr>
   <tr><td><b>Status filter</b></td><td class="m">The filter sheet gains a Status group, Expired and Expires soon, with counts. A selected Status filter always shows matching cards even when Hide from the list is set.</td></tr>
   <tr><td><b>Archive</b></td><td class="m">⋮ › Archive (above Delete) asks “Archive this card?” with an optional 40-character reason, helper “For example: Card closed” and a counter. It unpins the card and shows “Card archived” with Undo. Archived cards live in Manage › Archived cards with the same passes, a “Search archived cards” field (last 4, bank, holder, network, type, tags, note, reason) and ⋮ Restore, Edit, Copy details, Delete. “Card restored”.</td></tr>
-  <tr><td><b>Archived cards setting</b></td><td class="m">Only in Archived cards (default) · Also in search results. Archived cards never enter the main list; the second option lets the main search find them, labelled Archived.</td></tr>
+  <tr><td><b>Archived search</b></td><td class="m">Archived cards never enter the main list, but the main search always finds them, labelled Archived.</td></tr>
   <tr><td><b>Notes on cards</b></td><td class="m">Show notes on cards (default on): the note under the tags in Body Small, clamped to two lines, with a 48dp <b>More</b> / <b>Less</b> text button only when it overflows (accessible names “Show full note” / “Show less”). A 500ms hold copies it: “Note copied”.</td></tr>
   <tr><td><b>Needs check</b></td><td class="m">A card with an unfixable legacy field carries <b>Check details</b> with the <code>info</code> icon on the pass and opens Edit with that field in error. The Review banner filter is <b>Needs check ({m})</b>.</td></tr>
 </tbody></table></div>
@@ -656,8 +649,8 @@
 </tbody></table></div>
 <h3>Backup and security</h3>
 <div class="tbl-wrap"><table><thead><tr><th>Rule</th><th>Message</th></tr></thead><tbody>
-  <tr><td>Export passphrase at least 8 characters, confirmed; Export stays disabled until both match</td><td>Passphrases don’t match</td></tr>
-  <tr><td>Import opens only with the right passphrase, then shows a review before changing anything</td><td>That passphrase doesn’t open this backup</td></tr>
+  <tr><td>Export backup password at least 8 characters, confirmed; Export stays disabled until both match</td><td>Backup passwords don’t match</td></tr>
+  <tr><td>Import opens only with the right backup password, then shows a review before changing anything</td><td>That backup password doesn’t open this backup</td></tr>
   <tr><td>Saved cards (same number) are updated or kept, as chosen; lists merge by name; settings restore only when ticked</td><td>1 added · 1 updated · 6 unchanged · settings restored</td></tr>
   <tr><td>Erase needs the “I understand” checkbox before Erase enables</td><td>—</td></tr>
   <tr><td>Copy, reveal, edit, delete, export, import and erase require the unlock window</td><td>Biometric prompt states the reason</td></tr>
@@ -675,7 +668,7 @@
   <div class="box"><h4>Cards</h4><ul><li>Add and edit with a live preview</li><li class="new">Keyboard scan and smart paste: pasted or scanned text fills number and expiry</li><li class="new">Network detected from the number; no field and no override</li><li class="new">12 to 19 digit numbers, 3 or 4 digit CVV</li><li>Luhn, expiry, CVV and duplicate checks</li><li class="new">Optional card type, tags and note</li><li>One name, the holder, shown in capitals on the pass</li><li>Pass colour, pin and unpin, delete with undo</li><li class="new">Pinned cards first, up to the limit, with a pin glyph on the band</li></ul></div>
   <div class="box"><h4>Organise</h4><ul><li class="new">Several card holders with home chips</li><li class="new">Manage holders, banks, networks, types and tags</li><li class="new">Rename warning listing affected cards</li><li class="new">Delete blocked while cards use an item</li></ul></div>
   <div class="box"><h4>Find</h4><ul><li>Search by digits, bank, holder, note</li><li class="new">Search by network and tag</li><li class="new">Filter by holder, bank, network, type and tag</li><li class="new">Status filter: Expired and Expires soon, with counts</li><li>Live result count; removable filter chips</li></ul></div>
-  <div class="box"><h4>Settings and data</h4><ul><li>Theme row and system colours</li><li class="new">Masking, type pill, pinned limit, clipboard, notification and tag settings</li><li class="new">Card list: expired placement, expires-soon window, archived in search, notes on cards</li><li>Unlock window length</li><li>Encrypted export with confirmed passphrase</li><li class="new">Settings included in backups</li><li class="new">Import review; update or keep saved cards; restore settings; formats fixed and need a check</li><li>Erase everything with confirmation</li></ul></div>
+  <div class="box"><h4>Settings and data</h4><ul><li>Theme row and system colours</li><li class="new">Masking, type pill, pinned limit, clipboard, notification and tag settings</li><li class="new">Card list: expired placement, expires-soon window, archived in search, notes on cards</li><li>Unlock window length</li><li>Encrypted export with confirmed backup password</li><li class="new">Settings included in backups</li><li class="new">Import review; update or keep saved cards; restore settings; formats fixed and need a check</li><li>Erase everything with confirmation</li></ul></div>
   <div class="box"><h4>Card list care</h4><ul><li class="new">One-time legacy repair; dismissible banner with Review and Dismiss; Check details on unfixable cards</li><li class="new">Edit shows “Changed from …” with Undo for an automatic fix</li><li class="new">Expired pass in neutral graphite with an outlined Expired chip; values still copy and reveal</li><li class="new">Expires soon label only, with a 1, 2 or 3 month window</li><li class="new">Archive with an optional reason; Archived cards screen with search and Restore</li><li class="new">Notes on the pass, two lines with More / Less, long-press to copy</li></ul></div>
 </div>
 
