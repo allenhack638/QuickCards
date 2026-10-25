@@ -14,7 +14,10 @@ data class HomeCard(
     val network: CardNetwork?,
     val networkId: String?,
     val tagNames: List<String>,
-    val expiryState: ExpiryState? = null
+    val expiryState: ExpiryState? = null,
+    /** Days until the payment due date while its reminder window is open and unpaid. */
+    val dueInDays: Int? = null,
+    val dueKey: String? = null
 ) {
     val id: String get() = card.id
 

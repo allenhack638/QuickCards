@@ -515,6 +515,23 @@ function typePillHTML(c, preview) {
   if (preview) return `<span class="type" id="pv-type" ${type ? '' : 'hidden'}>${esc(type?.name || '')}</span>`;
   return type ? `<span class="type">${esc(type.name)}</span>` : '';
 }
+/* ---------- Payment due strip ---------- */
+// Shown from 3 days before a card's due day until that day, unless marked paid; mirrors ReminderRules.
+function dueInfo(c) {
+  if (!S.cfg.paymentReminders || c.archived || !c.dueDay) return null;
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const at = (y, m) => new Date(y, m, Math.min(c.dueDay, new Date(y, m + 1, 0).getDate()));
+  let due = at(now.getFullYear(), now.getMonth());
+  if (due < now) due = at(now.getFullYear(), now.getMonth() + 1);
+  const days = Math.round((due - now) / 86400000);
+  const key = `${c.id}:${due.getFullYear()}-${due.getMonth() + 1}`;
+  return days <= 3 && !(S.paid || []).includes(key) ? { days, key } : null;
+}
+function dueStrip(c) {
+  const d = dueInfo(c); if (!d) return '';
+  const text = d.days === 0 ? 'Bill due today' : d.days === 1 ? 'Bill due tomorrow' : `Bill due in&nbsp;${d.days}&nbsp;days`;
+  return `<div class="due">${I('payments')}<span class="txt">${text}</span><button class="btn text sl" data-act="markpaid" data-key="${d.key}" aria-label="Mark this payment as paid">Mark paid</button></div>`;
+}
 function passHTML(c, preview) {
   const net = netOf(c), type = byId('types', c.typeId), mask = !preview && S.cfg.mask;
   const title = cardTitle(c), name = holderName(c), bank = byId('banks', c.bankId)?.name || 'Bank';
@@ -545,7 +562,7 @@ function passHTML(c, preview) {
     <div class="main">${f('pan', 'number', 'Card number', num, preview && !c.number, labExtra)}</div>
     <div class="perf"></div>
     <div class="stub">${f('', 'exp', 'Expiry', c.exp || 'MM/YY', preview && !c.exp, '', expAria)}${f('cvv', 'cvv', 'CVV', '•'.repeat(net?.cvv || 3), false)}${f('', 'name', 'Name', name || 'NAME', preview && !name)}</div>
-    ${tags}${note}
+    ${tags}${note}${preview ? '' : dueStrip(c)}
   </article></div>`;
 }
 function syncPerf() { $$('.pass').forEach(p => { const f = $('.perf', p); if (f) p.style.setProperty('--perf-y', (f.offsetTop + 1) + 'px'); }); }
@@ -1389,6 +1406,7 @@ app.addEventListener('click', e => {
     case 'actions': return actionsSheet(t.dataset.id);
     case 'add': return startForm('add');
     case 'nfc': return openSheet(`<div class="sh-body" style="text-align:center;padding:8px 24px 24px"><h2 style="margin:0 0 16px">Hold your card to the phone</h2><span class="ic" style="font-size:72px;color:var(--primary)">${I('nfc')}</span><p style="color:var(--on-surface-variant);margin:16px 0 8px">Keep the card against the back of the phone until it is read. The number and expiry fill in; you still type the CVV.</p><p class="t-muted" style="font-size:12px">Waiting for a card…</p><div class="acts" style="justify-content:flex-end"><button class="btn text sl" data-sheet="close">Cancel</button></div></div>`);
+    case 'markpaid': { const key = t.dataset.key; S.paid = [...(S.paid || []), key]; render(); return snackbar('Marked as paid', 'Undo', () => { S.paid = S.paid.filter(k => k !== key); render(); }); }
     case 'locknow': if (S.cfg.appLock.on) return lockApp('manual'); lockNow(); render(); return snackbar('Copying locked');
     case 'appunlock': return openBio(unlockApp, 'Unlock to see your cards');
     case 'idle': return radioDialog('Lock after inactivity', 'QuickCards locks itself when you haven’t touched it for this long.', [[10, '10 seconds'], [30, '30 seconds'], [60, '1 minute'], [120, '2 minutes'], [300, '5 minutes'], [600, '10 minutes'], [1800, '30 minutes'], [0, 'Never']], C.appLock.after, v => { C.appLock.after = v; });

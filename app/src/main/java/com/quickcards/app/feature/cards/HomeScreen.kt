@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.cards
 
 import android.Manifest
+import com.quickcards.app.core.reminders.Reminders
+import com.quickcards.app.core.reminders.PaidStore
 import com.quickcards.app.core.security.AppLockController
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -401,6 +403,18 @@ fun HomeScreen(
                 onCopy = { card, field -> performCopy(card, field) },
                 onReveal = { field -> performReveal(field) },
                 onCopyNote = { card -> copyNote(card) },
+                onMarkPaid = { card ->
+                    val key = card.dueKey ?: return@CardList
+                    Reminders.markPaid(context, key)
+                    scope.launch {
+                        val result = snackbar.showAndAwait(
+                            message = context.getString(R.string.cards_due_marked_paid),
+                            actionLabel = context.getString(R.string.cards_undo),
+                            duration = SnackbarDuration.Short
+                        )
+                        if (result == SnackbarResult.ActionPerformed) PaidStore.unmarkPaid(context, key)
+                    }
+                },
                 onReviewRepair = viewModel::showNeedsCheck,
                 onDismissRepair = viewModel::dismissRepairSummary,
                 onActions = { card -> actionsCard = card }

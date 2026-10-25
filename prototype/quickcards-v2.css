@@ -241,6 +241,10 @@ svg.ic { stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: ro
 .field .lab .chip.exp .ic { width: 16px; height: 16px; font-size: 16px; }
 
 /* Notes under the tags: two lines, then More/Less; long-press copies. */
+.due { display: flex; align-items: center; gap: 8px; min-height: 48px; margin: 0 16px 16px; padding: 0 4px 0 12px; border-radius: 12px; background: color-mix(in srgb, var(--band, #3F3F46) 26%, var(--sc)); color: var(--on-surface); }
+.due .ic { width: 18px; height: 18px; font-size: 18px; flex: none; }
+.due .txt { flex: 1; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 500; padding: 8px 0; }
+.due .btn { flex: none; font-size: 12px; font-weight: 600; }
 .pnote { padding: 0 16px 12px; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .pass.has-note .pfoot { padding-bottom: 8px; }
 .pnote .txt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 12px; line-height: 16px; color: var(--on-surface-variant); white-space: pre-line; }

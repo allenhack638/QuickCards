@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 object Reminders {
 
     const val CHANNEL_ID = "reminders"
-    private const val PREFS = "quickcards_reminders"
+    private const val PREFS = PaidStore.PREFS
     private const val ACTION_CHECK = "com.quickcards.app.action.REMINDER_CHECK"
     const val ACTION_PAID = "com.quickcards.app.action.REMINDER_PAID"
     const val EXTRA_KEY = "key"
@@ -85,7 +85,7 @@ object Reminders {
                 ReminderRules.dueReminderDate(card.dueDay, today)?.let { due ->
                     val period = ReminderRules.dueKey(card.id, due)
                     val todayKey = ReminderRules.dueDayKey(period, today)
-                    if (!prefs.contains(ReminderRules.paidKey(period)) && !prefs.contains(todayKey)) {
+                    if (!PaidStore.isPaid(context, period) && !prefs.contains(todayKey)) {
                         val text = context.getString(
                             R.string.reminder_due_text,
                             due.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
@@ -147,8 +147,7 @@ object Reminders {
 
     /** Records the payment for this due date and clears the reminder; no further nudges this month. */
     fun markPaid(context: Context, key: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putLong(ReminderRules.paidKey(key), System.currentTimeMillis()).apply()
+        PaidStore.markPaid(context, key)
         context.getSystemService(NotificationManager::class.java)?.cancel(key.hashCode())
     }
 

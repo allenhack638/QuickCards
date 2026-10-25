@@ -50,6 +50,7 @@ internal fun CardList(
     onCopy: suspend (HomeCard, PassField) -> Boolean,
     onReveal: suspend (PassField) -> Boolean,
     onCopyNote: suspend (HomeCard) -> Boolean,
+    onMarkPaid: (HomeCard) -> Unit = {},
     onReviewRepair: () -> Unit,
     onDismissRepair: () -> Unit,
     onActions: (HomeCard) -> Unit
@@ -100,6 +101,7 @@ internal fun CardList(
                         onCopy = onCopy,
                         onReveal = onReveal,
                         onCopyNote = onCopyNote,
+                        onMarkPaid = onMarkPaid,
                         onReviewRepair = onReviewRepair,
                         onDismissRepair = onDismissRepair,
                         onActions = onActions
@@ -128,6 +130,7 @@ internal fun CardList(
                         onCopy = onCopy,
                         onReveal = onReveal,
                         onCopyNote = onCopyNote,
+                        onMarkPaid = onMarkPaid,
                         onReviewRepair = onReviewRepair,
                         onDismissRepair = onDismissRepair,
                         onActions = onActions
@@ -149,6 +152,7 @@ internal fun CardList(
                 onCopy = onCopy,
                 onReveal = onReveal,
                 onCopyNote = onCopyNote,
+                onMarkPaid = onMarkPaid,
                 onReviewRepair = onReviewRepair,
                 onDismissRepair = onDismissRepair,
                 onActions = onActions
@@ -173,6 +177,7 @@ private fun CardGrid(
     onCopy: suspend (HomeCard, PassField) -> Boolean,
     onReveal: suspend (PassField) -> Boolean,
     onCopyNote: suspend (HomeCard) -> Boolean,
+    onMarkPaid: (HomeCard) -> Unit,
     onReviewRepair: () -> Unit,
     onDismissRepair: () -> Unit,
     onActions: (HomeCard) -> Unit
@@ -219,6 +224,8 @@ private fun CardGrid(
                     onCopy = { field -> onCopy(card, field) },
                     onReveal = onReveal,
                     onCopyNote = { onCopyNote(card) },
+                    dueInDays = card.dueInDays,
+                    onMarkPaid = { onMarkPaid(card) },
                     onActions = { onActions(card) }
                 )
             }

@@ -1,6 +1,9 @@
 package com.quickcards.app.feature.cards
 
 import android.app.Application
+import java.time.temporal.ChronoUnit
+import com.quickcards.domain.ReminderRules
+import com.quickcards.app.core.reminders.PaidStore
 import kotlinx.coroutines.flow.flowOn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -202,14 +205,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val expiredLabel = application.getString(R.string.cards_status_expired)
     private val soonLabel = application.getString(R.string.cards_status_expires_soon)
 
+    private data class DueInputs(val enabled: Boolean, val paid: Set<String>)
+
+    private val dueInputs = combine(
+        settings.paymentReminders,
+        PaidStore.paid(application)
+    ) { enabled, paid -> DueInputs(enabled, paid) }
+
+    private val listsWithDue = combine(lists, dueInputs) { l, d -> l to d }
+
     val uiState: StateFlow<HomeUiState> = combine(
-        lists,
+        listsWithDue,
         repository.tags,
         options,
         repository.repairSummary,
         uiFilters
-    ) { lists, tags, options, repair, ui ->
-        buildState(lists, tags, options, repair, ui)
+    ) { (lists, due), tags, options, repair, ui ->
+        buildState(lists, due, tags, options, repair, ui)
     }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
@@ -326,6 +338,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun buildState(
         lists: Lists,
+        due: DueInputs,
         tags: List<Tag>,
         options: HomeOptions,
         repair: RepairSummary?,
@@ -345,6 +358,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 card.networkId?.let { networksById[it]?.toDomain() }
             }
+            val dueDate = if (due.enabled && !card.archived) ReminderRules.dueReminderDate(card.dueDay, today) else null
+            val dueKey = dueDate?.let { ReminderRules.dueKey(card.id, it) }
             HomeCard(
                 card = card,
                 bankName = card.bankId?.let { banksById[it]?.name } ?: bankFallback,
@@ -357,7 +372,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     expiry = card.expiry,
                     today = today,
                     soonMonths = options.expiresSoonMonths
-                )
+                ),
+                dueInDays = dueDate?.takeIf { dueKey !in due.paid }
+                    ?.let { ChronoUnit.DAYS.between(today, it).toInt() },
+                dueKey = dueKey
             )
         }
         val cards = allCards.filterNot { it.card.archived }

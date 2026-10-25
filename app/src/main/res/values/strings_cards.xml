@@ -143,6 +143,15 @@
     <string name="cards_pinned">Pinned</string>
     <string name="cards_unpinned">Unpinned</string>
     <string name="cards_undo">Undo</string>
+    <string name="cards_due_today">Bill due today</string>
+    <string name="cards_due_tomorrow">Bill due tomorrow</string>
+    <plurals name="cards_due_in_days">
+        <item quantity="one">Bill due in %d day</item>
+        <item quantity="other">Bill due in %d days</item>
+    </plurals>
+    <string name="cards_due_mark_paid">Mark paid</string>
+    <string name="cards_due_mark_paid_a11y">Mark this payment as paid</string>
+    <string name="cards_due_marked_paid">Marked as paid</string>
     <string name="cards_delete_title">Delete this card?</string>
     <string name="cards_delete_body">%1$s ending %2$s will be removed from this phone. This can’t be undone.</string>
     <string name="cards_delete">Delete</string>

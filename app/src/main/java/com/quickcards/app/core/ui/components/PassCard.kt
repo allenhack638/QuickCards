@@ -1,6 +1,10 @@
 package com.quickcards.app.core.ui.components
 
 import android.os.Build
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.res.pluralStringResource
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -147,7 +151,9 @@ fun PassCard(
     archivedLabel: String? = null,
     note: String? = null,
     showNote: Boolean = false,
-    onCopyNote: suspend () -> Boolean = { false }
+    onCopyNote: suspend () -> Boolean = { false },
+    dueInDays: Int? = null,
+    onMarkPaid: () -> Unit = {}
 ) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val expired = expiryState == ExpiryState.EXPIRED
@@ -166,6 +172,9 @@ fun PassCard(
     val showSoon = !showArchived && !showExpired &&
         expiryState == ExpiryState.EXPIRES_SOON
     val showReview = !showArchived && !showExpired && !showSoon && needsReview
+    // The due strip is separate from the one-at-a-time status label so a bill never hides
+    // "Expired" or "Expires soon"; previews and archived cards never show it.
+    val showDue = !preview && !showArchived && dueInDays != null
 
     var notchY by remember { mutableFloatStateOf(0f) }
     val cornerPx = with(density) { QcDimens.PassCorner.toPx() }
@@ -360,9 +369,38 @@ fun PassCard(
                     )
                     else -> null
                 }
+                // Expiry and CVV never shrink below their own value and label: at large font sizes
+                // on narrow phones their weighted shares were too small and the values ellipsised.
+                // When that happens both take their natural width and only the name gives way.
+                val expiryWeight = if (dense) 1f else if (adaptive) 0.85f else 1f
+                val cvvWeight = if (dense) 0.62f else if (adaptive) 0.55f else 1f
+                val nameWeight = if (dense) 2.0f else if (adaptive) 2.2f else 1.45f
+                val measurer = rememberTextMeasurer()
+                val copiedLabel = stringResource(R.string.cards_pass_copied)
+                val expiryLabel = stringResource(R.string.cards_field_expiry).uppercase(Locale.ROOT)
+                val cvvLabel = stringResource(R.string.cards_field_cvv).uppercase(Locale.ROOT)
+                val density = LocalDensity.current
+                fun natural(value: String, valueStyleUsed: TextStyle, label: String): Dp = with(density) {
+                    val v = measurer.measure(value, valueStyleUsed).size.width
+                    val l = measurer.measure(label, QcType.FieldLabel).size.width
+                    val c = measurer.measure(copiedLabel, QcType.FieldLabel).size.width +
+                        (QcDimens.IconTiny + QcDimens.Half).roundToPx()
+                    maxOf(v, l, c).toDp() + QcDimens.PassFieldInset * 2
+                }
+                val expiryNeeded = natural("00/00", valueStyle, expiryLabel)
+                val cvvNeeded = natural(
+                    "•".repeat(4),
+                    valueStyle.copy(letterSpacing = FieldValueSpacingMasked),
+                    cvvLabel
+                )
+                val total = expiryWeight + cvvWeight + nameWeight
+                val natural = maxWidth * (expiryWeight / total) < expiryNeeded ||
+                    maxWidth * (cvvWeight / total) < cvvNeeded
                 Row(modifier = Modifier.fillMaxWidth()) {
+                    val expiryWidth = if (natural) Modifier.width(expiryNeeded) else Modifier.weight(expiryWeight)
+                    val cvvWidth = if (natural) Modifier.width(cvvNeeded) else Modifier.weight(cvvWeight)
                     PassCopyField(
-                        modifier = Modifier.weight(if (dense) 1f else if (adaptive) 0.85f else 1f),
+                        modifier = expiryWidth,
                         label = stringResource(R.string.cards_field_expiry),
                         value = expiryShown,
                         valueStyle = valueStyle,
@@ -379,7 +417,7 @@ fun PassCard(
                     )
                     val cvvLength = card.network?.cvvLength ?: 3
                     PassCopyField(
-                        modifier = Modifier.weight(if (dense) 0.62f else if (adaptive) 0.55f else 1f),
+                        modifier = cvvWidth,
                         label = stringResource(R.string.cards_field_cvv),
                         value = "•".repeat(cvvLength),
                         valueStyle = valueStyle.copy(letterSpacing = FieldValueSpacingMasked),
@@ -394,7 +432,7 @@ fun PassCard(
                         onReveal = { onReveal(PassField.CVV) }
                     )
                     PassCopyField(
-                        modifier = Modifier.weight(if (dense) 2.0f else if (adaptive) 2.2f else 1.45f),
+                        modifier = Modifier.weight(if (natural) 1f else nameWeight),
                         label = stringResource(R.string.cards_field_name),
                         value = holderName.ifBlank { namePlaceholder },
                         valueStyle = if (adaptive) valueStyle.copy(letterSpacing = 0.em) else valueStyle,
@@ -420,7 +458,7 @@ fun PassCard(
                         .padding(
                             start = QcDimens.Gutter,
                             end = QcDimens.Gutter,
-                            bottom = if (noteText != null) QcDimens.Base else QcDimens.Gutter
+                            bottom = if (noteText != null || showDue) QcDimens.Base else QcDimens.Gutter
                         ),
                     horizontalArrangement = Arrangement.spacedBy(QcDimens.Base),
                     verticalAlignment = Alignment.Top
@@ -484,6 +522,14 @@ fun PassCard(
                     cardId = card.id,
                     note = noteText,
                     onCopy = onCopyNote
+                )
+            }
+
+            if (showDue) {
+                PassDueStrip(
+                    days = dueInDays ?: 0,
+                    tint = PassColors.mix(band, 0.26f, dark),
+                    onMarkPaid = onMarkPaid
                 )
             }
             }
@@ -697,6 +743,59 @@ private fun StatusLabel(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+    }
+}
+
+/** "Payment due in 2 days" with Mark paid, tinted from the card's own band like the type pill. */
+@Composable
+private fun PassDueStrip(days: Int, tint: Color, onMarkPaid: () -> Unit) {
+    val text = when (days) {
+        0 -> stringResource(R.string.cards_due_today)
+        1 -> stringResource(R.string.cards_due_tomorrow)
+        else -> pluralStringResource(R.plurals.cards_due_in_days, days, days)
+    }
+    val markLabel = stringResource(R.string.cards_due_mark_paid_a11y)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = QcDimens.Gutter, end = QcDimens.Gutter, bottom = QcDimens.Gutter)
+            .heightIn(min = QcDimens.Touch)
+            .clip(RoundedCornerShape(QcDimens.CornerMd))
+            .background(tint)
+            .padding(start = QcDimens.PassGap, end = QcDimens.Half),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(QcDimens.Base)
+    ) {
+        Icon(
+            imageVector = QcIcons.payments,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(QcDimens.IconSmall)
+        )
+        Text(
+            text = text,
+            style = QcType.Body.copy(fontWeight = FontWeight(500)),
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = QcDimens.Base)
+        )
+        TextButton(
+            onClick = onMarkPaid,
+            modifier = Modifier
+                .heightIn(min = QcDimens.Touch)
+                .semantics { contentDescription = markLabel },
+            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.cards_due_mark_paid),
+                style = QcType.Label
+            )
+        }
     }
 }
 

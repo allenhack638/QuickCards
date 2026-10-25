@@ -51,6 +51,8 @@ abstract class FlowTestBase {
             setAppLockAfterSec(AppSettingsDefaults.APP_LOCK_AFTER_SEC)
             setLockOnLeave(AppSettingsDefaults.LOCK_ON_LEAVE)
             setCopyWindowSec(AppSettingsDefaults.COPY_WINDOW_SEC)
+            setPaymentReminders(AppSettingsDefaults.PAYMENT_REMINDERS)
+            setExpiryReminders(AppSettingsDefaults.EXPIRY_REMINDERS)
             setMaskNumbers(AppSettingsDefaults.MASK_NUMBERS)
             setTagsShow(AppSettingsDefaults.TAGS_SHOW)
             setExpiredCards(AppSettingsDefaults.EXPIRED_CARDS)
