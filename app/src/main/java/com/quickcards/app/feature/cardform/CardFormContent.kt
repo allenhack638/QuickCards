@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.cardform
 
 import androidx.compose.foundation.background
+import com.quickcards.app.core.ui.components.NetworkMarks
+import com.quickcards.app.core.ui.components.NetworkMark
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -390,7 +392,14 @@ internal fun CardFormContent(
                         {
                             // The trailing slot does not pad arbitrary content,
                             // so keep the label 16dp from the outline's end edge.
-                            Text(
+                            val mark = NetworkMarks.drawable(network.id)
+                            if (mark != null) {
+                                NetworkMark(
+                                    resId = mark,
+                                    contentDescription = network.name,
+                                    modifier = Modifier.padding(end = QcDimens.Gutter)
+                                )
+                            } else Text(
                                 text = network.code,
                                 style = QcType.FieldLabel.copy(
                                     fontWeight = FontWeight(800),

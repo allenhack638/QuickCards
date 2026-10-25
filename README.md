@@ -55,7 +55,7 @@ encrypted backup that you export yourself and open with its backup password.
   card types and tags. Renames that affect cards ask first; items in use cannot be
   deleted.
 - **Card formats.** 12–19 digit numbers, automatic network detection by prefix, per-network
-  grouping, CVV length and Luhn check; 10 built-in networks plus custom ones. Duplicate
+  grouping, CVV length and Luhn check; 10 built-in networks plus custom ones. Built-in networks show their official mark on the card. Duplicate
   numbers are rejected across all holders.
 - **Share a card.** From a card's menu, after the unlock prompt; you choose whether the CVV goes along (off by default) before the system share sheet opens.
 - **Pinning, notes, archive.** Pin up to 10 cards to the top, show notes on
@@ -160,7 +160,7 @@ docs/              # MAINTAINING.md and the Stub Lock brand masters (docs/brand/
 QuickCards is released under the [MIT licence](LICENSE), © 2025-2026 allenhack638.
 
 The Stub Lock logo and QuickCards brand assets are © allenhack638 and are **not** covered
-by the MIT licence unless stated otherwise. The bundled Roboto Flex font is licensed under
+by the MIT licence unless stated otherwise. Visa, Mastercard, American Express, RuPay, Diners Club, Discover, JCB, Maestro, UnionPay and Mir, and their marks, are trademarks of their respective owners; QuickCards shows them only to identify a card's network and is not affiliated with or endorsed by them. The bundled Roboto Flex font is licensed under
 the SIL Open Font License 1.1. Other third-party components are listed in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 

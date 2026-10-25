@@ -15,3 +15,4 @@ All notable changes to this project are documented in this file.
 - Added: Share a card from its menu, with a choice to include the CVV. The clipboard and the expiry/CVV notification now keep their timers when you switch apps, and the keyboard shows the copied value.
 - Changed: the app appears in Recents; Settings headings and dialog rows are clearer; holder chips press cleanly; snappier screen transitions.
 - Changed: card network labels can be up to 15 characters; the badge grows to fit.
+- Added: built-in card networks show their official mark on a standard plate on the card, in Manage and in the card form.

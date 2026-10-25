@@ -9,6 +9,10 @@ import java.util.Locale
 val BrandRed = Color(0xFFC8202B)
 val BrandOnRed = Color(0xFFFFFFFF)
 
+// Network marks sit on a white plate so brand colours read on every band and theme.
+val NetworkPlate = Color(0xFFFFFFFF)
+val NetworkPlateEdge = Color(0x1F000000)
+
 val DarkBackground = Color(0xFF0B0B0C)
 val DarkSurfaceContainerLow = Color(0xFF121214)
 val DarkSurfaceContainer = Color(0xFF161618)

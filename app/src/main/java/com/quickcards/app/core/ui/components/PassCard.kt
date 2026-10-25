@@ -570,7 +570,10 @@ private fun Band(
                 )
             }
             val code = card.network?.code.orEmpty()
-            if (code.isNotEmpty()) {
+            val mark = NetworkMarks.drawable(card.network?.id)
+            if (mark != null) {
+                NetworkMark(resId = mark, contentDescription = card.network?.name)
+            } else if (code.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .widthIn(

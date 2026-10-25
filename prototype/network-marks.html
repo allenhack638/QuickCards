@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network marks</title>
+<style>
+  :root { --bg: #0b0b0c; --fg: #f2f2f3; --muted: #9a9aa0; --plate: #fff; --edge: rgba(0,0,0,.12); }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--bg); color: var(--fg); font: 14px/20px -apple-system, Roboto, system-ui, sans-serif; }
+  h1 { font-size: 22px; line-height: 28px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+  h2 { font-size: 16px; margin: 28px 0 12px; }
+  .plate { display: inline-grid; place-items: center; width: 56px; height: 28px; background: var(--plate); border: 1px solid var(--edge); border-radius: 6px; overflow: hidden; vertical-align: middle; }
+  .plate img { width: 56px; height: 28px; display: block; }
+  .row { display: grid; grid-template-columns: 120px repeat(5, auto); gap: 12px 20px; align-items: center; padding: 8px 0; border-bottom: 1px solid #1f1f22; }
+  .row .name { color: var(--fg); }
+  .band { display: inline-grid; place-items: center; width: 100px; height: 48px; border-radius: 10px; }
+  .light { display: inline-grid; place-items: center; width: 100px; height: 48px; border-radius: 10px; background: #fff; border: 1px solid #ddd; }
+  .zoom .plate { width: 224px; height: 112px; border-radius: 24px; border-width: 2px; }
+  .zoom .plate img { width: 224px; height: 112px; image-rendering: auto; }
+  .zoom { display: flex; flex-wrap: wrap; gap: 16px; }
+  .zoom figure { margin: 0; text-align: center; color: var(--muted); font-size: 12px; }
+  .zoom figcaption { margin-top: 6px; }
+  .head { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+</style>
+</head>
+<body>
+<h1>Network marks on the standard plate</h1>
+<p>Every mark is authored on one 56×28 canvas with the logo fitted into a centred 48×20 box and shown on a white plate with a 6 px corner and a 12 % hairline. Row 1 is actual badge size on four band colours and on a light surface; the 4× view below is for checking edges and colour.</p>
+
+<div class="row head"><span>Network</span><span>Navy</span><span>Forest</span><span>Wine</span><span>Graphite</span><span>Light</span></div>
+<div id="rows"></div>
+
+<h2>4× for quality</h2>
+<div class="zoom" id="zoom"></div>
+
+<script>
+  const marks = [
+    ['visa', 'Visa'], ['mc', 'Mastercard'], ['amex', 'American Express'], ['rupay', 'RuPay'],
+    ['diners', 'Diners Club'], ['discover', 'Discover'], ['jcb', 'JCB'], ['maestro', 'Maestro'],
+    ['unionpay', 'UnionPay'], ['mir', 'Mir']
+  ];
+  const bands = ['#1e3a8a', '#14532d', '#7f1d3a', '#3f3f46'];
+  const plate = id => `<span class="plate"><img src="assets/networks/${id}.svg" alt=""></span>`;
+  document.getElementById('rows').innerHTML = marks.map(([id, name]) => `<div class="row"><span class="name">${name}</span>` +
+    bands.map(b => `<span class="band" style="background:${b}">${plate(id)}</span>`).join('') +
+    `<span class="light">${plate(id)}</span></div>`).join('');
+  document.getElementById('zoom').innerHTML = marks.map(([id, name]) => `<figure>${plate(id)}<figcaption>${name}</figcaption></figure>`).join('');
+</script>
+</body>
+</html>

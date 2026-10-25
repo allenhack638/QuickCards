@@ -196,6 +196,8 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 /* ---------- Icons ---------- */
+// Built-in networks ship an acceptance mark on the standard 56x28 plate; custom ones keep the text badge.
+const NET_MARKS = new Set(['visa', 'mc', 'amex', 'rupay', 'diners', 'discover', 'jcb', 'maestro', 'unionpay', 'mir']);
 const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', };
 const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
 
@@ -538,7 +540,7 @@ function passHTML(c, preview) {
   return `<div class="pass-wrap" data-pass="${c.id || ''}"><article class="pass ${preview ? 'preview' : ''}${expired ? ' expired' : ''}${showNote ? ' has-note' : ''}" style="--band:${expired ? 'var(--pass-expired-band)' : bandValue(c.color)}" ${preview ? 'id="pv-pass"' : ''} aria-label="${esc(title)}, ${esc(net?.name || '')} ${esc(type?.name || '')} card">
     <div class="band"><span class="bank" ${preview ? 'id="pv-bank"' : ''}>${esc(bank)}</span>
       ${!preview && c.pinned ? `<span class="pinmark" role="img" aria-label="Pinned">${I('pin')}</span>` : ''}
-      <span class="net" ${preview ? 'id="pv-net"' : ''}>${esc(net?.code || '')}</span>
+      <span class="net${NET_MARKS.has(net?.id) ? ' mark' : ''}" ${preview ? 'id="pv-net"' : ''}>${NET_MARKS.has(net?.id) ? `<img src="assets/networks/${net.id}.svg" alt="${esc(net.name)}">` : esc(net?.code || '')}</span>
       ${preview ? '<span style="width:12px"></span>' : `<button class="iconbtn" data-act="actions" data-id="${c.id}" aria-label="More for ${esc(title)}">${I('more')}</button>`}</div>
     <div class="main">${f('pan', 'number', 'Card number', num, preview && !c.number, labExtra)}</div>
     <div class="perf"></div>
@@ -661,7 +663,7 @@ function archivedHTML() {
 function leadFor(kind, x) {
   if (kind === 'holders') return `<span class="hmono">${esc(initials(x.name))}</span>`;
   if (kind === 'banks') return `<span class="mono">${esc(x.mono)}</span>`;
-  if (kind === 'networks') return `<span class="nbslot"><span class="nbadge">${esc(x.code)}</span></span>`;
+  if (kind === 'networks') return `<span class="nbslot">${NET_MARKS.has(x.id) ? `<span class="nbadge mark"><img src="assets/networks/${x.id}.svg" alt="${esc(x.name)}"></span>` : `<span class="nbadge">${esc(x.code)}</span>`}</span>`;
   if (kind === 'tags') return `<span class="tagdot">${I('tag')}</span>`;
   return `<span class="tagdot">${esc(x.name[0] || '?')}</span>`;
 }

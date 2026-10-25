@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.manage
 
 import androidx.compose.foundation.background
+import com.quickcards.app.core.ui.components.NetworkMarks
+import com.quickcards.app.core.ui.components.NetworkMark
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -376,7 +378,10 @@ private fun EntityLead(kind: EntityKind, entity: ManagedEntity) {
 
         EntityKind.NETWORK -> {
             val fontScale = LocalDensity.current.fontScale
-            Box(
+            val mark = NetworkMarks.drawable(entity.network?.id)
+            if (mark != null) {
+                NetworkMark(resId = mark, contentDescription = null)
+            } else Box(
                 modifier = Modifier
                     .widthIn(
                         min = QcDimens.NetworkBadgeMinWidth,

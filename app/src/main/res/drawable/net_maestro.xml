@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="VectorPath"
+    android:width="56dp"
+    android:height="28dp"
+    android:viewportWidth="56"
+    android:viewportHeight="28">
+  <!-- MAESTRO acceptance mark on the standard 56x28 badge canvas: logo box 48x20, centred. -->
+  <group android:scaleX="0.128535" android:scaleY="0.128535" android:translateX="15.1465" android:translateY="4.0000">
+    <path
+        android:fillColor="#FF00A2E5"
+        android:pathData="M198.1 100.1L198.1 97.7 197.5 97.7 196.8 99.3 196.1 97.7 195.5 97.7 195.5 100.1 195.9 100.1 195.9 98.3 196.6 99.9 197.1 99.9 197.8 98.3 197.8 100.1ZM194.1 100.1L194.1 98.1 194.9 98.1 194.9 97.7 192.9 97.7 192.9 98.1 193.7 98.1 193.7 100.1Z"/>
+    <path
+        android:fillColor="#FF7375CF"
+        android:pathData="M127 110.4L72.9 110.4 72.9 13.2 127 13.2Z"/>
+    <path
+        android:fillColor="#FFEB001B"
+        android:pathData="M76.4 61.8C76.4 42.1 85.6 24.5 100 13.2 89.5 4.9 76.2 0 61.8 0 27.7 0 0 27.7 0 61.8 0 95.9 27.7 123.6 61.8 123.6 76.2 123.6 89.5 118.7 100 110.4 85.6 99.1 76.4 81.5 76.4 61.8"/>
+    <path
+        android:fillColor="#FF00A2E5"
+        android:pathData="M200 61.8C200 95.9 172.3 123.6 138.2 123.6 123.8 123.6 110.5 118.7 100 110.4 114.4 99.1 123.6 81.5 123.6 61.8 123.6 42.1 114.4 24.5 100 13.2 110.5 4.9 123.8 0 138.2 0 172.3 0 200 27.7 200 61.8"/>
+</group>
+</vector>

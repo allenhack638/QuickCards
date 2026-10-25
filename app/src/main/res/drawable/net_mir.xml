@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="VectorPath"
+    android:width="56dp"
+    android:height="28dp"
+    android:viewportWidth="56"
+    android:viewportHeight="28">
+  <!-- MIR acceptance mark on the standard 56x28 badge canvas: logo box 48x20, centred. -->
+  <group android:scaleX="0.068966" android:scaleY="0.068966" android:translateX="4.0000" android:translateY="7.2069">
+    <path
+        android:fillColor="#FF37A72E"
+        android:fillType="evenOdd"
+        android:pathData="M502 89L502 197 562 197 562 133 630 133C658.62 132.79 682.93 114.51 692.1 89Z"/>
+    <path
+        android:fillColor="#FF0077C3"
+        android:fillType="evenOdd"
+        android:pathData="M494 0C497.5 44.14 539.26 79 590.26 79L694.59 79A67 67 0 0 0 695.76 66.5C695.76 29.93 666.26 0.27 629.76 0Z"/>
+    <path
+        android:fillColor="#FF37A72E"
+        android:fillType="evenOdd"
+        android:pathData="M405.2 77.95L405.25 77.85 405.25 77.85A3.6 3.6 0 0 1 412 79.5L412 79.5 412 196 472 196 472 0 412 0C404.39 0.25 395.8 5.84 392.6 12.69L344.85 115.09C344.73 115.51 344.55 115.9 344.31 116.25L344.29 116.28 344.29 116.28A4 4 0 0 1 337 114L337 0 277 0 277 196 337 196 337 195.98C344.52 195.59 352.92 190.06 356.07 183.31L405.08 78.22Q405.13 78.08 405.2 77.95M181.15 81.3L146.09 196 102.92 196 67.83 81.23A3.95 3.95 0 0 0 60 82L60 196 0 196 0 0 66.84 0C77.88 0 89.45 8.57 92.67 19.12L121.87 114.63C123.33 119.38 125.68 119.38 127.14 114.63L156.34 19.12C159.57 8.56 171.13 0 182.17 0L249 0 249 196 189 196 189 81.95A3.95 3.95 0 0 0 181.15 81.3"/>
+</group>
+</vector>

@@ -187,6 +187,8 @@ svg.ic { stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: ro
 .band .pinmark { width: 16px; height: 16px; flex: none; display: grid; place-items: center; color: rgba(255,255,255,.9); }
 .band .pinmark .ic { width: 16px; font-size: 16px; height: 16px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
 .band .net:empty { display: none; }
+.band .net.mark, .nbadge.mark { height: 28px; width: 56px; min-width: 56px; padding: 0; background: #fff; border: 1px solid rgba(0,0,0,.12); overflow: hidden; }
+.band .net.mark img, .nbadge.mark img { width: 56px; height: 28px; display: block; }
 .band .iconbtn { color: rgba(255,255,255,.9); width: 48px; height: 48px; margin: -2px 0; }
 .band .iconbtn::after { inset: 4px; }
 .band .iconbtn:hover::after { background: rgba(255,255,255,.12); }

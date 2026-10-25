@@ -34,3 +34,12 @@ The Stub Lock logo and the QuickCards brand assets (`docs/brand/`, the launcher,
 notification and lock-screen marks) are © allenhack638 and are not licensed under MIT
 unless stated otherwise. Card network names appear only as plain text labels; no issuer
 or network logos are bundled.
+
+## Network marks
+
+`app/src/main/res/drawable/net_*.xml` and `prototype/assets/networks/*.svg` reproduce the
+acceptance marks of Visa, Mastercard, American Express, RuPay, Diners Club, Discover, JCB,
+Maestro, UnionPay and Mir, derived from the vector files published on Wikimedia Commons and
+re-authored on a common 56x28 canvas. The marks are trademarks of their respective owners,
+shown solely to identify a card's network; they are not covered by this project's MIT
+licence and no affiliation or endorsement is implied.
