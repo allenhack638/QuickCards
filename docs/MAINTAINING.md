@@ -391,7 +391,6 @@ restore fills missing keys with defaults, not the phone's current values.
 | Section | Setting | Options | Default | Backup key |
 |---|---|---|---|---|
 | Appearance | Theme | System default / Light / Dark | Dark | `theme` |
-| Appearance | Use system colours | On / Off (Android 12+) | Off | `dynamicColor` |
 | Cards | Hide card numbers | On / Off | On | `maskNumbers` |
 | Card list | Expired cards | Keep in place / Move to the end / Hide from the list | Move to the end | `expiredCards` |
 | Card list | Expires soon | Within 1 / 2 / 3 months | Within 1 month | `expiresSoonMonths` |
@@ -415,7 +414,7 @@ restore fills missing keys with defaults, not the phone's current values.
 | Backup | Erase all data | needs “I understand” | — | — |
 
 SharedPreferences file: `quickcards_settings`. Internal keys are `theme_mode`,
-`dynamic_color`, `copy_window_sec`, `clip_clear_sec`, `mask_numbers`, `notif_enabled`,
+`copy_window_sec`, `clip_clear_sec`, `mask_numbers`, `notif_enabled`,
 `notif_sec`, `tags_show`, `expired_cards`, `expires_soon_months`, `show_notes`,
 `app_lock_enabled`, `app_lock_after_sec`, `lock_on_leave`, `autofill_enabled`, `nfc_add_enabled`,
 `expiry_reminders`, `payment_reminders`. Do not rename them casually: they
@@ -554,7 +553,7 @@ pass geometry and palette exist exactly once.
    `QcColors`, `PassColors`, `Dimens` or `QcType`. No ad-hoc colours, text styles or
    design dp.
 3. Keep selection controls on `secondary`/`secondaryContainer`; brand red is only the one
-   filled action per screen. Dynamic colour may change surface-container tones only.
+   filled action per screen.
 4. Update the reference screenshot if the change is intentional and approved; compare
    dark and light.
 

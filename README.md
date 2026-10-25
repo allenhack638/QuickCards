@@ -75,9 +75,8 @@ encrypted backup that you export yourself and open with its backup password.
 - **Encrypted backup.** Export to a file protected by a backup password and import it on another
   phone, with a review of new, changed and unchanged cards. Older backup formats still
   import, and legacy values are repaired (with a 30-day undo) on upgrade and on import.
-- **Look and feel.** Material 3, pitch-black dark and light themes, optional Material You
-  colours, 15 card colours plus a custom colour picker, adaptive layouts for tablets and
-  foldables.
+- **Look and feel.** Material 3, pitch-black dark and light themes, 15 card colours plus a custom
+  colour picker, adaptive layouts for tablets and foldables.
 
 ## Privacy and security model
 
