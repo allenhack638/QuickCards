@@ -4,6 +4,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -303,6 +304,45 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate12To13_addsDueDayAndKeepsCards() {
+        helper.createDatabase(TEST_DB_12_13, 12).apply {
+            execSQL(
+                """
+                INSERT INTO cards
+                (id, cardNumber, expiryDate, cvv, bankName, cardType, cardIssuer, cardVariant,
+                 owner, description, cardColor, createdAt, updatedAt, panHash,
+                 holderId, bankId, networkId, networkAuto, typeId, nameOnCard, bandColor,
+                 sortOrder, pinned, pinnedAt, archived, archivedAt, archiveReason, needsReview)
+                VALUES
+                ('card-13a', 'encrypted-number-13a', 'encrypted-expiry-13a',
+                 'encrypted-cvv-13a', 'encrypted-bank-13a', 'Credit', 'Visa', 'Regalia',
+                 'encrypted-owner-13a', 'encrypted-note-13a', '#1E3A8A', 13, 13, 'hash-13a',
+                 'holder-13a', 'bank-13a', 'visa', 1, 'type-credit', '', 'navy',
+                 2, 0, NULL, 0, NULL, NULL, 0)
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB_12_13,
+            13,
+            true,
+            QuickCardsDatabase.MIGRATION_12_13
+        )
+
+        db.query("SELECT cardNumber, expiryDate, cvv, sortOrder, dueDay FROM cards WHERE id = 'card-13a'").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(1, cursor.count)
+            assertEquals("encrypted-number-13a", cursor.getString(0))
+            assertEquals("encrypted-expiry-13a", cursor.getString(1))
+            assertEquals("encrypted-cvv-13a", cursor.getString(2))
+            assertEquals(2, cursor.getInt(3))
+            assertTrue(cursor.isNull(4))
+        }
+    }
+
+    @Test
     fun migrate11To12_addsArchiveAndReviewColumnsAndCreatesRepairs() {
         helper.createDatabase(TEST_DB_11_12, 11).apply {
             execSQL(
@@ -392,5 +432,6 @@ class MigrationTest {
         const val TEST_DB_9_10 = "quickcards-migration-9-10-test"
         const val TEST_DB_10_11 = "quickcards-migration-10-11-test"
         const val TEST_DB_11_12 = "quickcards-migration-11-12-test"
+        const val TEST_DB_12_13 = "quickcards-migration-12-13-test"
     }
 }

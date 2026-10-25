@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_channel_name">Reminders</string>
+    <string name="reminder_card_title">%1$s ···%2$s</string>
+    <plurals name="reminder_expiry_text">
+        <item quantity="one">Expires tomorrow (%2$s). Ask your bank for a replacement.</item>
+        <item quantity="other">Expires in %1$d days (%2$s). Ask your bank for a replacement.</item>
+    </plurals>
+    <string name="reminder_due_text">Payment due on %1$s</string>
+    <string name="reminder_public_text">Card reminder</string>
+</resources>

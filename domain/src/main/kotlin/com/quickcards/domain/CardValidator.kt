@@ -33,7 +33,8 @@ data class CardDraft(
     val bankId: String? = null,
     val typeId: String? = null,
     val tagIds: List<String> = emptyList(),
-    val note: String = ""
+    val note: String = "",
+    val dueDay: Int? = null
 )
 
 data class ExistingCardRef(

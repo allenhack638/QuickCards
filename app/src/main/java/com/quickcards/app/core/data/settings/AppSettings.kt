@@ -54,6 +54,10 @@ object AppSettingsDefaults {
     val APP_LOCK_AFTER_OPTIONS = listOf(10, 30, 60, 120, 300, 600, 1800, 0)
 
     const val LOCK_ON_LEAVE = true
+    const val AUTOFILL_ENABLED = true
+    const val NFC_ADD_ENABLED = true
+    const val EXPIRY_REMINDERS = true
+    const val PAYMENT_REMINDERS = true
 }
 
 class AppSettings(private val preferences: SharedPreferences) {
@@ -127,6 +131,26 @@ class AppSettings(private val preferences: SharedPreferences) {
         preferences.getBoolean(KEY_LOCK_ON_LEAVE, AppSettingsDefaults.LOCK_ON_LEAVE)
     )
     val lockOnLeave: StateFlow<Boolean> = _lockOnLeave.asStateFlow()
+
+    private val _autofillEnabled = MutableStateFlow(
+        preferences.getBoolean(KEY_AUTOFILL_ENABLED, AppSettingsDefaults.AUTOFILL_ENABLED)
+    )
+    val autofillEnabled: StateFlow<Boolean> = _autofillEnabled.asStateFlow()
+
+    private val _nfcAddEnabled = MutableStateFlow(
+        preferences.getBoolean(KEY_NFC_ADD_ENABLED, AppSettingsDefaults.NFC_ADD_ENABLED)
+    )
+    val nfcAddEnabled: StateFlow<Boolean> = _nfcAddEnabled.asStateFlow()
+
+    private val _expiryReminders = MutableStateFlow(
+        preferences.getBoolean(KEY_EXPIRY_REMINDERS, AppSettingsDefaults.EXPIRY_REMINDERS)
+    )
+    val expiryReminders: StateFlow<Boolean> = _expiryReminders.asStateFlow()
+
+    private val _paymentReminders = MutableStateFlow(
+        preferences.getBoolean(KEY_PAYMENT_REMINDERS, AppSettingsDefaults.PAYMENT_REMINDERS)
+    )
+    val paymentReminders: StateFlow<Boolean> = _paymentReminders.asStateFlow()
 
     fun setTheme(theme: AppTheme) {
         preferences.edit().putString(KEY_THEME, theme.name).apply()
@@ -203,6 +227,26 @@ class AppSettings(private val preferences: SharedPreferences) {
         _lockOnLeave.value = enabled
     }
 
+    fun setAutofillEnabled(enabled: Boolean) {
+        preferences.edit().putBoolean(KEY_AUTOFILL_ENABLED, enabled).apply()
+        _autofillEnabled.value = enabled
+    }
+
+    fun setNfcAddEnabled(enabled: Boolean) {
+        preferences.edit().putBoolean(KEY_NFC_ADD_ENABLED, enabled).apply()
+        _nfcAddEnabled.value = enabled
+    }
+
+    fun setExpiryReminders(enabled: Boolean) {
+        preferences.edit().putBoolean(KEY_EXPIRY_REMINDERS, enabled).apply()
+        _expiryReminders.value = enabled
+    }
+
+    fun setPaymentReminders(enabled: Boolean) {
+        preferences.edit().putBoolean(KEY_PAYMENT_REMINDERS, enabled).apply()
+        _paymentReminders.value = enabled
+    }
+
     fun toMap(): Map<String, Any> = linkedMapOf(
         KEY_THEME_NAME to theme.value.name.lowercase(Locale.ROOT),
         KEY_DYNAMIC_COLOR_NAME to dynamicColor.value,
@@ -217,7 +261,11 @@ class AppSettings(private val preferences: SharedPreferences) {
         KEY_TAGS_SHOW_NAME to tagsShow.value,
         KEY_APP_LOCK_ENABLED_NAME to appLockEnabled.value,
         KEY_APP_LOCK_AFTER_SEC_NAME to appLockAfterSec.value,
-        KEY_LOCK_ON_LEAVE_NAME to lockOnLeave.value
+        KEY_LOCK_ON_LEAVE_NAME to lockOnLeave.value,
+        KEY_AUTOFILL_ENABLED_NAME to autofillEnabled.value,
+        KEY_NFC_ADD_ENABLED_NAME to nfcAddEnabled.value,
+        KEY_EXPIRY_REMINDERS_NAME to expiryReminders.value,
+        KEY_PAYMENT_REMINDERS_NAME to paymentReminders.value
     )
 
     fun applyMap(values: Map<String, Any?>) {
@@ -244,6 +292,10 @@ class AppSettings(private val preferences: SharedPreferences) {
         (values[KEY_APP_LOCK_ENABLED_NAME] as? Boolean)?.let(::setAppLockEnabled)
         (values[KEY_APP_LOCK_AFTER_SEC_NAME] as? Number)?.toInt()?.let(::setAppLockAfterSec)
         (values[KEY_LOCK_ON_LEAVE_NAME] as? Boolean)?.let(::setLockOnLeave)
+        (values[KEY_AUTOFILL_ENABLED_NAME] as? Boolean)?.let(::setAutofillEnabled)
+        (values[KEY_NFC_ADD_ENABLED_NAME] as? Boolean)?.let(::setNfcAddEnabled)
+        (values[KEY_EXPIRY_REMINDERS_NAME] as? Boolean)?.let(::setExpiryReminders)
+        (values[KEY_PAYMENT_REMINDERS_NAME] as? Boolean)?.let(::setPaymentReminders)
     }
 
     private fun readTheme(): AppTheme {
@@ -281,6 +333,10 @@ class AppSettings(private val preferences: SharedPreferences) {
         const val KEY_APP_LOCK_ENABLED = "app_lock_enabled"
         const val KEY_APP_LOCK_AFTER_SEC = "app_lock_after_sec"
         const val KEY_LOCK_ON_LEAVE = "lock_on_leave"
+        const val KEY_AUTOFILL_ENABLED = "autofill_enabled"
+        const val KEY_NFC_ADD_ENABLED = "nfc_add_enabled"
+        const val KEY_EXPIRY_REMINDERS = "expiry_reminders"
+        const val KEY_PAYMENT_REMINDERS = "payment_reminders"
 
         const val KEY_THEME_NAME = "theme"
         const val KEY_DYNAMIC_COLOR_NAME = "dynamicColor"
@@ -296,6 +352,10 @@ class AppSettings(private val preferences: SharedPreferences) {
         const val KEY_APP_LOCK_ENABLED_NAME = "appLockEnabled"
         const val KEY_APP_LOCK_AFTER_SEC_NAME = "appLockAfterSec"
         const val KEY_LOCK_ON_LEAVE_NAME = "lockOnLeave"
+        const val KEY_AUTOFILL_ENABLED_NAME = "autofillEnabled"
+        const val KEY_NFC_ADD_ENABLED_NAME = "nfcAddEnabled"
+        const val KEY_EXPIRY_REMINDERS_NAME = "expiryReminders"
+        const val KEY_PAYMENT_REMINDERS_NAME = "paymentReminders"
 
         @Volatile
         private var instance: AppSettings? = null

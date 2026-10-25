@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="autofill_suggestion">%1$s ···%2$s</string>
+    <string name="autofill_unlock_reason">Confirm it’s you to fill this card</string>
+</resources>

@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
         CardTag::class,
         CardRepairEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 abstract class QuickCardsDatabase : RoomDatabase() {
@@ -207,6 +207,12 @@ abstract class QuickCardsDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `cards` ADD COLUMN `dueDay` INTEGER")
+            }
+        }
+
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `cards` ADD COLUMN `archived` INTEGER NOT NULL DEFAULT 0")
@@ -288,7 +294,8 @@ abstract class QuickCardsDatabase : RoomDatabase() {
                         MIGRATION_8_9,
                         MIGRATION_9_10,
                         MIGRATION_10_11,
-                        MIGRATION_11_12
+                        MIGRATION_11_12,
+                        MIGRATION_12_13
                     )
                     .build()
                 INSTANCE = instance

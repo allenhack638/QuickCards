@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only demo form; the hints are deliberately plain so autofill heuristics see real-world text. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+    <EditText android:id="@+id/demo_number" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="Card number" android:autofillHints="creditCardNumber" android:inputType="number" />
+    <EditText android:id="@+id/demo_exp_month" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="MM" android:autofillHints="creditCardExpirationMonth" android:inputType="number" />
+    <EditText android:id="@+id/demo_exp_year" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="YYYY" android:autofillHints="creditCardExpirationYear" android:inputType="number" />
+    <EditText android:id="@+id/demo_cvv" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="CVV" android:autofillHints="creditCardSecurityCode" android:inputType="numberPassword" />
+    <EditText android:id="@+id/demo_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="Name on card" android:autofillHints="name" android:inputType="textCapWords" />
+</LinearLayout>

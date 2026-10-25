@@ -199,6 +199,7 @@ class CardFormViewModel(
     fun updateCvv(text: String) = update { it.updateCvv(text) }
     fun cvvBlur() = update { it.cvvBlur() }
     fun updateNote(text: String) = update { it.updateNote(text) }
+    fun updateDueDay(text: String) = update { it.updateDueDay(text) }
 
     /** Reverts the latest repair in vault and form; the restored legacy value is validated at once. */
     fun undoRepair(field: CardField) {
@@ -247,6 +248,7 @@ class CardFormViewModel(
             nameOnCard = holderName.trim().uppercase(Locale.ROOT),
             cardName = "",
             note = form.note.trim(),
+            dueDay = form.dueDay.toIntOrNull(),
             bandColor = form.bandColor,
             sortOrder = base?.sortOrder ?: 0,
             createdAt = base?.createdAt ?: System.currentTimeMillis(),

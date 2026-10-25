@@ -50,5 +50,7 @@ data class Card(
     val archivedAt: Long? = null,
     val archiveReason: String? = null,
     @ColumnInfo(defaultValue = "0")
-    val needsReview: Int = 0
+    val needsReview: Int = 0,
+    /** Day of the month the bill is due (1-31); not sensitive, so stored in the clear. */
+    val dueDay: Int? = null
 )

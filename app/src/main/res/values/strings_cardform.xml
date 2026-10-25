@@ -110,4 +110,14 @@
     </plurals>
     <string name="form_error_cvv_unknown">Enter 3 or 4 digits</string>
     <string name="form_error_bank_required">Choose the bank</string>
+    <string name="form_nfc_button">Tap your card</string>
+    <string name="form_nfc_title">Hold your card to the phone</string>
+    <string name="form_nfc_body">Keep the card against the back of the phone until it is read. The number and expiry fill in; you still type the CVV.</string>
+    <string name="form_nfc_waiting">Waiting for a card…</string>
+    <string name="form_nfc_off">Turn on NFC in your phone’s settings to tap a card.</string>
+    <string name="form_nfc_read">Card read. Enter the CVV to finish.</string>
+    <string name="form_nfc_failed">Couldn’t read this card. Hold it still and try again, or type the number.</string>
+    <string name="form_nfc_cancel">Cancel</string>
+    <string name="form_due_day_label">Payment due day (optional)</string>
+    <string name="form_due_day_helper">Day of the month your bill is due, 1 to 31</string>
 </resources>

@@ -16,3 +16,6 @@ All notable changes to this project are documented in this file.
 - Changed: the app appears in Recents; Settings headings and dialog rows are clearer; holder chips press cleanly; snappier screen transitions.
 - Changed: card network labels can be up to 15 characters; the badge grows to fit.
 - Added: built-in card networks show their official mark on a standard plate on the card, in Manage and in the card form.
+- Added: autofill in other apps' checkout forms, after the fingerprint prompt, with a Settings switch.
+- Added: add a card by holding it to the phone (NFC reads the number and expiry; the CVV is still typed), with a Settings switch on phones with NFC.
+- Added: expiry reminders 30 days ahead and payment reminders 3 days before a card's optional due day, each with a Settings switch.

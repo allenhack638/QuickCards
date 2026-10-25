@@ -17,6 +17,7 @@ data class VaultCard(
     val nameOnCard: String = "",
     val cardName: String = "",
     val note: String = "",
+    val dueDay: Int? = null,
     val bandColor: String = BandColor.NAVY,
     val sortOrder: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),

@@ -1,6 +1,14 @@
 package com.quickcards.app.feature.settings
 
 import android.content.Context
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.DisposableEffect
+import android.view.autofill.AutofillManager
+import android.provider.Settings
+import android.net.Uri
+import android.content.pm.PackageManager
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -211,6 +219,18 @@ fun SettingsScreen(
                 onCheckedChange = settings::setMaskNumbers
             )
 
+            val hasNfc = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC) }
+            if (hasNfc) {
+                val nfcAddEnabled by settings.nfcAddEnabled.collectAsState()
+                SwitchRow(
+                    icon = QcIcons.nfc,
+                    title = stringResource(R.string.settings_nfc_title),
+                    subtitle = stringResource(R.string.settings_nfc_subtitle),
+                    checked = nfcAddEnabled,
+                    onCheckedChange = settings::setNfcAddEnabled
+                )
+            }
+
             SettingsSubhead(stringResource(R.string.settings_section_card_list))
             ValueRow(
                 icon = QcIcons.eventBusy,
@@ -328,6 +348,52 @@ fun SettingsScreen(
                 }
             )
 
+            val autofillEnabled by settings.autofillEnabled.collectAsState()
+            val autofillManager = remember { context.getSystemService(AutofillManager::class.java) }
+            var autofillSystemOn by remember { mutableStateOf(autofillManager?.hasEnabledAutofillServices() == true) }
+            val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        autofillSystemOn = autofillManager?.hasEnabledAutofillServices() == true
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+            }
+            fun openAutofillPicker() {
+                AppLockController.beginSystemPicker()
+                runCatching {
+                    context.startActivity(
+                        Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE, Uri.parse("package:" + context.packageName))
+                    )
+                }
+            }
+            SwitchRow(
+                icon = QcIcons.autofill,
+                title = stringResource(R.string.settings_autofill_title),
+                subtitle = stringResource(
+                    when {
+                        !autofillEnabled -> R.string.settings_autofill_subtitle_off
+                        !autofillSystemOn -> R.string.settings_autofill_subtitle_choose
+                        else -> R.string.settings_autofill_subtitle_on
+                    }
+                ),
+                checked = autofillEnabled,
+                onCheckedChange = { enabled ->
+                    settings.setAutofillEnabled(enabled)
+                    if (enabled && !autofillSystemOn) openAutofillPicker()
+                }
+            )
+            if (autofillEnabled && !autofillSystemOn) {
+                ValueRow(
+                    icon = QcIcons.settings,
+                    title = stringResource(R.string.settings_autofill_choose_title),
+                    subtitle = stringResource(R.string.settings_autofill_choose_subtitle),
+                    onClick = ::openAutofillPicker
+                )
+            }
+
             SettingsSubhead(stringResource(R.string.settings_section_tags))
             SwitchRow(
                 icon = QcIcons.tag,
@@ -335,6 +401,24 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_tags_show_subtitle),
                 checked = tagsShow,
                 onCheckedChange = settings::setTagsShow
+            )
+
+            SettingsSubhead(stringResource(R.string.settings_section_reminders))
+            val expiryReminders by settings.expiryReminders.collectAsState()
+            SwitchRow(
+                icon = QcIcons.eventBusy,
+                title = stringResource(R.string.settings_expiry_reminders_title),
+                subtitle = stringResource(R.string.settings_expiry_reminders_subtitle),
+                checked = expiryReminders,
+                onCheckedChange = settings::setExpiryReminders
+            )
+            val paymentReminders by settings.paymentReminders.collectAsState()
+            SwitchRow(
+                icon = QcIcons.bell,
+                title = stringResource(R.string.settings_payment_reminders_title),
+                subtitle = stringResource(R.string.settings_payment_reminders_subtitle),
+                checked = paymentReminders,
+                onCheckedChange = settings::setPaymentReminders
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_security))

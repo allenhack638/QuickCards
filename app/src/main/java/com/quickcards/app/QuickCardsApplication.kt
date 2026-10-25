@@ -9,6 +9,7 @@ import com.quickcards.app.core.data.repository.RepairSummaryStore
 import com.quickcards.app.core.data.repository.VaultRepository
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.security.EncryptionHelper
+import com.quickcards.app.core.reminders.Reminders
 import com.quickcards.app.core.security.KeySentinel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +62,8 @@ class QuickCardsApplication : Application() {
             runCatching { EncryptionHelper.getInstance() }
             runCatching { settings }
             runCatching { DataMaintenance.run(database, repairSummaryStore) }
+            runCatching { Reminders.ensureScheduled(this@QuickCardsApplication) }
+            runCatching { Reminders.check(this@QuickCardsApplication) }
         }
     }
 }

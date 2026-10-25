@@ -87,4 +87,17 @@
     <string name="settings_option_never">Never</string>
     <string name="settings_action_cancel">Cancel</string>
     <string name="settings_action_ok">OK</string>
+    <string name="settings_autofill_title">Fill cards in other apps</string>
+    <string name="settings_autofill_subtitle_off">Suggest your cards in checkout forms, after your fingerprint</string>
+    <string name="settings_autofill_subtitle_choose">Tap to choose QuickCards in Android’s autofill settings</string>
+    <string name="settings_autofill_subtitle_on">On · suggestions appear in checkout forms</string>
+    <string name="settings_autofill_choose_title">Choose QuickCards for autofill</string>
+    <string name="settings_autofill_choose_subtitle">Opens Android’s autofill settings</string>
+    <string name="settings_nfc_title">Add cards by tapping</string>
+    <string name="settings_nfc_subtitle">Hold a card to the back of the phone to read its number and expiry</string>
+    <string name="settings_section_reminders">Reminders</string>
+    <string name="settings_expiry_reminders_title">Expiry reminders</string>
+    <string name="settings_expiry_reminders_subtitle">A notification 30 days before a card expires</string>
+    <string name="settings_payment_reminders_title">Payment reminders</string>
+    <string name="settings_payment_reminders_subtitle">3 days before a card’s due day, when you set one</string>
 </resources>

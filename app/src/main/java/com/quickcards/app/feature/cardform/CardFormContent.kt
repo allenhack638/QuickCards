@@ -1,6 +1,14 @@
 package com.quickcards.app.feature.cardform
 
 import androidx.compose.foundation.background
+import com.quickcards.app.core.ui.theme.QcIcons
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
+import com.quickcards.app.core.data.settings.AppSettings
+import android.content.pm.PackageManager
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
 import androidx.compose.foundation.clickable
@@ -148,6 +156,7 @@ internal fun CardFormContent(
     var expiryValue by remember { mutableStateOf(TextFieldValue("")) }
     var cvvValue by remember { mutableStateOf(TextFieldValue("")) }
     var noteValue by remember { mutableStateOf(TextFieldValue("")) }
+    var dueDayValue by remember { mutableStateOf(TextFieldValue(form.dueDay)) }
 
     val numberDisplay = form.formattedNumber(lists.networks, typing = numberFocused)
     LaunchedEffect(numberDisplay) {
@@ -168,6 +177,7 @@ internal fun CardFormContent(
     LaunchedEffect(form.note) {
         if (noteValue.text != form.note) {
             noteValue = TextFieldValue(form.note, TextRange(form.note.length))
+            dueDayValue = TextFieldValue(form.dueDay, TextRange(form.dueDay.length))
         }
     }
 
@@ -340,6 +350,40 @@ internal fun CardFormContent(
 
                 Spacer(modifier = Modifier.height(QcDimens.FormFieldGap))
 
+                val nfcAvailable = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC) }
+                val nfcAddEnabled by remember { AppSettings.get(context) }.nfcAddEnabled.collectAsState()
+                var nfcSheetOpen by remember { mutableStateOf(false) }
+                if (form.mode == CardFormMode.ADD && nfcAvailable && nfcAddEnabled) {
+                    TextButton(
+                        onClick = { nfcSheetOpen = true },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+                    ) {
+                        Icon(
+                            imageVector = QcIcons.nfc,
+                            contentDescription = null,
+                            modifier = Modifier.size(QcDimens.IconSmall)
+                        )
+                        Spacer(modifier = Modifier.width(QcDimens.Base))
+                        Text(stringResource(R.string.form_nfc_button))
+                    }
+                    Spacer(modifier = Modifier.height(QcDimens.Base))
+                }
+                if (nfcSheetOpen) {
+                    NfcTapSheet(
+                        onDismiss = { nfcSheetOpen = false },
+                        onRead = { data ->
+                            nfcSheetOpen = false
+                            viewModel.updateNumber(data.number)
+                            val display = CardFieldInput.number(data.number, lists.networks, typing = false)
+                            numberValue = TextFieldValue(display, TextRange(display.length))
+                            data.expiry?.takeIf { form.expiry.isBlank() }?.let { expiry ->
+                                viewModel.updateExpiry(expiry)
+                                expiryValue = TextFieldValue(expiry, TextRange(expiry.length))
+                            }
+                            snackbar.show(context.getString(R.string.form_nfc_read))
+                        }
+                    )
+                }
                 FormTextField(
                     value = numberValue,
                     onValueChange = { input ->
@@ -590,6 +634,20 @@ internal fun CardFormContent(
                 }
 
                 Spacer(modifier = Modifier.height(QcDimens.FormGroupGap))
+
+                FormTextField(
+                    value = dueDayValue,
+                    onValueChange = { input ->
+                        viewModel.updateDueDay(input.text)
+                        val next = session.form.dueDay
+                        dueDayValue = TextFieldValue(next, TextRange(next.length))
+                    },
+                    label = stringResource(R.string.form_due_day_label),
+                    helper = stringResource(R.string.form_due_day_helper),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
+                Spacer(modifier = Modifier.height(QcDimens.FormFieldGap))
 
                 FormTextField(
                     value = noteValue,

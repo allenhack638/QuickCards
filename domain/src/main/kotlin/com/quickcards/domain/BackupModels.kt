@@ -54,6 +54,8 @@ data class BackupCard(
     val typeId: String? = null,
     val variant: String = "",
     val note: String = "",
+    /** Optional since 2.2: payment due day of the month. */
+    val dueDay: Int? = null,
     val color: String = "navy",
     val tagIds: List<String> = emptyList(),
     val sortOrder: Int = 0,

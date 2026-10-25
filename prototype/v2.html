@@ -198,7 +198,7 @@ const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 /* ---------- Icons ---------- */
 // Built-in networks ship an acceptance mark on the standard 56x28 plate; custom ones keep the text badge.
 const NET_MARKS = new Set(['visa', 'mc', 'amex', 'rupay', 'diners', 'discover', 'jcb', 'maestro', 'unionpay', 'mir']);
-const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', };
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', };
 const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
 
 const LOGO = (vb = '0 0 108 108') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="currentColor" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
@@ -266,7 +266,7 @@ const PINNED_MAX = 10, TAGS_MAX = 10, TAGS_LEN = 16;
 
 /* ---------- Data ---------- */
 const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
-const CFG0 = () => ({ theme: 'dark', dynamic: false, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
+const CFG0 = () => ({ theme: 'dark', dynamic: false, autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
 const cleanCfg = c => ({
   theme: c.theme ?? 'dark', dynamic: c.dynamic ?? false, windowSec: c.windowSec ?? 60,
   clipSec: c.clipSec ?? 60, mask: c.mask ?? true, expiredCards: c.expiredCards ?? 'end',
@@ -769,6 +769,7 @@ function settingsHTML() {
     ${sw('dynamic', C.dynamic, 'palette', 'Use system colours', 'Match your wallpaper on Android 12+')}
     <div class="subhead">Cards</div>
     ${sw('mask', C.mask, 'mask', 'Hide card numbers', 'Show only the last 4 digits')}
+    ${sw('nfc', C.nfc, 'nfc', 'Add cards by tapping', 'Hold a card to the back of the phone to read its number and expiry')}
     <div class="subhead">Card list</div>
     ${row('expiredcards', 'expired', 'Expired cards', EXPIRED_LABEL[C.expiredCards] || EXPIRED_LABEL.end)}
     ${row('soonmonths', 'soon', 'Expires soon', C.expiresSoonMonths === 1 ? 'Within 1 month' : `Within ${C.expiresSoonMonths} months`)}
@@ -777,8 +778,12 @@ function settingsHTML() {
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
     ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For the time set below, hidden on the lock screen')}
     ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
+    ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On · suggestions appear in checkout forms' : 'Suggest your cards in checkout forms, after your fingerprint')}
     <div class="subhead">Tags</div>
     ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under the stub')}
+    <div class="subhead">Reminders</div>
+    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'A notification 30 days before a card expires')}
+    ${sw('paymentrem', C.paymentReminders, 'bell', 'Payment reminders', '3 days before a card’s due day, when you set one')}
     <div class="subhead">Security</div>
     ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Fingerprint needed to open QuickCards')}
     ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}
@@ -832,6 +837,7 @@ function formHTML() {
   <div class="scroll"><div class="form">
     ${passHTML({ ...F, id: '', needsReview: F.review }, true)}
     ${tf('holder', 'Card holder', byId('holders', F.holderId)?.name, { ro: 'holders', trail: caret })}
+    ${F.mode === 'add' && S.cfg.nfc ? `<button class="btn text sl" data-act="nfc" style="margin:0 0 8px -12px">${I('nfc')}Tap your card</button>` : ''}
     ${tf('number', 'Card number', fmt(F.number, net, false, false), { trail: `<span class="tag" id="f-net">${esc(net?.code || '')}</span>`, attrs: 'inputmode="numeric" autocomplete="off"', fix: F.repairs?.number?.before })}
     <div class="row2">${tf('exp', 'Expiry', F.exp, { help: 'MM/YY', attrs: 'inputmode="numeric" autocomplete="off" maxlength="7"', fix: F.repairs?.exp?.before })}
       ${tf('cvv', 'CVV', F.cvv, { help: `${net?.cvv || '3 or 4'} digits`, attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
@@ -843,6 +849,7 @@ function formHTML() {
       ${isCurated(F.color)
         ? `<button type="button" class="swatch custom" role="radio" aria-label="Custom" aria-checked="false" data-act="fcustom">${I('palette')}</button>`
         : `<button type="button" class="swatch custom" role="radio" aria-label="Custom colour, ${esc(F.color)}" aria-checked="true" data-act="fcustom" style="--sw:${esc(F.color)}">${I('check')}</button>`}</div></div>
+    ${tf('dueDay', 'Payment due day (optional)', F.dueDay || '', 'Day of the month your bill is due, 1 to 31', { attrs: 'inputmode="numeric" maxlength="2"' })}
     ${tf('note', 'Note (optional)', F.note, { max: 80, help: 'For example Everyday spending', attrs: 'maxlength="80"' })}
   </div></div>
   <div class="footer"><button class="btn filled lg" data-act="save" ${edit && !formDirty() ? 'disabled' : ''}>${edit ? 'Save changes' : 'Save card'}</button></div>`;
@@ -1364,7 +1371,7 @@ screens.addEventListener('pointerdown', e => {
 screens.addEventListener('contextmenu', e => { if (e.target.closest('[data-copy], [data-note]')) e.preventDefault(); });
 
 /* ---------- Click routing ---------- */
-const CFG_TOGGLES = { applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, dynamic: c => { c.dynamic = !c.dynamic; applyTheme(); }, mask: c => c.mask = !c.mask, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, tagshow: c => c.tags.show = !c.tags.show };
+const CFG_TOGGLES = { autofill: c => c.autofill = !c.autofill, nfc: c => c.nfc = !c.nfc, expiryrem: c => c.expiryReminders = !c.expiryReminders, paymentrem: c => c.paymentReminders = !c.paymentReminders, applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, dynamic: c => { c.dynamic = !c.dynamic; applyTheme(); }, mask: c => c.mask = !c.mask, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, tagshow: c => c.tags.show = !c.tags.show };
 app.addEventListener('click', e => {
   const cp = e.target.closest('[data-copy]');
   if (cp && screens.contains(cp)) { if (longFired) { longFired = false; return; } return copyField(cp); }
@@ -1381,6 +1388,7 @@ app.addEventListener('click', e => {
     case 'unfilter': S.filters[t.dataset.g].delete(t.dataset.v); return render();
     case 'actions': return actionsSheet(t.dataset.id);
     case 'add': return startForm('add');
+    case 'nfc': return openSheet(`<div class="sh-body" style="text-align:center;padding:8px 24px 24px"><h2 style="margin:0 0 16px">Hold your card to the phone</h2><span class="ic" style="font-size:72px;color:var(--primary)">${I('nfc')}</span><p style="color:var(--on-surface-variant);margin:16px 0 8px">Keep the card against the back of the phone until it is read. The number and expiry fill in; you still type the CVV.</p><p class="t-muted" style="font-size:12px">Waiting for a card…</p><div class="acts" style="justify-content:flex-end"><button class="btn text sl" data-sheet="close">Cancel</button></div></div>`);
     case 'locknow': if (S.cfg.appLock.on) return lockApp('manual'); lockNow(); render(); return snackbar('Copying locked');
     case 'appunlock': return openBio(unlockApp, 'Unlock to see your cards');
     case 'idle': return radioDialog('Lock after inactivity', 'QuickCards locks itself when you haven’t touched it for this long.', [[10, '10 seconds'], [30, '30 seconds'], [60, '1 minute'], [120, '2 minutes'], [300, '5 minutes'], [600, '10 minutes'], [1800, '30 minutes'], [0, 'Never']], C.appLock.after, v => { C.appLock.after = v; });

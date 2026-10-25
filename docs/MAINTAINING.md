@@ -311,6 +311,9 @@ distribute a debug build.
 | Permission | Why | Notes |
 |---|---|---|
 | `android.permission.USE_BIOMETRIC`, `USE_FINGERPRINT` | App lock and sensitive actions | Device-credential fallback |
+| `android.permission.BIND_AUTOFILL_SERVICE` (on the service, not requested) | `core/autofill/QuickCardsAutofillService` offers cards to other apps' forms; values are only decrypted in `AutofillAuthActivity` after the biometric prompt; `onSaveRequest` is a no-op | Off via Settings › "Fill cards in other apps" |
+| `android.permission.NFC` (feature not required) | `core/nfc/NfcCardReader` reads PAN and expiry from a contactless chip while the Add-card "Tap your card" sheet is open; the CVV is never on the chip | Settings › "Add cards by tapping"; the row is hidden without NFC hardware |
+| `android.permission.RECEIVE_BOOT_COMPLETED` | `core/reminders/BootReceiver` re-arms the daily reminder alarm | Reminders are switched off in Settings |
 | `android.permission.POST_NOTIFICATIONS` | Copy companion notification (API 33+) | Text is private on the lock screen |
 | `android.permission.HIDE_OVERLAY_WINDOWS` | Biometric prompt hardening (API 31+) | No runtime prompt |
 | `android.permission.INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA` | — | **Never present.** No network or camera dependency is declared; `OfflineManifestGuardTest` and `verifyOfflineManifest` parse the merged manifests |

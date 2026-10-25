@@ -61,6 +61,7 @@ data class CardFormModel(
     val tagIds: List<String> = emptyList(),
     val bandColor: String = BandColor.NAVY,
     val note: String = "",
+    val dueDay: String = "",
     val errors: Map<Field, CardError> = emptyMap(),
     val tried: Boolean = false
 ) {
@@ -84,7 +85,8 @@ data class CardFormModel(
         bankId = bankId,
         typeId = typeId,
         tagIds = tagIds,
-        note = note
+        note = note,
+        dueDay = dueDay.toIntOrNull()
     )
 
     /** The values a user can edit. Meta fields never make a form dirty. */
@@ -97,7 +99,8 @@ data class CardFormModel(
         typeId,
         tagIds,
         bandColor,
-        note
+        note,
+        dueDay
     )
 
     fun withError(field: Field, message: CardError?): CardFormModel = copy(
@@ -124,7 +127,8 @@ data class CardFormModel(
             typeId = card.typeId,
             tagIds = card.tagIds,
             bandColor = card.bandColor,
-            note = card.note
+            note = card.note,
+            dueDay = card.dueDay?.toString().orEmpty()
         )
     }
 }
@@ -254,6 +258,14 @@ data class CardFormSession(
 
     fun cvvBlur(): CardFormSession =
         if (form.cvv.isNotBlank() || form.tried) validate(Field.CVV) else this
+
+    /** Digits only, 1-31; an out-of-range value is ignored rather than flagged. */
+    fun updateDueDay(raw: String): CardFormSession {
+        val digits = raw.filter(Char::isDigit).take(2)
+        val day = digits.toIntOrNull()
+        if (digits.isNotEmpty() && (day == null || day !in 1..31)) return this
+        return withForm(form.copy(dueDay = digits))
+    }
 
     fun updateNote(raw: String): CardFormSession = withForm(
         form.copy(note = raw.take(CardValidator.NOTE_MAX_LENGTH))
