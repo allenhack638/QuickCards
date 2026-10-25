@@ -362,7 +362,7 @@ function lockApp(reason) {
   lockscr.innerHTML = `<div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
     <div class="why">Use your fingerprint or screen lock to see your cards</div></div>
     <button class="btn filled unlock sl" data-act="appunlock" aria-label="Unlock QuickCards">${I('fp')}Unlock</button>
-    <div class="foot">${I('shield')}Encrypted on this phone · v2.1.0</div>`;
+    <div class="foot">${I('shield')}Encrypted on this phone · v2.2.0</div>`;
   lockscr.hidden = false; requestAnimationFrame(() => lockscr.classList.add('show'));
   // The prompt opens on its own; Unlock re-opens it after a cancel.
   setTimeout(() => { if (isAppLocked() && bio.hidden) openBio(unlockApp, 'Unlock to see your cards'); }, 420);
@@ -812,7 +812,7 @@ function settingsHTML() {
     ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
-    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.1.0</span></span></div>
+    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.2.0</span></span></div>
     <div class="li two" style="margin-bottom:24px"><span class="lead">${I('offline')}</span><span class="txt"><span class="h">Works offline</span><span class="s">QuickCards has no network access</span></span></div>
   </div>`;
 }
