@@ -1,10 +1,12 @@
 package com.quickcards.app.core.ui.components
 
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.domain.CardNetwork
@@ -12,6 +14,7 @@ import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -94,5 +97,29 @@ class PassCardTest {
         compose.mainClock.advanceTimeBy(5_000)
 
         compose.onNodeWithContentDescription(maskedCvv).assertExists()
+    }
+
+    @Test
+    fun networkMarkSitsLevelWithTheBankName() {
+        compose.setContent {
+            QuickCardsTheme(darkTheme = true) {
+                PassCard(
+                    card = card,
+                    maskNumbers = true,
+                    tagsShow = true,
+                    onCopy = { false },
+                    onReveal = { true },
+                    onActions = {}
+                )
+            }
+        }
+
+        val mark = compose.onNodeWithContentDescription("Visa").getUnclippedBoundsInRoot()
+        val bank = compose.onNodeWithText("HDFC Bank").getUnclippedBoundsInRoot()
+
+        assertEquals(22.dp.value, mark.height.value, 1f)
+        val markCentre = (mark.top.value + mark.bottom.value) / 2f
+        val bankCentre = (bank.top.value + bank.bottom.value) / 2f
+        assertEquals(bankCentre, markCentre, 1f)
     }
 }
