@@ -18,11 +18,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * The upgraded vault still contains the earlier version's raw
- * values. The one-shot repair fixes what it can prove, flags the rest, and the
- * Cards banner leads to exactly the cards that need a check.
- */
+/** Upgrade repair fixes what it can prove, flags the rest, and the banner leads to those cards. */
 @RunWith(AndroidJUnit4::class)
 class LegacyUpgradeFlowTest : FlowTestBase() {
 

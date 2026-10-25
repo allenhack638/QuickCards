@@ -26,10 +26,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/**
- * The instant-copy window from prototype/v2.html: one fingerprint (or device
- * credential) unlocks every copy for AppSettings.copyWindowSec seconds.
- */
+/** One authentication unlocks every copy for AppSettings.copyWindowSec seconds. */
 object UnlockSession {
 
     @StringRes
@@ -48,10 +45,7 @@ object UnlockSession {
     private val _isUnlocked = MutableStateFlow(false)
     val isUnlocked: StateFlow<Boolean> = _isUnlocked.asStateFlow()
 
-    /**
-     * Instrumented tests cannot answer the system prompt; they set this to
-     * stand in for it. Ignored in release builds.
-     */
+    /** Stands in for the system prompt in instrumented tests. Ignored in release builds. */
     @VisibleForTesting
     @Volatile
     var testAuthenticator: (suspend () -> Boolean)? = null
@@ -95,10 +89,8 @@ object UnlockSession {
     }
 
     /**
-     * Resolves true when the user is present. Inside the copy window this is
-     * instant unless [fresh] is set: export, erase, import and switching a
-     * protection off always ask again, so a phone left unlocked for a minute
-     * cannot be emptied or opened up without the user.
+     * Instant inside the copy window unless [fresh]: export, erase, import and lowering a
+     * protection always re-ask, so an unattended phone cannot be emptied.
      */
     suspend fun requireUnlock(
         activity: FragmentActivity,
@@ -150,10 +142,7 @@ object UnlockSession {
     }
 }
 
-/**
- * BiometricPrompt with device-credential fallback. The authenticator combination
- * differs before API 30, where the combined form is not supported.
- */
+/** BiometricPrompt with device-credential fallback; the combined form needs API 30. */
 fun BiometricAuthHelper.authenticateForUnlock(
     activity: FragmentActivity,
     subtitle: String,

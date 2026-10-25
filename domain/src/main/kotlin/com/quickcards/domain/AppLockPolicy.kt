@@ -1,6 +1,6 @@
 package com.quickcards.domain
 
-/** Inactivity decision from the prototype's 500 ms app-lock interval. */
+/** Inactivity lock decision; 0 or less never locks. */
 object AppLockPolicy {
 
     fun shouldLock(nowMillis: Long, lastActiveMillis: Long, afterSeconds: Int): Boolean {

@@ -84,11 +84,10 @@ internal fun DeleteBlockedDialog(
         )
         Spacer(modifier = Modifier.height(QcDimens.Gutter))
         ManageCardList(entity.usedCards)
-        Spacer(modifier = Modifier.height(QcDimens.Base))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = QcDimens.Base),
+                .padding(top = QcDimens.DialogActionGap),
             horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -130,7 +129,6 @@ internal fun DeleteConfirmDialog(
             style = QcType.Body,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(QcDimens.Gutter))
         DialogActions(
             onCancel = onDismiss,
             confirmLabel = stringResource(R.string.manage_action_delete),

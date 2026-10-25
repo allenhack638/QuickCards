@@ -10,11 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * A vault with cards but nothing visible keeps the app-bar actions
- * and explains the two ways that can happen, with the action that brings the
- * cards back.
- */
+/** A vault with cards but nothing visible keeps app-bar actions and offers a way back. */
 @RunWith(AndroidJUnit4::class)
 class CardsEmptyFlowTest : FlowTestBase() {
 

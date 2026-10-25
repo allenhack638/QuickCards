@@ -5,10 +5,7 @@ import com.quickcards.domain.CardNetwork
 import com.quickcards.domain.CardQueryEntry
 import com.quickcards.domain.ExpiryState
 
-/**
- * The presentation model shared by the card list, the pass and the card-form
- * preview. It wraps the decrypted [VaultCard] with the names the UI shows.
- */
+/** A decrypted [VaultCard] plus the display names the UI shows. */
 data class HomeCard(
     val card: VaultCard,
     val bankName: String,

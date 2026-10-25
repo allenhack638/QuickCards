@@ -2,10 +2,7 @@ package com.quickcards.domain
 
 import java.util.Locale
 
-/**
- * A card value that the legacy repair job can rewrite. [NUMBER], [EXPIRY] and
- * [CVV] map to the `needsReview` bitmask stored on `cards` (1, 2 and 4).
- */
+/** A value the legacy repair can rewrite; bits 1, 2 and 4 of `cards.needsReview`. */
 enum class CardField {
     NUMBER,
     EXPIRY,
@@ -43,13 +40,8 @@ data class NormalizedCard(
 )
 
 /**
- * Normalizes values stored by the pre-v2 app. It only repairs a value it can
- * prove valid against the phone's network rules; anything else is returned
- * unchanged and listed in [NormalizedCard.needsReview]. A clean value never
- * appears in [NormalizedCard.fixed], so running this twice changes nothing.
- *
- * Past expiry dates are valid: an expired card is real data. The output number
- * is digits only (the DB's storage form); grouping stays a display concern.
+ * Repairs only pre-v2 values it can prove valid; the rest is unchanged and listed in
+ * [NormalizedCard.needsReview]. Idempotent. Past expiries are valid; numbers are digits only.
  */
 object LegacyCardNormalizer {
 
@@ -117,9 +109,8 @@ object LegacyCardNormalizer {
     }
 
     /**
-     * Accepts MM/YY, M/YY, MM//YY, MM-YY, MM.YY, MM YY, MMYY, MM/YYYY,
-     * MMYYYY, MM / YY, YYYY-MM and YY/MM (only when the first part is greater
-     * than 12 and the second is at most 12). Output is always MM/YY.
+     * Accepts MM/YY, M/YY, MM//YY, MM-YY, MM.YY, MM YY, MMYY, MM/YYYY, MMYYYY, MM / YY,
+     * YYYY-MM and YY/MM (only when first > 12 and second <= 12). Returns MM/YY.
      */
     private fun normalizeExpiry(raw: String): String? {
         val value = raw.trim()

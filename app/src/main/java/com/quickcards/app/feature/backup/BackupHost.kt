@@ -82,11 +82,7 @@ internal data class ImportReview(
     val needCheck: Int
 )
 
-/**
- * Owns the three Backup flows from Settings (Export, Import, Erase) and the
- * Home empty-state Import entry. The state is created by
- * [rememberBackupHostState] and rendered by [BackupHost].
- */
+/** Export, Import and Erase flows from Settings and the Home empty state. */
 @Stable
 class BackupHostState internal constructor(
     private val appContext: Context,
@@ -371,7 +367,7 @@ class BackupHostState internal constructor(
         eraseAcknowledged = false
     }
 
-    /** Locking the app closes every overlay, as lockApp does in the prototype. */
+    /** Locking the app closes every overlay. */
     internal fun dismissForLock() {
         exportOpen = false
         importOpen = false
@@ -385,8 +381,7 @@ class BackupHostState internal constructor(
 
     private fun requireUnlocked(reason: String, block: suspend () -> Unit) {
         scope.launch {
-            // Export, import and erase touch the whole vault: always re-ask,
-            // even inside the instant-copy window.
+            // Whole-vault actions always re-ask, even inside the copy window.
             val host = activity ?: return@launch
             if (!UnlockSession.requireUnlock(host, reason, fresh = true)) return@launch
             block()
@@ -535,8 +530,14 @@ fun rememberBackupHostState(): BackupHostState {
             settings = app.settings,
             snackbar = snackbar,
             scope = scope,
-            launchCreateDocument = { name -> createDocument.launch(name) },
-            launchOpenDocument = { openDocument.launch(arrayOf("*/*")) }
+            launchCreateDocument = { name ->
+                AppLockController.beginSystemPicker()
+                createDocument.launch(name)
+            },
+            launchOpenDocument = {
+                AppLockController.beginSystemPicker()
+                openDocument.launch(arrayOf("*/*"))
+            }
         )
     }
 

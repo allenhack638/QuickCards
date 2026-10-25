@@ -21,10 +21,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * App lock from prototype/v2.html: shown on launch, after the configured
- * inactivity time, when the app leaves the foreground, and from Lock now.
- * Elapsed time comes from SystemClock so the timer is unaffected by the
- * animation scale.
+ * Locks on launch, after inactivity, on leaving the foreground and on Lock now. Uses
+ * SystemClock so the timer ignores the animation scale.
  */
 object AppLockController {
 
@@ -38,6 +36,9 @@ object AppLockController {
     private var settings: AppSettings? = null
     private var lastActiveMillis = SystemClock.elapsedRealtime()
     private var started = false
+    private var systemPickerUntil = 0L
+
+    private const val SYSTEM_PICKER_GRACE_MS = 5 * 60_000L
 
     fun attach(context: Context) {
         if (started) return
@@ -49,7 +50,13 @@ object AppLockController {
         lastActiveMillis = SystemClock.elapsedRealtime()
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) = evaluateIdle()
+            override fun onStart(owner: LifecycleOwner) {
+                if (systemPickerUntil != 0L) {
+                    systemPickerUntil = 0L
+                    lastActiveMillis = SystemClock.elapsedRealtime()
+                }
+                evaluateIdle()
+            }
 
             override fun onStop(owner: LifecycleOwner) = onAppStopped()
         })
@@ -69,6 +76,14 @@ object AppLockController {
                 evaluateIdle()
             }
         }
+    }
+
+    /**
+     * Call right before opening the system file picker so "Lock when you leave" does not
+     * fire and drop the import/export. Leaving any other way still locks.
+     */
+    fun beginSystemPicker() {
+        systemPickerUntil = SystemClock.elapsedRealtime() + SYSTEM_PICKER_GRACE_MS
     }
 
     fun onUserInteraction() {
@@ -107,6 +122,8 @@ object AppLockController {
     private fun onAppStopped() {
         UnlockSession.lockNow()
         appContext?.let(CopyCompanionNotifier::cancel)
+        if (SystemClock.elapsedRealtime() < systemPickerUntil) return
+        systemPickerUntil = 0L
         val prefs = settings ?: return
         if (prefs.appLockEnabled.value && prefs.lockOnLeave.value) {
             lock()

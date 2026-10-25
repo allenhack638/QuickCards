@@ -55,9 +55,8 @@ class QuickCardsApplication : Application() {
             )
         }
         applicationScope.launch {
-            // Keep Keystore key generation, Room open/migration, maintenance
-            // and the settings singleton off the main thread so the lock
-            // screen can draw on the first frame.
+            // Keystore, Room and settings init stay off the main thread so the lock
+            // screen draws on the first frame.
             runCatching { EncryptionHelper.getInstance() }
             runCatching { settings }
             runCatching { DataMaintenance.run(database, repairSummaryStore) }

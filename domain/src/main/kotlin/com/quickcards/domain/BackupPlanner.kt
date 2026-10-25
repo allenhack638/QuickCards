@@ -50,10 +50,7 @@ data class PhoneSnapshot(
     val cards: List<PhoneCard> = emptyList()
 )
 
-/**
- * The card after backup ids have been translated to the phone's ids. A null
- * list id means the backup's item does not exist yet and will be created.
- */
+/** A card with backup ids mapped to phone ids; a null id means the item will be created. */
 data class ResolvedCard(
     val holderId: String?,
     val bankId: String?,
@@ -98,10 +95,8 @@ data class BackupPlan(
 }
 
 /**
- * Pure merge planning: counts new/changed/same cards and new list items by
- * matching list names ignoring case and card numbers digits-only, exactly like
- * `planImport` in prototype/v2.html (the phone stores a PAN hash, which is a
- * one-way function of the same normalized digits).
+ * Lists match by name ignoring case, cards by digits-only number (the same input as the
+ * stored PAN hash).
  */
 object BackupPlanner {
 

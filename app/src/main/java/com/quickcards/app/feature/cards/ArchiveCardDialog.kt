@@ -29,10 +29,7 @@ import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcType
 import kotlinx.coroutines.delay
 
-/**
- * The archive confirmation shared by the Cards list and the archived screen:
- * one optional 40-character reason with a reserved helper line and counter.
- */
+/** Archive confirmation with an optional 40-character reason. */
 @Composable
 fun ArchiveCardDialog(
     onArchive: (String?) -> Unit,
@@ -77,7 +74,7 @@ fun ArchiveCardDialog(
         Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(QcDimens.DialogActionGap, Alignment.End),
+            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(

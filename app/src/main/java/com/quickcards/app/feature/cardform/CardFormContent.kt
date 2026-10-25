@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -85,6 +86,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.roundToInt
+
+/**
+ * Text keyboard (not the number pad) so the keyboard's own scan-text tool is offered;
+ * the field filters to digits. Suggestions off so the keyboard does not learn card numbers.
+ */
+private val ScannableKeyboard = KeyboardOptions(
+    capitalization = KeyboardCapitalization.None,
+    autoCorrect = false,
+    keyboardType = KeyboardType.Text
+)
 
 private val SaveButtonText = QcType.MenuItem.copy(fontWeight = FontWeight(600))
 
@@ -371,7 +382,7 @@ internal fun CardFormContent(
                         context.getString(R.string.form_repair_changed_from, it.before)
                     }.orEmpty(),
                     error = cardErrorText(form.errors[Field.NUMBER]),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = ScannableKeyboard,
                     trailing = if (network != null) {
                         {
                             // M3 gives the trailing slot 12dp; 4dp more keeps
@@ -450,7 +461,7 @@ internal fun CardFormContent(
                             context.getString(R.string.form_repair_changed_from, it.before)
                         } ?: stringResource(R.string.form_helper_expiry),
                         error = cardErrorText(form.errors[Field.EXPIRY]),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = ScannableKeyboard,
                         fieldTag = "form_expiry",
                         helperAction = if (repairs.containsKey(CardField.EXPIRY)) {
                             { RepairUndo(onUndo = { viewModel.undoRepair(CardField.EXPIRY) }) }
@@ -706,11 +717,7 @@ private fun FormFooter(label: String, enabled: Boolean, error: String?, onClick:
     }
 }
 
-/**
- * The Undo action on a repaired field's supporting line, right-aligned to the
- * outline's end edge like the counter. Compose extends the touch bounds of this
- * small target to the 48dp minimum without changing the line height.
- */
+/** Compose extends this small target's touch bounds to 48dp without changing the line height. */
 @Composable
 private fun RepairUndo(onUndo: () -> Unit) {
     Text(

@@ -128,7 +128,7 @@ internal fun FilterSheet(
                     modifier = Modifier.padding(
                         start = QcDimens.Section,
                         end = QcDimens.Section,
-                        top = QcDimens.Half,
+                        top = QcDimens.SheetTitleTop,
                         bottom = QcDimens.Base
                     )
                 )
@@ -197,7 +197,7 @@ internal fun FilterSheet(
                             start = QcDimens.Section,
                             end = QcDimens.Section,
                             top = QcDimens.PassGap,
-                            bottom = 20.dp
+                            bottom = QcDimens.SheetBottom
                         ),
                     horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
@@ -316,14 +316,14 @@ internal fun ActionsSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        Column(modifier = Modifier.padding(bottom = 20.dp)) {
+        Column(modifier = Modifier.padding(bottom = QcDimens.SheetBottom)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         start = QcDimens.Section,
                         end = QcDimens.Section,
-                        top = QcDimens.Half,
+                        top = QcDimens.SheetTitleTop,
                         bottom = QcDimens.PassGap
                     ),
                 verticalAlignment = Alignment.CenterVertically,

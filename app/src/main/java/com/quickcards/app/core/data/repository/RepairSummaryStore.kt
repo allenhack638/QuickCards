@@ -5,12 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/**
- * The one-time summary shown after a legacy repair or an import fixed
- * anything. The UI reads [summary] and calls [dismiss]. [isCompleted] keeps
- * the upgrade repair job one-shot; dismissing the banner does not make it run
- * again.
- */
+/** One-time repair summary. [isCompleted] keeps the upgrade job one-shot, independent of [dismiss]. */
 data class RepairSummary(
     val fixedCards: Int,
     val needsCheck: Int
@@ -29,10 +24,7 @@ interface RepairSummaryStore {
     fun dismiss()
 }
 
-/**
- * SharedPreferences-backed store used by the app. Recording merges into the
- * current banner so an upgrade summary and a later import share one message.
- */
+/** Recording merges into the current banner so upgrade and import share one message. */
 class RepairSummaryPrefs(context: Context) : RepairSummaryStore {
 
     private val preferences = context.applicationContext

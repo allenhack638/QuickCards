@@ -7,10 +7,7 @@ import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.domain.CardNumberRules
 import java.util.Locale
 
-/**
- * Debug-only sample data from seed() in prototype/v2.html. Wipes the vault and
- * inserts the two holders, twelve banks, four types, five tags and seven cards.
- */
+/** Debug-only sample data. Wipes the vault first. */
 object DemoSeeder {
 
     private val BANK_NAMES = listOf(

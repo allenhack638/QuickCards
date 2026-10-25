@@ -6,10 +6,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Parses the merged debug and release manifests produced by the manifest
- * merger. QuickCards is offline and camera-free by contract: a merged network
- * permission, a camera permission or a background upload scheduler fails this
- * test.
+ * Checks the merged debug and release manifests: any network or camera permission or
+ * background upload scheduler fails.
  */
 class OfflineManifestGuardTest {
 

@@ -97,11 +97,7 @@ private data class PendingUpdate(
     val usedCards: List<ManageCardItem>
 )
 
-/**
- * Add or edit one managed list item. Reusable by the card form for holders,
- * banks, networks and types: close first with onDismiss, then deliver the saved
- * id through onSaved.
- */
+/** Add or edit one list item. Calls onDismiss before delivering the saved id via onSaved. */
 @Composable
 fun EntityDialog(
     kind: EntityKind,
@@ -295,7 +291,6 @@ private fun EntityDialogContent(
             )
             Spacer(modifier = Modifier.height(QcDimens.PassGap))
             ManageCardList(update.usedCards)
-            Spacer(modifier = Modifier.height(QcDimens.Base))
             DialogActions(
                 onCancel = onDismiss,
                 confirmLabel = stringResource(R.string.manage_update_confirm, cardsText),

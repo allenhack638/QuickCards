@@ -5,15 +5,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Source-scan guard for the package structure:
- *
- * - Feature packages may use core packages and `:domain`, but never another
- *   feature. `app/navigation` is the only place that wires features together.
- * - Core packages never depend on feature packages.
- * - Composables never reach past the repository/view model into Room DAOs or
- *   `@Entity` classes.
- * - The old v1 packages stay gone.
- * - `:domain` stays a pure Kotlin module (no Android, no `:app` imports).
+ * Package rules: features never import each other (only app/navigation wires them), core never
+ * imports features, composables never touch DAOs or entities, v1 packages stay gone, and
+ * `:domain` stays pure Kotlin.
  */
 class ArchitectureGuardTest {
 

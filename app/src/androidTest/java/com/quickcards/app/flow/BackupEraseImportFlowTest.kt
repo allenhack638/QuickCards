@@ -26,12 +26,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Flow: export (captured through the same snapshot/codec the dialog
- * uses), erase through the real Settings dialog, then import the encrypted
- * backup and see the card again on Home. The system file picker is the one part
- * that cannot be driven from an instrumentation test, so the file itself is
- * produced and decoded with BackupSnapshot + BackupCodec + ExportCrypto;
- * BackupFlowTest covers the same round trip at repository level.
+ * Export, erase via Settings, import, card back on Home. The system file picker can't be
+ * driven, so the file is built with BackupSnapshot + BackupCodec + ExportCrypto.
  */
 @RunWith(AndroidJUnit4::class)
 class BackupEraseImportFlowTest : FlowTestBase() {
@@ -94,8 +90,7 @@ class BackupEraseImportFlowTest : FlowTestBase() {
         compose.onNode(hasScrollAction())
             .performScrollToNode(hasText("Erase all data"))
         waitForText("Erase all data")
-        // Erase and import always re-ask, even inside the copy window; the test
-        // stands in for the user at the system prompt.
+        // Erase and import always re-ask, even inside the copy window.
         UnlockSession.testAuthenticator = { true }
         compose.onNodeWithText("Erase all data").performClick()
 

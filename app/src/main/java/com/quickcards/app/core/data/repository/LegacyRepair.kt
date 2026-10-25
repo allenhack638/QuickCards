@@ -12,10 +12,8 @@ import com.quickcards.domain.LegacyCardNormalizer
 import java.util.concurrent.TimeUnit
 
 /**
- * Normalizes pre-v2 cards and records each change so a fix can be undone for
- * 30 days. Runs once (guarded by [RepairSummaryStore.isCompleted]) and is
- * idempotent. Repair rows use full `encrypt` because both sides are card data;
- * nothing here logs a value.
+ * Normalizes pre-v2 cards once (see [RepairSummaryStore.isCompleted]), keeping 30 days of
+ * undo. Repair rows use full `encrypt` since both sides are card data; nothing is logged.
  */
 object LegacyRepair {
 
@@ -47,7 +45,7 @@ object LegacyRepair {
             .undo(cardId, field, now)
     }
 
-    /** Drops repair rows older than 30 days. Called at app start. */
+    /** Called at app start. */
     suspend fun prune(database: QuickCardsDatabase, now: Long = System.currentTimeMillis()) {
         database.cardRepairDao().deleteOlderThan(windowStart(now))
     }
@@ -176,8 +174,7 @@ internal class LegacyRepairEngine(
             restored.cvv,
             backend.networks()
         )
-        // The restored value is the pre-fix one by definition, so it needs a
-        // check even when the normalizer could repair it again.
+        // The restored pre-fix value always needs a check, even if it is repairable.
         val reviewFields = normalized.needsReview + field
         val updated = restored.copy(
             needsReview = CardFieldMask.encode(reviewFields)

@@ -7,11 +7,7 @@ import com.quickcards.domain.CardNetwork
 import com.quickcards.domain.LegacyCardNormalizer
 import com.quickcards.domain.NormalizedCard
 
-/**
- * The normalizer pass every import (format 1 and 2) runs before its review.
- * The returned content carries the repaired values and the review mask; the
- * per-card results let the importer write the matching `card_repairs` rows.
- */
+/** Normalizer pass every import runs before review; per-card results feed `card_repairs`. */
 data class NormalizedBackupCard(
     val card: BackupCard,
     val result: NormalizedCard

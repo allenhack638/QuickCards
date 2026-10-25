@@ -11,10 +11,8 @@ import java.util.UUID
     indices = [Index(value = ["panHash"], unique = true)]
 )
 /**
- * Room entity. cardNumber, expiryDate and cvv are Keystore-encrypted; bankName,
- * owner, description, nameOnCard and archiveReason use metadata encryption.
- * The legacy text columns (bankName, cardType, cardIssuer, owner) are still
- * written alongside the v2 id columns.
+ * cardNumber, expiryDate and cvv are Keystore-encrypted; bankName, owner, description,
+ * nameOnCard and archiveReason use metadata encryption. Legacy text columns are still written.
  */
 data class Card(
     @PrimaryKey

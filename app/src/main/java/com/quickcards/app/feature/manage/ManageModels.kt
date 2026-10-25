@@ -8,10 +8,7 @@ import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.ui.entity.ManageCardItem
 import com.quickcards.domain.EntityKind
 
-/**
- * One row of a list editor. Exactly one of the raw fields is set, so Undo can
- * restore the deleted record unchanged.
- */
+/** Exactly one raw field is set, so Undo can restore the deleted record unchanged. */
 data class ManagedEntity(
     val id: String,
     val name: String,

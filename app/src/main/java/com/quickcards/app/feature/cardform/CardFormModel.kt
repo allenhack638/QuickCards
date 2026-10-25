@@ -23,9 +23,8 @@ private fun CardField.toFormField(): Field = when (this) {
 }
 
 /**
- * What a field shows after a raw edit. Every caller feeds the TextFieldValue
- * back from this value (never from the raw input), so pasted letters or text
- * past a limit disappear in the same frame and the caret stays at the end.
+ * Callers feed the TextFieldValue back from this, never the raw input, so rejected text
+ * vanishes in the same frame and the caret stays at the end.
  */
 object CardFieldInput {
 
@@ -48,10 +47,7 @@ object CardFieldInput {
     fun note(raw: String): String = raw.take(CardValidator.NOTE_MAX_LENGTH)
 }
 
-/**
- * Immutable form state. The network always follows the number and the card
- * holder is the only name. No Android imports, so validation timing is JVM-tested.
- */
+/** Immutable form state with no Android imports, so it is JVM-tested. */
 data class CardFormModel(
     val mode: CardFormMode = CardFormMode.ADD,
     val editingId: String? = null,
@@ -263,11 +259,7 @@ data class CardFormSession(
         form.copy(note = raw.take(CardValidator.NOTE_MAX_LENGTH))
     )
 
-    /**
-     * A legacy card whose stored value the repair job could not prove valid
-     * opens with that field's normal validation error, so "Check details"
-     * leads straight to it.
-     */
+    /** Unrepaired legacy values open with their validation error so "Check details" leads there. */
     fun showReviewErrors(fields: Set<CardField>): CardFormSession {
         var session = this
         fields.forEach { field -> session = session.validate(field.toFormField()) }
@@ -275,10 +267,8 @@ data class CardFormSession(
     }
 
     /**
-     * Undo writes the pre-repair value back through the repository and this
-     * restores the same value in the open form. Numbers stay digits-only (the
-     * field's storage form); expiry and CVV show the raw old text so the
-     * validation error explains exactly what is wrong.
+     * Mirrors an undone repair in the open form. Numbers stay digits-only; expiry and CVV keep
+     * the raw old text so the validation error shows what is wrong.
      */
     fun restoreField(field: Field, value: String): CardFormSession {
         val next = when (field) {
@@ -325,10 +315,8 @@ data class CardFormSession(
     fun canAddTag(): Boolean = form.tagIds.size < lists.tagLimit
 
     /**
-     * A Room emission can arrive while the form is open. The chosen holder and
-     * bank are form state and must never be replaced by a list update; the only
-     * exception is a new form that opened before the holder list had loaded,
-     * which adopts the first holder once it does (and stays clean).
+     * List updates never replace the chosen holder or bank, except a new form opened before
+     * holders loaded, which adopts the first one and stays clean.
      */
     fun withLists(lists: CardFormLists, options: CardFormOptions): CardFormSession {
         var next = copy(lists = lists, options = options)

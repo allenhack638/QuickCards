@@ -3,11 +3,8 @@ package com.quickcards.app.core.data.model
 import java.util.Locale
 
 /**
- * The pass bands: fifteen curated keys plus a stored custom `#RRGGBB`.
- *
- * The card's `bandColor` column is TEXT, so a custom colour needs no schema
- * change. Legacy cards stored arbitrary hex colours; [nearest] maps those onto
- * the closest curated band, and [importValue] keeps a readable hex exactly.
+ * Fifteen curated bands plus a custom `#RRGGBB` (the TEXT column needs no schema change).
+ * Legacy hex snaps via [nearest]; [importValue] keeps a readable hex.
  */
 object BandColor {
 
@@ -28,11 +25,7 @@ object BandColor {
     const val MOSS = "moss"
     const val SLATE = "slate"
 
-    /**
-     * Grid order: the original five first, then the ten additions. Fifteen
-     * curated bands plus the Custom swatch fill two rows of eight. [SLATE] left
-     * the grid (too close to graphite) but still resolves for stored cards.
-     */
+    /** Grid order. [SLATE] is off the grid (too close to graphite) but resolves for stored cards. */
     val ALL = listOf(
         NAVY, RUST, FOREST, PLUM, GRAPHITE,
         TEAL, OCEAN, INDIGO, VIOLET, MAGENTA,
@@ -67,10 +60,7 @@ object BandColor {
     fun isCurated(key: String): Boolean =
         HEX.containsKey(key.trim().lowercase(Locale.ROOT))
 
-    /**
-     * The colour behind a stored band key. A curated key resolves to its hex;
-     * a stored custom `#RRGGBB` is returned as-is; anything else is navy.
-     */
+    /** Curated key to hex, custom `#RRGGBB` as-is, anything else navy. */
     fun hexFor(band: String): String {
         val key = band.trim().lowercase(Locale.ROOT)
         HEX[key]?.let { return it }
@@ -102,10 +92,7 @@ object BandColor {
     fun isReadable(value: String?): Boolean =
         (contrastWithWhite(value) ?: 0.0) >= MIN_CONTRAST
 
-    /**
-     * Import mapping: keep a readable custom hex exactly, otherwise snap the
-     * colour to the nearest of the fifteen curated bands.
-     */
+    /** Keeps a readable custom hex, otherwise snaps to the nearest curated band. */
     fun importValue(value: String?): String {
         val trimmed = value?.trim().orEmpty()
         if (trimmed.isEmpty()) return NAVY

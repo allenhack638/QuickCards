@@ -1,9 +1,8 @@
 package com.quickcards.domain
 
 /**
- * Turning a protection off (or exposing a secret in notifications) needs the
- * user to prove it is them. A null reason means the change can be applied at
- * once. Cancelling the prompt applies nothing.
+ * Turning a protection off (or exposing a secret in notifications) needs fresh auth.
+ * A null reason applies at once; a cancelled prompt applies nothing.
  */
 object SecurityConfirmation {
 

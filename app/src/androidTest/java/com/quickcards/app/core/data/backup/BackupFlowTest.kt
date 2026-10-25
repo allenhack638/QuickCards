@@ -150,8 +150,7 @@ class BackupFlowTest {
         assertEquals(0, result.same)
         assertTrue(result.settingsRestored)
         assertEquals(AppTheme.LIGHT, settings.theme.value)
-        // Protection settings never loosen on restore: the phone's 30 s window
-        // is stricter than the backup's 120 s, so it stays.
+        // Protection never loosens on restore: the phone's 30 s beats the backup's 120 s.
         assertEquals(30, settings.copyWindowSec.value)
         assertEquals(5, settings.pinnedMax.value)
 
@@ -408,8 +407,7 @@ class BackupFlowTest {
         )
 
         assertEquals(AppTheme.LIGHT, settings.theme.value)
-        // Missing keys fall back to defaults, except that a protection setting
-        // never loosens: the phone's 30 s copy window beats the 60 s default.
+        // Missing keys use defaults, but protection never loosens: 30 s beats the 60 s default.
         assertEquals(30, settings.copyWindowSec.value)
         assertEquals(true, settings.maskNumbers.value)
         assertEquals(3, settings.tagsMax.value)

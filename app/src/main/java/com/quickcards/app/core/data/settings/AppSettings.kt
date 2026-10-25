@@ -15,10 +15,7 @@ enum class AppTheme {
     DARK
 }
 
-/**
- * Defaults and allowed values from CFG0 in prototype/v2.html and the
- * Settings reference in prototype/timeline.html (#config).
- */
+/** Defaults and allowed values; must match CFG0 in prototype/v2.html. */
 object AppSettingsDefaults {
     val THEME = AppTheme.DARK
     const val DYNAMIC_COLOR = false

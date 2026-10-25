@@ -4,15 +4,7 @@ import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import java.util.Locale
 
-/**
- * Settings restoration for format 2 backups.
- *
- * The backup's `cfg` is `AppSettings.toMap()` (flat camelCase keys). A restore
- * replaces every setting: defaults are applied first, then the backup's values,
- * so a key the backup lacks keeps its default rather than the phone's current
- * value — `#backup` in prototype/timeline.html, "any setting the backup lacks
- * keeps its default".
- */
+/** Format 2 restore: defaults first, then the backup's `cfg`, so a missing key keeps its default. */
 object BackupSettings {
 
     fun defaultMap(): Map<String, Any> = linkedMapOf(
@@ -43,10 +35,8 @@ object BackupSettings {
     )
 
     /**
-     * A restore may tighten protection but never loosen it: in Settings each
-     * loosening asks the user again, and a backup file (possibly crafted) must
-     * not bypass that. For every protection setting the stricter of the phone's
-     * current value and the backup's value wins.
+     * A restore may tighten protection but never loosen it, so a crafted file cannot bypass
+     * the Settings re-ask: the stricter of phone and backup wins.
      */
     fun restore(settings: AppSettings, values: Map<String, Any?>) {
         val before = Protection.of(settings)

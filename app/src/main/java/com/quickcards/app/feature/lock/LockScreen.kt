@@ -48,12 +48,7 @@ import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 
-/**
- * Full-window app lock from prototype/v2.html .lockscr: app mark, title,
- * fingerprint disc, Use PIN, shield footer. No reason line. Rendered as an
- * in-window overlay so it covers the app in every orientation and system
- * configuration.
- */
+/** An in-window overlay so the lock covers the app in every orientation and configuration. */
 @SuppressLint("ReturnFromAwaitPointerEventScope")
 @Composable
 fun LockScreen(onUnlock: () -> Unit) {

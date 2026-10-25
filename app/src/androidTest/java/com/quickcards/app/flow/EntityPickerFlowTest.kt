@@ -17,10 +17,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * The holder, bank and type picker sheets select an entry and
- * their "+ Add" row creates a new managed item and selects it.
- */
+/** Picker sheets select an entry; "+ Add" creates and selects a new item. */
 @RunWith(AndroidJUnit4::class)
 class EntityPickerFlowTest : FlowTestBase() {
 
@@ -86,17 +83,15 @@ class EntityPickerFlowTest : FlowTestBase() {
             compose.onNodeWithContentDescription("Add card").performClick()
         }
         waitForText("Save card")
-        // The form focuses the number field after 300 ms and then scrolls it
-        // into view (350 ms later). Let that settle so picker taps land on
-        // the field rather than on where it was before the scroll.
+        // The form focuses (300 ms) then scrolls (350 ms) the number field; let it settle
+        // so taps land where the field ends up.
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasTestTag("form_number") and isFocused())
                 .fetchSemanticsNodes().isNotEmpty()
         }
         compose.mainClock.advanceTimeBy(FOCUS_SCROLL_SETTLE_MS)
         compose.waitForIdle()
-        // These tests are about the pickers, not the keyboard; with the IME
-        // closed the form stops resizing under the taps.
+        // With the IME closed the form stops resizing under the taps.
         Espresso.closeSoftKeyboard()
         compose.waitForIdle()
     }

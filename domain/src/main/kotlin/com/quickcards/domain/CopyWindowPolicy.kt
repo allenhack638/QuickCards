@@ -1,9 +1,6 @@
 package com.quickcards.domain
 
-/**
- * The instant-copy window counts idle time only: every interaction restarts
- * it, so active use never needs another fingerprint.
- */
+/** The copy window counts idle time only: every interaction restarts it. */
 object CopyWindowPolicy {
 
     fun windowMillis(seconds: Int): Long = if (seconds <= 0) 0L else seconds * 1000L

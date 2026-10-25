@@ -14,12 +14,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * With the shortest inactivity interval (10 s), using the app
- * keeps it unlocked and going idle locks it. The API 26 test emulator has the
- * automation credential enrolled, so the idle branch runs; AppLockPolicyTest
- * also covers the decision arithmetic on the JVM.
- */
+/** 10 s interval: use keeps the app unlocked, idling locks it (needs an enrolled credential). */
 @RunWith(AndroidJUnit4::class)
 class IdleLockFlowTest : FlowTestBase() {
 

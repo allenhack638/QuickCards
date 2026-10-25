@@ -1,12 +1,6 @@
 package com.quickcards.domain
 
-/**
- * Format 2 of the QuickCards backup, as specified by `snapshot` in
- * prototype/v2.html and the `#backup` section of prototype/timeline.html.
- *
- * The JSON document is always wrapped by the app's ExportCrypto helper
- * before it is written to disk; nothing here touches the filesystem.
- */
+/** Backup format 2. Always wrapped by ExportCrypto before it reaches disk. */
 const val BACKUP_APP_NAME = "QuickCards"
 const val BACKUP_FORMAT = 2
 
@@ -86,9 +80,8 @@ data class BackupContent(
 )
 
 /**
- * A parsed file: the normalized content plus which list sections the file
- * actually carried. Format 1 backups show only cards and banks in the review;
- * their holders and types are derived for the import but not listed.
+ * Normalized content plus the list sections the file carried. Format 1 reviews list only
+ * cards and banks; its holders and types are derived but not listed.
  */
 data class DecodedBackup(
     val content: BackupContent,

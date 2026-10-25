@@ -1,17 +1,9 @@
-# Builds, checks and publishes a signed APK whenever main changes.
+# Checks every push to main and PR; PRs never reach the release job or secrets.
+# Publishes only when versionName in app/build.gradle has no v<versionName> tag yet.
 #
-# Pull requests run the check job only (tests, lint, offline guard); they never
-# reach the release job or the signing secrets.
-#
-# A release is created only when app/build.gradle carries a versionName that
-# has no tag yet (v<versionName>). Merges that do not bump the version still
-# run every check but publish nothing.
-#
-# Required repository secrets (Settings > Secrets and variables > Actions):
+# Required secrets:
 #   KEYSTORE_BASE64    base64 of keystore/quickcards-release.jks
-#   KEYSTORE_PASSWORD  storePassword from keystore.properties
-#   KEY_ALIAS          keyAlias from keystore.properties
-#   KEY_PASSWORD       keyPassword from keystore.properties
+#   KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD  from keystore.properties
 name: Release
 
 on:

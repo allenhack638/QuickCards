@@ -4,10 +4,7 @@ import com.quickcards.app.core.data.database.QuickCardsDatabase
 import com.quickcards.app.core.security.EncryptionHelper
 import com.quickcards.app.core.security.PanHasher
 
-/**
- * Runs at app start so upgraded installs are always backfilled before any
- * screen reads the vault. Every step is idempotent.
- */
+/** Runs at app start, before any screen reads the vault. Every step is idempotent. */
 object DataMaintenance {
 
     suspend fun run(

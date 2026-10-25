@@ -17,10 +17,7 @@ enum class EntityField {
     LENGTHS
 }
 
-/**
- * A validation failure with no copy attached. The UI maps each case to its
- * string resource, so the rule and its message stay in one place per layer.
- */
+/** A validation failure without copy; the UI maps each case to a string resource. */
 sealed interface EntityValidationError {
     data object NameRequired : EntityValidationError
     data object NameTooShort : EntityValidationError

@@ -9,12 +9,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -70,11 +67,7 @@ import com.quickcards.app.core.ui.theme.QcType
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/**
- * The Card colour picker: fifteen curated swatches plus a Custom swatch that
- * opens the custom-colour sheet. The swatch grid is eight cells wide at 412dp
- * and six at 360dp; each cell is a 48dp target around a 40dp disc.
- */
+/** Curated swatches plus Custom; each cell is a 48dp target around a 40dp disc. */
 @Composable
 fun BandColorGroup(
     selected: String,
@@ -311,8 +304,7 @@ private fun CustomColorSheet(
     QcModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        windowInsets = WindowInsets.ime
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -327,7 +319,7 @@ private fun CustomColorSheet(
                     modifier = Modifier.padding(
                         start = QcDimens.Section,
                         end = QcDimens.Section,
-                        top = QcDimens.Base,
+                        top = QcDimens.SheetTitleTop,
                         bottom = QcDimens.Base
                     )
                 )
@@ -435,12 +427,11 @@ private fun CustomColorSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .navigationBarsPadding()
                         .padding(
                             start = QcDimens.Section,
                             end = QcDimens.Section,
                             top = QcDimens.PassGap,
-                            bottom = 20.dp
+                            bottom = QcDimens.SheetBottom
                         ),
                     horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically

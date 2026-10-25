@@ -5,11 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * One automatic legacy-repair entry. [before] and [after] are encrypted with
- * [com.quickcards.app.core.security.EncryptionHelper.encrypt] because both are
- * card data. Rows older than 30 days are pruned at app start.
- */
+/** [before] and [after] are card data, so they use full `encrypt`. Pruned after 30 days. */
 @Entity(
     tableName = "card_repairs",
     foreignKeys = [

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.quickcards.app.core.ui.theme.QcDimens
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.ScrollState
@@ -34,13 +35,8 @@ import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.trackAppLockInteraction
 
 /**
- * The one dialog surface in the app: `surfaceContainerHigh`, 28dp corners,
- * 24dp padding, at most 360dp wide and 48dp from the screen edges. Every
- * dialog uses this frame so titles, bodies and actions cannot drift apart.
- *
- * The lock guard lives here, not at each call site: a dialog window is a
- * separate Android window, so it must never be created while the app lock
- * screen covers the app.
+ * The only dialog surface. The lock guard lives here: a dialog is a separate window and must
+ * never be created while the lock screen covers the app.
  */
 @Composable
 fun QcDialog(
@@ -76,7 +72,7 @@ fun QcDialog(
         ) {
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(QcDimens.DialogCorner),
                 tonalElevation = 0.dp,
                 modifier = Modifier
                     .width(minOf(maxWidth - 48.dp, 360.dp))
@@ -90,8 +86,7 @@ fun QcDialog(
                         content = content
                     )
                 } else {
-                    // Actions stay pinned under the scrolling body so Save is always
-                    // reachable, even with the keyboard open on a short screen.
+                    // Actions stay pinned so Save is reachable with the keyboard open.
                     Column {
                         Column(
                             modifier = Modifier
@@ -103,7 +98,7 @@ fun QcDialog(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
+                                .padding(start = 24.dp, end = 24.dp, top = QcDimens.DialogActionGap, bottom = 24.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                             verticalAlignment = Alignment.CenterVertically,
                             content = actions

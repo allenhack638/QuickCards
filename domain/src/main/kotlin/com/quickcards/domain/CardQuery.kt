@@ -1,9 +1,6 @@
 package com.quickcards.domain
 
-/**
- * Pure port of visibleCards, passes, filterCount and the filter-sheet groups
- * from prototype/v2.html. No Android dependencies.
- */
+/** Card search, filters and filter-sheet groups. */
 data class CardQueryEntry(
     val id: String,
     val number: String,
@@ -174,7 +171,6 @@ object CardQuery {
 
 object TimeText {
 
-    /** secText from prototype/v2.html. */
     fun seconds(value: Int): String = when {
         value <= 0 -> "Off"
         value < 60 -> "$value seconds"

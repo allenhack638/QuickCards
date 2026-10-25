@@ -703,3 +703,9 @@ With Remove animations on, every transition becomes an instant cut except the re
 ## Card form spacing (2026-10-25)
 
 Every input block on Add/Edit card has the same visible gap to the next one (36dp box to box). Fields reserve their 20dp supporting line even when it is empty and are followed by `FormFieldGap` (16dp); groups without a supporting line (Tags, Card colour) are followed by `FormGroupGap` (36dp). A repaired field's supporting line reads "Changed from {before}" with a text-button **Undo** right-aligned on the same line, flush with the outline's end edge like the counter. Unencrypted old-app backup files skip the passphrase field in Import.
+
+## Sheets and dialogs (spacing contract)
+
+- **Sheets** (`QcModalBottomSheet`): compact drag handle (16dp above, 32×4dp pill, 8dp below), title 8dp below the handle, content ends 24dp above the navigation bar. The navigation-bar height is read in the activity window, because the sheet's popup window does not receive it on older Android. The sheet surface reaches the screen edge and rises above the keyboard.
+- **Dialogs**: title → body 16dp (`DialogHeaderGap`), body → action row 24dp (`DialogActionGap`), buttons 8dp apart. `DialogActions` owns the 24dp gap; no dialog adds its own spacer before its buttons.
+- **Tabs and the navigation bar**: each tab reserves the bar's fixed height itself (80dp + divider + system inset), so a pushed screen hiding the bar never resizes the outgoing tab mid-transition. The bar slides and fades with the 280ms screen transition.

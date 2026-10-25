@@ -9,9 +9,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 /**
- * Locks the approved Stub Lock geometry. Every VectorDrawable that carries
- * the mark must use `docs/brand/stub-lock/pathdata.txt` verbatim, even-odd fill,
- * the Compact weight (0.9 scale around 54,54) and the specified layer colours.
+ * Every mark VectorDrawable uses `docs/brand/stub-lock/pathdata.txt` verbatim, even-odd fill,
+ * 0.9 scale around 54,54 and the specified layer colours.
  */
 class BrandAssetsTest {
 

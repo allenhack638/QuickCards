@@ -2,11 +2,7 @@ package com.quickcards.app.core.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-/**
- * Every design size in one place. Values come from prototype/quickcards-v2.css
- * and DESIGN.md; screens and components read them here instead of repeating
- * literal dp values.
- */
+/** Every design size; screens read these instead of literal dp values. */
 object QcDimens {
 
     // Spacing
@@ -14,6 +10,8 @@ object QcDimens {
     val Base = 8.dp
     val PassGap = 12.dp
     val ListPassGap = 16.dp
+    /** Material 3 NavigationBar container height (without the system inset). */
+    val NavBarHeight = 80.dp
     val Gutter = 16.dp
     val Section = 24.dp
     val Xl = 32.dp
@@ -73,7 +71,14 @@ object QcDimens {
 
     // Dialogs and sheets
     val DialogHeaderGap = 16.dp
-    val DialogActionGap = 8.dp
+    val SheetHandleTop = 16.dp
+    val SheetHandleBottom = 8.dp
+    val SheetHandleWidth = 32.dp
+    val SheetHandleHeight = 4.dp
+    val SheetTitleTop = 8.dp
+    val SheetBottom = 24.dp
+    /** Body to action row in every dialog. */
+    val DialogActionGap = 24.dp
     val SheetMaxHeightFraction = 0.86f
 
     // Search and settings

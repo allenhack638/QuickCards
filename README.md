@@ -38,6 +38,8 @@ passphrase-encrypted backup that you export yourself.
 - **Keyboard scan and smart paste.** Pasting (or using your keyboard's scan-text tool)
   fills the number and expiry. The CVV is never filled from pasted text, and the app
   requests no camera permission.
+- **Keyboard scan:** Card number and Expiry use the text keyboard so your keyboard's
+  scan-text tool fills them (no camera permission).
 - **Encrypted backup.** Export to a passphrase-protected file and import it on another
   phone, with a review of new, changed and unchanged cards. Older backup formats still
   import, and legacy values are repaired (with a 30-day undo) on upgrade and on import.

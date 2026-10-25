@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -185,8 +183,7 @@ internal fun TagSheet(
     QcModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        windowInsets = WindowInsets.ime
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -201,7 +198,7 @@ internal fun TagSheet(
                     modifier = Modifier.padding(
                         start = QcDimens.Section,
                         end = QcDimens.Section,
-                        top = QcDimens.Base,
+                        top = QcDimens.SheetTitleTop,
                         bottom = QcDimens.Base
                     )
                 )
@@ -312,7 +309,7 @@ internal fun TagSheet(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(QcDimens.SheetBottom))
             }
         }
     }

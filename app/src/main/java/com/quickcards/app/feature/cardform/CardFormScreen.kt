@@ -142,7 +142,7 @@ private fun DiscardDialog(onKeepEditing: () -> Unit, onDiscard: () -> Unit) {
             style = QcType.Body,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(QcDimens.Base))
+        Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),

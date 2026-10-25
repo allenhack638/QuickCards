@@ -117,10 +117,6 @@ val EntityKind.emptyTitleRes: Int
         EntityKind.TAG -> R.string.manage_empty_tags
     }
 
-/**
- * Centered dialog: container-high, 28dp corners, 24dp padding, at most 360dp
- * wide and 96dp from the screen edges (prototype .dialog).
- */
 @Composable
 internal fun ManageDialogFrame(
     onDismissRequest: () -> Unit,
@@ -149,7 +145,7 @@ internal fun DialogActions(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = QcDimens.Base),
+            .padding(top = QcDimens.DialogActionGap),
         horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
         verticalAlignment = Alignment.CenterVertically
     ) {

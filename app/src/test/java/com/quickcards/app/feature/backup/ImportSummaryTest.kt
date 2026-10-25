@@ -4,10 +4,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * The import review only adds the repair line when the file changed or
- * flagged at least one card.
- */
 class ImportSummaryTest {
 
     @Test

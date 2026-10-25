@@ -241,7 +241,7 @@ internal fun BackupRadioRow(
     }
 }
 
-/** The framed count list used by the import review (`.dialog .list`). */
+/** The framed count list used by the import review. */
 @Composable
 internal fun BackupReviewList(rows: List<Pair<String, String>>) {
     if (rows.isEmpty()) return
@@ -322,7 +322,6 @@ internal fun ImportFormatsSummary(formatsFixed: Int, needCheck: Int) {
     )
 }
 
-/** The chosen-file row: 12dp corners, 1dp outline, name over meta, Change. */
 @Composable
 internal fun BackupFileRow(
     fileName: String,
@@ -374,7 +373,6 @@ internal fun BackupFileRow(
     }
 }
 
-/** Full-width 40dp outlined button, `.btn.outlined` with a leading icon. */
 @Composable
 internal fun BackupOutlinedButton(
     label: String,

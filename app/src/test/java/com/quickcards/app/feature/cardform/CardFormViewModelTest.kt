@@ -15,10 +15,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.YearMonth
 
-/**
- * The editing rules live in CardFormSession so they can be exercised on the JVM.
- * CardFormViewModel only adapts Room/AppSettings to this state.
- */
 class CardFormViewModelTest {
 
     private val today = YearMonth.of(2026, 10)
@@ -238,10 +234,7 @@ class CardFormViewModelTest {
         assertNull(state.form.errors[Field.BANK])
     }
 
-    /**
-     * The form can be created before Room's first emission; when holders arrive
-     * it must adopt one (and stay clean) so a save is not silently blocked.
-     */
+    /** A form created before Room's first emission adopts a holder so save is not blocked. */
     @Test
     fun formOpenedBeforeTheHolderListLoadedAdoptsTheFirstHolder() {
         val empty = CardFormSession.forAdd(

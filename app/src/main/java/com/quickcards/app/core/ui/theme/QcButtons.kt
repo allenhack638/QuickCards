@@ -5,11 +5,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 
-/**
- * The one filled action colour. It stays brand red whatever "Use system
- * colours" does to the rest of the theme; disabled follows Material 3 exactly
- * (onSurface at 12% for the container and 38% for the label).
- */
+/** Filled actions stay brand red even with system colours; disabled follows Material 3. */
 @Composable
 fun qcPrimaryButtonColors(): ButtonColors = ButtonDefaults.buttonColors(
     containerColor = BrandRed,

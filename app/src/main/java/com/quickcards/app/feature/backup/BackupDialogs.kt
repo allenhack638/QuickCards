@@ -79,7 +79,6 @@ internal fun ExportBackupDialog(state: BackupHostState) {
             onToggleVisible = { state.exportShowConfirm = !state.exportShowConfirm },
             enabled = !state.exportBusy
         )
-        Spacer(modifier = Modifier.height(QcDimens.Half))
         DialogActions(
             onCancel = state::closeExport,
             cancelLabel = stringResource(R.string.backup_action_cancel),
@@ -150,8 +149,7 @@ internal fun ImportBackupDialog(state: BackupHostState) {
                 onChange = state::chooseImportFile
             )
             Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-            // Files from older versions are plain JSON: there is nothing to
-            // unlock, so only encrypted backups ask for a passphrase.
+            // Older files are plain JSON; only encrypted backups ask for a passphrase.
             if (file.encrypted) {
                 BackupPasswordField(
                     value = state.importPassphrase,
@@ -178,7 +176,6 @@ internal fun ImportBackupDialog(state: BackupHostState) {
             }
         }
 
-        Spacer(modifier = Modifier.height(QcDimens.Half))
         DialogActions(
             onCancel = state::closeImport,
             cancelLabel = stringResource(R.string.backup_action_cancel),
@@ -315,7 +312,6 @@ internal fun ImportReviewDialog(state: BackupHostState, review: ImportReview) {
             )
         }
 
-        Spacer(modifier = Modifier.height(QcDimens.Half))
         DialogActions(
             onCancel = state::closeImport,
             cancelLabel = stringResource(R.string.backup_action_cancel),
@@ -347,7 +343,6 @@ internal fun EraseAllDataDialog(state: BackupHostState) {
             checked = state.eraseAcknowledged,
             onCheckedChange = { state.eraseAcknowledged = it }
         )
-        Spacer(modifier = Modifier.height(QcDimens.Half))
         DialogActions(
             onCancel = state::closeErase,
             cancelLabel = stringResource(R.string.backup_action_cancel),

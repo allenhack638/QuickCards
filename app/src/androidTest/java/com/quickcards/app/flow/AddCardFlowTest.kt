@@ -14,10 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Add a card, reject a bad Luhn digit, block a duplicate PAN and
- * follow the detected network's CVV length (Amex 4, Mastercard 3).
- */
+/** Add, reject bad Luhn, block a duplicate PAN, follow network CVV length. */
 @RunWith(AndroidJUnit4::class)
 class AddCardFlowTest : FlowTestBase() {
 
@@ -136,7 +133,7 @@ class AddCardFlowTest : FlowTestBase() {
         assertEquals(bank.id, saved.bankId)
     }
 
-    /** One character per event, so the field sees typing rather than a paste. */
+    /** One character per event so the field sees typing, not a paste. */
     private fun typeNumber(text: String) {
         text.forEach { digit -> field("Card number").performTextInput(digit.toString()) }
     }

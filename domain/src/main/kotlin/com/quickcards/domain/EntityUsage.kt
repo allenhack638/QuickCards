@@ -2,16 +2,12 @@ package com.quickcards.domain
 
 import java.util.Locale
 
-/** Minimal network data needed to resolve a card's network. */
 data class UsageNetwork(
     val id: String,
     val prefixes: String
 )
 
-/**
- * Card facts used by the Manage screens. Network ids are already resolved
- * (auto-detected or manual) so usage counting is a pure lookup.
- */
+/** Card facts for Manage; network ids are pre-resolved so usage counting is a lookup. */
 data class UsageCard(
     val id: String,
     val number: String,
@@ -49,16 +45,10 @@ enum class EntityDeleteDecision {
     BLOCKED
 }
 
-/**
- * Pure port of KINDS.used, the list subtitles, confirmUpdate's change test and
- * entityDelete's guard from prototype/v2.html.
- */
+/** Usage counts, list subtitles and the update/delete guards for Manage. */
 object EntityUsage {
 
-    /**
-     * netOf(c): a card with networkAuto follows the longest matching prefix;
-     * otherwise the explicit network id wins.
-     */
+    /** networkAuto follows the longest matching prefix; otherwise the explicit id wins. */
     fun resolveNetworkId(
         number: String,
         networkAuto: Boolean,
@@ -90,11 +80,7 @@ object EntityUsage {
     fun counts(kind: EntityKind, ids: List<String>, cards: List<UsageCard>): Map<String, Int> =
         ids.associateWith { id -> usedCards(kind, id, cards).size }
 
-    /**
-     * confirmUpdate: only an edit of an in-use item that actually changes its
-     * name or a network rule asks first. As in the prototype, the Luhn flag is
-     * not part of the change test.
-     */
+    /** Only a name or rule change on an in-use item asks first; the Luhn flag is not compared. */
     fun requiresUpdateConfirmation(
         kind: EntityKind,
         before: EntityBefore?,

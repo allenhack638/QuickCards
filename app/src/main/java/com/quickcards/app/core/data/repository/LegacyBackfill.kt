@@ -8,10 +8,7 @@ import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.security.EncryptionHelper
 import java.util.Locale
 
-/**
- * Backfills the v10 card links from the legacy plaintext/ciphertext columns.
- * Runs once, inside a transaction, and never deletes a row.
- */
+/** Backfills v10 card links from legacy columns once, in a transaction, never deleting a row. */
 object LegacyBackfill {
 
     private const val LEGACY_OWNER = "me"

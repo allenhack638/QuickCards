@@ -34,11 +34,7 @@ data class ArchivedCardsUiState(
     val options: ArchivedCardsOptions = ArchivedCardsOptions()
 )
 
-/**
- * Archived-card search: number digits, bank, holder, network, type, tags,
- * note and the archive reason, case-insensitive, in the same style as
- * [com.quickcards.domain.CardQuery.visibleCards].
- */
+/** Case-insensitive search over every card field, including the archive reason. */
 object ArchivedCardsSearch {
 
     fun filter(cards: List<ArchivedCardItem>, query: String): List<ArchivedCardItem> {

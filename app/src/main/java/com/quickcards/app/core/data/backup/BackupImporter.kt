@@ -49,11 +49,8 @@ data class BackupImportResult(
 }
 
 /**
- * Applies a decoded backup to Room in one transaction. Lists are matched by
- * name ignoring case (the phone's item is reused; a network keeps the phone's
- * rules); cards are matched by their normalized number, which is the input of
- * the stored PAN hash. New cards are appended in the backup's order; updated
- * cards keep their id and place in the list.
+ * Applies a backup in one transaction. Lists match by name ignoring case (phone items and
+ * network rules win); cards match by normalized number (the PAN hash input).
  */
 object BackupImporter {
 

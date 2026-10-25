@@ -10,10 +10,7 @@ import android.graphics.drawable.Icon
 import com.quickcards.app.MainActivity
 import com.quickcards.app.R
 
-/**
- * Heads-up notification raised after a card number is copied. Card data never
- * travels in an Intent: the actions carry only the card id and the field.
- */
+/** Post-copy notification. Card data never travels in an Intent: only card id and field. */
 object CopyCompanionNotifier {
 
     const val CHANNEL_ID = "card_details"

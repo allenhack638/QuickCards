@@ -8,18 +8,9 @@ data class ParsedCardText(
 )
 
 /**
- * Turns lines of card text into a card number and an expiry. The text can come
- * from a keyboard's own scan tool (which types into the focused field) or from
- * a plain paste; the parser does not know or care which. It never returns a CVV
- * or a card holder name: those must not be read from a card in the first place.
- *
- * The rules mirror the card form:
- * - a number is 12 to 19 digits and passes Luhn, unless a detected network
- *   turns Luhn off (UnionPay);
- * - a number that matches a network by prefix wins over an unknown number;
- * - expiry is MM/YY, MM/YYYY or MM-YY, not in the past and at most 20 years
- *   ahead; when a card prints "VALID FROM" and "VALID THRU", the later one is
- *   returned.
+ * Number and expiry from pasted or keyboard-scanned text; never a CVV or holder name.
+ * Numbers: 12-19 digits passing Luhn unless the network disables it; a known network wins.
+ * Expiry: not past, at most 20 years ahead; VALID THRU wins over VALID FROM.
  */
 object CardTextParser {
 
@@ -63,11 +54,7 @@ object CardTextParser {
         )
     }
 
-    /**
-     * Digits for a single card-number value, repairing the same OCR
-     * confusions as [parse] inside a token that is mostly digits. Returns null
-     * when the value is not made only of digit groups and separators.
-     */
+    /** Digits of one number value with [parse]'s OCR fixes, or null if not only digit groups. */
     fun numberDigits(value: String): String? {
         val tokens = value.trim().split(separator).filter { it.isNotEmpty() }
         if (tokens.isEmpty()) return null
@@ -102,8 +89,7 @@ object CardTextParser {
             if (pure) {
                 val digits = groups.sumOf { it.digits.length }
                 if (digits >= MIN_DIGITS) {
-                    // A complete number on its own line must not merge with the
-                    // next line: only a short embossed fragment accumulates.
+                    // A complete number never merges with the next line; only fragments do.
                     flushBlock()
                     windows(groups).forEach { addCandidate(it, lines, candidates, networks) }
                 } else {
@@ -216,11 +202,7 @@ object CardTextParser {
         return runs
     }
 
-    /**
-     * A run of adjacent groups is one number. Taking shorter windows would let
-     * a 12-digit slice of an invalid 16-digit number pass Luhn, so only the
-     * complete run is a candidate.
-     */
+    /** Only the complete run is a candidate: a 12-digit slice of a bad number could pass Luhn. */
     private fun windows(groups: List<Group>): List<String> {
         if (groups.isEmpty()) return emptyList()
         val digits = groups.joinToString(separator = "") { it.digits }
@@ -237,9 +219,8 @@ object CardTextParser {
                 val year = if (yearText.length == 4) yearText.toInt() else 2000 + yearText.toInt()
                 val value = YearMonth.of(year, month)
                 if (value >= today && value <= today.plusYears(MAX_EXPIRY_YEARS.toLong())) {
-                    // Only the words since the previous date belong to this one,
-                    // so a stray "EXP" earlier on the line cannot upgrade a
-                    // later printed date.
+                    // Only words since the previous date count, so an earlier "EXP" can't
+                    // upgrade a later date.
                     val prefix = line.substring(previousEnd, match.range.first)
                     val priority = when {
                         afterDate.containsMatchIn(prefix) -> 2

@@ -74,10 +74,7 @@ class VaultRepository(
         repairSummaries.record(summary)
     }
 
-    /**
-     * Archives a card and unpins it. [reason] is optional metadata, trimmed to
-     * 40 characters and encrypted at rest.
-     */
+    /** Archives and unpins. [reason] is trimmed to 40 characters and encrypted at rest. */
     suspend fun archive(cardId: String, reason: String?) {
         val clean = reason?.trim()?.take(40)?.takeIf { it.isNotEmpty() }
         cardDao.archive(
@@ -92,10 +89,7 @@ class VaultRepository(
         cardDao.unarchive(cardId, System.currentTimeMillis())
     }
 
-    /**
-     * Decrypted repairs for a card from the last 30 days, newest first. The
-     * Edit screen shows "Changed from …" and Undo for each.
-     */
+    /** Decrypted repairs from the last 30 days, newest first. */
     suspend fun repairsFor(
         cardId: String,
         now: Long = System.currentTimeMillis()
@@ -118,11 +112,7 @@ class VaultRepository(
             )
         }
 
-    /**
-     * Restores the value from the latest repair of [field], deletes that row
-     * and recomputes the card's review mask. Returns false when there is no
-     * repair inside the 30-day window.
-     */
+    /** Undoes the latest repair of [field] and recomputes the review mask; false if none in 30 days. */
     suspend fun undoRepair(
         cardId: String,
         field: CardField,
@@ -329,10 +319,7 @@ class VaultRepository(
         return extras.size
     }
 
-    /**
-     * Network usage is computed in Kotlin: cards with networkAuto use the
-     * detected network, so a SQL count cannot see them.
-     */
+    /** Counted in Kotlin: networkAuto cards use the detected network, which SQL cannot see. */
     suspend fun networkUsage(): Map<String, Int> {
         val networks = networkDao.getAllNetworksSync().map { it.toDomain() }
         val usage = networks.associate { it.id to 0 }.toMutableMap()

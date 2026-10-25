@@ -7,19 +7,17 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,23 +34,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.quickcards.domain.Monogram
 import com.quickcards.app.core.ui.components.FormTextField
 import com.quickcards.app.core.ui.components.MonogramTile
 import com.quickcards.app.core.ui.components.SheetRow
+import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
+import com.quickcards.domain.Monogram
 import java.util.Locale
 
 enum class QcPickerKind { HOLDER, BANK, TYPE }
 
 data class QcPickerEntry(val id: String, val name: String)
 
-/**
- * The one picker sheet behind Card holder, Bank and Card type. The same lead,
- * check and add-row pattern is used for every list, and type lists start with
- * "None". A search field appears once the list has more than seven items.
- */
+/** Picker for holder, bank and type. Type lists start with "None"; search shows above seven items. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QcPickerSheet(
@@ -78,8 +73,7 @@ fun QcPickerSheet(
     QcModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        windowInsets = WindowInsets.ime
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -91,7 +85,7 @@ fun QcPickerSheet(
                     text = title,
                     style = QcType.Headline,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = QcDimens.SheetTitleTop, bottom = 8.dp)
                 )
                 if (showSearch) {
                     FormTextField(
@@ -138,7 +132,7 @@ fun QcPickerSheet(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(QcDimens.SheetBottom))
             }
         }
     }

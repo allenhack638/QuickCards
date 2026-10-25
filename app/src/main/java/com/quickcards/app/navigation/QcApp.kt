@@ -3,6 +3,9 @@ package com.quickcards.app.navigation
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -46,7 +49,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,6 +93,7 @@ import com.quickcards.app.feature.manage.ManageViewModel
 import com.quickcards.app.feature.manage.entityKindFromRoute
 import com.quickcards.app.feature.manage.routeKey
 import com.quickcards.app.feature.settings.SettingsScreen
+import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 import kotlinx.coroutines.launch
@@ -203,7 +209,12 @@ fun QcApp() {
                     }
                 },
                 bottomBar = {
-                    if (bottomBarVisible) {
+                    AnimatedVisibility(
+                        visible = bottomBarVisible,
+                        enter = slideInVertically(tween(280, easing = EmphasizedDecelerate)) { it } +
+                            fadeIn(tween(280, easing = EmphasizedDecelerate)),
+                        exit = slideOutVertically(tween(200)) { it } + fadeOut(tween(200))
+                    ) {
                         QcNavigationBar(
                             selectedRoute = route ?: ROUTE_CARDS,
                             onSelect = { target ->
@@ -222,11 +233,20 @@ fun QcApp() {
                     }
                 }
             ) { padding ->
+                // Tabs reserve the bar height themselves so centred content does not jump
+                // when a pushed screen hides the bar.
+                val tabBarSpace = if (useRail || searchActive) {
+                    0.dp
+                } else {
+                    QcDimens.NavBarHeight + QcDimens.Divider + systemBarBottom
+                }
+                val tabBottomInset = if (useRail || searchActive) systemBarBottom else 0.dp
+                val tabModifier = Modifier.padding(bottom = tabBarSpace)
                 NavHost(
                     navController = navController,
                     startDestination = ROUTE_CARDS,
                     modifier = Modifier
-                        .padding(padding)
+                        .padding(top = padding.calculateTopPadding())
                         .windowInsetsPadding(
                             WindowInsets.statusBars.only(WindowInsetsSides.Top)
                         )
@@ -263,23 +283,27 @@ fun QcApp() {
                     }
                 ) {
                 composable(ROUTE_CARDS) {
-                    HomeScreen(
-                        navController = navController,
-                        viewModel = homeViewModel,
-                        bottomInset = contentBottomInset,
-                        onImport = { backupHostState.requestImport() },
-                        onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
-                    )
+                    Box(modifier = tabModifier) {
+                        HomeScreen(
+                            navController = navController,
+                            viewModel = homeViewModel,
+                            bottomInset = tabBottomInset,
+                            onImport = { backupHostState.requestImport() },
+                            onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
+                        )
+                    }
                 }
                 composable(ROUTE_MANAGE) {
-                    ManageScreen(
-                        viewModel = manageViewModel,
-                        bottomInset = contentBottomInset,
-                        onOpenKind = { kind ->
-                            navController.navigate("manage/${kind.routeKey}")
-                        },
-                        onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
-                    )
+                    Box(modifier = tabModifier) {
+                        ManageScreen(
+                            viewModel = manageViewModel,
+                            bottomInset = tabBottomInset,
+                            onOpenKind = { kind ->
+                                navController.navigate("manage/${kind.routeKey}")
+                            },
+                            onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
+                        )
+                    }
                 }
                 composable(
                     route = "manage/{kind}",
@@ -318,12 +342,14 @@ fun QcApp() {
                     )
                 }
                 composable(ROUTE_SETTINGS) {
-                    SettingsScreen(
-                        bottomInset = contentBottomInset,
-                        onExport = backupHostState::requestExport,
-                        onImport = backupHostState::requestImport,
-                        onErase = backupHostState::requestErase
-                    )
+                    Box(modifier = tabModifier) {
+                        SettingsScreen(
+                            bottomInset = tabBottomInset,
+                            onExport = backupHostState::requestExport,
+                            onImport = backupHostState::requestImport,
+                            onErase = backupHostState::requestErase
+                        )
+                    }
                 }
                 composable(ROUTE_CARD_ADD) {
                     CardFormScreen(navController = navController)

@@ -13,11 +13,7 @@ import com.quickcards.app.core.security.AppLockController
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * The real lock entry point (Settings > Lock now calls
- * AppLockController.lock) covers the app, and an open sheet or dialog is gone
- * while the lock screen is up. Unlocking brings Home back.
- */
+/** Lock now covers the app and removes open overlays; unlocking brings Home back. */
 @RunWith(AndroidJUnit4::class)
 class LockFlowTest : FlowTestBase() {
 

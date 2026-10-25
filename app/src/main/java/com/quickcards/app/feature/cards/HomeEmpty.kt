@@ -65,11 +65,7 @@ internal fun NoResult(
     )
 }
 
-/**
- * A vault with cards but nothing to show because everything is archived or
- * hidden-expired. Same centred frame as [NoResult], with the one action that
- * brings the cards back.
- */
+/** Everything archived or hidden-expired: same frame as [NoResult], plus the way back. */
 @Composable
 internal fun EmptyNote(
     modifier: Modifier,

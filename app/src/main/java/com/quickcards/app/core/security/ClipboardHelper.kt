@@ -33,10 +33,7 @@ object ClipboardHelper {
         })
     }
 
-    /**
-     * @param clearAfterMillis 0 or null keeps the value until the app leaves the
-     * foreground (AppSettings clipboard "Never" still clears on background).
-     */
+    /** @param clearAfterMillis 0 or null keeps the value until the app is backgrounded. */
     fun copySensitive(
         context: Context,
         label: String,
@@ -75,11 +72,8 @@ object ClipboardHelper {
     }
 
     /**
-     * Clears the clipboard while it still holds the value we copied. From Android
-     * 10 an app that is not in focus reads `primaryClip` as null, so on the way
-     * to the background we cannot tell; clearing then is the safe choice (a card
-     * value must not outlive the app), at the cost of also clearing anything the
-     * user copied elsewhere in the meantime.
+     * From Android 10 an unfocused app reads `primaryClip` as null, so when backgrounding we
+     * clear unconditionally: a card value must not outlive the app.
      */
     private fun clearIfStillOurs(clipboard: ClipboardManager) {
         if (lastCopiedText == null) return

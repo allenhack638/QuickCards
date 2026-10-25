@@ -2,10 +2,7 @@ package com.quickcards.app.core.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
 
-/**
- * True while [LockScreen] covers the app. Every Dialog, bottom sheet and
- * dropdown checks it so no overlay window can outlive the lock.
- */
+/** True while [LockScreen] covers the app; every overlay checks it so none outlives the lock. */
 val LocalAppLocked = staticCompositionLocalOf { false }
 
 object LockGate {

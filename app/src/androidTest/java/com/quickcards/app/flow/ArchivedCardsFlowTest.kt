@@ -13,11 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Manage shows the archived count, the Archived cards screen
- * searches every archived card field (reason included) and Restore returns the
- * card to the main list.
- */
+/** Archived count in Manage, search across every field (reason included), and Restore. */
 @RunWith(AndroidJUnit4::class)
 class ArchivedCardsFlowTest : FlowTestBase() {
 

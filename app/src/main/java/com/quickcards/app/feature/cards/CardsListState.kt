@@ -44,17 +44,12 @@ data class CardsListOptions(
     val reviewOnly: Boolean
 )
 
-/**
- * Why a non-empty vault renders no passes. The Cards screen uses this instead
- * of the first-run empty state or the generic no-results copy.
- */
+/** Why a non-empty vault renders no passes. */
 enum class CardsEmptyNote { NONE, HIDDEN_EXPIRED, ONLY_ARCHIVED }
 
 /**
- * The Cards list's pure visibility/order rules: search and filters first, then
- * the archived/expired/status arrangement from CardListOrder. Status counts
- * ignore archived cards; the review count only counts cards the main list can
- * show.
+ * Search and filters, then CardListOrder. Status counts ignore archived cards; the review
+ * count only counts cards the main list can show.
  */
 object CardsListState {
 
@@ -111,10 +106,8 @@ object CardsListState {
         cards.count { !it.card.archived && it.card.needsReview.isNotEmpty() }
 
     /**
-     * A vault with cards can still render an empty list when every visible card
-     * is archived, or every unarchived card is expired and "Hide from the
-     * list" is on. Search or a filter that simply matched nothing keeps the
-     * normal no-results copy, so this only answers for the untouched list.
+     * Only for the untouched list (all archived, or all expired and hidden); a search or
+     * filter that matched nothing keeps the normal no-results copy.
      */
     fun emptyNote(
         cards: List<HomeCard>,

@@ -5,13 +5,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Source-scan guard for string extraction.
- *
- * User-visible copy belongs in `res/values/strings_*.xml`, not in composables.
- * The scan covers the feature packages and the shared UI package. The
- * allow-list file holds intentional literals such as "•" that are punctuation
- * rather than prose. Strings with no letters at all (separators and bullets)
- * are allowed automatically.
+ * User-visible copy belongs in `res/values/strings_*.xml`. Literals without letters pass
+ * automatically; other intentional ones go in the allow-list file.
  */
 class HardcodedStringGuardTest {
 

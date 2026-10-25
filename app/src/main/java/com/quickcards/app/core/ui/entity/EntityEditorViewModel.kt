@@ -24,11 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.util.Locale
 
-/**
- * Repository-backed data for EntityDialog. The dialog keeps its own form state;
- * this class supplies the lists, original values and the save operation, and is
- * usable from the card form as well as the Manage list editors.
- */
+/** Lists, original values and save for EntityDialog; the dialog owns its form state. */
 data class EntityEditorData(
     val ready: Boolean = false,
     val holders: List<Holder> = emptyList(),

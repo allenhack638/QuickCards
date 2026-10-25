@@ -19,10 +19,7 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlinx.coroutines.flow.first
 
-/**
- * Builds the in-memory format 2 document from the vault and, optionally, the
- * current settings. Ported from `snapshot` in prototype/v2.html.
- */
+/** Builds the format 2 document from the vault and, optionally, the settings. */
 object BackupSnapshot {
 
     suspend fun capture(

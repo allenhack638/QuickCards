@@ -17,10 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Pinned cards sort before every other card, first pinned first, and lowering
- * the limit unpins the most recently pinned extras.
- */
+/** Pinned cards sort first in pin order; lowering the limit unpins the newest extras. */
 @RunWith(AndroidJUnit4::class)
 class PinOrderingTest {
 

@@ -6,11 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 
-/**
- * Compose Dialog windows do not route input through the activity's
- * Window.Callback, so overlay content reports its own touches to the
- * inactivity timer.
- */
+/** Dialog windows bypass the activity's Window.Callback, so overlays report touches themselves. */
 @SuppressLint("ReturnFromAwaitPointerEventScope")
 fun Modifier.trackAppLockInteraction(): Modifier = pointerInput(Unit) {
     awaitPointerEventScope {

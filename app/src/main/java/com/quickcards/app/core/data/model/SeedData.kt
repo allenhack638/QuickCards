@@ -1,9 +1,6 @@
 package com.quickcards.app.core.data.model
 
-/**
- * Initial networks and card types, taken verbatim from NETWORKS0 in
- * prototype/v2.html and the four types seeded by the prototype.
- */
+/** Initial networks and card types, verbatim from prototype/v2.html. */
 object SeedData {
 
     val networks: List<CardNetwork> = listOf(

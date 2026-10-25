@@ -857,13 +857,10 @@ private fun RadioDialog(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(QcDimens.Base))
+        Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(
-                QcDimens.DialogActionGap,
-                Alignment.End
-            ),
+            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(

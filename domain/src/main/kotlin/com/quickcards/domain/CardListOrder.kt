@@ -12,18 +12,9 @@ enum class ArchivedVisibility {
 }
 
 /**
- * The stable list order shared by the cards list and its tests. Callers supply
- * the per-card facts; this object only decides visibility and order.
- *
- * - [ExpiredPlacement.KEEP] leaves the input order untouched.
- * - [ExpiredPlacement.END] moves expired, unpinned cards after every other
- *   card. Pinned cards never move, so a pinned expired card stays in the
- *   pinned block at the top.
- * - [ExpiredPlacement.HIDE] removes expired cards unless the user is searching
- *   or the Expired status filter is on.
- * - A non-empty `statusFilter` keeps only cards in it and never reorders.
- * - Archived cards are removed unless searching with
- *   [ArchivedVisibility.IN_SEARCH].
+ * END moves expired unpinned cards last (pinned cards never move); HIDE drops expired cards
+ * unless searching or filtering Expired; a status filter never reorders; archived cards
+ * appear only in search with [ArchivedVisibility.IN_SEARCH].
  */
 object CardListOrder {
 

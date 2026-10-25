@@ -18,10 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * The Card list section writes its four settings through
- * the same radio-dialog and switch rows as the rest of Settings.
- */
+/** The Card list section writes its four settings. */
 @RunWith(AndroidJUnit4::class)
 class SettingsCardListFlowTest : FlowTestBase() {
 

@@ -27,8 +27,7 @@ class CopyActionReceiver : BroadcastReceiver() {
         val copiedText = context.getString(
             if (isCvv) R.string.notif_cvv_copied else R.string.notif_expiry_copied
         )
-        // The copy window is the only thing that authorises a copy. After a
-        // crash or force-stop it is closed, so a notification that outlived the
+        // Only the copy window authorises a copy; a notification that outlived the
         // process must not hand out the CVV.
         if (!UnlockSession.isUnlocked.value) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

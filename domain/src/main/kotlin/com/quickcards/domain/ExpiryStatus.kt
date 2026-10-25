@@ -10,12 +10,8 @@ enum class ExpiryState {
 }
 
 /**
- * Expiry state for a card stored as MM/YY.
- *
- * A card is expired after the last day of its expiry month. It expires soon
- * when it is not expired and its expiry month is within [soonMonths] months of
- * today's month; the current month always counts as soon when the window is
- * at least 0. An unparseable value returns null and is not classified.
+ * Expired after the last day of the MM/YY month; soon within [soonMonths] (the current month
+ * counts when the window is at least 0). Unparseable values return null.
  */
 object ExpiryStatus {
 

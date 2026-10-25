@@ -36,12 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Locking the app closes an open actions sheet and an open
- * dialog. This test drives [LocalAppLocked] directly so the composition-local
- * guard is covered deterministically; LockFlowTest covers the real
- * AppLockController.lock() trigger and the lock screen on the same device.
- */
+/** Locking closes an open sheet and dialog; drives [LocalAppLocked] directly for determinism. */
 @RunWith(AndroidJUnit4::class)
 class LockCoversOverlaysTest {
 
@@ -134,8 +129,7 @@ class LockCoversOverlaysTest {
         compose.onAllNodesWithText("Unpin").assertCountEquals(0)
         compose.onAllNodesWithText("Delete card").assertCountEquals(0)
 
-        // The dialog case needs the real activity (delete asks for authentication);
-        // LockFlowTest covers it end to end.
+        // Delete needs the real activity for auth; LockFlowTest covers it end to end.
     }
 
     private fun waitForText(text: String) {

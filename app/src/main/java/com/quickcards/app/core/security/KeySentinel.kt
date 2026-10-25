@@ -4,10 +4,8 @@ import android.content.SharedPreferences
 import com.quickcards.app.core.data.dao.CardDao
 
 /**
- * Detects a lost or rotated Android Keystore key with an encrypted sentinel in
- * the security prefs. When the sentinel is missing it is only armed if the
- * vault is empty or at least one card still decrypts, so a vault written with
- * a lost key is never re-armed as healthy.
+ * Detects a lost Keystore key via an encrypted sentinel. A missing sentinel is armed only if
+ * the vault is empty or a card still decrypts, so a lost-key vault never looks healthy.
  */
 class KeySentinel(
     private val prefs: SharedPreferences,

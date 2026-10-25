@@ -14,14 +14,8 @@ class BiometricAuthHelper(private val context: Context) {
     }
 
     /**
-     * True when the device can prove the user is present: a strong biometric
-     * or the screen-lock PIN, pattern or password.
-     *
-     * `BIOMETRIC_STRONG or DEVICE_CREDENTIAL` is only a supported combination
-     * from API 30. Below that `canAuthenticate` reports it as unsupported even on
-     * a secured phone, so API 26–29 asks the keyguard directly; the prompt on
-     * those versions uses `setDeviceCredentialAllowed(true)`, which needs exactly
-     * a secure keyguard.
+     * `BIOMETRIC_STRONG or DEVICE_CREDENTIAL` is only supported from API 30, so API 26-29
+     * asks the keyguard directly (matching `setDeviceCredentialAllowed(true)` there).
      */
     fun isAuthenticationAvailable(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {

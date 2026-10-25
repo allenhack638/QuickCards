@@ -20,10 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Every Settings › Card list value feeds the Cards screen through
- * AppSettings, so a change is visible on return without restarting the app.
- */
+/** Card list settings reach the Cards screen on return, without a restart. */
 @RunWith(AndroidJUnit4::class)
 class SettingsDrivesCardsFlowTest : FlowTestBase() {
 

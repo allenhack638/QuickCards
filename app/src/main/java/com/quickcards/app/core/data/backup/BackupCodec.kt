@@ -25,10 +25,8 @@ import com.quickcards.domain.WrongPassphraseException
 import java.util.Locale
 
 /**
- * Reads and writes the payload inside the AES-256-GCM envelope. Format 2 is a
- * JSON object `{ meta, holders, banks, types, tags, networks, cards, cfg? }`;
- * format 1 (older exports) is a bare array of `Card` fields mapped like
- * [com.quickcards.app.core.data.repository.LegacyBackfill].
+ * Payload inside the AES-256-GCM envelope. Format 2 is a JSON object; format 1 is a bare
+ * `Card` array mapped like [com.quickcards.app.core.data.repository.LegacyBackfill].
  */
 object BackupCodec {
 
@@ -112,10 +110,7 @@ object BackupCodec {
         return trimmed.startsWith("{") && ExportCrypto.isEnvelope(fileText)
     }
 
-    /**
-     * Opens an encrypted envelope with [passphrase], or reads a plaintext
-     * legacy file. [passphrase] may be null for plaintext files.
-     */
+    /** Opens an encrypted envelope, or a plaintext legacy file ([passphrase] may be null). */
     fun decode(fileText: String, passphrase: CharArray?): DecodedBackup {
         if (isEncrypted(fileText)) {
             val pass = passphrase ?: throw WrongPassphraseException()

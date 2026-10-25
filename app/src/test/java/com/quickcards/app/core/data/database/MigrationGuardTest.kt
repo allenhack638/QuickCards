@@ -6,12 +6,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Source-scan guard for the Room rules in AGENTS.md and PLAN.md:
- *
- * - `exportSchema = true` and a committed schema JSON for every version;
- * - no destructive fallback anywhere in the app;
- * - a non-destructive migration exists for every consecutive version step;
- * - every declared migration is registered with the database builder.
+ * Room rules: exported schema JSON per version, no destructive fallback, a migration for every
+ * consecutive step, and every migration registered with the builder.
  */
 class MigrationGuardTest {
 

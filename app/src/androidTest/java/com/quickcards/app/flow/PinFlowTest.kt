@@ -15,10 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Pin and unpin from the home actions sheet, the pinned group order, and the
- * disabled Pin action with its limit note once the pin limit is reached.
- */
+/** Pin/unpin, pinned order, and the disabled Pin action at the limit. */
 @RunWith(AndroidJUnit4::class)
 class PinFlowTest : FlowTestBase() {
 

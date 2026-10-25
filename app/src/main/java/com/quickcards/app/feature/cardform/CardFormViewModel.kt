@@ -44,10 +44,7 @@ sealed interface CardFormEvent {
     data object SaveFailed : CardFormEvent
 }
 
-/**
- * Owns the pure [CardFormSession] and its data. All editing rules live in the
- * session so CardFormViewModelTest can exercise them without Android.
- */
+/** Adapts Room and settings to the pure [CardFormSession], which holds every editing rule. */
 class CardFormViewModel(
     application: Application,
     savedStateHandle: SavedStateHandle
@@ -221,11 +218,7 @@ class CardFormViewModel(
     fun cvvBlur() = update { it.cvvBlur() }
     fun updateNote(text: String) = update { it.updateNote(text) }
 
-    /**
-     * Reverts the latest automatic repair for [field] in the vault and in the
-     * open form. The restored value is what the older app stored, so it is
-     * validated immediately (a legacy format shows its normal error again).
-     */
+    /** Reverts the latest repair in vault and form; the restored legacy value is validated at once. */
     fun undoRepair(field: CardField) {
         val id = cardId ?: return
         val repair = _repairs.value[field] ?: return

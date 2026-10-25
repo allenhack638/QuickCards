@@ -624,14 +624,14 @@ private fun ArchivedActionsSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        Column(modifier = Modifier.padding(bottom = 20.dp)) {
+        Column(modifier = Modifier.padding(bottom = QcDimens.SheetBottom)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         start = QcDimens.Section,
                         end = QcDimens.Section,
-                        top = QcDimens.Half,
+                        top = QcDimens.SheetTitleTop,
                         bottom = QcDimens.PassGap
                     ),
                 verticalAlignment = Alignment.CenterVertically,

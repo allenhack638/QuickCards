@@ -23,12 +23,8 @@ import org.junit.Before
 import org.junit.Rule
 
 /**
- * Shared device setup for the flow tests.
- *
- * Every test starts from an empty vault (backup erase keeps the default card
- * networks, but card types are restored here because Erase follows the
- * prototype and removes them), app lock off so the system prompt cannot block
- * a flow, and the v2 defaults for the visible card options.
+ * Each flow starts from an empty vault with default types restored (Erase removes them),
+ * app lock off so no system prompt blocks it, and default card options.
  */
 abstract class FlowTestBase {
 

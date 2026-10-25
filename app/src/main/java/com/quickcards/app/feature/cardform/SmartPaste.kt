@@ -6,24 +6,15 @@ import java.time.YearMonth
 
 enum class SmartPasteField { NUMBER, EXPIRY }
 
-/**
- * What a pasted or keyboard-scanned input should put into the form. Null
- * values mean "nothing recognised": the caller then applies that field's
- * normal digit filter.
- */
+/** Null means nothing recognised; the caller then applies the field's normal filter. */
 data class SmartPasteResult(
     val number: String? = null,
     val expiry: String? = null
 )
 
 /**
- * Recognises a single input event that inserted two or more characters (a
- * paste or a keyboard's scan commit) and turns it into a card number and an
- * expiry. A CVV is never returned: it is never read from pasted text.
- *
- * The field's own rules still run afterwards through the normal form updates,
- * so grouping, network detection, limits and validation are unchanged. A
- * single typed character returns an empty result, which keeps typing identical.
+ * Turns a multi-character insert (paste or scan commit) into a number and expiry, never a
+ * CVV. Field rules still run afterwards; single typed characters return an empty result.
  */
 object SmartPaste {
 
@@ -36,9 +27,8 @@ object SmartPaste {
         expiryEmpty: Boolean = true
     ): SmartPasteResult {
         if (!insertedAtLeastTwoCharacters(previous, incoming)) return SmartPasteResult()
-        // A paste replaces the field in one event. Parsing the resulting text
-        // (rather than only the inserted slice) keeps a full replacement intact
-        // when its tail happens to match the old value.
+        // Parse the whole result, not the inserted slice, so a replacement whose tail
+        // matches the old value stays intact.
         val parsed = CardTextParser.parse(incoming.lines(), networks, today)
         return when (field) {
             SmartPasteField.NUMBER -> {
@@ -56,11 +46,7 @@ object SmartPaste {
         }
     }
 
-    /**
-     * Compares the text before and after one input event. Typing or deleting a
-     * single character leaves one character in the changed middle; a paste
-     * leaves two or more.
-     */
+    /** A paste changes two or more characters in one event; typing changes one. */
     private fun insertedAtLeastTwoCharacters(previous: String, incoming: String): Boolean {
         var prefix = 0
         val prefixLimit = minOf(previous.length, incoming.length)

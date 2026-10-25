@@ -4,11 +4,7 @@ import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Source-scan guard for design tokens: brand colours, band palettes
- * and every other colour literal live in `core/ui/theme` (Color.kt or
- * PassColors). Feature and shared UI code must use MaterialTheme or PassColors.
- */
+/** Colour literals live only in `core/ui/theme`; other code uses MaterialTheme or PassColors. */
 class ColorGuardTest {
 
     private val colorLiteral = Regex("\\bColor\\s*\\(\\s*0x[0-9A-Fa-f]+")

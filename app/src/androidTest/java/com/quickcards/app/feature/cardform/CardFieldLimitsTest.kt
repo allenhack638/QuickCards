@@ -23,11 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.YearMonth
 
-/**
- * The field must show the filtered value, not the raw input: an Amex CVV
- * accepts four digits from "ab12xy345678" and a card number stops at its
- * maximum length (19 when no network matches).
- */
+/** Fields show the filtered value, not the raw input (Amex CVV 4 digits, unknown number 19). */
 @RunWith(AndroidJUnit4::class)
 class CardFieldLimitsTest {
 
