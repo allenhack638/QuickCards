@@ -796,7 +796,7 @@ function settingsHTML() {
     ${sw('paymentrem', C.paymentReminders, 'payments', 'Payment reminders', '3 days before a card’s due day')}
     <div class="subhead">Copying</div>
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
-    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For this time, hidden when locked')}
+    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'Hidden on the lock screen')}
     ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
     ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On, cards appear in checkout forms' : 'Fill cards after your fingerprint')}
     <div class="subhead">Tags</div>
@@ -804,8 +804,8 @@ function settingsHTML() {
     <div class="subhead">Security</div>
     ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Use your fingerprint to open')}
     ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}
-    ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'When you leave or lock the phone', !C.appLock.on)}
-    ${row('window', 'copy', 'Instant copy window', `No fingerprint needed for ${secText(C.windowSec)}`)}
+    ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'Also when the screen turns off', !C.appLock.on)}
+    ${row('window', 'copy', 'Instant copy window', `Instant until ${secText(C.windowSec)} without use`)}
     <button class="li two sl" data-act="locknow"><span class="lead">${I('lock')}</span><span class="txt"><span class="h">Lock now</span><span class="s">Lock QuickCards right away</span></span></button>
     <div class="subhead">Backup</div>
     ${row('export', 'upload', 'Export backup', 'Protected by a password you choose', !S.cards.length, false)}

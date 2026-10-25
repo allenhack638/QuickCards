@@ -44,7 +44,7 @@
     <string name="settings_clipboard_body">Copied details are removed from the clipboard after this time.</string>
 
     <string name="settings_notification_title">Show expiry and CVV after copying</string>
-    <string name="settings_notification_subtitle">For this time, hidden when locked</string>
+    <string name="settings_notification_subtitle">Hidden on the lock screen</string>
     <string name="settings_notification_time_title">Notification time</string>
     <string name="settings_notification_time_subtitle">Disappears after %1$s</string>
     <string name="settings_notification_time_body">How long expiry and CVV stay in the notification.</string>
@@ -59,9 +59,9 @@
     <string name="settings_inactivity_subtitle">After %1$s without use</string>
     <string name="settings_inactivity_body">QuickCards locks itself when you haven’t touched it for this long.</string>
     <string name="settings_lock_on_leave_title">Lock when you leave the app</string>
-    <string name="settings_lock_on_leave_subtitle">When you leave or lock the phone</string>
+    <string name="settings_lock_on_leave_subtitle">Also when the screen turns off</string>
     <string name="settings_copy_window_title">Instant copy window</string>
-    <string name="settings_copy_window_subtitle">No fingerprint needed for %1$s</string>
+    <string name="settings_copy_window_subtitle">Instant until %1$s without use</string>
     <string name="settings_copy_window_body">How long copies stay instant after a fingerprint.</string>
     <string name="settings_lock_now_title">Lock now</string>
     <string name="settings_lock_now_subtitle">Lock QuickCards right away</string>
