@@ -1,8 +1,13 @@
 package com.quickcards.app.feature.cardform
 
 import android.app.Activity
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import android.content.Context
+import android.content.BroadcastReceiver
 import android.content.ContextWrapper
+import android.content.Intent
+import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.os.Handler
 import android.os.Looper
@@ -21,11 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -52,22 +55,42 @@ fun NfcTapSheet(onDismiss: () -> Unit, onRead: (EmvCardData) -> Unit) {
     val activity = remember { context.findActivity() }
     val latestRead by rememberUpdatedState(onRead)
     var failed by remember { mutableStateOf(false) }
-    val enabled = adapter?.isEnabled == true
+    var enabled by remember { mutableStateOf(adapter?.isEnabled == true) }
+
+    // NFC can be switched on from quick settings while the sheet is open.
+    DisposableEffect(adapter) {
+        if (adapter == null) return@DisposableEffect onDispose {}
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, intent: Intent) {
+                enabled = adapter.isEnabled
+            }
+        }
+        context.registerReceiver(receiver, IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED))
+        onDispose { context.unregisterReceiver(receiver) }
+    }
 
     DisposableEffect(adapter, activity, enabled) {
         if (adapter == null || activity == null || !enabled) return@DisposableEffect onDispose {}
         val main = Handler(Looper.getMainLooper())
+        // A slow read can finish after Cancel; a closed sheet must not fill the form.
+        var open = true
         adapter.enableReaderMode(
             activity,
             { tag ->
                 val data = NfcCardReader.read(tag)
-                main.post { if (data != null) latestRead(data) else failed = true }
+                main.post {
+                    if (!open) return@post
+                    if (data != null) latestRead(data) else failed = true
+                }
             },
             NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
                 NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
             null
         )
-        onDispose { adapter.disableReaderMode(activity) }
+        onDispose {
+            open = false
+            adapter.disableReaderMode(activity)
+        }
     }
 
     QcModalBottomSheet(onDismissRequest = onDismiss) {

@@ -5,4 +5,6 @@
     <string name="lock_unlock">Unlock</string>
     <string name="lock_unlock_description">Unlock QuickCards</string>
     <string name="lock_footer">Encrypted on this phone · v%1$s</string>
+    <string name="lock_unlock_reason">Unlock to see your cards</string>
+    <string name="unlock_window_subtitle">Copies stay instant for %1$s</string>
 </resources>

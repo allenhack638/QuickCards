@@ -21,19 +21,16 @@ object CopyCompanionNotifier {
         title: String,
         expiry: String,
         cvv: String,
-        showExpiry: Boolean,
-        showCvv: Boolean,
         seconds: Int
     ) {
-        if (!showExpiry && !showCvv) return
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         ensureChannel(context, manager)
 
         val values = buildList {
-            if (showExpiry && expiry.isNotBlank()) {
+            if (expiry.isNotBlank()) {
                 add(context.getString(R.string.notif_expiry_value, expiry))
             }
-            if (showCvv && cvv.isNotBlank()) {
+            if (cvv.isNotBlank()) {
                 add(context.getString(R.string.notif_cvv_value, cvv))
             }
         }

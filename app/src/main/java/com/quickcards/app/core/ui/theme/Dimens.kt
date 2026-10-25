@@ -34,7 +34,6 @@ object QcDimens {
     // Rows, fields and icons
     val LeadSlot = 56.dp
     /** List row text start after a 24dp leading icon: 16 + 24 + 16 (Material 3 list spec). */
-    val ListIconTextStart = 56.dp
     val FieldHeight = 56.dp
     val HelperLine = 20.dp
     val ListRowOneLine = 56.dp

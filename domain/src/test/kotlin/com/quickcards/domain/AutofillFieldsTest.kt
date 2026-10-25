@@ -44,6 +44,10 @@ class AutofillFieldsTest {
         assertNull(kind(hint = "Password"))
         assertNull(kind(id = "address_line_1"))
         assertNull(kind(hints = listOf("username")))
+        assertNull(kind(id = "account_number"))
+        assertNull(kind(id = "accountNo"))
+        assertNull(kind(id = "companyName"))
+        assertNull(kind(id = "expense_note"))
     }
 
     @Test
@@ -54,5 +58,8 @@ class AutofillFieldsTest {
         assertEquals("29", AutofillFields.valueFor(CardFieldKind.EXPIRY_YEAR, "", "12/29", "", "", twoDigitYear = true))
         assertEquals("12/29", AutofillFields.valueFor(CardFieldKind.EXPIRY_DATE, "", "12/2029", "", ""))
         assertNull(AutofillFields.valueFor(CardFieldKind.CVV, "", "", "", ""))
+        assertEquals("12/2029", AutofillFields.valueFor(CardFieldKind.EXPIRY_DATE, "", "12/29", "", "", fourDigitYear = true))
+        assertEquals(CardFieldKind.EXPIRY_MONTH, kind(hint = "MM"))
+        assertEquals(CardFieldKind.EXPIRY_YEAR, kind(hint = "YY"))
     }
 }

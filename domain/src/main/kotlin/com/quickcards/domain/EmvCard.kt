@@ -13,8 +13,14 @@ object EmvCard {
 
     class Tlv(val tag: Int, val value: ByteArray, val children: List<Tlv>)
 
-    fun parseTlv(bytes: ByteArray): List<Tlv> {
+    private const val MAX_DEPTH = 16
+    private const val MAX_LENGTH_BYTES = 3
+
+    fun parseTlv(bytes: ByteArray): List<Tlv> = parseTlv(bytes, 0)
+
+    private fun parseTlv(bytes: ByteArray, depth: Int): List<Tlv> {
         val out = ArrayList<Tlv>()
+        if (depth > MAX_DEPTH) return out
         var i = 0
         while (i < bytes.size) {
             val b = bytes[i].toInt() and 0xFF
@@ -35,6 +41,7 @@ object EmvCard {
             i++
             if ((len and 0x80) != 0) {
                 val count = len and 0x7F
+                if (count > MAX_LENGTH_BYTES) return out
                 len = 0
                 repeat(count) {
                     if (i >= bytes.size) return out
@@ -42,10 +49,10 @@ object EmvCard {
                     i++
                 }
             }
-            if (i + len > bytes.size) return out
+            if (len < 0 || i + len > bytes.size) return out
             val value = bytes.copyOfRange(i, i + len)
             i += len
-            out.add(Tlv(tag, value, if (constructed) parseTlv(value) else emptyList()))
+            out.add(Tlv(tag, value, if (constructed) parseTlv(value, depth + 1) else emptyList()))
         }
         return out
     }

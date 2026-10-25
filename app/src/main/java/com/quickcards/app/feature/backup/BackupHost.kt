@@ -1,6 +1,9 @@
 package com.quickcards.app.feature.backup
 
 import android.app.NotificationManager
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import com.quickcards.app.core.reminders.Reminders
 import android.content.Context
 import android.content.ContextWrapper
 import android.net.Uri
@@ -12,12 +15,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.fragment.app.FragmentActivity
@@ -350,6 +351,7 @@ class BackupHostState internal constructor(
                 UnlockSession.lockNow()
                 ClipboardHelper.clearNow()
                 cancelCopyNotification()
+                Reminders.clearAll(appContext)
                 eraseOpen = false
                 eraseAcknowledged = false
                 snackbar.show(text(R.string.backup_snack_erased))

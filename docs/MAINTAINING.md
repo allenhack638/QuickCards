@@ -55,7 +55,7 @@ To see the prototype running: `cd prototype && python3 -m http.server 8765`, the
 |    security/              EncryptionHelper, PanHasher, ExportCrypto,          |
 |                           UnlockSession, BiometricAuthHelper, ClipboardHelper, |
 |                           AppLockController                                   |
-|    notifications/         CopyCompanionNotifier, CopyActionReceiver           |
+|    notifications/         CopyCompanionNotifier                               |
 |    ui/                    theme (Color/Type/Shape/Dimens/QcIcons), QcDialog/   |
 |                           QcOverlays/QcPickerSheet, LockGate, base activity,  |
 |                           shared components                                   |
@@ -164,7 +164,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals; the clipboard and the notification keep their own timers so a paste into another app works | `core/security/AppLockController.kt` |
 | Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking | `core/ui/components`, `core/ui/LockGate.kt` |
 | Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+, cleared after the setting, and always on background | `core/security/ClipboardHelper.kt` |
-| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; actions carry only card id + field, never card data | `core/notifications/CopyCompanionNotifier.kt` |
+| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; values are copied from the card, and the CVV is only shown after a fresh unlock turns the setting on | `core/notifications/CopyCompanionNotifier.kt` |
 | Screen capture | `FLAG_SECURE` on every activity in release (`BuildConfig.SECURE_WINDOW`); recents screenshot disabled on API 33+; debug deliberately allows QA screenshots | `core/ui/base/BaseActivity.kt` |
 | Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest` | `AndroidManifest.xml`, `app/build.gradle` |
 
@@ -397,15 +397,18 @@ restore fills missing keys with defaults, not the phone's current values.
 | Card list | Expires soon | Within 1 / 2 / 3 months | Within 1 month | `expiresSoonMonths` |
 | Card list | Show notes on cards | On / Off | On | `showNotes` |
 | Copying | Clear clipboard | Never / 30 s / 1 min / 2 min | 1 min | `clipClearSec` |
-| Copying | Show expiry and CVV after copying | On / Off | On | `notifEnabled` |
+| Card list | Add cards by tapping (NFC phones only) | On / Off | On | `nfcAddEnabled` |
+| Reminders | Expiry reminders | On / Off | On | `expiryReminders` |
+| Reminders | Payment reminders | On / Off | On | `paymentReminders` |
+| Copying | Show expiry and CVV after copying (turning on asks to unlock) | On / Off | On | `notifEnabled` |
 | Copying | Notification time | 15 s / 30 s / 1 min | 30 s | `notifSec` |
+| Copying | Fill cards in other apps | On / Off (a restore can only turn it off) | On | `autofillEnabled` |
 | Tags | Show tags on cards | On / Off | On | `tagsShow` |
 | Security | App lock | On / Off | On | `appLockEnabled` |
 | Security | Lock after inactivity | 10 s / 30 s / 1 min / 2 min / 5 min / 10 min / 30 min / Never | 1 min | `appLockAfterSec` |
 | Security | Lock when you leave the app | On / Off | On | `lockOnLeave` |
 | Security | Instant copy window | 30 s / 1 min / 2 min | 1 min | `copyWindowSec` |
 | Security | Lock now | action | — | — |
-| Security | Screenshots blocked | static row | — | — |
 | Backup | Include settings (export) | On / Off | On | — |
 | Backup | Saved cards (import) | Update with the backup's details / Keep what's on this phone | Update | — |
 | Backup | Restore settings (import) | On / Off | On | — |
@@ -414,10 +417,14 @@ restore fills missing keys with defaults, not the phone's current values.
 SharedPreferences file: `quickcards_settings`. Internal keys are `theme_mode`,
 `dynamic_color`, `copy_window_sec`, `clip_clear_sec`, `mask_numbers`, `notif_enabled`,
 `notif_sec`, `tags_show`, `expired_cards`, `expires_soon_months`, `show_notes`,
-`app_lock_enabled`, `app_lock_after_sec`, `lock_on_leave`. Do not rename them casually: they
+`app_lock_enabled`, `app_lock_after_sec`, `lock_on_leave`, `autofill_enabled`, `nfc_add_enabled`,
+`expiry_reminders`, `payment_reminders`. Do not rename them casually: they
 are existing users' data. Older backups may still carry `pinnedMax`, `tagsMax`, `tagsMaxLen`,
 `showCardType`, `archivedCards`, `tagsSearch`, `notifShowExpiry` or `notifShowCvv`;
-`AppSettings.applyMap()` ignores unknown keys, so they import silently. Pinned cards are capped
+`AppSettings.applyMap()` ignores unknown keys, so they import silently, except that a false
+`notifShowExpiry` or `notifShowCvv` turns the merged notification off (the same rule migrates
+the old prefs on first launch). Reminder bookkeeping lives in `quickcards_reminders` (keys hold
+card ids, due months and a keyed hash of the expiry, never the expiry) and is cleared by Erase all. Pinned cards are capped
 at 10, tags at 10 per card and 16 characters, search always includes tag names, archived cards
 always join search, and a card type always shows when set.
 
@@ -453,7 +460,7 @@ digits + Luhn.
 
 - Five lists: holders, banks, networks, types, tags. Names trimmed, spaces collapsed,
   required, at least 2 characters, unique per list ignoring case. Limits: holders and
-  banks 40, networks 24, types 20, tags from Settings. A leading `#` is removed from tags.
+  banks 40, networks 24, types 20, tags 16. A leading `#` is removed from tags.
 - Network labels are 2-15 uppercase letters, digits or spaces and unique; starting digits
   accept digits, ranges and commas; lengths must stay within 12-19.
 - Renaming an item that cards use, or changing a network's rules, opens “Update N cards?”

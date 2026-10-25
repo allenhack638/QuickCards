@@ -27,8 +27,11 @@ object ReminderRules {
         return days.takeIf { it in 0..EXPIRY_WINDOW_DAYS }
     }
 
-    /** A stable key so each card is reminded once per expiry. */
-    fun expiryKey(cardId: String, expiry: String): String = "exp:$cardId:${expiry.trim()}"
+    /**
+     * Each card is reminded once per expiry. [expiryTag] must be a keyed hash, never the expiry
+     * itself: the key is stored in plain prefs.
+     */
+    fun expiryKey(cardId: String, expiryTag: String): String = "exp2:$cardId:$expiryTag"
 
     /** The next payment date for a due day, clamped to months that are shorter. */
     fun nextDueDate(dueDay: Int, today: LocalDate): LocalDate? {

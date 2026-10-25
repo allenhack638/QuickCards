@@ -22,7 +22,11 @@ object BackupSettings {
         AppSettings.KEY_TAGS_SHOW_NAME to AppSettingsDefaults.TAGS_SHOW,
         AppSettings.KEY_APP_LOCK_ENABLED_NAME to AppSettingsDefaults.APP_LOCK_ENABLED,
         AppSettings.KEY_APP_LOCK_AFTER_SEC_NAME to AppSettingsDefaults.APP_LOCK_AFTER_SEC,
-        AppSettings.KEY_LOCK_ON_LEAVE_NAME to AppSettingsDefaults.LOCK_ON_LEAVE
+        AppSettings.KEY_LOCK_ON_LEAVE_NAME to AppSettingsDefaults.LOCK_ON_LEAVE,
+        AppSettings.KEY_AUTOFILL_ENABLED_NAME to AppSettingsDefaults.AUTOFILL_ENABLED,
+        AppSettings.KEY_NFC_ADD_ENABLED_NAME to AppSettingsDefaults.NFC_ADD_ENABLED,
+        AppSettings.KEY_EXPIRY_REMINDERS_NAME to AppSettingsDefaults.EXPIRY_REMINDERS,
+        AppSettings.KEY_PAYMENT_REMINDERS_NAME to AppSettingsDefaults.PAYMENT_REMINDERS
     )
 
     /**
@@ -43,7 +47,8 @@ object BackupSettings {
         val copyWindowSec: Int,
         val clipClearSec: Int,
         val maskNumbers: Boolean,
-        val notifEnabled: Boolean
+        val notifEnabled: Boolean,
+        val autofillEnabled: Boolean
     ) {
         fun stricterWith(other: Protection) = Protection(
             appLockEnabled = appLockEnabled || other.appLockEnabled,
@@ -52,7 +57,8 @@ object BackupSettings {
             copyWindowSec = minOf(copyWindowSec, other.copyWindowSec),
             clipClearSec = shorterTimeout(clipClearSec, other.clipClearSec),
             maskNumbers = maskNumbers || other.maskNumbers,
-            notifEnabled = notifEnabled && other.notifEnabled
+            notifEnabled = notifEnabled && other.notifEnabled,
+            autofillEnabled = autofillEnabled && other.autofillEnabled
         )
 
         fun applyTo(settings: AppSettings) {
@@ -63,6 +69,7 @@ object BackupSettings {
             settings.setClipClearSec(clipClearSec)
             settings.setMaskNumbers(maskNumbers)
             settings.setNotifEnabled(notifEnabled)
+            settings.setAutofillEnabled(autofillEnabled)
         }
 
         companion object {
@@ -73,7 +80,8 @@ object BackupSettings {
                 copyWindowSec = settings.copyWindowSec.value,
                 clipClearSec = settings.clipClearSec.value,
                 maskNumbers = settings.maskNumbers.value,
-                notifEnabled = settings.notifEnabled.value
+                notifEnabled = settings.notifEnabled.value,
+                autofillEnabled = settings.autofillEnabled.value
             )
 
             /** 0 means "never", the weakest choice. */

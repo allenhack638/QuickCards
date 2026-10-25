@@ -1,7 +1,7 @@
 package com.quickcards.domain
 
 /**
- * Turning a protection off (or exposing a secret in notifications) needs fresh auth.
+ * Turning a protection off, or showing the CVV in notifications, needs fresh auth.
  * A null reason applies at once; a cancelled prompt applies nothing.
  */
 object SecurityConfirmation {

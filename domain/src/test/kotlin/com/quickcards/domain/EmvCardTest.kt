@@ -60,6 +60,15 @@ class EmvCardTest {
     }
 
     @Test
+    fun hostileStructuresAreBounded() {
+        // 2000 nested constructed tags (70 00 70 00 ...) must not overflow the stack.
+        val deep = ByteArray(4000) { if (it % 2 == 0) 0x70 else 0x00 }
+        EmvCard.parseTlv(deep)
+        // A length with too many length bytes is rejected, not wrapped negative.
+        assertNull(EmvCard.extract(EmvCard.fromHex("70 85 FF FF FF FF FF 5A 01 00")))
+    }
+
+    @Test
     fun recordsWithoutCardDataAreIgnored() {
         assertNull(EmvCard.extract(EmvCard.fromHex("70 04 9F 08 01 02")))
         assertNull(EmvCard.extract(EmvCard.fromHex("70 0C 57 0A 12 34 56 78 90 12 34 D2 91 2F")))

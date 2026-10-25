@@ -1,6 +1,7 @@
 package com.quickcards.app.core.data.backup
 
 import androidx.room.withTransaction
+import com.quickcards.domain.NetworkLabelMax
 import com.quickcards.app.core.data.database.QuickCardsDatabase
 import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.model.Bank
@@ -35,18 +36,7 @@ data class BackupImportResult(
     val settingsRestored: Boolean,
     val formatsFixed: Int = 0,
     val needCheck: Int = 0
-) {
-    fun message(): String {
-        val parts = buildList {
-            if (added > 0) add("$added added")
-            if (updated > 0) add("$updated updated")
-            if (kept > 0) add("$kept kept")
-            if (same > 0) add("$same unchanged")
-        }
-        val base = if (parts.isEmpty()) "Nothing to import" else parts.joinToString(" · ")
-        return base + if (settingsRestored) " · settings restored" else ""
-    }
-}
+)
 
 /**
  * Applies a backup in one transaction. Lists match by name ignoring case (phone items and
@@ -239,7 +229,7 @@ object BackupImporter {
                 val created = CardNetwork(
                     id = UUID.randomUUID().toString(),
                     name = displayName,
-                    code = item.code.take(7),
+                    code = item.code.take(NetworkLabelMax),
                     prefixes = item.prefixes,
                     lengths = item.lengths,
                     cvvLength = if (item.cvv == 4) 4 else 3,

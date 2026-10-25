@@ -21,3 +21,6 @@ All notable changes to this project are documented in this file.
 - Added: expiry reminders 30 days ahead and payment reminders 3 days before a card's optional due day, each with a Settings switch; payment reminders repeat daily until you tap Paid.
 - Added: a "Bill due" strip on the card during the payment reminder window, with Mark paid and Undo.
 - Fixed: at large font sizes on narrow phones the card's expiry and CVV no longer get cut off.
+- Fixed: backups now keep each card's payment due day and long network labels; restoring no longer clears or shortens them.
+- Fixed: turning on "Show expiry and CVV after copying" asks to unlock again, and a hidden CVV setting from older versions or backups keeps the notification off.
+- Fixed: autofill only fills visible fields on the same site, names the app or site in the prompt and no longer mistakes bank-account fields for card fields; a misbehaving NFC card can no longer crash the app.

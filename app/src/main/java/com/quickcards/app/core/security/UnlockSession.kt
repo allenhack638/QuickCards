@@ -108,7 +108,7 @@ object UnlockSession {
             }
             val helper = BiometricAuthHelper(activity)
             if (!helper.isAuthenticationAvailable()) return@withLock false
-            val subtitle = reason ?: "Copies stay instant for ${TimeText.seconds(seconds)}"
+            val subtitle = reason ?: activity.getString(R.string.unlock_window_subtitle, TimeText.seconds(seconds))
             val granted = suspendCancellableCoroutine { continuation ->
                 var finished = false
                 fun finish(result: Boolean) {

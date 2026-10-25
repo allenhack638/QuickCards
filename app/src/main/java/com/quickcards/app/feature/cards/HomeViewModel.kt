@@ -1,6 +1,10 @@
 package com.quickcards.app.feature.cards
 
 import android.app.Application
+import java.time.Duration
+import java.time.LocalDateTime
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
 import java.time.temporal.ChronoUnit
 import com.quickcards.domain.ReminderRules
 import com.quickcards.app.core.reminders.PaidStore
@@ -205,12 +209,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val expiredLabel = application.getString(R.string.cards_status_expired)
     private val soonLabel = application.getString(R.string.cards_status_expires_soon)
 
-    private data class DueInputs(val enabled: Boolean, val paid: Set<String>)
+    private data class DueInputs(val enabled: Boolean, val paid: Set<String>, val day: LocalDate)
+
+    /** Emits today's date now and again just after each midnight, so due strips roll over. */
+    private val today = flow {
+        while (true) {
+            val now = LocalDateTime.now()
+            emit(now.toLocalDate())
+            val next = now.toLocalDate().plusDays(1).atStartOfDay()
+            delay(Duration.between(now, next).toMillis() + 1_000)
+        }
+    }
 
     private val dueInputs = combine(
         settings.paymentReminders,
-        PaidStore.paid(application)
-    ) { enabled, paid -> DueInputs(enabled, paid) }
+        PaidStore.paid(application),
+        today
+    ) { enabled, paid, day -> DueInputs(enabled, paid, day) }
 
     private val listsWithDue = combine(lists, dueInputs) { l, d -> l to d }
 
@@ -351,7 +366,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val typesById = lists.types.associateBy { it.id }
         val networksById = lists.networks.associateBy { it.id }
 
-        val today = LocalDate.now()
+        val today = due.day
         val allCards = lists.cards.map { card ->
             val resolved = if (card.networkAuto) {
                 CardNumberRules.detect(card.number, domainNetworks)

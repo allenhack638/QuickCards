@@ -80,6 +80,7 @@
 
     <string name="settings_reason_app_lock_off">Confirm it’s you to turn off app lock</string>
     <string name="settings_reason_inactivity_never">Confirm it’s you to turn off the inactivity lock</string>
+    <string name="settings_reason_notif_cvv_on">Confirm it’s you to show the CVV in notifications</string>
     <string name="settings_reason_lock_on_leave_off">Confirm it’s you to stop locking when you leave</string>
 
     <string name="settings_snackbar_copying_locked">Copying locked</string>

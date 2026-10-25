@@ -1,6 +1,7 @@
 package com.quickcards.app.core.reminders
 
 import android.app.AlarmManager
+import com.quickcards.app.core.security.PanHasher
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -27,10 +28,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Local reminders: a card about to expire (within 30 days) and a payment due day (3 days
- * ahead). A daily inexact alarm and every app start run the same check. An expiry reminder is
- * posted once; a payment reminder repeats daily inside its window until the user taps Paid. Notifications carry only the bank and
- * the last four digits and are private on the lock screen.
+ * Local reminders: a card expiring within 30 days, and a payment due day 3 days ahead.
+ * A daily inexact alarm and every app start run the same check. An expiry reminder is posted
+ * once; a payment reminder repeats daily inside its window until Paid. Notifications carry only
+ * the bank and last four digits and are private on the lock screen.
  */
 object Reminders {
 
@@ -64,6 +65,10 @@ object Reminders {
         if (!expiryOn && !dueOn) return
         if (!notificationsAllowed(context)) return
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        // 2.2 builds keyed expiry reminders on the plaintext expiry; drop those entries.
+        prefs.all.keys.filter { it.startsWith("exp:") }.takeIf { it.isNotEmpty() }?.let { stale ->
+            prefs.edit().apply { stale.forEach(::remove) }.apply()
+        }
         val cards = app.repository.cards.first().filterNot { it.archived }
         val banks = app.repository.banks.first().associateBy { it.id }
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
@@ -73,9 +78,9 @@ object Reminders {
             val title = context.getString(R.string.reminder_card_title, bank, card.number.takeLast(4))
             if (expiryOn) {
                 ReminderRules.expiryReminderDays(card.expiry, today)?.let { days ->
-                    val key = ReminderRules.expiryKey(card.id, card.expiry)
+                    val key = ReminderRules.expiryKey(card.id, PanHasher.hash("exp:" + card.expiry).take(16))
                     if (!prefs.contains(key)) {
-                        val text = context.resources.getQuantityString(R.plurals.reminder_expiry_text, days.toInt(), days.toInt(), card.expiry)
+                        val text = context.resources.getQuantityString(R.plurals.reminder_expiry_text, days.toInt(), days.toInt())
                         post(context, manager, key, title, text)
                         prefs.edit().putLong(key, System.currentTimeMillis()).apply()
                     }
@@ -143,6 +148,21 @@ object Reminders {
             )
         }
         manager.notify(key.hashCode(), builder.build())
+    }
+
+    /** Undoes [markPaid]: the reminder comes back today rather than waiting for tomorrow. */
+    suspend fun undoPaid(context: Context, key: String, today: LocalDate = LocalDate.now()) {
+        PaidStore.unmarkPaid(context, key)
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .remove(ReminderRules.dueDayKey(key, today)).apply()
+        check(context, today)
+    }
+
+    /** Erase all: forget every reminder sent and every payment marked. */
+    fun clearAll(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
+        PaidStore.reset()
+        context.getSystemService(NotificationManager::class.java)?.cancelAll()
     }
 
     /** Records the payment for this due date and clears the reminder; no further nudges this month. */

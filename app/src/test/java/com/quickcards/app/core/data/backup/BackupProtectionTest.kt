@@ -12,7 +12,8 @@ class BackupProtectionTest {
         copyWindowSec = 30,
         clipClearSec = 30,
         maskNumbers = true,
-        notifEnabled = false
+        notifEnabled = false,
+        autofillEnabled = false
     )
 
     private val loose = BackupSettings.Protection(
@@ -22,7 +23,8 @@ class BackupProtectionTest {
         copyWindowSec = 120,
         clipClearSec = 0,
         maskNumbers = false,
-        notifEnabled = true
+        notifEnabled = true,
+        autofillEnabled = true
     )
 
     @Test

@@ -1,19 +1,17 @@
 package com.quickcards.app.navigation
 
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.lifecycle.withResumed
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -53,10 +51,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,6 +77,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.EntityKind
+import com.quickcards.app.R
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.LocalNavAnimatedScope
 import com.quickcards.app.core.ui.LocalSharedTransitionScope
@@ -393,7 +390,7 @@ fun QcApp() {
         fun promptUnlock() {
             val host = context as? FragmentActivity ?: return
             unlockScope.launch {
-                if (UnlockSession.requireUnlock(host, "Unlock to see your cards")) {
+                if (UnlockSession.requireUnlock(host, host.getString(R.string.lock_unlock_reason))) {
                     AppLockController.unlock()
                 }
             }

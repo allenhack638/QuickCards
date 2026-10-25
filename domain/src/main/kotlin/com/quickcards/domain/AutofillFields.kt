@@ -32,29 +32,45 @@ object AutofillFields {
     }
 
     private fun fromName(raw: String?): CardFieldKind? {
-        val s = raw?.lowercase()?.replace(Regex("[^a-z0-9]"), "") ?: return null
-        if (s.isEmpty()) return null
-        val card = s.contains("card") || s.contains("cc") || s.contains("pan")
+        if (raw.isNullOrBlank()) return null
+        // Split camelCase and separators into words first, so "account" never reads as "cc"
+        // and "company" never reads as "pan".
+        val words = raw.replace(Regex("([a-z])([A-Z])"), "$1 $2").lowercase()
+            .split(Regex("[^a-z0-9]+")).filter { it.isNotEmpty() }
+        if (words.isEmpty() || words.any { it.startsWith("account") || it == "iban" || it == "routing" }) return null
+        val s = words.joinToString("")
+        val card = words.any { it == "cc" || it == "pan" || it.startsWith("card") || it == "cardholder" }
+        val expiryWord = words.any { (it.startsWith("exp") && !it.startsWith("expen") && !it.startsWith("export")) || it == "valid" || it == "validity" } ||
+            s.contains("validthru") || s.contains("validtill")
         return when {
-            s.contains("mm") && s.contains("yy") -> CardFieldKind.EXPIRY_DATE
+            words.any { it == "mm" } && words.any { it == "yy" || it == "yyyy" } -> CardFieldKind.EXPIRY_DATE
             s.contains("cvv") || s.contains("cvc") || s.contains("csc") || s.contains("securitycode") ||
                 s.contains("cardverification") -> CardFieldKind.CVV
-            (s.contains("exp") || s.contains("expiry") || s.contains("expiration") || s.contains("valid")) &&
-                (s.contains("month") || s.endsWith("mm")) -> CardFieldKind.EXPIRY_MONTH
-            (s.contains("exp") || s.contains("expiry") || s.contains("expiration") || s.contains("valid")) &&
-                (s.contains("year") || s.endsWith("yy") || s.endsWith("yyyy")) -> CardFieldKind.EXPIRY_YEAR
-            s.contains("exp") || s.contains("expiry") || s.contains("expiration") || s.contains("validthru") ||
-                s.contains("validtill") -> CardFieldKind.EXPIRY_DATE
-            card && (s.contains("number") || s.contains("num") || s.endsWith("no") || s == "pan" ||
+            words == listOf("mm") -> CardFieldKind.EXPIRY_MONTH
+            words == listOf("yy") || words == listOf("yyyy") -> CardFieldKind.EXPIRY_YEAR
+            expiryWord && (words.any { it.startsWith("month") || it == "mm" } || s.endsWith("mm")) -> CardFieldKind.EXPIRY_MONTH
+            expiryWord && (words.any { it.startsWith("year") || it == "yy" || it == "yyyy" } || s.endsWith("yy")) ->
+                CardFieldKind.EXPIRY_YEAR
+            expiryWord -> CardFieldKind.EXPIRY_DATE
+            card && (words.any { it.startsWith("num") || it == "no" } || s.endsWith("no") || s == "pan" ||
                 s.contains("cardno")) -> CardFieldKind.NUMBER
-            card && (s.contains("holder") || s.contains("name")) -> CardFieldKind.NAME
+            card && words.any { it.contains("holder") || it == "name" } -> CardFieldKind.NAME
             s == "nameoncard" || s == "cardholder" -> CardFieldKind.NAME
             else -> null
         }
     }
 
-    /** Fill values for a card; [twoDigitYear] follows the field's own hint when it has one. */
-    fun valueFor(kind: CardFieldKind, number: String, expiry: String, cvv: String, name: String, twoDigitYear: Boolean = false): String? {
+
+    /** Fill values for a card; the year width follows the field's own hint or length when it has one. */
+    fun valueFor(
+        kind: CardFieldKind,
+        number: String,
+        expiry: String,
+        cvv: String,
+        name: String,
+        twoDigitYear: Boolean = false,
+        fourDigitYear: Boolean = false
+    ): String? {
         val parts = expiry.split("/")
         val month = parts.getOrNull(0)?.trim().orEmpty()
         val year = parts.getOrNull(1)?.trim().orEmpty()
@@ -63,7 +79,11 @@ object AutofillFields {
             CardFieldKind.NUMBER -> number.filter(Char::isDigit)
             CardFieldKind.EXPIRY_MONTH -> month.ifEmpty { null }
             CardFieldKind.EXPIRY_YEAR -> (if (twoDigitYear) fullYear.takeLast(2) else fullYear).ifEmpty { null }
-            CardFieldKind.EXPIRY_DATE -> if (month.isNotEmpty() && year.isNotEmpty()) "$month/${fullYear.takeLast(2)}" else null
+            CardFieldKind.EXPIRY_DATE -> if (month.isNotEmpty() && year.isNotEmpty()) {
+                "$month/${if (fourDigitYear) fullYear else fullYear.takeLast(2)}"
+            } else {
+                null
+            }
             CardFieldKind.CVV -> cvv.ifEmpty { null }
             CardFieldKind.NAME -> name.ifEmpty { null }
         }

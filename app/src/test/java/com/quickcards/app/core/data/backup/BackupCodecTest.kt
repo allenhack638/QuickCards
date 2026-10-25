@@ -131,6 +131,16 @@ class BackupCodecTest {
     }
 
     @Test
+    fun `format 2 round trip keeps the payment due day`() {
+        val base = sampleContent()
+        val withDue = base.copy(cards = base.cards.mapIndexed { i, card -> if (i == 0) card.copy(dueDay = 27) else card })
+        val decoded = BackupCodec.decodePayload(BackupCodec.encode(withDue))
+
+        assertEquals(27, decoded.content.cards[0].dueDay)
+        assertNull(decoded.content.cards[1].dueDay)
+    }
+
+    @Test
     fun `format 2 without settings decodes cfg as absent`() {
         val decoded = BackupCodec.decodePayload(BackupCodec.encode(sampleContent()))
 

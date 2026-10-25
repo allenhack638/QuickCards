@@ -88,6 +88,7 @@ object BackupCodec {
                     addProperty("nameOnCard", card.nameOnCard)
                     addProperty("color", card.color)
                     addProperty("note", card.note)
+                    card.dueDay?.let { addProperty("dueDay", it) }
                     add("tagIds", JsonArray().apply { card.tagIds.forEach(::add) })
                     addProperty("sortOrder", card.sortOrder)
                     addProperty("pinned", card.pinned)
@@ -233,6 +234,7 @@ object BackupCodec {
                 typeId = item.stringOrNull("typeId"),
                 variant = item.string("variant"),
                 note = item.string("note"),
+                dueDay = item.intOrNull("dueDay")?.takeIf { it in 1..31 },
                 color = normalizeBand(item.stringOrNull("color")),
                 tagIds = tagIds.distinct(),
                 sortOrder = item.intOrNull("sortOrder") ?: index,

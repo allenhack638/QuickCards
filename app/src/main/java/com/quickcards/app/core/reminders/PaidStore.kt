@@ -32,6 +32,10 @@ object PaidStore {
         flow(context).value = flow(context).value - dueKey
     }
 
+    internal fun reset() {
+        state?.value = emptySet()
+    }
+
     private fun flow(context: Context): MutableStateFlow<Set<String>> =
         state ?: synchronized(this) {
             state ?: MutableStateFlow(

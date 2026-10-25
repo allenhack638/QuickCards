@@ -1,6 +1,8 @@
 package com.quickcards.app.core.ui.components
 
 import android.os.Build
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -46,13 +48,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,7 +77,6 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -369,9 +368,7 @@ fun PassCard(
                     )
                     else -> null
                 }
-                // Expiry and CVV never shrink below their own value and label: at large font sizes
-                // on narrow phones their weighted shares were too small and the values ellipsised.
-                // When that happens both take their natural width and only the name gives way.
+                // Expiry and CVV keep their natural width when space is short; only the name ellipsises.
                 val expiryWeight = if (dense) 1f else if (adaptive) 0.85f else 1f
                 val cvvWeight = if (dense) 0.62f else if (adaptive) 0.55f else 1f
                 val nameWeight = if (dense) 2.0f else if (adaptive) 2.2f else 1.45f
@@ -746,7 +743,7 @@ private fun StatusLabel(
     }
 }
 
-/** "Payment due in 2 days" with Mark paid, tinted from the card's own band like the type pill. */
+/** "Bill due in 2 days" with Mark paid, tinted from the card's own band like the type pill. */
 @Composable
 private fun PassDueStrip(days: Int, tint: Color, onMarkPaid: () -> Unit) {
     val text = when (days) {

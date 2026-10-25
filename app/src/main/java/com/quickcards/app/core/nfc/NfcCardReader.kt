@@ -20,7 +20,8 @@ object NfcCardReader {
             iso.connect()
             iso.timeout = 3_000
             readCard(iso)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // A card can answer anything; a hostile one must not take the app down.
             null
         } finally {
             runCatching { iso.close() }
@@ -46,17 +47,23 @@ object NfcCardReader {
 
     /** Returns the response body on 9000, or null on any error status. */
     private fun transmit(iso: IsoDep, apdu: ByteArray): ByteArray? {
-        val response = iso.transceive(apdu)
-        if (response.size < 2) return null
-        val sw1 = response[response.size - 2].toInt() and 0xFF
-        val sw2 = response[response.size - 1].toInt() and 0xFF
-        if (sw1 == 0x61) {
-            // Response pending: fetch it.
-            return transmit(iso, byteArrayOf(0x00, 0xC0.toByte(), 0x00, 0x00, sw2.toByte()))
+        var command = apdu
+        repeat(MAX_GET_RESPONSE + 1) {
+            val response = iso.transceive(command)
+            if (response.size < 2) return null
+            val sw1 = response[response.size - 2].toInt() and 0xFF
+            val sw2 = response[response.size - 1].toInt() and 0xFF
+            if (sw1 != 0x61) {
+                if (sw1 != 0x90 || sw2 != 0x00) return null
+                return response.copyOfRange(0, response.size - 2)
+            }
+            // Response pending: fetch it, a bounded number of times.
+            command = byteArrayOf(0x00, 0xC0.toByte(), 0x00, 0x00, sw2.toByte())
         }
-        if (sw1 != 0x90 || sw2 != 0x00) return null
-        return response.copyOfRange(0, response.size - 2)
+        return null
     }
+
+    private const val MAX_GET_RESPONSE = 8
 
     private fun select(name: ByteArray): ByteArray =
         byteArrayOf(0x00, 0xA4.toByte(), 0x04, 0x00, name.size.toByte()) + name + byteArrayOf(0x00)

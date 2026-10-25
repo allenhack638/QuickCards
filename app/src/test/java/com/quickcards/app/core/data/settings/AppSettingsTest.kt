@@ -179,6 +179,15 @@ class AppSettingsTest {
     }
 
     @Test
+    fun legacyHiddenCvvTurnsTheNotificationOffOnUpgrade() {
+        val prefs = FakePreferences()
+        prefs.edit().putBoolean("notif_show_cvv", false).commit()
+        val settings = AppSettings(prefs)
+        assertFalse(settings.notifEnabled.value)
+        assertFalse(prefs.contains("notif_show_cvv"))
+    }
+
+    @Test
     fun removedSettingsKeysAreIgnoredOnImport() {
         val settings = AppSettings(FakePreferences())
         com.quickcards.app.core.data.backup.BackupSettings.restore(
@@ -199,7 +208,8 @@ class AppSettingsTest {
 
         assertEquals(AppTheme.LIGHT, settings.theme.value)
         assertEquals(3, settings.expiresSoonMonths.value)
-        assertTrue(settings.notifEnabled.value)
+        // A backup that hid expiry or CVV keeps the merged notification off.
+        assertFalse(settings.notifEnabled.value)
         assertFalse(settings.toMap().keys.any { key -> key in REMOVED_KEYS })
     }
 

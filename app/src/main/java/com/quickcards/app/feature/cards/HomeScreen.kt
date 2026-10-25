@@ -1,8 +1,9 @@
 package com.quickcards.app.feature.cards
 
 import android.Manifest
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import com.quickcards.app.core.reminders.Reminders
-import com.quickcards.app.core.reminders.PaidStore
 import com.quickcards.app.core.security.AppLockController
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,12 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
@@ -108,8 +107,6 @@ fun HomeScreen(
             ),
             expiry = card.card.expiry,
             cvv = card.card.cvv,
-            showExpiry = state.options.notifEnabled,
-            showCvv = state.options.notifEnabled,
             seconds = state.options.notifSec
         )
     }
@@ -412,7 +409,7 @@ fun HomeScreen(
                             actionLabel = context.getString(R.string.cards_undo),
                             duration = SnackbarDuration.Short
                         )
-                        if (result == SnackbarResult.ActionPerformed) PaidStore.unmarkPaid(context, key)
+                        if (result == SnackbarResult.ActionPerformed) Reminders.undoPaid(context, key)
                     }
                 },
                 onReviewRepair = viewModel::showNeedsCheck,

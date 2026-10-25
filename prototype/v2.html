@@ -1394,6 +1394,8 @@ app.addEventListener('click', e => {
   if (cp && screens.contains(cp)) { if (longFired) { longFired = false; return; } return copyField(cp); }
   const t = e.target.closest('[data-act]'); if (!t) return;
   const a = t.dataset.act, C = S.cfg;
+  // Showing the CVV in notifications always re-asks, like turning a protection off.
+  if (a === 'notif' && !C.notif.on) return openBio(() => { C.notif.on = true; render(); }, 'Confirm it’s you to show the CVV in notifications');
   if (CFG_TOGGLES[a]) { CFG_TOGGLES[a](C); return render(); }
   switch (a) {
     case 'back': return back();

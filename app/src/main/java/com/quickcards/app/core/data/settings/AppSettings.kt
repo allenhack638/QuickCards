@@ -62,6 +62,19 @@ object AppSettingsDefaults {
 
 class AppSettings(private val preferences: SharedPreferences) {
 
+    init {
+        // 2.2 merged "show expiry" and "show CVV" into one switch; whoever hid either keeps it off.
+        if (preferences.contains(LEGACY_NOTIF_SHOW_EXPIRY) || preferences.contains(LEGACY_NOTIF_SHOW_CVV)) {
+            val hidden = !preferences.getBoolean(LEGACY_NOTIF_SHOW_EXPIRY, true) ||
+                !preferences.getBoolean(LEGACY_NOTIF_SHOW_CVV, true)
+            preferences.edit().apply {
+                if (hidden) putBoolean(KEY_NOTIF_ENABLED, false)
+                remove(LEGACY_NOTIF_SHOW_EXPIRY)
+                remove(LEGACY_NOTIF_SHOW_CVV)
+            }.apply()
+        }
+    }
+
     private val _theme = MutableStateFlow(readTheme())
     val theme: StateFlow<AppTheme> = _theme.asStateFlow()
 
@@ -269,6 +282,9 @@ class AppSettings(private val preferences: SharedPreferences) {
     )
 
     fun applyMap(values: Map<String, Any?>) {
+        if (values[LEGACY_NOTIF_SHOW_EXPIRY_NAME] == false || values[LEGACY_NOTIF_SHOW_CVV_NAME] == false) {
+            setNotifEnabled(false)
+        }
         (values[KEY_THEME_NAME] as? String)?.let { raw ->
             runCatching { AppTheme.valueOf(raw.uppercase(Locale.ROOT)) }
                 .getOrNull()
@@ -334,6 +350,10 @@ class AppSettings(private val preferences: SharedPreferences) {
         const val KEY_APP_LOCK_AFTER_SEC = "app_lock_after_sec"
         const val KEY_LOCK_ON_LEAVE = "lock_on_leave"
         const val KEY_AUTOFILL_ENABLED = "autofill_enabled"
+        private const val LEGACY_NOTIF_SHOW_EXPIRY = "notif_show_expiry"
+        private const val LEGACY_NOTIF_SHOW_CVV = "notif_show_cvv"
+        private const val LEGACY_NOTIF_SHOW_EXPIRY_NAME = "notifShowExpiry"
+        private const val LEGACY_NOTIF_SHOW_CVV_NAME = "notifShowCvv"
         const val KEY_NFC_ADD_ENABLED = "nfc_add_enabled"
         const val KEY_EXPIRY_REMINDERS = "expiry_reminders"
         const val KEY_PAYMENT_REMINDERS = "payment_reminders"

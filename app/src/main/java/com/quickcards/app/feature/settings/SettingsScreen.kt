@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.settings
 
 import android.content.Context
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.Lifecycle
 import androidx.compose.runtime.DisposableEffect
@@ -32,28 +34,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -92,6 +89,7 @@ private fun localizedReason(context: Context, reason: String?): String? = when (
         context.getString(R.string.settings_reason_inactivity_never)
     SecurityConfirmation.LOCK_ON_LEAVE_OFF ->
         context.getString(R.string.settings_reason_lock_on_leave_off)
+    SecurityConfirmation.NOTIF_CVV_ON -> context.getString(R.string.settings_reason_notif_cvv_on)
     else -> reason
 }
 
@@ -139,7 +137,7 @@ fun SettingsScreen(
         }
         scope.launch {
             val host = context as? androidx.fragment.app.FragmentActivity ?: return@launch
-            // Only protection-lowering changes are guarded; they always re-ask.
+            // Only changes that lower protection or expose a secret are guarded; they always re-ask.
             if (UnlockSession.requireUnlock(host, reason, fresh = true)) block()
         }
     }
@@ -343,7 +341,11 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_notification_title),
                 subtitle = stringResource(R.string.settings_notification_subtitle),
                 checked = notifEnabled,
-                onCheckedChange = settings::setNotifEnabled
+                onCheckedChange = { enabled ->
+                    guarded(localizedReason(context, SecurityConfirmation.reasonForNotificationCvv(enabled))) {
+                        settings.setNotifEnabled(enabled)
+                    }
+                }
             )
             ValueRow(
                 icon = QcIcons.timer,

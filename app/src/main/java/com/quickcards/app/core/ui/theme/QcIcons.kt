@@ -26,7 +26,6 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EventBusy
-import androidx.compose.material.icons.outlined.Filter3
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.HourglassBottom
 import androidx.compose.material.icons.outlined.Info
@@ -37,7 +36,6 @@ import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -47,7 +45,6 @@ import androidx.compose.material.icons.outlined.PushPin as PushPinOutlined
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.Settings as SettingsOutlined
-import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Tune
@@ -105,8 +102,6 @@ object QcIcons {
     val upload: ImageVector = Icons.Outlined.Upload
     val download: ImageVector = Icons.Outlined.Download
     val password: ImageVector = Icons.Outlined.Password
-    val ruler: ImageVector = Icons.Outlined.Straighten
-    val filter3: ImageVector = Icons.Outlined.Filter3
     val warning: ImageVector = Icons.Outlined.Warning
     val fingerprint: ImageVector = Icons.Outlined.Fingerprint
     val eventBusy: ImageVector = Icons.Outlined.EventBusy
