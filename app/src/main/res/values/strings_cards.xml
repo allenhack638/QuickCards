@@ -119,6 +119,18 @@
     <!-- More sheet -->
     <string name="cards_action_copy_details">Copy details</string>
     <string name="cards_action_edit">Edit card</string>
+    <string name="cards_action_share">Share</string>
+    <string name="cards_unlock_share">Confirm it’s you to share this card</string>
+    <string name="cards_share_title">Share this card?</string>
+    <string name="cards_share_body">The bank, card number, expiry and name are shared as text. Add the CVV only if the person needs it.</string>
+    <string name="cards_share_include_cvv">Include CVV</string>
+    <string name="cards_share_cancel">Cancel</string>
+    <string name="cards_share_confirm">Share</string>
+    <string name="cards_share_chooser">Share card</string>
+    <string name="cards_share_number">Card number: %1$s</string>
+    <string name="cards_share_expiry">Expiry: %1$s</string>
+    <string name="cards_share_name">Name: %1$s</string>
+    <string name="cards_share_cvv">CVV: %1$s</string>
     <string name="cards_action_pin">Pin</string>
     <string name="cards_action_unpin">Unpin</string>
     <string name="cards_action_delete">Delete card</string>

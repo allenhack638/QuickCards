@@ -1,6 +1,9 @@
 package com.quickcards.app.feature.cards
 
 import androidx.compose.ui.draw.alpha
+import com.quickcards.app.core.ui.theme.qcSwitchColors
+import com.quickcards.app.core.ui.components.QcDialog
+import androidx.compose.material3.Switch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -297,6 +300,7 @@ internal fun ActionsSheet(
     card: HomeCard,
     onDismiss: () -> Unit,
     onCopyAll: () -> Unit,
+    onShare: () -> Unit,
     onEdit: () -> Unit,
     onTogglePin: () -> Unit,
     onArchive: () -> Unit,
@@ -363,11 +367,21 @@ internal fun ActionsSheet(
                     label = stringResource(R.string.cards_action_copy_details),
                     onClick = onCopyAll
                 )
+                ActionRow(
+                    icon = QcIcons.share,
+                    label = stringResource(R.string.cards_action_share),
+                    onClick = onShare
+                )
             } else {
                 ActionRow(
                     icon = QcIcons.copy,
                     label = stringResource(R.string.cards_action_copy_details),
                     onClick = onCopyAll
+                )
+                ActionRow(
+                    icon = QcIcons.share,
+                    label = stringResource(R.string.cards_action_share),
+                    onClick = onShare
                 )
                 ActionRow(
                     icon = QcIcons.edit,
@@ -461,3 +475,57 @@ private fun ActionRow(
 
 /** Material 3 disabled content opacity. */
 private const val DisabledAlpha = 0.38f
+
+/** Asks whether the CVV goes along before the system share sheet opens; the CVV is off by default. */
+@Composable
+internal fun ShareCardDialog(onDismiss: () -> Unit, onShare: (includeCvv: Boolean) -> Unit) {
+    var includeCvv by remember { mutableStateOf(false) }
+    QcDialog(onDismissRequest = onDismiss) {
+        Text(
+            text = stringResource(R.string.cards_share_title),
+            style = QcType.DialogTitle,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(QcDimens.Gutter))
+        Text(
+            text = stringResource(R.string.cards_share_body),
+            style = QcType.Body,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(QcDimens.Gutter))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = QcDimens.Touch)
+                .toggleable(value = includeCvv, role = Role.Switch) { includeCvv = it },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.cards_share_include_cvv),
+                style = QcType.BodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Switch(checked = includeCvv, onCheckedChange = null, colors = qcSwitchColors())
+        }
+        Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+            ) {
+                Text(stringResource(R.string.cards_share_cancel))
+            }
+            TextButton(
+                onClick = { onShare(includeCvv) },
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+            ) {
+                Text(stringResource(R.string.cards_share_confirm))
+            }
+        }
+    }
+}

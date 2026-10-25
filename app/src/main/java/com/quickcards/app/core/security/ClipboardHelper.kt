@@ -1,14 +1,9 @@
 package com.quickcards.app.core.security
 
 import android.content.ClipData
-import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
-import android.os.PersistableBundle
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,15 +20,12 @@ object ClipboardHelper {
     private var appContext: Context? = null
     private var lastCopiedText: String? = null
 
-    init {
-        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStop(owner: LifecycleOwner) {
-                clearNow()
-            }
-        })
-    }
-
-    /** @param clearAfterMillis 0 or null keeps the value until the app is backgrounded. */
+    /**
+     * The value stays on the clipboard for the chosen time even when the user switches to the
+     * app they are pasting into; only the timer, Clear or a new copy removes it.
+     *
+     * @param clearAfterMillis 0 or null keeps the value until it is replaced or cleared.
+     */
     fun copySensitive(
         context: Context,
         label: String,
@@ -42,14 +34,9 @@ object ClipboardHelper {
     ) {
         appContext = context.applicationContext
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        // Not flagged sensitive on purpose: the keyboard's clipboard preview is how the value
+        // is found and pasted, and the timer below removes it.
         val clip = ClipData.newPlainText(label, text)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            clip.description.extras = PersistableBundle().apply {
-                putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-            }
-        }
-
         clipboard.setPrimaryClip(clip)
         lastCopiedText = text
         clearJob?.cancel()
@@ -71,10 +58,7 @@ object ClipboardHelper {
         clearIfStillOurs(clipboard)
     }
 
-    /**
-     * From Android 10 an unfocused app reads `primaryClip` as null, so when backgrounding we
-     * clear unconditionally: a card value must not outlive the app.
-     */
+    /** From Android 10 an unfocused app reads `primaryClip` as null; a null is treated as ours. */
     private fun clearIfStillOurs(clipboard: ClipboardManager) {
         if (lastCopiedText == null) return
         val current = runCatching { clipboard.primaryClip?.getItemAt(0)?.text?.toString() }

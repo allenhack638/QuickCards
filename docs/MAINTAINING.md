@@ -114,7 +114,7 @@ Hold 450 ms -> UnlockSession.requireUnlock(...) -> show full value with a 5 s dr
 
 LOCK
 AppLockController (launch / idle / leave / Lock now)
-  -> UnlockSession.lockNow(), hide notification, close overlays
+  -> UnlockSession.lockNow(), close overlays (clipboard and notification keep their timers)
   -> LockScreen covers the app; LockGate/LocalAppLocked keeps every overlay shut
 
 BACKUP
@@ -153,15 +153,15 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 
 | Layer | Mechanism | Where |
 |---|---|---|
-| Sensitive card fields | Per-field AES-256-GCM, random 12-byte IV, 128-bit tag, non-exportable Android Keystore key | `core/security/EncryptionHelper.kt` |
-| Names / bank / note metadata | `md1:` envelope with the same AES-GCM key, idempotent (`encryptMetadata`) | `EncryptionHelper.kt` |
+| Sensitive card fields | Envelope encryption: a non-exportable Android Keystore AES key (KEK) wraps one random AES-256 data key (DEK, stored wrapped in `quickcards_vault_key` prefs, unwrapped once per process, never persisted in the clear). Fields are AES-256-GCM under the DEK in software (`v2:` prefix, random 12-byte IV, 128-bit tag), so a decrypt costs microseconds. Values without the prefix are pre-2.1 rows encrypted directly with the KEK; they still decrypt and `DataMaintenance.wrapUnderDataKey` re-wraps them at start-up (`EnvelopeMigrationTest`). A wrapped DEK that no longer unwraps means the KEK is gone: no new DEK is generated, so the vault reads as unavailable instead of restarting empty. | `core/security/EncryptionHelper.kt` |
+| Names / bank / note metadata | `md1:` envelope around the same `v2:` ciphertext, idempotent (`encryptMetadata`) | `EncryptionHelper.kt` |
 | Duplicate detection | Separate Keystore HMAC-SHA256 key over ASCII digits; unique index on `cards.panHash` | `core/security/PanHasher.kt`, `Card` index |
 | Repair log / archive reason | `card_repairs.before` and `.after` use `encrypt` (both are card data); `cards.archiveReason` uses `encryptMetadata`; never logged | `core/data/repository/LegacyRepair.kt`, `VaultRepository` |
 | Key-loss detection | `core/security/KeySentinel.kt` keeps an encrypted sentinel in private prefs and checks it at start-up; when the Keystore key is gone, Cards shows the "Cards unavailable" dialog (`feature/cards/KeyUnavailableDialog.kt`) instead of rendering ciphertext. Covered by `KeySentinelTest`. |
 | Export/import | PBKDF2-HMAC-SHA256, 600,000 iterations, 16-byte salt, AES-256-GCM, AAD-bound envelope header | `core/security/ExportCrypto.kt` |
 | Authentication | `BiometricPrompt` with device-credential fallback (API 30+ combined, older `setDeviceCredentialAllowed`); fail-closed | `core/security/UnlockSession.kt` |
 | Unlock window | One successful prompt; idle time only (touch/key/scroll/typing extends); no countdown shown | `UnlockSession`, `CopyWindowPolicy` |
-| App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals/clipboard/notification | `core/security/AppLockController.kt` |
+| App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals; the clipboard and the notification keep their own timers so a paste into another app works | `core/security/AppLockController.kt` |
 | Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking | `core/ui/components`, `core/ui/LockGate.kt` |
 | Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+, cleared after the setting, and always on background | `core/security/ClipboardHelper.kt` |
 | Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; actions carry only card id + field, never card data | `core/notifications/CopyCompanionNotifier.kt` |

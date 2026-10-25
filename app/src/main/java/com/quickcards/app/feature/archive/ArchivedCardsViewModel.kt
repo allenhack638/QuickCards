@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.archive
 
 import android.app.Application
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickcards.app.QuickCardsApplication
@@ -127,7 +129,7 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
         searchOn
     ) { lists, options, query, on ->
         buildState(lists, options, query, on)
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
         ArchivedCardsUiState()

@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.cardform
 
 import android.app.Application
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -128,6 +130,7 @@ class CardFormViewModel(
     init {
         viewModelScope.launch {
             combine(listsFlow, optionsFlow) { lists, options -> lists to options }
+                .flowOn(Dispatchers.Default)
                 .collect { (lists, options) ->
                     val build = buildLists(lists, options)
                     val current = _session.value

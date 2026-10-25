@@ -1,6 +1,9 @@
 package com.quickcards.app.feature.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -329,6 +332,9 @@ private fun QcChip(
     selected: Boolean? = null,
     content: @Composable RowScope.() -> Unit
 ) {
+    // The 48dp box is the touch target; the ripple is drawn by the 32dp pill, so a press
+    // never paints a tall rectangle above and below the chip.
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .height(QcDimens.Touch)
@@ -351,9 +357,11 @@ private fun QcChip(
             )
             .then(
                 if (onClick != null) {
-                    Modifier
-                        .clip(RoundedCornerShape(QcDimens.CornerSm))
-                        .clickable(onClick = onClick)
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick
+                    )
                 } else {
                     Modifier
                 }
@@ -365,6 +373,7 @@ private fun QcChip(
                 .height(QcDimens.ChipHeight)
                 .clip(RoundedCornerShape(QcDimens.CornerSm))
                 .background(background)
+                .indication(interactionSource, LocalIndication.current)
                 .then(
                     if (border != null) {
                         Modifier.border(

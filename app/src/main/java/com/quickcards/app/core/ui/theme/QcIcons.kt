@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.HourglassBottom
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
@@ -83,6 +84,7 @@ object QcIcons {
     val visibility: ImageVector = Icons.Outlined.Visibility
     val visibilityOff: ImageVector = Icons.Outlined.VisibilityOff
     val chevronRight: ImageVector = Icons.Outlined.ChevronRight
+    val share: ImageVector = Icons.Outlined.Share
     val dropDown: ImageVector = Icons.Outlined.ArrowDropDown
     val shield: ImageVector = Icons.Outlined.VerifiedUser
     val palette: ImageVector = Icons.Outlined.Palette

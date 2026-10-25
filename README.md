@@ -45,17 +45,19 @@ passphrase-encrypted backup that you export yourself.
   (30 s – 2 min, default 1 min, counted as idle time) in which copies and reveals need no
   further prompt.
 - **App lock.** Locks on launch and asks for your fingerprint straight away. Also locks
-  after inactivity (10 s – 30 min or never), when you leave the app, or with Lock now. Locking closes every dialog and clears revealed values, the
-  clipboard and the notification.
+  after inactivity (10 s – 30 min or never), when you leave the app, or with Lock now. Locking closes every dialog and clears revealed values. The
+  clipboard and the notification keep their own timers, so you can switch to the app you
+  are pasting into.
 - **Expiry and CVV notification.** After copying a number, an optional heads-up
-  notification shows that card's expiry and CVV for a configurable time; it is hidden on
-  the lock screen.
+  notification shows that card's expiry and CVV for a configurable time; it stays in the
+  shade while you switch apps and is hidden on the lock screen.
 - **Several card holders.** Manage holders, banks, card networks (with editable rules),
   card types and tags. Renames that affect cards ask first; items in use cannot be
   deleted.
 - **Card formats.** 12–19 digit numbers, automatic network detection by prefix, per-network
   grouping, CVV length and Luhn check; 10 built-in networks plus custom ones. Duplicate
   numbers are rejected across all holders.
+- **Share a card.** From a card's menu, after the unlock prompt; you choose whether the CVV goes along (off by default) before the system share sheet opens.
 - **Pinning, notes, archive.** Pin cards to the top (configurable limit), show notes on
   cards, archive cards with an optional reason and restore them later.
 - **Expired / expires soon.** Expired cards turn graphite and can stay in place, move to
@@ -74,13 +76,13 @@ passphrase-encrypted backup that you export yourself.
 
 | Area | What QuickCards does |
 |---|---|
-| Card number, expiry, CVV | Encrypted per field with AES-256-GCM (random 12-byte IV, 128-bit tag) using a non-exportable Android Keystore key |
+| Card number, expiry, CVV | Envelope encryption: a non-exportable Android Keystore key wraps a random AES-256 data key, which encrypts each field with AES-256-GCM (random 12-byte IV, 128-bit tag). The data key is unwrapped once per session and never stored in the clear |
 | Holder, bank, note, archive reason | Encrypted with the same Keystore key in a metadata envelope |
 | Duplicate detection | A separate Keystore HMAC-SHA256 key over the digits; only the hash is indexed |
 | App lock | `BiometricPrompt` with device-credential (PIN/pattern/password) fallback; fail-closed — a cancelled or failed prompt never lets a copy, reveal, edit, delete, export, import or erase proceed |
 | Instant-copy window | One successful prompt unlocks sensitive actions for a short, configurable idle window; locking ends it |
 | Screen capture | `FLAG_SECURE` on every activity in release builds: no screenshots, screen recording or recents preview |
-| Clipboard | Copied values are marked sensitive (Android 13+) and cleared after the chosen time (never / 30 s / 1 min / 2 min) and always when the app goes to the background |
+| Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into, and the keyboard's clipboard preview shows them |
 | Network and camera | No `INTERNET`, `ACCESS_NETWORK_STATE` or `CAMERA` permission. Unit tests and a Gradle task check the merged manifests, and CI checks the release APK's permissions before publishing |
 | Android backup | `allowBackup=false`; app data is not copied to cloud backups |
 | Export / import | PBKDF2-HMAC-SHA256 (600,000 iterations, 16-byte salt) + AES-256-GCM with an authenticated header. The passphrase is never stored |

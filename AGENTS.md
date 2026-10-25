@@ -39,7 +39,8 @@ These rules apply to human contributors and AI coding agents alike.
    `keystore/README.md`.
 9. **Auth is fail-closed.** A cancelled/failed BiometricPrompt never lets a copy, reveal,
    edit, delete, export, import or erase proceed. Locking closes overlays and clears
-   revealed values, the clipboard and the notification.
+   revealed values; the clipboard and the notification run on their own timers and are
+   never cleared by leaving the app.
 10. **Small, reviewable changes.** Work on a feature branch and open a pull request; never
     push directly to `main`. Coding agents commit, push, reset or switch branches only
     when the person they work for asks.

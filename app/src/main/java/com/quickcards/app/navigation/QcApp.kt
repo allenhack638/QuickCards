@@ -246,22 +246,22 @@ fun QcApp() {
                         // fades in, so text from two screens never overlaps.
                         enterTransition = {
                             if (isRoot(initialState.destination.route) && isRoot(targetState.destination.route)) {
-                                fadeIn(tween(210, delayMillis = 90, easing = EmphasizedDecelerate))
+                                fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate))
                             } else {
-                                fadeIn(tween(210, delayMillis = 90, easing = EmphasizedDecelerate)) +
+                                fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate)) +
                                     slideInHorizontally(
-                                        animationSpec = tween(300, easing = EmphasizedDecelerate)
+                                        animationSpec = tween(240, easing = EmphasizedDecelerate)
                                     ) { sharedAxisOffset }
                             }
                         },
-                        exitTransition = { fadeOut(tween(90)) },
+                        exitTransition = { fadeOut(tween(50)) },
                         popEnterTransition = {
-                            fadeIn(tween(210, delayMillis = 90, easing = EmphasizedDecelerate)) +
+                            fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate)) +
                                 slideInHorizontally(
-                                    animationSpec = tween(300, easing = EmphasizedDecelerate)
+                                    animationSpec = tween(240, easing = EmphasizedDecelerate)
                                 ) { -sharedAxisOffset }
                         },
-                        popExitTransition = { fadeOut(tween(90)) }
+                        popExitTransition = { fadeOut(tween(50)) }
                     ) {
                     composable(ROUTE_CARDS) {
                         CompositionLocalProvider(LocalNavAnimatedScope provides this) {
@@ -353,8 +353,8 @@ fun QcApp() {
                     val barProgress by animateFloatAsState(
                         targetValue = if (bottomBarVisible) 1f else 0f,
                         animationSpec = tween(
-                            durationMillis = if (bottomBarVisible) 300 else 120,
-                            delayMillis = if (bottomBarVisible) 90 else 0,
+                            durationMillis = if (bottomBarVisible) 240 else 100,
+                            delayMillis = if (bottomBarVisible) 50 else 0,
                             easing = EmphasizedDecelerate
                         ),
                         label = "navBar"

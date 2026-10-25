@@ -64,6 +64,7 @@ import com.quickcards.app.core.ui.components.QcDialog
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
+import com.quickcards.app.core.ui.theme.qcSwitchColors
 import com.quickcards.domain.ArchivedVisibility
 import com.quickcards.domain.ExpiredPlacement
 import com.quickcards.domain.SecurityConfirmation
@@ -583,6 +584,7 @@ fun SettingsScreen(
             ValueRow(
                 icon = QcIcons.lock,
                 title = stringResource(R.string.settings_lock_now_title),
+                opens = false,
                 subtitle = stringResource(R.string.settings_lock_now_subtitle),
                 onClick = {
                     if (appLockEnabled) {
@@ -593,28 +595,26 @@ fun SettingsScreen(
                     }
                 }
             )
-            StaticRow(
-                icon = QcIcons.shield,
-                title = stringResource(R.string.settings_screenshots_title),
-                subtitle = stringResource(R.string.settings_screenshots_subtitle)
-            )
 
             SettingsSubhead(stringResource(R.string.settings_section_backup))
             ValueRow(
                 icon = QcIcons.upload,
                 title = stringResource(R.string.settings_backup_export_title),
+                opens = false,
                 subtitle = stringResource(R.string.settings_backup_export_subtitle),
                 onClick = onExport
             )
             ValueRow(
                 icon = QcIcons.download,
                 title = stringResource(R.string.settings_backup_import_title),
+                opens = false,
                 subtitle = stringResource(R.string.settings_backup_import_subtitle),
                 onClick = onImport
             )
             ValueRow(
                 icon = QcIcons.delete,
                 title = stringResource(R.string.settings_backup_erase_title),
+                opens = false,
                 subtitle = stringResource(R.string.settings_backup_erase_subtitle),
                 danger = true,
                 onClick = onErase
@@ -648,10 +648,10 @@ fun SettingsScreen(
 private fun SettingsSubhead(text: String) {
     Text(
         text = text,
-        style = QcType.Body.copy(fontWeight = FontWeight(600)),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = QcType.Title,
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(
-            start = QcDimens.ListIconTextStart,
+            start = QcDimens.Gutter,
             end = QcDimens.Gutter,
             top = QcDimens.SubheadTop,
             bottom = QcDimens.SubheadBottom
@@ -751,16 +751,7 @@ private fun SwitchRow(
             Switch(
                 checked = checked,
                 onCheckedChange = null,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.onSecondary,
-                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                    checkedBorderColor = MaterialTheme.colorScheme.secondary,
-                    checkedIconColor = MaterialTheme.colorScheme.onSecondary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-                    uncheckedIconColor = Color.Transparent
-                )
+                colors = qcSwitchColors()
             )
         }
     )
@@ -773,6 +764,7 @@ private fun ValueRow(
     subtitle: String,
     enabled: Boolean = true,
     danger: Boolean = false,
+    opens: Boolean = true,
     onClick: () -> Unit
 ) {
     SettingsRow(
@@ -781,6 +773,19 @@ private fun ValueRow(
         subtitle = subtitle,
         enabled = enabled,
         danger = danger,
+        // Rows that open a picker say so; immediate actions (Lock now, backup) do not.
+        trailing = if (opens) {
+            {
+                Icon(
+                    imageVector = QcIcons.chevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(QcDimens.Icon)
+                )
+            }
+        } else {
+            null
+        },
         onClick = onClick
     )
 }

@@ -40,6 +40,7 @@ class QuickCardsApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        EncryptionHelper.init(this)
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(
                 StrictMode.ThreadPolicy.Builder()

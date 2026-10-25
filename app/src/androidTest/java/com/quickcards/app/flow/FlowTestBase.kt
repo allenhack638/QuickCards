@@ -48,6 +48,9 @@ abstract class FlowTestBase {
         }
         app.settings.apply {
             setAppLockEnabled(false)
+            setAppLockAfterSec(AppSettingsDefaults.APP_LOCK_AFTER_SEC)
+            setLockOnLeave(AppSettingsDefaults.LOCK_ON_LEAVE)
+            setCopyWindowSec(AppSettingsDefaults.COPY_WINDOW_SEC)
             setPinnedMax(AppSettingsDefaults.PINNED_MAX)
             setMaskNumbers(AppSettingsDefaults.MASK_NUMBERS)
             setShowCardType(AppSettingsDefaults.SHOW_CARD_TYPE)

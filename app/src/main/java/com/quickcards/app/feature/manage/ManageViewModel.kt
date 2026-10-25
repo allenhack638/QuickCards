@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.manage
 
 import com.quickcards.app.core.ui.entity.toManageCardItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,7 +59,8 @@ class ManageViewModel(application: Application) : AndroidViewModel(application) 
         repository.observeArchived()
     ) { lists, cards, archived ->
         buildState(lists, cards, archived.size)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManageState())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManageState())
 
     suspend fun delete(entity: ManagedEntity): DeletedEntity? = when {
         entity.holder != null && repository.deleteHolder(entity.id) ->

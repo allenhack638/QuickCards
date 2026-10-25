@@ -1,6 +1,7 @@
 package com.quickcards.app.feature.cards
 
 import android.app.Application
+import kotlinx.coroutines.flow.flowOn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickcards.app.QuickCardsApplication
@@ -243,7 +244,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         uiFilters
     ) { lists, tags, options, repair, ui ->
         buildState(lists, tags, options, repair, ui)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     fun setSearchActive(active: Boolean) {
         searchOn.value = active

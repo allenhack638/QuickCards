@@ -1,6 +1,8 @@
 package com.quickcards.app.core.data.repository
 
 import androidx.room.withTransaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import com.quickcards.app.core.data.database.QuickCardsDatabase
 import com.quickcards.app.core.data.model.Bank
 import com.quickcards.app.core.data.model.BandColor
@@ -49,7 +51,7 @@ class VaultRepository(
         cards.mapNotNull { card ->
             runCatching { card.toDomain(tagsByCard[card.id].orEmpty()) }.getOrNull()
         }
-    }
+    }.flowOn(Dispatchers.Default)
 
     /** Archived cards, newest archive first, decrypted with their tags. */
     fun observeArchived(): Flow<List<VaultCard>> = combine(
@@ -60,7 +62,7 @@ class VaultRepository(
         cards.mapNotNull { card ->
             runCatching { card.toDomain(tagsByCard[card.id].orEmpty()) }.getOrNull()
         }
-    }
+    }.flowOn(Dispatchers.Default)
 
     /** The one-time repair banner, read and dismissed by the Cards screen. */
     val repairSummary: Flow<RepairSummary?> = repairSummaries.summary
@@ -130,7 +132,7 @@ class VaultRepository(
         holders.mapNotNull { holder ->
             runCatching { holder.copy(name = encryption.decryptMetadata(holder.name)) }.getOrNull()
         }.sortedBy { it.name.lowercase(Locale.ROOT) }
-    }
+    }.flowOn(Dispatchers.Default)
 
     val banks: Flow<List<Bank>> = bankDao.getAllBanks()
 

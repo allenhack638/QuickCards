@@ -1,6 +1,8 @@
 package com.quickcards.app.feature.cards
 
 import android.Manifest
+import com.quickcards.app.core.security.AppLockController
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -65,6 +67,7 @@ fun HomeScreen(
 
     var filterSheetOpen by remember { mutableStateOf(false) }
     var actionsCard by remember { mutableStateOf<HomeCard?>(null) }
+    var shareCard by remember { mutableStateOf<HomeCard?>(null) }
     var deleteCard by remember { mutableStateOf<HomeCard?>(null) }
     var archiveCard by remember { mutableStateOf<HomeCard?>(null) }
     var permissionAsked by rememberSaveable { mutableStateOf(false) }
@@ -75,6 +78,7 @@ fun HomeScreen(
         if (locked) {
             filterSheetOpen = false
             actionsCard = null
+            shareCard = null
             deleteCard = null
             archiveCard = null
         }
@@ -220,6 +224,29 @@ fun HomeScreen(
             )
             if (result == SnackbarResult.ActionPerformed) ClipboardHelper.clearNow()
         }
+    }
+
+    fun share(card: HomeCard) {
+        actionsCard = null
+        scope.launch {
+            val host = activity ?: return@launch
+            if (!UnlockSession.requireUnlock(host, context.getString(R.string.cards_unlock_share))) return@launch
+            shareCard = card
+        }
+    }
+
+    fun shareNow(card: HomeCard, includeCvv: Boolean) {
+        shareCard = null
+        val text = CardShareText.build(context, card, includeCvv)
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        // The share sheet is another app's window; like the file picker, it must not lock us.
+        AppLockController.beginSystemPicker()
+        context.startActivity(
+            Intent.createChooser(send, context.getString(R.string.cards_share_chooser))
+        )
     }
 
     fun edit(card: HomeCard) {
@@ -403,12 +430,21 @@ fun HomeScreen(
         )
     }
 
+    val shareTarget = shareCard
+    if (shareTarget != null && LockGate.visible(true, locked)) {
+        ShareCardDialog(
+            onDismiss = { shareCard = null },
+            onShare = { includeCvv -> shareNow(shareTarget, includeCvv) }
+        )
+    }
+
     val sheetCard = actionsCard
     if (sheetCard != null && LockGate.visible(true, locked)) {
         ActionsSheet(
             card = sheetCard,
             onDismiss = { actionsCard = null },
             onCopyAll = { copyAll(sheetCard) },
+            onShare = { share(sheetCard) },
             onEdit = { edit(sheetCard) },
             onTogglePin = { togglePin(sheetCard) },
             onArchive = { requestArchive(sheetCard) },

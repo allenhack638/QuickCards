@@ -103,8 +103,6 @@
     <string name="settings_copy_window_body">How long copies stay instant after a fingerprint.</string>
     <string name="settings_lock_now_title">Lock now</string>
     <string name="settings_lock_now_subtitle">Lock QuickCards right away</string>
-    <string name="settings_screenshots_title">Screenshots blocked</string>
-    <string name="settings_screenshots_subtitle">Card details can’t be captured or recorded</string>
 
     <string name="settings_backup_export_title">Export backup</string>
     <string name="settings_backup_export_subtitle">Encrypted file protected by a passphrase</string>

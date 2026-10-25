@@ -6,7 +6,6 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.quickcards.app.core.data.settings.AppSettings
-import com.quickcards.app.core.notifications.CopyCompanionNotifier
 import com.quickcards.app.core.security.BiometricAuthHelper
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.domain.AppLockPolicy
@@ -126,7 +125,7 @@ object AppLockController {
 
     private fun onAppStopped() {
         UnlockSession.lockNow()
-        appContext?.let(CopyCompanionNotifier::cancel)
+        // The copy notification keeps its own timeout: the user is leaving to paste.
         if (SystemClock.elapsedRealtime() < systemPickerUntil) return
         systemPickerUntil = 0L
         val prefs = settings ?: return
@@ -137,7 +136,7 @@ object AppLockController {
 
     private fun showLock() {
         UnlockSession.lockNow()
-        appContext?.let(CopyCompanionNotifier::cancel)
+        // The copy notification keeps its own timeout: the user is leaving to paste.
         _isLocked.value = true
     }
 

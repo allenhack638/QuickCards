@@ -1,0 +1,14 @@
+# Hand-written baseline profile: the APK ships outside Play, so no cloud profile exists.
+# Pre-compiles the app and the UI libraries it renders with, so first runs skip the JIT.
+HSPLcom/quickcards/app/**->**(**)**
+HSPLcom/quickcards/domain/**->**(**)**
+HSPLandroidx/compose/**->**(**)**
+HSPLandroidx/navigation/**->**(**)**
+HSPLandroidx/lifecycle/**->**(**)**
+HSPLandroidx/room/**->**(**)**
+HSPLandroidx/activity/**->**(**)**
+HSPLkotlinx/coroutines/**->**(**)**
+Lcom/quickcards/app/**
+Lcom/quickcards/domain/**
+Landroidx/compose/**
+Landroidx/navigation/**

@@ -196,7 +196,7 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 /* ---------- Icons ---------- */
-const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', };
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', };
 const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
 
 const LOGO = (vb = '0 0 108 108') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="currentColor" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
@@ -347,12 +347,12 @@ let lastActive = Date.now();
 const isAppLocked = () => !lockscr.hidden;
 function lockApp(reason) {
   if (!S.cfg.appLock.on) return;
-  lockNow(); hideHun(); hideSnack();
+  lockNow(); hideSnack();
   if (!sheet.hidden) closeSheet(); if (!dialog.hidden) closeDialog(); if (!bio.hidden) closeBio();
   lockscr.innerHTML = `<div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
     <div class="why">Use your fingerprint or screen lock to see your cards</div></div>
     <button class="btn filled unlock sl" data-act="appunlock" aria-label="Unlock QuickCards">${I('fp')}Unlock</button>
-    <div class="foot">${I('shield')}Encrypted on this phone · v2.0.2</div>`;
+    <div class="foot">${I('shield')}Encrypted on this phone · v2.1.0</div>`;
   lockscr.hidden = false; requestAnimationFrame(() => lockscr.classList.add('show'));
   // The prompt opens on its own; Unlock re-opens it after a cancel.
   setTimeout(() => { if (isAppLocked() && bio.hidden) openBio(unlockApp, 'Unlock to see your cards'); }, 420);
@@ -428,6 +428,19 @@ hun.addEventListener('click', e => {
   const b = e.target.closest('[data-hun]'); if (!b) return;
   if (b.dataset.hun === 'x') return hideHun();
 });
+
+/* ---------- Share ---------- */
+function shareDialog(c) {
+  const net = detectNet(c.number);
+  openDialog(`<h2>Share this card?</h2><div class="body">The bank, card number, expiry and name are shared as text. Add the CVV only if the person needs it.</div>
+    <button class="checkrow sl" role="checkbox" aria-checked="false" id="shareCvv" style="padding:0;margin-top:8px"><span class="cb">${I('check')}</span>Include CVV</button>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="share">Share</button></div>`, () => {
+    dialog.onclick = e => { const cb = e.target.closest('#shareCvv'); if (cb) { cb.setAttribute('aria-checked', cb.getAttribute('aria-checked') !== 'true'); return; }
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; const cvv = $('#shareCvv', dialog)?.getAttribute('aria-checked') === 'true'; closeDialog(); if (d !== 'share') return;
+      const text = [cardTitle(c), `Card number: ${fmt(c.number, net, false)}`, `Expiry: ${c.exp}`, holderName(c) ? `Name: ${holderName(c)}` : null, cvv ? `CVV: ${c.cvv}` : null].filter(Boolean).join('\n');
+      if (navigator.share) navigator.share({ text }).catch(() => {}); else snackbar('Share sheet opens here on the phone'); };
+  });
+}
 
 /* ---------- Navigation ---------- */
 const top = () => S.stack[S.stack.length - 1];
@@ -738,7 +751,7 @@ function entityDelete(kind, id) {
 /* ---------- Settings ---------- */
 function settingsHTML() {
   const C = S.cfg, sw = (act, on, ic, h, s, dis) => `<button class="li two sl" role="switch" aria-checked="${on}" data-act="${act}" ${dis ? 'disabled' : ''}><span class="lead">${I(ic)}</span><span class="txt"><span class="h">${h}</span><span class="s">${s}</span></span><span class="switch" aria-checked="${on}"></span></button>`;
-  const row = (act, ic, h, s, dis) => `<button class="li two sl" data-act="${act}" ${dis ? 'disabled' : ''}><span class="lead">${I(ic)}</span><span class="txt"><span class="h">${h}</span><span class="s">${s}</span></span></button>`;
+  const row = (act, ic, h, s, dis, opens = true) => `<button class="li two sl" data-act="${act}" ${dis ? 'disabled' : ''}><span class="lead">${I(ic)}</span><span class="txt"><span class="h">${h}</span><span class="s">${s}</span></span>${opens ? `<span class="trail">${I('chev')}</span>` : ''}</button>`;
   return `<header class="appbar"><h1 class="t-display">Settings</h1></header>
   <div class="scroll">
     <div class="subhead">Appearance</div>
@@ -770,13 +783,12 @@ function settingsHTML() {
     ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'When you switch apps or lock the phone', !C.appLock.on)}
     ${row('window', 'copy', 'Instant copy window', `Copy without a fingerprint until ${secText(C.windowSec)} of no use`)}
     <button class="li two sl" data-act="locknow"><span class="lead">${I('lock')}</span><span class="txt"><span class="h">Lock now</span><span class="s">Lock QuickCards right away</span></span></button>
-    <div class="li two"><span class="lead">${I('shield')}</span><span class="txt"><span class="h">Screenshots blocked</span><span class="s">Card details can’t be captured or recorded</span></span></div>
     <div class="subhead">Backup</div>
-    ${row('export', 'upload', 'Export backup', 'Encrypted file protected by a passphrase', !S.cards.length)}
-    ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions')}
+    ${row('export', 'upload', 'Export backup', 'Encrypted file protected by a passphrase', !S.cards.length, false)}
+    ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
-    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.0.2</span></span></div>
+    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.1.0</span></span></div>
     <div class="li two" style="margin-bottom:24px"><span class="lead">${I('offline')}</span><span class="txt"><span class="h">Works offline</span><span class="s">QuickCards has no network access</span></span></div>
   </div>`;
 }
@@ -1081,8 +1093,10 @@ function actionsSheet(id) {
   const menu = c.archived
     ? `<button class="li sl" role="menuitem" data-sa="restore"><span class="lead">${I('unarchive')}</span><span class="txt"><span class="h">Restore</span></span></button>
       <button class="li sl" role="menuitem" data-sa="edit"><span class="lead">${I('edit')}</span><span class="txt"><span class="h">Edit card</span></span></button>
-      <button class="li sl" role="menuitem" data-sa="copyall"><span class="lead">${I('copy')}</span><span class="txt"><span class="h">Copy details</span></span></button>`
+      <button class="li sl" role="menuitem" data-sa="copyall"><span class="lead">${I('copy')}</span><span class="txt"><span class="h">Copy details</span></span></button>
+      <button class="li sl" role="menuitem" data-sa="share"><span class="lead">${I('share')}</span><span class="txt"><span class="h">Share</span></span></button>`
     : `<button class="li sl" role="menuitem" data-sa="copyall"><span class="lead">${I('copy')}</span><span class="txt"><span class="h">Copy details</span></span></button>
+      <button class="li sl" role="menuitem" data-sa="share"><span class="lead">${I('share')}</span><span class="txt"><span class="h">Share</span></span></button>
       <button class="li sl" role="menuitem" data-sa="edit"><span class="lead">${I('edit')}</span><span class="txt"><span class="h">Edit card</span></span></button>
       ${pinRow}
       <button class="li sl" role="menuitem" data-sa="archive"><span class="lead">${I('archive')}</span><span class="txt"><span class="h">Archive</span></span></button>`;
@@ -1093,6 +1107,7 @@ function actionsSheet(id) {
     </div>`, () => {
     sheet.onclick = e => { const b = e.target.closest('[data-sa]'); if (!b) return; const a = b.dataset.sa; closeSheet();
       if (a === 'copyall') requireUnlock(() => { setClip(`${cardTitle(c)} details`, `${fmt(c.number, net, false)}\n${c.exp}\n${holderName(c)}`); snackbar('Number, expiry and name copied', 'Clear', clearClip); });
+      if (a === 'share') requireUnlock(() => shareDialog(c), 'Confirm it’s you to share this card');
       if (a === 'edit') requireUnlock(() => startForm('edit', id), 'Confirm it’s you to edit this card');
       if (a === 'pin') togglePin(c);
       if (a === 'archive') archiveDialog(c);
@@ -1436,7 +1451,7 @@ app.addEventListener('pointermove', e => { if (sx == null) return; const dx = Ma
 app.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; edge.style.opacity = 0; edge.style.transform = ''; if (dx > 60) back(); });
 
 /* ---------- Panel ---------- */
-$('#leave').onclick = () => { clearClip(); hideHun(); closeBio(); if (S.cfg.appLock.on && S.cfg.appLock.onLeave) lockApp('leave'); else { lockNow(); snackbar('Copying locked when you left'); } };
+$('#leave').onclick = () => { closeBio(); if (S.cfg.appLock.on && S.cfg.appLock.onLeave) lockApp('leave'); else { lockNow(); snackbar('Copying locked when you left'); } };
 $('#reset').onclick = () => { try { localStorage.removeItem(KEY); } catch (_) {} Object.assign(S, seed(), { stack: [{ name: 'home' }], tab: 'cards', search: { on: false, q: '' }, archSearch: { on: false, q: '' }, filters: emptyFilters(), noteOpen: new Set(), lastExport: null, form: null }); lockNow(); clearClip(); hideHun(); if (!sheet.hidden) closeSheet(); if (!dialog.hidden) closeDialog(); applyTheme(); render('fade'); };
 
 applyTheme(); render();
