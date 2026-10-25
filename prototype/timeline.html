@@ -308,7 +308,7 @@
         <li><b>Theme is a row.</b> Appearance shows a normal two-line <b>Theme</b> row whose supporting text is System default, Light or Dark; tapping it opens the shared radio dialog with those three options. The segmented control is gone.</li>
         <li><b>One picker.</b> Card holder, Bank and Card type open the same bottom sheet, “Choose card holder”, “Choose bank” and “Choose card type”, with the item’s lead, a check on the current choice, search above seven items and a final <b>Add …</b> row. Card type starts with None.</li>
         <li><b>Limits while typing.</b> Number, expiry, CVV, note, tag and every Manage name keep only the filtered value at the field’s limit, with the caret at the end; pasting is trimmed the same way.</li>
-        <li><b>Red actions, dirty Save.</b> Filled actions stay brand red with system colours on; dynamic colour tints surfaces only. In Edit, <b>Save changes</b> stays disabled until something changes, as does Save in every Manage edit dialog.</li>
+        <li><b>Red actions, dirty Save.</b> Filled actions stay brand red. In Edit, <b>Save changes</b> stays disabled until something changes, as does Save in every Manage edit dialog.</li>
         <li><b>Tag row.</b> The Add button is 56dp tall and centred on the field box, with the 0/16 counter flush under the field.</li>
       </ul></div>
     </div>
@@ -526,7 +526,6 @@
 <p class="lead">Every behaviour the user can change, with its default. The inactivity lock and the instant copy window count only time without use: any touch, key, scroll or typing restarts both.</p>
 <div class="tbl-wrap"><table><thead><tr><th>Section</th><th>Setting</th><th>Options</th><th>Default</th></tr></thead><tbody>
   <tr><td>Appearance</td><td>Theme</td><td class="m">System default, Light, Dark — a row opening a radio dialog</td><td>Dark</td></tr>
-  <tr><td></td><td>Use system colours</td><td class="m">On, Off (Android 12+)</td><td>Off</td></tr>
   <tr><td>Cards</td><td>Hide card numbers</td><td class="m">Last 4 only until hold or edit</td><td>On</td></tr>
   <tr><td>Card list</td><td>Expired cards</td><td class="m">Keep in place, Move to the end, Hide from the list</td><td>Move to the end</td></tr>
   <tr><td></td><td>Expires soon</td><td class="m">Within 1 month, Within 2 months, Within 3 months</td><td>Within 1 month</td></tr>
@@ -573,7 +572,7 @@
   <tr><td>Banks</td><td class="m">Names and monograms</td><td>Always</td></tr>
   <tr><td>Card networks</td><td class="m">Name, label, starting digits, lengths, CVV digits, Luhn, grouping, including your custom networks</td><td>Always</td></tr>
   <tr><td>Card types and tags</td><td class="m">Names</td><td>Always</td></tr>
-  <tr><td>Settings</td><td class="m">Theme, system colours, number masking, Card list (expired placement, expires-soon window, notes on cards), clipboard time, show expiry and CVV after copying (with its time), tag display, app lock, inactivity time, lock on leave, copy window</td><td>When ticked (default)</td></tr>
+  <tr><td>Settings</td><td class="m">Theme, number masking, Card list (expired placement, expires-soon window, notes on cards), clipboard time, show expiry and CVV after copying (with its time), tag display, app lock, inactivity time, lock on leave, copy window</td><td>When ticked (default)</td></tr>
   <tr><td>Not included</td><td class="m">Unlock state, clipboard, search and filters, the backup password itself, Android Keystore keys</td><td>Never</td></tr>
 </tbody></table></div>
 <p>The whole file is encrypted with the backup password: AES-256-GCM with a key derived by PBKDF2-HMAC-SHA256 over 600,000 iterations. The backup password cannot be recovered; without it the file is unreadable.</p>
@@ -668,7 +667,7 @@
   <div class="box"><h4>Cards</h4><ul><li>Add and edit with a live preview</li><li class="new">Keyboard scan and smart paste: pasted or scanned text fills number and expiry</li><li class="new">Network detected from the number; no field and no override</li><li class="new">12 to 19 digit numbers, 3 or 4 digit CVV</li><li>Luhn, expiry, CVV and duplicate checks</li><li class="new">Optional card type, tags and note</li><li>One name, the holder, shown in capitals on the pass</li><li>Pass colour, pin and unpin, delete with undo</li><li class="new">Pinned cards first, up to the limit, with a pin glyph on the band</li></ul></div>
   <div class="box"><h4>Organise</h4><ul><li class="new">Several card holders with home chips</li><li class="new">Manage holders, banks, networks, types and tags</li><li class="new">Rename warning listing affected cards</li><li class="new">Delete blocked while cards use an item</li></ul></div>
   <div class="box"><h4>Find</h4><ul><li>Search by digits, bank, holder, note</li><li class="new">Search by network and tag</li><li class="new">Filter by holder, bank, network, type and tag</li><li class="new">Status filter: Expired and Expires soon, with counts</li><li>Live result count; removable filter chips</li></ul></div>
-  <div class="box"><h4>Settings and data</h4><ul><li>Theme row and system colours</li><li class="new">Masking, type pill, pinned limit, clipboard, notification and tag settings</li><li class="new">Card list: expired placement, expires-soon window, archived in search, notes on cards</li><li>Unlock window length</li><li>Encrypted export with confirmed backup password</li><li class="new">Settings included in backups</li><li class="new">Import review; update or keep saved cards; restore settings; formats fixed and need a check</li><li>Erase everything with confirmation</li></ul></div>
+  <div class="box"><h4>Settings and data</h4><ul><li>Theme row</li><li class="new">Masking, type pill, pinned limit, clipboard, notification and tag settings</li><li class="new">Card list: expired placement, expires-soon window, archived in search, notes on cards</li><li>Unlock window length</li><li>Encrypted export with confirmed backup password</li><li class="new">Settings included in backups</li><li class="new">Import review; update or keep saved cards; restore settings; formats fixed and need a check</li><li>Erase everything with confirmation</li></ul></div>
   <div class="box"><h4>Card list care</h4><ul><li class="new">One-time legacy repair; dismissible banner with Review and Dismiss; Check details on unfixable cards</li><li class="new">Edit shows “Changed from …” with Undo for an automatic fix</li><li class="new">Expired pass in neutral graphite with an outlined Expired chip; values still copy and reveal</li><li class="new">Expires soon label only, with a 1, 2 or 3 month window</li><li class="new">Archive with an optional reason; Archived cards screen with search and Restore</li><li class="new">Notes on the pass, two lines with More / Less, long-press to copy</li></ul></div>
 </div>
 

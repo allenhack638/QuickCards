@@ -71,12 +71,6 @@
   --state-press: rgba(24,24,27,.10);
   color-scheme: light;
 }
-.qc[data-dynamic="on"] {
-  --sc: color-mix(in srgb, #2F6B5B 6%, var(--surface));
-  --sc-high: color-mix(in srgb, #2F6B5B 10%, var(--surface));
-  --sc-highest: color-mix(in srgb, #2F6B5B 14%, var(--surface));
-  --indicator: color-mix(in srgb, #2F6B5B 22%, var(--surface));
-}
 
 .qc {
   --font: "Roboto Flex", Roboto, system-ui, sans-serif;

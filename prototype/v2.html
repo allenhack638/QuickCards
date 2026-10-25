@@ -266,9 +266,9 @@ const PINNED_MAX = 10, TAGS_MAX = 10, TAGS_LEN = 16;
 
 /* ---------- Data ---------- */
 const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
-const CFG0 = () => ({ theme: 'dark', dynamic: false, autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
+const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
 const cleanCfg = c => ({
-  theme: c.theme ?? 'dark', dynamic: c.dynamic ?? false, windowSec: c.windowSec ?? 60,
+  theme: c.theme ?? 'dark', windowSec: c.windowSec ?? 60,
   clipSec: c.clipSec ?? 60, mask: c.mask ?? true, expiredCards: c.expiredCards ?? 'end',
   expiresSoonMonths: c.expiresSoonMonths ?? 1, showNotes: c.showNotes ?? true,
   notif: { on: c.notif?.on ?? true, sec: c.notif?.sec ?? 30 },
@@ -335,7 +335,7 @@ const scale = () => app.getBoundingClientRect().width / app.offsetWidth || 1;
 
 /* ---------- Theme ---------- */
 const mq = matchMedia('(prefers-color-scheme: dark)');
-function applyTheme() { app.dataset.theme = S.cfg.theme === 'system' ? (mq.matches ? 'dark' : 'light') : S.cfg.theme; app.dataset.dynamic = S.cfg.dynamic ? 'on' : 'off'; }
+function applyTheme() { app.dataset.theme = S.cfg.theme === 'system' ? (mq.matches ? 'dark' : 'light') : S.cfg.theme; }
 mq.addEventListener('change', applyTheme);
 
 /* ---------- Unlock window ---------- */
@@ -783,7 +783,6 @@ function settingsHTML() {
   <div class="scroll">
     <div class="subhead">Appearance</div>
     ${row('theme', 'contrast', 'Theme', themeLabel(C.theme))}
-    ${sw('dynamic', C.dynamic, 'palette', 'Use system colours', 'Use colours from your wallpaper')}
     <div class="subhead">Cards</div>
     ${sw('mask', C.mask, 'mask', 'Hide card numbers', 'Show only the last 4 digits')}
     ${sw('nfc', C.nfc, 'nfc', 'Add cards by tapping', 'Tap a card on the phone to read it')}
@@ -1388,7 +1387,7 @@ screens.addEventListener('pointerdown', e => {
 screens.addEventListener('contextmenu', e => { if (e.target.closest('[data-copy], [data-note]')) e.preventDefault(); });
 
 /* ---------- Click routing ---------- */
-const CFG_TOGGLES = { autofill: c => c.autofill = !c.autofill, nfc: c => c.nfc = !c.nfc, expiryrem: c => c.expiryReminders = !c.expiryReminders, paymentrem: c => c.paymentReminders = !c.paymentReminders, applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, dynamic: c => { c.dynamic = !c.dynamic; applyTheme(); }, mask: c => c.mask = !c.mask, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, tagshow: c => c.tags.show = !c.tags.show };
+const CFG_TOGGLES = { autofill: c => c.autofill = !c.autofill, nfc: c => c.nfc = !c.nfc, expiryrem: c => c.expiryReminders = !c.expiryReminders, paymentrem: c => c.paymentReminders = !c.paymentReminders, applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, mask: c => c.mask = !c.mask, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, tagshow: c => c.tags.show = !c.tags.show };
 app.addEventListener('click', e => {
   const cp = e.target.closest('[data-copy]');
   if (cp && screens.contains(cp)) { if (longFired) { longFired = false; return; } return copyField(cp); }
