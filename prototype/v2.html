@@ -783,33 +783,33 @@ function settingsHTML() {
   <div class="scroll">
     <div class="subhead">Appearance</div>
     ${row('theme', 'contrast', 'Theme', themeLabel(C.theme))}
-    ${sw('dynamic', C.dynamic, 'palette', 'Use system colours', 'Match your wallpaper on Android 12+')}
+    ${sw('dynamic', C.dynamic, 'palette', 'Use system colours', 'Use colours from your wallpaper')}
     <div class="subhead">Cards</div>
     ${sw('mask', C.mask, 'mask', 'Hide card numbers', 'Show only the last 4 digits')}
-    ${sw('nfc', C.nfc, 'nfc', 'Add cards by tapping', 'Hold a card to the back of the phone to read its number and expiry')}
+    ${sw('nfc', C.nfc, 'nfc', 'Add cards by tapping', 'Tap a card on the phone to read it')}
     <div class="subhead">Card list</div>
     ${row('expiredcards', 'expired', 'Expired cards', EXPIRED_LABEL[C.expiredCards] || EXPIRED_LABEL.end)}
     ${row('soonmonths', 'soon', 'Expires soon', C.expiresSoonMonths === 1 ? 'Within 1 month' : `Within ${C.expiresSoonMonths} months`)}
     ${sw('shownotes', C.showNotes, 'notes', 'Show notes on cards', 'Up to 2 lines on each card')}
     <div class="subhead">Reminders</div>
-    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'A notification 30 days before a card expires')}
-    ${sw('paymentrem', C.paymentReminders, 'payments', 'Payment reminders', '3 days before a card’s due day, when you set one')}
+    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'Reminder 30 days before a card expires')}
+    ${sw('paymentrem', C.paymentReminders, 'payments', 'Payment reminders', '3 days before a card’s due day')}
     <div class="subhead">Copying</div>
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
-    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For the time set below, hidden on the lock screen')}
+    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For the time below, hidden when locked')}
     ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
-    ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On · suggestions appear in checkout forms' : 'Suggest your cards in checkout forms, after your fingerprint')}
+    ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On, cards appear in checkout forms' : 'Fill cards after your fingerprint')}
     <div class="subhead">Tags</div>
-    ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under the stub')}
+    ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under each card')}
     <div class="subhead">Security</div>
     ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Fingerprint needed to open QuickCards')}
     ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}
-    ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'When you switch apps or lock the phone', !C.appLock.on)}
-    ${row('window', 'copy', 'Instant copy window', `Copy without a fingerprint until ${secText(C.windowSec)} of no use`)}
+    ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'When you leave or lock the phone', !C.appLock.on)}
+    ${row('window', 'copy', 'Instant copy window', `No fingerprint needed for ${secText(C.windowSec)}`)}
     <button class="li two sl" data-act="locknow"><span class="lead">${I('lock')}</span><span class="txt"><span class="h">Lock now</span><span class="s">Lock QuickCards right away</span></span></button>
     <div class="subhead">Backup</div>
-    ${row('export', 'upload', 'Export backup', 'Encrypted file protected by a backup password', !S.cards.length, false)}
-    ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions', false, false)}
+    ${row('export', 'upload', 'Export backup', 'Protected by a password you choose', !S.cards.length, false)}
+    ${row('import', 'download', 'Import backup', 'Restore from a QuickCards backup', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
     <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.2.0</span></span></div>
