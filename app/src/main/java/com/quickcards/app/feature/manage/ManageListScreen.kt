@@ -3,8 +3,11 @@ package com.quickcards.app.feature.manage
 import androidx.compose.foundation.background
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.quickcards.app.core.ui.components.MarkSurface
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
+import com.quickcards.app.core.ui.components.networkLeadWidth
+import com.quickcards.app.core.ui.components.networkMarkPlate
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,13 +44,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.quickcards.app.R
@@ -83,6 +89,27 @@ fun ManageListScreen(
     var deleteTarget by remember { mutableStateOf<ManagedEntity?>(null) }
     var blockedTarget by remember { mutableStateOf<ManagedEntity?>(null) }
     val locked = LocalAppLocked.current
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val density = LocalDensity.current
+    val measurer = rememberTextMeasurer()
+    val badgeStyle = QcType.BandNetwork.copy(
+        fontSize = 9.sp / density.fontScale,
+        lineHeight = 12.sp / density.fontScale,
+        letterSpacing = 0.04.em
+    )
+    val leadSlot: Dp? = if (kind == EntityKind.NETWORK) {
+        val widths = entities.map { entity ->
+            if (NetworkMarks.drawable(entity.network?.id) != null) {
+                QcDimens.NetworkBadgeMinWidth
+            } else with(density) {
+                measurer.measure(entity.network?.code.orEmpty(), badgeStyle).size.width.toDp() +
+                    QcDimens.Base * 2 + QcDimens.Divider * 2
+            }
+        }
+        networkLeadWidth(widths, QcDimens.NetworkBadgeMinWidth, QcDimens.NetworkBadgeSlot)
+    } else {
+        null
+    }
 
     LaunchedEffect(locked) {
         if (locked) {
@@ -195,6 +222,7 @@ fun ManageListScreen(
                     EntityRow(
                         kind = kind,
                         entity = entity,
+                        leadSlot = leadSlot,
                         onEdit = { openEdit(entity.id) },
                         onDelete = {
                             if (entity.usedCards.isNotEmpty()) {
@@ -255,6 +283,7 @@ fun ManageListScreen(
 private fun EntityRow(
     kind: EntityKind,
     entity: ManagedEntity,
+    leadSlot: Dp?,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -270,13 +299,9 @@ private fun EntityRow(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val leadSlot = if (kind == EntityKind.NETWORK) {
-            Modifier.width(QcDimens.NetworkBadgeSlot)
-        } else {
-            Modifier
-        }
+        val leadModifier = if (leadSlot != null) Modifier.width(leadSlot) else Modifier
         Box(
-            modifier = leadSlot.heightIn(min = QcDimens.Monogram),
+            modifier = leadModifier.heightIn(min = QcDimens.Monogram),
             contentAlignment = Alignment.CenterStart
         ) {
             EntityLead(kind = kind, entity = entity)
@@ -377,9 +402,14 @@ private fun EntityLead(kind: EntityKind, entity: ManagedEntity) {
 
         EntityKind.NETWORK -> {
             val fontScale = LocalDensity.current.fontScale
+            val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
             val mark = NetworkMarks.drawable(entity.network?.id)
             if (mark != null) {
-                NetworkMark(resId = mark, contentDescription = null)
+                NetworkMark(
+                    resId = mark,
+                    contentDescription = null,
+                    plate = networkMarkPlate(MarkSurface.LIST, dark)
+                )
             } else Box(
                 modifier = Modifier
                     .widthIn(
