@@ -78,7 +78,11 @@ class QuickCardsAutofillService : AutofillService() {
             val bank = card.bankId?.let { banks[it]?.name }.orEmpty().ifBlank { getString(R.string.app_name) }
             val title = getString(
                 R.string.autofill_suggestion,
-                listOfNotNull(bank, network?.name?.takeIf { it.isNotBlank() }).joinToString(" "),
+                // "American Express ···0005", not "American Express American Express ···0005".
+                listOfNotNull(
+                    bank,
+                    network?.name?.takeIf { it.isNotBlank() && !bank.contains(it, ignoreCase = true) }
+                ).joinToString(" "),
                 card.number.takeLast(4)
             )
             val presentation = RemoteViews(packageName, R.layout.autofill_suggestion).apply {
