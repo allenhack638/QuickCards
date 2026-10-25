@@ -104,7 +104,6 @@ class BackupCodecTest {
         val content = sampleContent(
             settings = mapOf(
                 "theme" to "light",
-                "dynamicColor" to false,
                 "copyWindowSec" to 120,
                 "maskNumbers" to true
             )
@@ -125,9 +124,24 @@ class BackupCodecTest {
         val settings = decoded.content.settings
         requireNotNull(settings)
         assertEquals("light", settings["theme"])
-        assertEquals(false, settings["dynamicColor"])
         assertEquals(120, (settings["copyWindowSec"] as Number).toInt())
         assertEquals(true, settings["maskNumbers"])
+    }
+
+    @Test
+    fun `an old backup with dynamicColor decodes and keeps the other settings`() {
+        val json = """
+            {"meta":{"app":"QuickCards","format":2,"version":"2.0","exportedAt":"2026-10-20"},
+             "cfg":{"theme":"light","dynamicColor":true,"maskNumbers":false,"copyWindowSec":120},
+             "cards":[]}
+        """.trimIndent()
+
+        val settings = requireNotNull(BackupCodec.decodePayload(json).content.settings)
+
+        assertEquals("light", settings["theme"])
+        assertEquals(false, settings["maskNumbers"])
+        assertEquals(120, (settings["copyWindowSec"] as Number).toInt())
+        assertEquals(true, settings["dynamicColor"])
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.quickcards.app.flow
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
@@ -26,6 +27,15 @@ class SettingsCardListFlowTest : FlowTestBase() {
         app.settings.setExpiredCards(AppSettingsDefaults.EXPIRED_CARDS)
         app.settings.setExpiresSoonMonths(AppSettingsDefaults.EXPIRES_SOON_MONTHS)
         app.settings.setShowNotes(AppSettingsDefaults.SHOW_NOTES)
+    }
+
+    @Test
+    fun appearanceNoLongerOffersSystemColours() {
+        openCardListSection()
+
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Theme"))
+        waitForText("Theme")
+        compose.onAllNodes(hasText("Use system colours", substring = true)).assertCountEquals(0)
     }
 
     @Test

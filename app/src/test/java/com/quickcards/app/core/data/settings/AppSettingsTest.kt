@@ -14,7 +14,6 @@ class AppSettingsTest {
         val settings = AppSettings(FakePreferences())
 
         assertEquals(AppTheme.DARK, settings.theme.value)
-        assertFalse(settings.dynamicColor.value)
         assertEquals(60, settings.copyWindowSec.value)
         assertEquals(60, settings.clipClearSec.value)
         assertTrue(settings.maskNumbers.value)
@@ -75,7 +74,6 @@ class AppSettingsTest {
         val settings = AppSettings(preferences)
 
         settings.setTheme(AppTheme.LIGHT)
-        settings.setDynamicColor(true)
         settings.setCopyWindowSec(120)
         settings.setClipClearSec(0)
         settings.setNotifSec(15)
@@ -88,7 +86,6 @@ class AppSettingsTest {
         settings.setShowNotes(false)
 
         assertEquals(AppTheme.LIGHT, settings.theme.value)
-        assertTrue(settings.dynamicColor.value)
         assertEquals(120, settings.copyWindowSec.value)
         assertEquals(0, settings.clipClearSec.value)
         assertEquals(15, settings.notifSec.value)
@@ -101,7 +98,6 @@ class AppSettingsTest {
 
         val reloaded = AppSettings(preferences)
         assertEquals(AppTheme.LIGHT, reloaded.theme.value)
-        assertTrue(reloaded.dynamicColor.value)
         assertEquals(120, reloaded.copyWindowSec.value)
         assertFalse(reloaded.notifEnabled.value)
         assertEquals(0, reloaded.appLockAfterSec.value)
@@ -115,7 +111,6 @@ class AppSettingsTest {
     fun mapRoundTripsAllValues() {
         val settings = AppSettings(FakePreferences())
         settings.setTheme(AppTheme.SYSTEM)
-        settings.setDynamicColor(true)
         settings.setCopyWindowSec(30)
         settings.setClipClearSec(120)
         settings.setMaskNumbers(false)
@@ -176,6 +171,32 @@ class AppSettingsTest {
         assertEquals(AppTheme.DARK, settings.theme.value)
         assertEquals(60, settings.copyWindowSec.value)
         assertEquals(30, settings.notifSec.value)
+    }
+
+    @Test
+    fun applyMapIgnoresTheRemovedSystemColoursValue() {
+        val settings = AppSettings(FakePreferences())
+
+        settings.applyMap(
+            mapOf(
+                "dynamicColor" to true,
+                "theme" to "light",
+                "maskNumbers" to false,
+                "copyWindowSec" to 120
+            )
+        )
+
+        assertEquals(AppTheme.LIGHT, settings.theme.value)
+        assertFalse(settings.maskNumbers.value)
+        assertEquals(120, settings.copyWindowSec.value)
+        assertFalse(settings.toMap().containsKey("dynamicColor"))
+    }
+
+    @Test
+    fun mapNoLongerCarriesTheRemovedSystemColoursValue() {
+        val settings = AppSettings(FakePreferences())
+
+        assertFalse(settings.toMap().containsKey("dynamicColor"))
     }
 
     @Test
