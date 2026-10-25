@@ -56,7 +56,7 @@ fun networkMarkPlate(surface: MarkSurface, dark: Boolean): Boolean =
 fun networkLeadWidth(badgeWidths: List<Dp>, min: Dp, max: Dp): Dp =
     badgeWidths.maxOrNull()?.coerceIn(min, max) ?: min
 
-/** The mark on its white plate: the brand colours stay legible on any band or surface. */
+/** The mark on its white plate, or bare where the surface already carries contrast. */
 @Composable
 fun NetworkMark(
     @DrawableRes resId: Int,

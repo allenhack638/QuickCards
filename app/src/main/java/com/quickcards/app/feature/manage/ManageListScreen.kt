@@ -89,7 +89,6 @@ fun ManageListScreen(
     var deleteTarget by remember { mutableStateOf<ManagedEntity?>(null) }
     var blockedTarget by remember { mutableStateOf<ManagedEntity?>(null) }
     val locked = LocalAppLocked.current
-    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
     val badgeStyle = QcType.BandNetwork.copy(
