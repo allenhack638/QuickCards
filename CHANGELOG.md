@@ -28,3 +28,4 @@ All notable changes to this project are documented in this file.
 - Fixed: autofill only fills visible fields on the same site, names the app or site in the prompt and no longer mistakes bank-account fields for card fields; a misbehaving NFC card can no longer crash the app.
 - Changed: a card number can exist only once. A backup with the same card twice imports only the first copy, and duplicates left by older versions are removed on upgrade (tags and notes are kept).
 - Changed: Settings descriptions are shorter, one line each, in plain language.
+- Added: autofill lists "Search all N cards…" first, then your pinned and most recently used cards with their network logo; after unlocking, search by number, bank, holder, tag or note. On Android 9+, typing the first or last digits narrows the suggestions.
