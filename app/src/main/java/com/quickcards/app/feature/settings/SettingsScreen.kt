@@ -292,6 +292,24 @@ fun SettingsScreen(
                 onCheckedChange = settings::setShowNotes
             )
 
+            SettingsSubhead(stringResource(R.string.settings_section_reminders))
+            val expiryReminders by settings.expiryReminders.collectAsState()
+            SwitchRow(
+                icon = QcIcons.eventBusy,
+                title = stringResource(R.string.settings_expiry_reminders_title),
+                subtitle = stringResource(R.string.settings_expiry_reminders_subtitle),
+                checked = expiryReminders,
+                onCheckedChange = settings::setExpiryReminders
+            )
+            val paymentReminders by settings.paymentReminders.collectAsState()
+            SwitchRow(
+                icon = QcIcons.payments,
+                title = stringResource(R.string.settings_payment_reminders_title),
+                subtitle = stringResource(R.string.settings_payment_reminders_subtitle),
+                checked = paymentReminders,
+                onCheckedChange = settings::setPaymentReminders
+            )
+
             SettingsSubhead(stringResource(R.string.settings_section_copying))
             ValueRow(
                 icon = QcIcons.clipboard,
@@ -387,8 +405,9 @@ fun SettingsScreen(
             )
             if (autofillEnabled && !autofillSystemOn) {
                 ValueRow(
-                    icon = QcIcons.settings,
+                    icon = QcIcons.openExternal,
                     title = stringResource(R.string.settings_autofill_choose_title),
+                    opens = false,
                     subtitle = stringResource(R.string.settings_autofill_choose_subtitle),
                     onClick = ::openAutofillPicker
                 )
@@ -401,24 +420,6 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_tags_show_subtitle),
                 checked = tagsShow,
                 onCheckedChange = settings::setTagsShow
-            )
-
-            SettingsSubhead(stringResource(R.string.settings_section_reminders))
-            val expiryReminders by settings.expiryReminders.collectAsState()
-            SwitchRow(
-                icon = QcIcons.eventBusy,
-                title = stringResource(R.string.settings_expiry_reminders_title),
-                subtitle = stringResource(R.string.settings_expiry_reminders_subtitle),
-                checked = expiryReminders,
-                onCheckedChange = settings::setExpiryReminders
-            )
-            val paymentReminders by settings.paymentReminders.collectAsState()
-            SwitchRow(
-                icon = QcIcons.bell,
-                title = stringResource(R.string.settings_payment_reminders_title),
-                subtitle = stringResource(R.string.settings_payment_reminders_subtitle),
-                checked = paymentReminders,
-                onCheckedChange = settings::setPaymentReminders
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_security))

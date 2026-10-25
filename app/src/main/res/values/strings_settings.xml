@@ -89,7 +89,7 @@
     <string name="settings_action_ok">OK</string>
     <string name="settings_autofill_title">Fill cards in other apps</string>
     <string name="settings_autofill_subtitle_off">Suggest your cards in checkout forms, after your fingerprint</string>
-    <string name="settings_autofill_subtitle_choose">Tap to choose QuickCards in Android’s autofill settings</string>
+    <string name="settings_autofill_subtitle_choose">Not yet chosen in Android’s autofill settings</string>
     <string name="settings_autofill_subtitle_on">On · suggestions appear in checkout forms</string>
     <string name="settings_autofill_choose_title">Choose QuickCards for autofill</string>
     <string name="settings_autofill_choose_subtitle">Opens Android’s autofill settings</string>

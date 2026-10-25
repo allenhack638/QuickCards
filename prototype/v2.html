@@ -198,7 +198,7 @@ const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 /* ---------- Icons ---------- */
 // Built-in networks ship an acceptance mark on the standard 56x28 plate; custom ones keep the text badge.
 const NET_MARKS = new Set(['visa', 'mc', 'amex', 'rupay', 'diners', 'discover', 'jcb', 'maestro', 'unionpay', 'mir']);
-const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', };
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', payments: 'payments', };
 const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
 
 const LOGO = (vb = '0 0 108 108') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="currentColor" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
@@ -774,6 +774,9 @@ function settingsHTML() {
     ${row('expiredcards', 'expired', 'Expired cards', EXPIRED_LABEL[C.expiredCards] || EXPIRED_LABEL.end)}
     ${row('soonmonths', 'soon', 'Expires soon', C.expiresSoonMonths === 1 ? 'Within 1 month' : `Within ${C.expiresSoonMonths} months`)}
     ${sw('shownotes', C.showNotes, 'notes', 'Show notes on cards', 'Up to 2 lines on each card')}
+    <div class="subhead">Reminders</div>
+    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'A notification 30 days before a card expires')}
+    ${sw('paymentrem', C.paymentReminders, 'payments', 'Payment reminders', '3 days before a card’s due day, when you set one')}
     <div class="subhead">Copying</div>
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
     ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'For the time set below, hidden on the lock screen')}
@@ -781,9 +784,6 @@ function settingsHTML() {
     ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On · suggestions appear in checkout forms' : 'Suggest your cards in checkout forms, after your fingerprint')}
     <div class="subhead">Tags</div>
     ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under the stub')}
-    <div class="subhead">Reminders</div>
-    ${sw('expiryrem', C.expiryReminders, 'expired', 'Expiry reminders', 'A notification 30 days before a card expires')}
-    ${sw('paymentrem', C.paymentReminders, 'bell', 'Payment reminders', '3 days before a card’s due day, when you set one')}
     <div class="subhead">Security</div>
     ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Fingerprint needed to open QuickCards')}
     ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}

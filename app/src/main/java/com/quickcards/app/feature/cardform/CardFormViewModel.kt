@@ -248,7 +248,7 @@ class CardFormViewModel(
             nameOnCard = holderName.trim().uppercase(Locale.ROOT),
             cardName = "",
             note = form.note.trim(),
-            dueDay = form.dueDay.toIntOrNull(),
+            dueDay = form.dueDay.toIntOrNull()?.takeIf { it in 1..31 },
             bandColor = form.bandColor,
             sortOrder = base?.sortOrder ?: 0,
             createdAt = base?.createdAt ?: System.currentTimeMillis(),

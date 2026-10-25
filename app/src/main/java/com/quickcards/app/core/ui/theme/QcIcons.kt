@@ -34,6 +34,8 @@ import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Nfc
+import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
@@ -88,6 +90,8 @@ object QcIcons {
     val chevronRight: ImageVector = Icons.Outlined.ChevronRight
     val autofill: ImageVector = Icons.Outlined.Keyboard
     val nfc: ImageVector = Icons.Outlined.Nfc
+    val payments: ImageVector = Icons.Outlined.Payments
+    val openExternal: ImageVector = Icons.Outlined.OpenInNew
     val share: ImageVector = Icons.Outlined.Share
     val dropDown: ImageVector = Icons.Outlined.ArrowDropDown
     val shield: ImageVector = Icons.Outlined.VerifiedUser

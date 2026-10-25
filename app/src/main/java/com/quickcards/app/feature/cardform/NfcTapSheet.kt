@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import com.quickcards.app.R
 import com.quickcards.app.core.nfc.NfcCardReader
 import com.quickcards.app.core.ui.components.QcModalBottomSheet
@@ -87,7 +88,7 @@ fun NfcTapSheet(onDismiss: () -> Unit, onRead: (EmvCardData) -> Unit) {
                 imageVector = QcIcons.nfc,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(QcDimens.LockMarkCompact)
+                modifier = Modifier.size(QcDimens.NfcSheetIcon)
             )
             Spacer(modifier = Modifier.height(QcDimens.Gutter))
             Text(
@@ -99,14 +100,16 @@ fun NfcTapSheet(onDismiss: () -> Unit, onRead: (EmvCardData) -> Unit) {
                     }
                 ),
                 style = QcType.Body,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
             if (enabled) {
                 Spacer(modifier = Modifier.height(QcDimens.Base))
                 Text(
                     text = stringResource(R.string.form_nfc_waiting),
                     style = QcType.Label,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
             }
             Spacer(modifier = Modifier.height(QcDimens.Gutter))

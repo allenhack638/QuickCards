@@ -67,6 +67,9 @@ data class CardFormModel(
 ) {
     val isEdit: Boolean get() = mode == CardFormMode.EDIT
 
+    /** Empty means no reminder; anything else must be a day of the month. */
+    val dueDayValid: Boolean get() = dueDay.isEmpty() || dueDay.toIntOrNull() in 1..31
+
     fun network(networks: List<CardNetwork>): CardNetwork? =
         CardNumberRules.detect(number, networks)
 
@@ -259,13 +262,9 @@ data class CardFormSession(
     fun cvvBlur(): CardFormSession =
         if (form.cvv.isNotBlank() || form.tried) validate(Field.CVV) else this
 
-    /** Digits only, 1-31; an out-of-range value is ignored rather than flagged. */
-    fun updateDueDay(raw: String): CardFormSession {
-        val digits = raw.filter(Char::isDigit).take(2)
-        val day = digits.toIntOrNull()
-        if (digits.isNotEmpty() && (day == null || day !in 1..31)) return this
-        return withForm(form.copy(dueDay = digits))
-    }
+    /** Digits only, at most two; an out-of-range day is kept and flagged so typing never vanishes. */
+    fun updateDueDay(raw: String): CardFormSession =
+        withForm(form.copy(dueDay = raw.filter(Char::isDigit).take(2)))
 
     fun updateNote(raw: String): CardFormSession = withForm(
         form.copy(note = raw.take(CardValidator.NOTE_MAX_LENGTH))

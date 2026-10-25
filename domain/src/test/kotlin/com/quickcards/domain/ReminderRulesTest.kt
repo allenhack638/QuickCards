@@ -37,5 +37,7 @@ class ReminderRulesTest {
     fun keysAreOncePerPeriod() {
         assertEquals("exp:c1:12/29", ReminderRules.expiryKey("c1", "12/29"))
         assertEquals("due:c1:2026-3", ReminderRules.dueKey("c1", LocalDate.of(2026, 3, 5)))
+        assertEquals("paid:due:c1:2026-3", ReminderRules.paidKey("due:c1:2026-3"))
+        assertEquals("due:c1:2026-3@2026-03-03", ReminderRules.dueDayKey("due:c1:2026-3", LocalDate.of(2026, 3, 3)))
     }
 }

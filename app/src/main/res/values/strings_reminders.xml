@@ -7,5 +7,6 @@
         <item quantity="other">Expires in %1$d days (%2$s). Ask your bank for a replacement.</item>
     </plurals>
     <string name="reminder_due_text">Payment due on %1$s</string>
+    <string name="reminder_paid">Paid</string>
     <string name="reminder_public_text">Card reminder</string>
 </resources>

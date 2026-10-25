@@ -48,4 +48,10 @@ object ReminderRules {
     }
 
     fun dueKey(cardId: String, due: LocalDate): String = "due:$cardId:${due.year}-${due.monthValue}"
+
+    /** Set when the user taps Paid; it silences that card's reminder for that due date. */
+    fun paidKey(dueKey: String): String = "paid:$dueKey"
+
+    /** Payment reminders repeat daily inside the window until Paid, so each day has its own key. */
+    fun dueDayKey(dueKey: String, today: LocalDate): String = "$dueKey@$today"
 }

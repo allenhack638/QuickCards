@@ -638,12 +638,13 @@ internal fun CardFormContent(
                 FormTextField(
                     value = dueDayValue,
                     onValueChange = { input ->
-                        viewModel.updateDueDay(input.text)
-                        val next = session.form.dueDay
+                        val next = input.text.filter(Char::isDigit).take(2)
+                        viewModel.updateDueDay(next)
                         dueDayValue = TextFieldValue(next, TextRange(next.length))
                     },
                     label = stringResource(R.string.form_due_day_label),
                     helper = stringResource(R.string.form_due_day_helper),
+                    error = if (form.dueDayValid) null else stringResource(R.string.form_due_day_error),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
@@ -673,7 +674,7 @@ internal fun CardFormContent(
                     R.string.form_save_card
                 }
             ),
-            enabled = !saving && (form.mode == CardFormMode.ADD || session.isDirty()),
+            enabled = !saving && form.dueDayValid && (form.mode == CardFormMode.ADD || session.isDirty()),
             error = saveError,
             onClick = {
                 saveError = null

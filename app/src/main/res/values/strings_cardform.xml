@@ -119,5 +119,6 @@
     <string name="form_nfc_failed">Couldn’t read this card. Hold it still and try again, or type the number.</string>
     <string name="form_nfc_cancel">Cancel</string>
     <string name="form_due_day_label">Payment due day (optional)</string>
+    <string name="form_due_day_error">Enter a day from 1 to 31</string>
     <string name="form_due_day_helper">Day of the month your bill is due, 1 to 31</string>
 </resources>

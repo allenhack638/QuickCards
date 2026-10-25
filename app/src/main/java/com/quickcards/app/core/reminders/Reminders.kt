@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.core.content.ContextCompat
 import com.quickcards.app.MainActivity
@@ -27,8 +28,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Local reminders: a card about to expire (within 30 days) and a payment due day (3 days
- * ahead). A daily inexact alarm and every app start run the same check; each reminder is
- * posted once per period, tracked in private prefs. Notifications carry only the bank and
+ * ahead). A daily inexact alarm and every app start run the same check. An expiry reminder is
+ * posted once; a payment reminder repeats daily inside its window until the user taps Paid. Notifications carry only the bank and
  * the last four digits and are private on the lock screen.
  */
 object Reminders {
@@ -36,6 +37,8 @@ object Reminders {
     const val CHANNEL_ID = "reminders"
     private const val PREFS = "quickcards_reminders"
     private const val ACTION_CHECK = "com.quickcards.app.action.REMINDER_CHECK"
+    const val ACTION_PAID = "com.quickcards.app.action.REMINDER_PAID"
+    const val EXTRA_KEY = "key"
     private const val REQUEST_DAILY = 2001
 
     fun ensureScheduled(context: Context) {
@@ -80,21 +83,29 @@ object Reminders {
             }
             if (dueOn) {
                 ReminderRules.dueReminderDate(card.dueDay, today)?.let { due ->
-                    val key = ReminderRules.dueKey(card.id, due)
-                    if (!prefs.contains(key)) {
+                    val period = ReminderRules.dueKey(card.id, due)
+                    val todayKey = ReminderRules.dueDayKey(period, today)
+                    if (!prefs.contains(ReminderRules.paidKey(period)) && !prefs.contains(todayKey)) {
                         val text = context.getString(
                             R.string.reminder_due_text,
                             due.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
                         )
-                        post(context, manager, key, title, text)
-                        prefs.edit().putLong(key, System.currentTimeMillis()).apply()
+                        post(context, manager, period, title, text, paidAction = true)
+                        prefs.edit().putLong(todayKey, System.currentTimeMillis()).apply()
                     }
                 }
             }
         }
     }
 
-    private fun post(context: Context, manager: NotificationManager, key: String, title: String, text: String) {
+    private fun post(
+        context: Context,
+        manager: NotificationManager,
+        key: String,
+        title: String,
+        text: String,
+        paidAction: Boolean = false
+    ) {
         val open = PendingIntent.getActivity(
             context, key.hashCode(), Intent(context, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -105,7 +116,7 @@ object Reminders {
             .setContentText(context.getString(R.string.reminder_public_text))
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .build()
-        val notification = Notification.Builder(context, CHANNEL_ID)
+        val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_quickcards)
             .setContentTitle(title)
             .setContentText(text)
@@ -116,8 +127,29 @@ object Reminders {
             .setAutoCancel(true)
             .setContentIntent(open)
             .setCategory(Notification.CATEGORY_REMINDER)
-            .build()
-        manager.notify(key.hashCode(), notification)
+        if (paidAction) {
+            val paid = PendingIntent.getBroadcast(
+                context,
+                key.hashCode(),
+                Intent(context, ReminderReceiver::class.java).setAction(ACTION_PAID).putExtra(EXTRA_KEY, key),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(context, R.drawable.ic_stat_quickcards),
+                    context.getString(R.string.reminder_paid),
+                    paid
+                ).build()
+            )
+        }
+        manager.notify(key.hashCode(), builder.build())
+    }
+
+    /** Records the payment for this due date and clears the reminder; no further nudges this month. */
+    fun markPaid(context: Context, key: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putLong(ReminderRules.paidKey(key), System.currentTimeMillis()).apply()
+        context.getSystemService(NotificationManager::class.java)?.cancel(key.hashCode())
     }
 
     private fun notificationsAllowed(context: Context): Boolean =
@@ -136,6 +168,10 @@ object Reminders {
 /** Runs the daily check off the main thread and finishes the broadcast when done. */
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Reminders.ACTION_PAID) {
+            intent.getStringExtra(Reminders.EXTRA_KEY)?.let { Reminders.markPaid(context, it) }
+            return
+        }
         val result = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             try {

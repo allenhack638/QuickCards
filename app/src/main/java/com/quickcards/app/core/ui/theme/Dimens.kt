@@ -100,6 +100,7 @@ object QcDimens {
     // Lock screen
     val LockMark = 96.dp
     val LockMarkCompact = 72.dp
+    val NfcSheetIcon = 72.dp
     val LockGlow = 176.dp
     val LockGlowCompact = 132.dp
     val LockButtonHeight = 56.dp
