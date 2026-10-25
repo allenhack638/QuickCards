@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.quickcards.app.R
 import com.quickcards.app.core.data.model.VaultCard
+import com.quickcards.app.core.ui.sharedPass
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.LockGate
@@ -93,7 +94,7 @@ import kotlin.math.roundToInt
  */
 private val ScannableKeyboard = KeyboardOptions(
     capitalization = KeyboardCapitalization.None,
-    autoCorrect = false,
+    autoCorrectEnabled = false,
     keyboardType = KeyboardType.Text
 )
 
@@ -290,6 +291,7 @@ internal fun CardFormContent(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .sharedPass(form.editingId)
                             .clickable(onClickLabel = expandPreviewLabel) { previewExpanded = true }
                     ) {
                         PassCard(
@@ -312,6 +314,7 @@ internal fun CardFormContent(
                         maskNumbers = false,
                         showCardType = showType,
                         tagsShow = tagsShow,
+                        modifier = Modifier.sharedPass(form.editingId),
                         preview = true,
                         expiryState = previewExpiryState,
                         needsReview = session.reviewFields.isNotEmpty(),

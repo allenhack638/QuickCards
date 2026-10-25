@@ -49,9 +49,6 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".core.notifications.CopyActionReceiver"
-            android:exported="false" />
     </application>
 
 </manifest>

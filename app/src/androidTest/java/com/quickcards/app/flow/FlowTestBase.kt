@@ -28,6 +28,10 @@ import org.junit.Rule
  */
 abstract class FlowTestBase {
 
+    init {
+        AppLockController.autoPromptOnLock = false
+    }
+
     @get:Rule
     val compose = createAndroidComposeRule<MainActivity>()
 

@@ -3,9 +3,14 @@ package com.quickcards.app.navigation
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.lifecycle.withResumed
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -77,6 +82,8 @@ import androidx.navigation.navArgument
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.EntityKind
 import com.quickcards.app.core.security.UnlockSession
+import com.quickcards.app.core.ui.LocalNavAnimatedScope
+import com.quickcards.app.core.ui.LocalSharedTransitionScope
 import com.quickcards.app.feature.archive.ArchivedCardsScreen
 import com.quickcards.app.feature.backup.BackupHost
 import com.quickcards.app.feature.backup.rememberBackupHostState
@@ -123,6 +130,7 @@ private val NavigationItems = listOf(
 
 private fun isRoot(route: String?): Boolean = route in RootRoutes
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun QcApp() {
     val navController = rememberNavController()
@@ -141,6 +149,7 @@ fun QcApp() {
     val systemBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val locked by AppLockController.isLocked.collectAsState()
     val context = LocalContext.current
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     val unlockScope = rememberCoroutineScope()
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     val density = LocalDensity.current
@@ -196,8 +205,10 @@ fun QcApp() {
                 snackbarHost = {
                     SnackbarHost(
                         hostState = snackbarHostState,
-                        modifier = if (showBar) {
-                            Modifier
+                        modifier = if (bottomBarVisible) {
+                            Modifier.padding(
+                                bottom = QcDimens.NavBarHeight + QcDimens.Divider + systemBarBottom
+                            )
                         } else {
                             Modifier.navigationBarsPadding()
                         }
@@ -205,30 +216,6 @@ fun QcApp() {
                         androidx.compose.material3.Snackbar(
                             snackbarData = data,
                             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
-                        )
-                    }
-                },
-                bottomBar = {
-                    AnimatedVisibility(
-                        visible = bottomBarVisible,
-                        enter = slideInVertically(tween(280, easing = EmphasizedDecelerate)) { it } +
-                            fadeIn(tween(280, easing = EmphasizedDecelerate)),
-                        exit = slideOutVertically(tween(200)) { it } + fadeOut(tween(200))
-                    ) {
-                        QcNavigationBar(
-                            selectedRoute = route ?: ROUTE_CARDS,
-                            onSelect = { target ->
-                                if (target != route) {
-                                    homeViewModel.clearSearch()
-                                    navController.navigate(target) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            }
                         )
                     }
                 }
@@ -242,142 +229,191 @@ fun QcApp() {
                 }
                 val tabBottomInset = if (useRail || searchActive) systemBarBottom else 0.dp
                 val tabModifier = Modifier.padding(bottom = tabBarSpace)
-                NavHost(
-                    navController = navController,
-                    startDestination = ROUTE_CARDS,
-                    modifier = Modifier
-                        .padding(top = padding.calculateTopPadding())
-                        .windowInsetsPadding(
-                            WindowInsets.statusBars.only(WindowInsetsSides.Top)
-                        )
-                        .clipToBounds(),
-                    contentAlignment = Alignment.TopStart,
-                    enterTransition = {
-                        if (isRoot(initialState.destination.route) && isRoot(targetState.destination.route)) {
-                            fadeIn(tween(220))
-                        } else {
-                            fadeIn(tween(280, easing = EmphasizedDecelerate)) +
-                                slideInHorizontally(
-                                    animationSpec = tween(280, easing = EmphasizedDecelerate)
-                                ) { sharedAxisOffset }
-                        }
-                    },
-                    exitTransition = {
-                        if (isRoot(initialState.destination.route) && isRoot(targetState.destination.route)) {
-                            fadeOut(tween(220))
-                        } else {
-                            fadeOut(tween(280))
-                        }
-                    },
-                    popEnterTransition = {
-                        fadeIn(tween(280, easing = EmphasizedDecelerate)) +
-                            slideInHorizontally(
-                                animationSpec = tween(280, easing = EmphasizedDecelerate)
-                            ) { -sharedAxisOffset }
-                    },
-                    popExitTransition = {
-                        fadeOut(tween(280)) +
-                            slideOutHorizontally(
-                                animationSpec = tween(280, easing = EmphasizedDecelerate)
-                            ) { sharedAxisOffset }
-                    }
-                ) {
-                composable(ROUTE_CARDS) {
-                    Box(modifier = tabModifier) {
-                        HomeScreen(
-                            navController = navController,
-                            viewModel = homeViewModel,
-                            bottomInset = tabBottomInset,
-                            onImport = { backupHostState.requestImport() },
-                            onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
-                        )
-                    }
-                }
-                composable(ROUTE_MANAGE) {
-                    Box(modifier = tabModifier) {
-                        ManageScreen(
-                            viewModel = manageViewModel,
-                            bottomInset = tabBottomInset,
-                            onOpenKind = { kind ->
-                                navController.navigate("manage/${kind.routeKey}")
-                            },
-                            onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
-                        )
-                    }
-                }
-                composable(
-                    route = "manage/{kind}",
-                    arguments = listOf(navArgument("kind") { type = NavType.StringType })
-                ) { entry ->
-                    val kind = entityKindFromRoute(entry.arguments?.getString("kind"))
-                        ?: EntityKind.HOLDER
-                    ManageListScreen(
-                        kind = kind,
-                        viewModel = manageViewModel,
-                        onBack = { navController.popBackStack() },
-                        onShowCards = { listKind, id ->
-                            homeViewModel.applyFilters(
-                                when (listKind) {
-                                    EntityKind.HOLDER -> CardFilters(holders = setOf(id))
-                                    EntityKind.BANK -> CardFilters(banks = setOf(id))
-                                    EntityKind.NETWORK -> CardFilters(networks = setOf(id))
-                                    EntityKind.TYPE -> CardFilters(types = setOf(id))
-                                    EntityKind.TAG -> CardFilters(tags = setOf(id))
-                                }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+                    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = ROUTE_CARDS,
+                        modifier = Modifier
+                            .padding(top = padding.calculateTopPadding())
+                            .windowInsetsPadding(
+                                WindowInsets.statusBars.only(WindowInsetsSides.Top)
                             )
-                            navController.navigate(ROUTE_CARDS) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = false
-                                }
-                                launchSingleTop = true
+                            .clipToBounds(),
+                        contentAlignment = Alignment.TopStart,
+                        // Material fade-through: the old screen is gone (90 ms) before the new one
+                        // fades in, so text from two screens never overlaps.
+                        enterTransition = {
+                            if (isRoot(initialState.destination.route) && isRoot(targetState.destination.route)) {
+                                fadeIn(tween(210, delayMillis = 90, easing = EmphasizedDecelerate))
+                            } else {
+                                fadeIn(tween(210, delayMillis = 90, easing = EmphasizedDecelerate)) +
+                                    slideInHorizontally(
+                                        animationSpec = tween(300, easing = EmphasizedDecelerate)
+                                    ) { sharedAxisOffset }
+                            }
+                        },
+                        exitTransition = { fadeOut(tween(90)) },
+                        popEnterTransition = {
+                            fadeIn(tween(210, delayMillis = 90, easing = EmphasizedDecelerate)) +
+                                slideInHorizontally(
+                                    animationSpec = tween(300, easing = EmphasizedDecelerate)
+                                ) { -sharedAxisOffset }
+                        },
+                        popExitTransition = { fadeOut(tween(90)) }
+                    ) {
+                    composable(ROUTE_CARDS) {
+                        CompositionLocalProvider(LocalNavAnimatedScope provides this) {
+                            Box(modifier = tabModifier) {
+                                HomeScreen(
+                                    navController = navController,
+                                    viewModel = homeViewModel,
+                                    bottomInset = tabBottomInset,
+                                    onImport = { backupHostState.requestImport() },
+                                    onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
+                                )
                             }
                         }
-                    )
-                }
-                composable(ROUTE_ARCHIVED) {
-                    ArchivedCardsScreen(
-                        onBack = { navController.popBackStack() },
-                        onEdit = { cardId -> navController.navigate("card/edit/$cardId") },
-                        bottomInset = contentBottomInset
-                    )
-                }
-                composable(ROUTE_SETTINGS) {
-                    Box(modifier = tabModifier) {
-                        SettingsScreen(
-                            bottomInset = tabBottomInset,
-                            onExport = backupHostState::requestExport,
-                            onImport = backupHostState::requestImport,
-                            onErase = backupHostState::requestErase
+                    }
+                    composable(ROUTE_MANAGE) {
+                        Box(modifier = tabModifier) {
+                            ManageScreen(
+                                viewModel = manageViewModel,
+                                bottomInset = tabBottomInset,
+                                onOpenKind = { kind ->
+                                    navController.navigate("manage/${kind.routeKey}")
+                                },
+                                onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
+                            )
+                        }
+                    }
+                    composable(
+                        route = "manage/{kind}",
+                        arguments = listOf(navArgument("kind") { type = NavType.StringType })
+                    ) { entry ->
+                        val kind = entityKindFromRoute(entry.arguments?.getString("kind"))
+                            ?: EntityKind.HOLDER
+                        ManageListScreen(
+                            kind = kind,
+                            viewModel = manageViewModel,
+                            onBack = { navController.popBackStack() },
+                            onShowCards = { listKind, id ->
+                                homeViewModel.applyFilters(
+                                    when (listKind) {
+                                        EntityKind.HOLDER -> CardFilters(holders = setOf(id))
+                                        EntityKind.BANK -> CardFilters(banks = setOf(id))
+                                        EntityKind.NETWORK -> CardFilters(networks = setOf(id))
+                                        EntityKind.TYPE -> CardFilters(types = setOf(id))
+                                        EntityKind.TAG -> CardFilters(tags = setOf(id))
+                                    }
+                                )
+                                navController.navigate(ROUTE_CARDS) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
                         )
                     }
-                }
-                composable(ROUTE_CARD_ADD) {
-                    CardFormScreen(navController = navController)
-                }
-                composable(
-                    route = ROUTE_CARD_EDIT,
-                    arguments = listOf(navArgument("cardId") { type = NavType.StringType })
-                ) {
-                    CardFormScreen(navController = navController)
-                }
+                    composable(ROUTE_ARCHIVED) {
+                        ArchivedCardsScreen(
+                            onBack = { navController.popBackStack() },
+                            onEdit = { cardId -> navController.navigate("card/edit/$cardId") },
+                            bottomInset = contentBottomInset
+                        )
+                    }
+                    composable(ROUTE_SETTINGS) {
+                        Box(modifier = tabModifier) {
+                            SettingsScreen(
+                                bottomInset = tabBottomInset,
+                                onExport = backupHostState::requestExport,
+                                onImport = backupHostState::requestImport,
+                                onErase = backupHostState::requestErase
+                            )
+                        }
+                    }
+                    composable(ROUTE_CARD_ADD) {
+                        CardFormScreen(navController = navController)
+                    }
+                    composable(
+                        route = ROUTE_CARD_EDIT,
+                        arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+                    ) {
+                        CompositionLocalProvider(LocalNavAnimatedScope provides this) {
+                            CardFormScreen(navController = navController)
+                        }
+                    }
+                    }
+                    }
+                    }
+                    // Drawn over the NavHost and animated in the draw phase only (offset +
+                    // alpha), so showing or hiding it never re-measures the screens.
+                    val barProgress by animateFloatAsState(
+                        targetValue = if (bottomBarVisible) 1f else 0f,
+                        animationSpec = tween(
+                            durationMillis = if (bottomBarVisible) 300 else 120,
+                            delayMillis = if (bottomBarVisible) 90 else 0,
+                            easing = EmphasizedDecelerate
+                        ),
+                        label = "navBar"
+                    )
+                    if (barProgress > 0f) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .graphicsLayer {
+                                    alpha = barProgress
+                                    translationY = (1f - barProgress) * size.height
+                                }
+                        ) {
+                            QcNavigationBar(
+                                selectedRoute = route ?: ROUTE_CARDS,
+                                onSelect = { target ->
+                                    if (bottomBarVisible && target != route) {
+                                        homeViewModel.clearSearch()
+                                        navController.navigate(target) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
         }
         BackupHost(state = backupHostState)
-        if (locked) {
-            LockScreen(
-                onUnlock = {
-                    val host = context as? FragmentActivity
-                    if (host != null) {
-                        unlockScope.launch {
-                            if (UnlockSession.requireUnlock(host, "Unlock to see your cards")) {
-                                AppLockController.unlock()
-                            }
-                        }
-                    }
+        fun promptUnlock() {
+            val host = context as? FragmentActivity ?: return
+            unlockScope.launch {
+                if (UnlockSession.requireUnlock(host, "Unlock to see your cards")) {
+                    AppLockController.unlock()
                 }
-            )
+            }
+        }
+        // Ask once per lock, as soon as the app is in the foreground; a cancel leaves
+        // the lock screen with its Unlock button rather than re-prompting.
+        var autoPrompted by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(locked) {
+            if (!locked) {
+                autoPrompted = false
+                return@LaunchedEffect
+            }
+            if (autoPrompted) return@LaunchedEffect
+            if (!AppLockController.autoPromptOnLock && com.quickcards.app.BuildConfig.DEBUG) return@LaunchedEffect
+            lifecycleOwner.lifecycle.withResumed { }
+            autoPrompted = true
+            promptUnlock()
+        }
+        if (locked) {
+            LockScreen(onUnlock = ::promptUnlock)
         }
         }
     }

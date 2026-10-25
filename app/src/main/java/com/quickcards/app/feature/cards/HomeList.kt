@@ -37,6 +37,7 @@ import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.components.PassCard
 import com.quickcards.app.core.ui.components.PassField
 import com.quickcards.app.core.ui.rememberSeparatingFold
+import com.quickcards.app.core.ui.sharedPass
 import com.quickcards.app.core.ui.theme.QcDimens
 
 @Composable
@@ -198,7 +199,7 @@ private fun CardGrid(
         }
         items(cards, key = { it.id }) { card ->
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().animateItem(),
                 contentAlignment = Alignment.TopCenter
             ) {
                 PassCard(
@@ -210,7 +211,7 @@ private fun CardGrid(
                         Modifier.widthIn(max = QcDimens.CardMaxWidth)
                     } else {
                         Modifier
-                    },
+                    }.sharedPass(card.id),
                     expiryState = card.expiryState,
                     needsReview = card.card.needsReview.isNotEmpty(),
                     archivedLabel = archivedLabel(card),

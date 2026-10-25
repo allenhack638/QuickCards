@@ -269,10 +269,8 @@ private fun EntityRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .width(QcDimens.LeadSlot)
-                .height(QcDimens.LeadSlot),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.heightIn(min = QcDimens.Monogram),
+            contentAlignment = Alignment.CenterStart
         ) {
             EntityLead(kind = kind, entity = entity)
         }

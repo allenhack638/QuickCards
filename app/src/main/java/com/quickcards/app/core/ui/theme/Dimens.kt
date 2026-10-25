@@ -33,6 +33,8 @@ object QcDimens {
 
     // Rows, fields and icons
     val LeadSlot = 56.dp
+    /** List row text start after a 24dp leading icon: 16 + 24 + 16 (Material 3 list spec). */
+    val ListIconTextStart = 56.dp
     val FieldHeight = 56.dp
     val HelperLine = 20.dp
     val ListRowOneLine = 56.dp
@@ -94,12 +96,12 @@ object QcDimens {
     val GridBreakpointWide = 840.dp
 
     // Lock screen
-    val LockMark = 72.dp
-    val LockMarkCompact = 60.dp
-    val LockDisc = 88.dp
-    val LockDiscCompact = 72.dp
-    val LockGlow = 128.dp
-    val LockGlowCompact = 104.dp
+    val LockMark = 96.dp
+    val LockMarkCompact = 72.dp
+    val LockGlow = 176.dp
+    val LockGlowCompact = 132.dp
+    val LockButtonHeight = 56.dp
+    val LockButtonMaxWidth = 400.dp
 
     // Interaction
     val DisabledAlpha = 0.38f

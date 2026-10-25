@@ -651,7 +651,7 @@ private fun SettingsSubhead(text: String) {
         style = QcType.Body.copy(fontWeight = FontWeight(600)),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(
-            start = QcDimens.Gutter,
+            start = QcDimens.ListIconTextStart,
             end = QcDimens.Gutter,
             top = QcDimens.SubheadTop,
             bottom = QcDimens.SubheadBottom
@@ -687,21 +687,16 @@ private fun SettingsRow(
             .padding(horizontal = QcDimens.Gutter, vertical = QcDimens.SettingsRowVertical),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.size(QcDimens.LeadSlot),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (danger) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.size(QcDimens.Icon)
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (danger) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            modifier = Modifier.size(QcDimens.Icon)
+        )
         Spacer(modifier = Modifier.width(QcDimens.Gutter))
         Column(modifier = Modifier.weight(1f)) {
             Text(

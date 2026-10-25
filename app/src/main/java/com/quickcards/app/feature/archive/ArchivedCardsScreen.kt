@@ -133,7 +133,6 @@ fun ArchivedCardsScreen(
     fun postNotification(card: HomeCard) {
         CopyCompanionNotifier.notifyCardCopied(
             context = context,
-            cardId = card.id,
             title = context.getString(
                 R.string.cards_notification_title,
                 card.title,

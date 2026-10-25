@@ -1,5 +1,12 @@
 package com.quickcards.app.core.ui.components
 
+import android.os.Build
+import android.view.HapticFeedbackConstants
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -795,6 +802,11 @@ private fun PassCopyField(
     var drainFraction by remember { mutableFloatStateOf(0f) }
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+    )
+    val view = LocalView.current
 
     fun requestCopy() {
         scope.launch {
@@ -813,6 +825,13 @@ private fun PassCopyField(
 
     LaunchedEffect(copyEvent) {
         if (copyEvent == 0) return@LaunchedEffect
+        view.performHapticFeedback(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                HapticFeedbackConstants.CONFIRM
+            } else {
+                HapticFeedbackConstants.KEYBOARD_TAP
+            }
+        )
         flashing = true
         copied = true
         delay(QcDimens.CopyFlashMillis)
@@ -889,6 +908,10 @@ private fun PassCopyField(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = QcDimens.PassStubTarget)
+            .graphicsLayer {
+                scaleX = pressScale
+                scaleY = pressScale
+            }
             .clip(FieldShape)
             .background(fieldBackground)
             .then(

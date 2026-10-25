@@ -8,9 +8,34 @@ PIN. The app has no internet or camera permission; data leaves the phone only as
 passphrase-encrypted backup that you export yourself.
 
 <p align="center">
-  <img src="docs/screenshots/cards-dark.png" alt="QuickCards card list in the dark theme" width="320"><br>
-  <sub>Card list, dark theme (demo data, test card numbers)</sub>
+  <img src="docs/screenshots/lock-dark.png" alt="Lock screen with the Stub Lock mark and Unlock button" width="240">
+  &nbsp;
+  <img src="docs/screenshots/cards-dark.png" alt="Card list with pinned HDFC card, holder chips and tags" width="240">
+  &nbsp;
+  <img src="docs/screenshots/edit-dark.png" alt="Edit card form under a live card preview" width="240">
 </p>
+
+<p align="center"><sub>Demo data with public test card numbers. Release builds block screenshots.</sub></p>
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/notes-dark.png" alt="Card with tags and a note" width="240"><br><sub>Tags and notes on the card</sub></td>
+    <td align="center"><img src="docs/screenshots/expires-soon-dark.png" alt="Card labelled Expires soon" width="240"><br><sub>Expires soon</sub></td>
+    <td align="center"><img src="docs/screenshots/expired-dark.png" alt="Expired card in graphite" width="240"><br><sub>Expired cards turn graphite</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/card-colours-dark.png" alt="Card colour swatches and custom colour picker" width="240"><br><sub>15 colours plus a custom picker</sub></td>
+    <td align="center"><img src="docs/screenshots/filter-dark.png" alt="Filter sheet by holder and bank" width="240"><br><sub>Filter by holder, bank, network, tag</sub></td>
+    <td align="center"><img src="docs/screenshots/manage-dark.png" alt="Manage holders, banks, networks, types, tags and archive" width="240"><br><sub>Manage everything in one place</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/settings-dark.png" alt="Settings for appearance and cards" width="240"><br><sub>Settings</sub></td>
+    <td align="center"><img src="docs/screenshots/cards-light.png" alt="Card list in the light theme" width="240"><br><sub>Light theme</sub></td>
+    <td align="center"><img src="docs/screenshots/lock-light.png" alt="Lock screen in the light theme" width="240"><br><sub>Lock screen, light</sub></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -19,8 +44,8 @@ passphrase-encrypted backup that you export yourself.
 - **Instant-copy window.** One fingerprint or device-PIN prompt opens a short window
   (30 s – 2 min, default 1 min, counted as idle time) in which copies and reveals need no
   further prompt.
-- **App lock.** Locks on launch, after inactivity (10 s – 30 min or never), when you leave
-  the app, or with Lock now. Locking closes every dialog and clears revealed values, the
+- **App lock.** Locks on launch and asks for your fingerprint straight away. Also locks
+  after inactivity (10 s – 30 min or never), when you leave the app, or with Lock now. Locking closes every dialog and clears revealed values, the
   clipboard and the notification.
 - **Expiry and CVV notification.** After copying a number, an optional heads-up
   notification shows that card's expiry and CVV for a configurable time; it is hidden on
@@ -38,8 +63,6 @@ passphrase-encrypted backup that you export yourself.
 - **Keyboard scan and smart paste.** Pasting (or using your keyboard's scan-text tool)
   fills the number and expiry. The CVV is never filled from pasted text, and the app
   requests no camera permission.
-- **Keyboard scan:** Card number and Expiry use the text keyboard so your keyboard's
-  scan-text tool fills them (no camera permission).
 - **Encrypted backup.** Export to a passphrase-protected file and import it on another
   phone, with a review of new, changed and unchanged cards. Older backup formats still
   import, and legacy values are repaired (with a 30-day undo) on upgrade and on import.

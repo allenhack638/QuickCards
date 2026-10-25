@@ -349,11 +349,13 @@ function lockApp(reason) {
   if (!S.cfg.appLock.on) return;
   lockNow(); hideHun(); hideSnack();
   if (!sheet.hidden) closeSheet(); if (!dialog.hidden) closeDialog(); if (!bio.hidden) closeBio();
-  lockscr.innerHTML = `<div class="mid"><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
-    <button class="fpbtn sl" data-act="appunlock" aria-label="Unlock with fingerprint">${I('fp')}</button><div class="fphint">Touch to unlock</div>
-    <button class="btn text sl" data-act="appunlock" style="margin-top:8px">Use PIN</button></div>
-    <div class="foot">${I('shield')}Your cards stay encrypted on this phone</div>`;
+  lockscr.innerHTML = `<div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
+    <div class="why">Use your fingerprint or screen lock to see your cards</div></div>
+    <button class="btn filled unlock sl" data-act="appunlock" aria-label="Unlock QuickCards">${I('fp')}Unlock</button>
+    <div class="foot">${I('shield')}Encrypted on this phone · v2.0.2</div>`;
   lockscr.hidden = false; requestAnimationFrame(() => lockscr.classList.add('show'));
+  // The prompt opens on its own; Unlock re-opens it after a cancel.
+  setTimeout(() => { if (isAppLocked() && bio.hidden) openBio(unlockApp, 'Unlock to see your cards'); }, 420);
 }
 function unlockApp() { lockscr.classList.remove('show'); setTimeout(() => { lockscr.hidden = true; }, 250); lastActive = Date.now(); render(); }
 function markActive() {
@@ -415,7 +417,7 @@ function showHun(c) {
   hun.innerHTML = `<div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum" id="hunT">${fmtT(n.sec)}</span><button class="x" data-hun="x" aria-label="Dismiss notification">${I('close', 'sm')}</button></div>
     <div class="t">${esc(cardTitle(c))} · <span class="tnum">${last4}</span></div>
     <div class="vals">${n.exp ? `<div><div class="l">Expiry</div><div class="v">${esc(c.exp)}</div></div>` : ''}${n.cvv ? `<div><div class="l">CVV</div><div class="v">${esc(c.cvv)}</div></div>` : ''}</div>
-    <div class="acts">${n.exp ? '<button class="btn text sl" data-hun="exp">Copy expiry</button>' : ''}${n.cvv ? '<button class="btn text sl" data-hun="cvv">Copy CVV</button>' : ''}</div><div class="bar" id="hunBar"></div>`;
+<div class="bar" id="hunBar"></div>`;
   hun._card = c; hun.classList.add('show');
   const bar = $('#hunBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth; bar.style.transition = `transform ${n.sec}s linear`; bar.style.transform = 'scaleX(0)';
   const end = Date.now() + n.sec * 1000; clearInterval(hunI); hunI = setInterval(() => { const t = $('#hunT'); if (t) t.textContent = fmtT(Math.max(0, Math.ceil((end - Date.now()) / 1000))); }, 250);
@@ -423,10 +425,8 @@ function showHun(c) {
 }
 function hideHun() { hun.classList.remove('show'); clearInterval(hunI); clearTimeout(hunT); }
 hun.addEventListener('click', e => {
-  const b = e.target.closest('[data-hun]'); if (!b) return; const c = hun._card;
+  const b = e.target.closest('[data-hun]'); if (!b) return;
   if (b.dataset.hun === 'x') return hideHun();
-  const key = b.dataset.hun; setClip(`${cardTitle(c)} · ${key === 'cvv' ? 'CVV' : 'Expiry'}`, c[key]);
-  snackbar(`${key === 'cvv' ? 'CVV' : 'Expiry'} copied from notification`);
 });
 
 /* ---------- Navigation ---------- */
@@ -776,7 +776,7 @@ function settingsHTML() {
     ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions')}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
-    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.0.0</span></span></div>
+    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.0.2</span></span></div>
     <div class="li two" style="margin-bottom:24px"><span class="lead">${I('offline')}</span><span class="txt"><span class="h">Works offline</span><span class="s">QuickCards has no network access</span></span></div>
   </div>`;
 }

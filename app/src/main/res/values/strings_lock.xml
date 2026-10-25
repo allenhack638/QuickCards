@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="lock_title">QuickCards is locked</string>
-    <string name="lock_unlock_description">Unlock with fingerprint</string>
-    <string name="lock_touch_to_unlock">Touch to unlock</string>
-    <string name="lock_use_pin">Use PIN</string>
-    <string name="lock_footer">Your cards stay encrypted on this phone</string>
+    <string name="lock_subtitle">Use your fingerprint or screen lock to see your cards</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="lock_unlock_description">Unlock QuickCards</string>
+    <string name="lock_footer">Encrypted on this phone · v%1$s</string>
 </resources>

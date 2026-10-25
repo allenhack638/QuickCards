@@ -119,19 +119,12 @@ private fun ManageRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcDimens.Gutter)
     ) {
-        Box(
-            modifier = Modifier
-                .width(QcDimens.LeadSlot)
-                .height(QcDimens.LeadSlot),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(QcDimens.Icon)
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(QcDimens.Icon)
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,

@@ -38,6 +38,11 @@ object AppLockController {
     private var started = false
     private var systemPickerUntil = 0L
 
+    /** Instrumented tests drive the lock directly; the system prompt would cover the app. Debug only. */
+    @androidx.annotation.VisibleForTesting
+    @Volatile
+    var autoPromptOnLock = true
+
     private const val SYSTEM_PICKER_GRACE_MS = 5 * 60_000L
 
     fun attach(context: Context) {

@@ -6,26 +6,18 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Icon
 import com.quickcards.app.MainActivity
 import com.quickcards.app.R
 
-/** Post-copy notification. Card data never travels in an Intent: only card id and field. */
+/** Post-copy notification: shows the expiry and/or CVV chosen in Settings; no actions. */
 object CopyCompanionNotifier {
 
     const val CHANNEL_ID = "card_details"
     const val NOTIFICATION_ID = 1001
 
-    const val EXTRA_CARD_ID = "card_id"
-    const val EXTRA_FIELD = "field"
-    const val ACTION_COPY_EXPIRY = "com.quickcards.app.action.COPY_EXPIRY"
-    const val ACTION_COPY_CVV = "com.quickcards.app.action.COPY_CVV"
-    const val FIELD_EXPIRY = "exp"
-    const val FIELD_CVV = "cvv"
 
     fun notifyCardCopied(
         context: Context,
-        cardId: String,
         title: String,
         expiry: String,
         cvv: String,
@@ -69,29 +61,6 @@ object CopyCompanionNotifier {
             .setContentIntent(openAppIntent(context))
             .setTimeoutAfter(seconds * 1000L)
 
-        if (showExpiry && expiry.isNotBlank()) {
-            builder.addAction(
-                action(
-                    context,
-                    context.getString(R.string.notif_action_copy_expiry),
-                    ACTION_COPY_EXPIRY,
-                    cardId,
-                    FIELD_EXPIRY
-                )
-            )
-        }
-        if (showCvv && cvv.isNotBlank()) {
-            builder.addAction(
-                action(
-                    context,
-                    context.getString(R.string.notif_action_copy_cvv),
-                    ACTION_COPY_CVV,
-                    cardId,
-                    FIELD_CVV
-                )
-            )
-        }
-
         manager.notify(NOTIFICATION_ID, builder.build())
     }
 
@@ -108,31 +77,6 @@ object CopyCompanionNotifier {
             NotificationManager.IMPORTANCE_HIGH
         )
         manager.createNotificationChannel(channel)
-    }
-
-    private fun action(
-        context: Context,
-        label: String,
-        action: String,
-        cardId: String,
-        field: String
-    ): Notification.Action {
-        val intent = Intent(context, CopyActionReceiver::class.java).apply {
-            this.action = action
-            putExtra(EXTRA_CARD_ID, cardId)
-            putExtra(EXTRA_FIELD, field)
-        }
-        val pending = PendingIntent.getBroadcast(
-            context,
-            cardId.hashCode() * 31 + field.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        return Notification.Action.Builder(
-            Icon.createWithResource(context, R.drawable.ic_stat_quickcards),
-            label,
-            pending
-        ).build()
     }
 
     private fun openAppIntent(context: Context): PendingIntent {
