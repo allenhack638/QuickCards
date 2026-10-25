@@ -116,3 +116,7 @@ Thumbs.db
 app/release/
 *.dm
 graphify-out/
+
+# Internal planning and agent-training notes: local only, never published
+docs/agents/
+docs/BACKLOG.md
