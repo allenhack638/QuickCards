@@ -260,10 +260,13 @@ object BackupImporter {
         val counts = Counts()
         val cardRepairDao = database.cardRepairDao()
 
+        val seenInFile = HashSet<String>()
         normalized.cards.forEach { entry ->
             val backupCard = entry.card
             val number = BackupPlanner.normalizeNumber(backupCard.number)
             if (number.isEmpty()) return@forEach
+            // A second copy of a number in the same file is rejected, never merged over the first.
+            if (!seenInFile.add(number)) return@forEach
             val resolved = BackupPlanner.resolve(
                 backupCard,
                 holderMap,

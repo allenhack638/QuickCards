@@ -87,7 +87,9 @@ data class PlannedCard(
 
 data class BackupPlan(
     val cards: List<PlannedCard>,
-    val newListCounts: Map<BackupSection, Int>
+    val newListCounts: Map<BackupSection, Int>,
+    /** Later copies of a number already in the same file; they are never imported. */
+    val duplicateCards: Int = 0
 ) {
     val newCards: Int get() = cards.count { it.isNew }
     val changedCards: Int get() = cards.count { !it.isNew && it.changed }
@@ -114,7 +116,8 @@ object BackupPlanner {
             .filterKeys { it.isNotEmpty() }
         val legacyNetworkIds = phone.networks.associate { normalizeName(it.name) to it.id }
 
-        val planned = content.cards.map { card ->
+        val unique = uniqueCards(content.cards)
+        val planned = unique.map { card ->
             val existing = phoneByNumber[normalizeNumber(card.number)]?.firstOrNull()
             val resolved = resolve(
                 card,
@@ -141,7 +144,11 @@ object BackupPlanner {
             BackupSection.TAGS to countNew(content.tags, phone.tags)
         )
 
-        return BackupPlan(cards = planned, newListCounts = newListCounts)
+        return BackupPlan(
+            cards = planned,
+            newListCounts = newListCounts,
+            duplicateCards = content.cards.size - unique.size
+        )
     }
 
     fun resolve(
@@ -218,6 +225,15 @@ object BackupPlanner {
         }
 
     fun normalizeNumber(number: String): String = number.filter { it in '0'..'9' }
+
+    /** A card number appears once: the first copy in the file wins, later copies are dropped. */
+    fun uniqueCards(cards: List<BackupCard>): List<BackupCard> {
+        val seen = HashSet<String>()
+        return cards.filter { card ->
+            val number = normalizeNumber(card.number)
+            number.isEmpty() || seen.add(number)
+        }
+    }
 
     private fun mapIds(
         incoming: List<BackupNamed>,

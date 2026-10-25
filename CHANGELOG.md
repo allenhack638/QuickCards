@@ -24,3 +24,4 @@ All notable changes to this project are documented in this file.
 - Fixed: backups now keep each card's payment due day and long network labels; restoring no longer clears or shortens them.
 - Fixed: turning on "Show expiry and CVV after copying" asks to unlock again, and a hidden CVV setting from older versions or backups keeps the notification off.
 - Fixed: autofill only fills visible fields on the same site, names the app or site in the prompt and no longer mistakes bank-account fields for card fields; a misbehaving NFC card can no longer crash the app.
+- Changed: a card number can exist only once. A backup with the same card twice imports only the first copy, and duplicates left by older versions are removed on upgrade (tags and notes are kept).

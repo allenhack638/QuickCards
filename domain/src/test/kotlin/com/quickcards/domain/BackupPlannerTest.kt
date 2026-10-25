@@ -301,4 +301,20 @@ class BackupPlannerTest {
         assertEquals(0, plan.newCount(BackupSection.HOLDERS))
     }
 
+
+    @Test
+    fun aRepeatedNumberInTheFileIsSkippedAndCounted() {
+        val content = BackupContent(
+            cards = listOf(
+                BackupCard(id = "a", number = "4532 7781 0349 2211", note = "first"),
+                BackupCard(id = "b", number = "4532778103492211", note = "second"),
+                BackupCard(id = "c", number = "5555555555554444")
+            )
+        )
+        val plan = BackupPlanner.plan(content, PhoneSnapshot())
+        assertEquals(listOf("a", "c"), plan.cards.map { it.card.id })
+        assertEquals(1, plan.duplicateCards)
+        assertEquals(2, plan.newCards)
+    }
+
 }

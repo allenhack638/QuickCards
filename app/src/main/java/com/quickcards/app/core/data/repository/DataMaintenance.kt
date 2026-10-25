@@ -1,6 +1,9 @@
 package com.quickcards.app.core.data.repository
 
 import com.quickcards.app.core.data.database.QuickCardsDatabase
+import com.quickcards.app.core.data.model.CardTag
+import com.quickcards.app.core.data.model.Card
+import androidx.room.withTransaction
 import com.quickcards.app.core.security.EncryptionHelper
 import com.quickcards.app.core.security.PanHasher
 
@@ -13,6 +16,7 @@ object DataMaintenance {
     ): Int {
         encryptLegacyMetadata(database)
         wrapUnderDataKey(database)
+        removeDuplicateCards(database)
         backfillPanHashes(database)
         val backfilled = LegacyBackfill.run(database)
         LegacyRepair.prune(database)
@@ -60,6 +64,41 @@ object DataMaintenance {
             runCatching {
                 val wrapped = holder.copy(name = encryption.reencryptMetadata(holder.name))
                 if (wrapped != holder) holderDao.updateHolder(wrapped)
+            }
+        }
+    }
+
+    /**
+     * Card numbers are unique. Older versions could store the same number twice; keep the copy
+     * edited most recently (preferring the one already indexed), carry over the others' tags and
+     * a note it lacks, and delete the rest.
+     */
+    private suspend fun removeDuplicateCards(database: QuickCardsDatabase) {
+        val encryption = EncryptionHelper.getInstance()
+        val cardDao = database.cardDao()
+        val cardTagDao = database.cardTagDao()
+        val groups = cardDao.getAllCardsSync()
+            .mapNotNull { card ->
+                val pan = runCatching { encryption.decrypt(card.cardNumber) }.getOrNull()
+                    ?.filter(Char::isDigit)?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                pan to card
+            }
+            .groupBy({ it.first }, { it.second })
+            .values.filter { it.size > 1 }
+        if (groups.isEmpty()) return
+        val links = cardTagDao.getAllCardTagsSync().groupBy({ it.cardId }, { it.tagId })
+        database.withTransaction {
+            for (copies in groups) {
+                val keep = copies.maxWith(
+                    compareBy<Card>({ !it.panHash.isNullOrBlank() }, { it.updatedAt }, { it.createdAt })
+                )
+                val others = copies.filter { it.id != keep.id }
+                val tags = (links[keep.id].orEmpty() + others.flatMap { links[it.id].orEmpty() }).distinct()
+                val note = keep.description.ifBlank { others.firstOrNull { it.description.isNotBlank() }?.description.orEmpty() }
+                others.forEach { cardDao.deleteCardById(it.id) }
+                if (note != keep.description) cardDao.updateCard(keep.copy(description = note))
+                cardTagDao.deleteLinksForCard(keep.id)
+                cardTagDao.insertLinks(tags.map { CardTag(cardId = keep.id, tagId = it) })
             }
         }
     }

@@ -205,6 +205,15 @@ internal fun ImportReviewDialog(state: BackupHostState, review: ImportReview) {
             plan.sameCards
         )
     )
+    if (plan.duplicateCards > 0) {
+        rows.add(
+            stringResource(R.string.backup_review_duplicates_label) to pluralStringResource(
+                R.plurals.backup_review_duplicates,
+                plan.duplicateCards,
+                plan.duplicateCards
+            )
+        )
+    }
     if (BackupSection.HOLDERS in sections && content.holders.isNotEmpty()) {
         rows.add(
             pluralStringResource(

@@ -36,6 +36,11 @@
         <item quantity="one">%1$d new</item>
         <item quantity="other">%1$d new</item>
     </plurals>
+    <string name="backup_review_duplicates_label">Duplicates</string>
+    <plurals name="backup_review_duplicates">
+        <item quantity="one">%d skipped, same number as another card in this backup</item>
+        <item quantity="other">%d skipped, same number as another card in this backup</item>
+    </plurals>
     <string name="backup_review_all_exist">all exist</string>
     <string name="backup_review_formats">Formats fixed: %1$d · Need a check: %2$d</string>
     <string name="backup_review_settings_label">Settings</string>
