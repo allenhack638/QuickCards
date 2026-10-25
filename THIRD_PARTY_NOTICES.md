@@ -1,0 +1,36 @@
+# Third-party notices
+
+QuickCards bundles the following third-party software and assets. The list matches the
+runtime dependencies in `app/build.gradle`; test-only dependencies (JUnit, AndroidX Test,
+Espresso, Room testing, Compose UI test) are not shipped in the APK and are not listed.
+
+## Apache License 2.0
+
+The full text is available at <https://www.apache.org/licenses/LICENSE-2.0>.
+
+| Component | Artifacts | Copyright |
+|---|---|---|
+| AndroidX core and lifecycle | `androidx.core:core-ktx`, `androidx.lifecycle:lifecycle-runtime-ktx`, `lifecycle-process`, `lifecycle-viewmodel-ktx`, `lifecycle-viewmodel-compose`, `lifecycle-livedata-ktx` | The Android Open Source Project |
+| AndroidX Activity, Navigation and WindowManager | `androidx.activity:activity-compose`, `androidx.navigation:navigation-compose`, `androidx.window:window` | The Android Open Source Project |
+| Jetpack Compose | Compose BOM `2024.02.00`: `ui`, `ui-graphics`, `ui-tooling-preview`, `material3`, `runtime-livedata` (debug builds also include `ui-tooling` and `ui-test-manifest`) | The Android Open Source Project |
+| Material Icons (Compose) | `androidx.compose.material:material-icons-extended` | The Android Open Source Project / Google LLC |
+| Material Components for Android | `com.google.android.material:material` | The Android Open Source Project / Google LLC |
+| Room | `androidx.room:room-runtime`, `room-ktx` (and the `room-compiler` annotation processor at build time) | The Android Open Source Project |
+| Biometric | `androidx.biometric:biometric` | The Android Open Source Project |
+| AndroidX Security | `androidx.security:security-crypto` | The Android Open Source Project |
+| Gson | `com.google.code.gson:gson` | Google LLC |
+| colorpicker-compose | `com.github.skydoves:colorpicker-compose` | skydoves (Jaewoong Eum) |
+| Kotlin standard library and kotlinx.coroutines | `org.jetbrains.kotlin:kotlin-stdlib`, `org.jetbrains.kotlinx:kotlinx-coroutines-android` | JetBrains s.r.o. and Kotlin contributors |
+
+## SIL Open Font License 1.1
+
+| Component | Copyright | Licence text |
+|---|---|---|
+| Roboto Flex (bundled font) | Copyright 2017 The Roboto Flex Project Authors | [`app/src/main/assets/licenses/RobotoFlex-OFL.txt`](app/src/main/assets/licenses/RobotoFlex-OFL.txt) |
+
+## Not covered by the MIT licence
+
+The Stub Lock logo and the QuickCards brand assets (`docs/brand/`, the launcher, splash,
+notification and lock-screen marks) are © allenhack638 and are not licensed under MIT
+unless stated otherwise. Card network names appear only as plain text labels; no issuer
+or network logos are bundled.

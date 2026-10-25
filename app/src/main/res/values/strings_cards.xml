@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen chrome -->
+    <string name="cards_title">Cards</string>
+    <string name="cards_search">Search</string>
+    <string name="cards_filter">Filter cards</string>
+    <plurals name="cards_filter_active">
+        <item quantity="one">Filter cards, %1$d active</item>
+        <item quantity="other">Filter cards, %1$d active</item>
+    </plurals>
+    <string name="cards_add">Add card</string>
+    <string name="cards_search_close">Close search</string>
+    <string name="cards_search_clear">Clear search</string>
+    <string name="cards_search_placeholder">Search cards</string>
+    <string name="cards_search_placeholder_tags">Search cards and tags</string>
+    <string name="cards_search_hint">Search by digits, bank, holder, network or note</string>
+    <string name="cards_search_hint_tags">Search by digits, bank, holder, network, tag or note</string>
+
+    <!-- Holder and filter chips -->
+    <string name="cards_holder_all">All</string>
+    <string name="cards_tag_chip">#%1$s</string>
+    <string name="cards_chip_remove">Remove filter</string>
+    <string name="cards_unlocked">Unlocked</string>
+    <string name="cards_locked">Locked</string>
+
+    <!-- Empty and no-result states -->
+    <string name="cards_empty_title">Add your first card</string>
+    <string name="cards_empty_body">Stored encrypted on this phone. Nothing leaves it.</string>
+    <string name="cards_import">Import</string>
+    <string name="cards_no_result_query_title">No cards match “%1$s”</string>
+    <string name="cards_no_result_filter_title">No cards match these filters</string>
+    <string name="cards_no_result_query_body">Check the digits, or try a bank, holder or tag.</string>
+    <string name="cards_no_result_filter_body">Remove a filter to see more cards.</string>
+    <string name="cards_empty_hidden_expired_title">Expired cards are hidden</string>
+    <string name="cards_empty_hidden_expired_body">Search, or turn on the Expired filter to see them.</string>
+    <string name="cards_empty_hidden_expired_action">Show expired</string>
+    <string name="cards_empty_archived_title">All your cards are archived</string>
+    <string name="cards_empty_archived_body">Find them in Manage › Archived cards.</string>
+    <string name="cards_empty_archived_action">Open Archived cards</string>
+
+    <!-- Pass fields -->
+    <string name="cards_field_number">Card number</string>
+    <string name="cards_field_expiry">Expiry</string>
+    <string name="cards_field_cvv">CVV</string>
+    <string name="cards_field_name">Name</string>
+    <string name="cards_pass_placeholder_full">•••• •••• •••• ••••</string>
+    <string name="cards_pass_placeholder_narrow">•••• ••••</string>
+    <string name="cards_pass_masked_narrow">•••• %1$s</string>
+    <string name="cards_pass_expiry_placeholder">MM/YY</string>
+    <string name="cards_pass_name_placeholder">NAME ON CARD</string>
+    <string name="cards_pass_copied">Copied</string>
+    <string name="cards_pass_pinned">Pinned</string>
+    <string name="cards_pass_more">More for %1$s</string>
+
+    <!-- Expiry status, archive and review labels -->
+    <string name="cards_status_expired">Expired</string>
+    <string name="cards_status_expires_soon">Expires soon</string>
+    <string name="cards_status_check_details">Check details</string>
+    <string name="cards_status_archived">Archived</string>
+    <string name="cards_status_archived_reason">Archived · %1$s</string>
+
+    <!-- Notes on cards -->
+    <string name="cards_note_more">More</string>
+    <string name="cards_note_less">Less</string>
+    <string name="cards_a11y_note_more">Show full note</string>
+    <string name="cards_a11y_note_less">Show less</string>
+    <string name="cards_a11y_copy_note">Copy note</string>
+    <string name="cards_note_copied">Note copied</string>
+    <string name="cards_clipboard_note">Note</string>
+    <string name="cards_unlock_note">Confirm it’s you to copy this note</string>
+
+    <!-- Repair banner -->
+    <plurals name="cards_repair_fixed">
+        <item quantity="one">Fixed the format of %1$d card.</item>
+        <item quantity="other">Fixed the format of %1$d cards.</item>
+    </plurals>
+    <plurals name="cards_repair_check">
+        <item quantity="one">%1$d needs a quick check.</item>
+        <item quantity="other">%1$d need a quick check.</item>
+    </plurals>
+    <string name="cards_repair_review">Review</string>
+    <string name="cards_repair_dismiss">Dismiss</string>
+
+    <!-- Archive and restore -->
+    <string name="cards_action_archive">Archive</string>
+    <string name="cards_action_restore">Restore</string>
+    <string name="cards_archive_title">Archive this card?</string>
+    <string name="cards_archive_body">It moves to Manage › Archived cards. You can copy, edit or restore it there.</string>
+    <string name="cards_archive_reason">Reason (optional)</string>
+    <string name="cards_archive_reason_helper">For example: Card closed</string>
+    <string name="cards_archive_snackbar">Card archived</string>
+    <string name="cards_restore_snackbar">Card restored</string>
+
+    <!-- Pass accessibility -->
+    <string name="cards_a11y_field_hidden">%1$s, hidden</string>
+    <string name="cards_a11y_field_value">%1$s, %2$s</string>
+    <string name="cards_a11y_field_hidden_action">%1$s, hidden. Tap to copy.</string>
+    <string name="cards_a11y_field_value_action">%1$s, %2$s. Tap to copy.</string>
+    <string name="cards_a11y_field_hidden_reveal">%1$s, hidden. Tap to copy, hold to show.</string>
+    <string name="cards_a11y_field_value_reveal">%1$s, %2$s. Tap to copy, hold to show.</string>
+    <string name="cards_a11y_expiry_expired">Expiry, %1$s. Expired. Tap to copy.</string>
+    <string name="cards_a11y_expiry_soon">Expiry, %1$s. Expires soon. Tap to copy.</string>
+    <string name="cards_a11y_copy_field">Copy %1$s</string>
+    <string name="cards_a11y_show_field">Show %1$s</string>
+
+    <!-- Copy, unlock and notifications -->
+    <string name="cards_copied">%1$s copied</string>
+    <string name="cards_copied_clears">%1$s copied · clears in %2$s</string>
+    <string name="cards_copied_details">Number, expiry and name copied</string>
+    <string name="cards_clipboard_details">%1$s details</string>
+    <string name="cards_clipboard_field">%1$s · %2$s</string>
+    <string name="cards_clear">Clear</string>
+    <string name="cards_reveal_cvv">Confirm it’s you to show the CVV</string>
+    <string name="cards_reveal_number">Confirm it’s you to show the card number</string>
+    <string name="cards_unlock_edit">Confirm it’s you to edit this card</string>
+    <string name="cards_unlock_delete">Confirm it’s you to delete this card</string>
+    <string name="cards_notification_title">%1$s · %2$s</string>
+
+    <!-- More sheet -->
+    <string name="cards_action_copy_details">Copy details</string>
+    <string name="cards_action_edit">Edit card</string>
+    <string name="cards_action_pin">Pin</string>
+    <string name="cards_action_unpin">Unpin</string>
+    <string name="cards_action_delete">Delete card</string>
+
+    <!-- Pin and delete dialogs -->
+    <plurals name="cards_pin_limit_reached">
+        <item quantity="one">%1$d of %1$d pinned. Unpin a card or raise the limit in Settings.</item>
+        <item quantity="other">%1$d of %1$d pinned. Unpin a card or raise the limit in Settings.</item>
+    </plurals>
+    <string name="cards_cancel">Cancel</string>
+    <string name="cards_pinned">Pinned</string>
+    <string name="cards_unpinned">Unpinned</string>
+    <string name="cards_undo">Undo</string>
+    <string name="cards_delete_title">Delete this card?</string>
+    <string name="cards_delete_body">%1$s ending %2$s will be removed from this phone. This can’t be undone.</string>
+    <string name="cards_delete">Delete</string>
+    <string name="cards_deleted">Card deleted</string>
+
+    <!-- Filter sheet -->
+    <string name="cards_filter_title">Filter cards</string>
+    <string name="cards_filter_clear_all">Clear all</string>
+    <plurals name="cards_filter_show">
+        <item quantity="one">Show %1$d card</item>
+        <item quantity="other">Show %1$d cards</item>
+    </plurals>
+    <string name="cards_filter_group_holder">Card holder</string>
+    <string name="cards_filter_group_bank">Bank</string>
+    <string name="cards_filter_group_network">Network</string>
+    <string name="cards_filter_group_type">Type</string>
+    <string name="cards_filter_group_tag">Tag</string>
+    <string name="cards_filter_group_status">Status</string>
+    <string name="cards_filter_needs_check">Needs check (%1$d)</string>
+
+    <!-- Fallbacks -->
+    <string name="cards_bank_fallback">Bank</string>
+
+    <!-- Encryption key unavailable -->
+    <string name="cards_key_unavailable_title">Cards unavailable</string>
+    <string name="cards_key_unavailable_body">Your cards can’t be opened because the encryption key is unavailable on this device. The data is still stored but can’t be decrypted.</string>
+    <string name="cards_key_unavailable_retry">Retry key check</string>
+    <string name="cards_key_unavailable_dismiss">Dismiss</string>
+</resources>

@@ -1,0 +1,5 @@
+# Literals that are intentional in composables.
+# One literal per line. Lines starting with # are comments.
+# Punctuation that carries no prose (bullets, separators) is also allowed
+# automatically by the guard. Keep this list minimal.
+•

@@ -1,0 +1,1447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuickCards Prototype v2</title>
+<link rel="icon" href="../docs/brand/stub-lock/icon-play-512.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="quickcards-v2.css?v=14">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body.page { background: #111113; color: #E4E4E7; font-family: "Roboto Flex", Roboto, system-ui, sans-serif; display: flex; justify-content: center; align-items: flex-start; gap: 48px; padding: 32px 16px 48px; box-sizing: border-box; }
+  body.page.embed { background: transparent; padding: 0; gap: 0; }
+  body.embed .panel { display: none; }
+  body.embed .bezel { zoom: 1 !important; box-shadow: none; }
+  .panel { width: 300px; flex: none; padding-top: 24px; }
+  .panel h1 { font-size: 22px; line-height: 28px; font-weight: 650; margin: 0 0 4px; letter-spacing: -.01em; }
+  .panel .sub { color: #A1A1AA; font-size: 13px; margin: 0 0 24px; }
+  .panel h2 { font-size: 13px; font-weight: 650; color: #A1A1AA; margin: 24px 0 8px; }
+  .panel ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: #D4D4D8; }
+  .panel li { margin-bottom: 6px; }
+  .panel .clip { font-size: 14px; background: #1C1C1F; border: 1px solid #2A2A2E; border-radius: 12px; padding: 12px 14px; font-variant-numeric: tabular-nums; min-height: 48px; word-break: break-all; }
+  .panel .clip span { display: block; color: #A1A1AA; font-size: 12px; margin-bottom: 2px; }
+  .panel .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .panel button { font: inherit; font-size: 13px; font-weight: 600; color: #F4F4F5; background: #232327; border: 1px solid #34343A; border-radius: 18px; height: 36px; padding: 0 14px; cursor: pointer; }
+  .panel button:hover { background: #2C2C31; }
+  .panel a { color: #F4F4F5; font-weight: 600; font-size: 14px; }
+  .panel .note { color: #8B8B93; font-size: 12px; line-height: 17px; margin-top: 24px; }
+  .bezel { flex: none; padding: 10px; border-radius: 52px; background: #050506; box-shadow: 0 0 0 1px #2A2A2E, 0 30px 60px rgba(0,0,0,.5); }
+  .device { width: 390px; height: 844px; border-radius: 42px; overflow: hidden; position: relative; isolation: isolate; }
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 28px; font-size: 13px; font-weight: 600; z-index: 50; color: var(--on-surface); pointer-events: none; }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .statusbar svg { width: 16px; height: 16px; fill: currentColor; }
+  .gesture { position: absolute; bottom: 7px; left: 50%; width: 108px; height: 4px; margin-left: -54px; border-radius: 2px; background: var(--on-surface); opacity: .45; z-index: 60; pointer-events: none; }
+  .screens { position: absolute; top: 28px; left: 0; right: 0; bottom: 0; background: var(--bg); }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .screen.fwd { animation: fwd .28s var(--ease-emph); }
+  .screen.back { animation: back .28s var(--ease-emph); }
+  .screen.fade { animation: fade .22s var(--ease); }
+  @keyframes fwd { from { transform: translateX(32px); opacity: 0; } }
+  @keyframes back { from { transform: translateX(-32px); opacity: 0; } }
+  @keyframes fade { from { opacity: 0; transform: scale(.985); } }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .chiprow { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; flex: none; scrollbar-width: none; }
+  .chiprow::-webkit-scrollbar { display: none; }
+  .list { padding: 0 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .navbar { padding-bottom: 20px; height: 100px; }
+  #nav { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; }
+  .searchbar { height: 64px; display: flex; align-items: center; padding: 0 4px; flex: none; }
+  .searchbar .box { flex: 1; height: 48px; display: flex; align-items: center; border-radius: 24px; background: var(--sc-high); padding: 0 4px; }
+  .searchbar input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-size: 16px; height: 48px; padding: 0 4px; -webkit-appearance: none; appearance: none; }
+  .searchbar input::-webkit-search-cancel-button { display: none; }
+  .qc .searchbar input:focus-visible { outline: none; }
+  .searchbar .box:focus-within { box-shadow: inset 0 0 0 2px var(--on-surface); }
+  .searchbar input::placeholder { color: var(--on-surface-variant); }
+  .hint { padding: 0 20px 12px; font-size: 14px; color: var(--on-surface-variant); }
+  .noresult { padding: 64px 32px; text-align: center; }
+  .noresult .t-title { margin-bottom: 4px; }
+  .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 40px 24px; }
+  .empty svg.art { width: 168px; height: 120px; margin-bottom: 28px; color: var(--outline); }
+  .empty h2 { margin: 0 0 8px; }
+  .empty p { margin: 0 0 28px; max-width: 26ch; }
+  .empty .stack { display: flex; flex-direction: column; gap: 12px; align-items: stretch; width: 200px; }
+  .form { padding: 8px 16px 24px; }
+  .form .pass-wrap { margin-bottom: 20px; }
+  .grp { margin: 14px 0 22px; }
+  .grp .glab { display: flex; align-items: center; font-size: 14px; font-weight: 600; color: var(--on-surface-variant); margin: 0 0 10px; }
+  .grp .ghelp { font-size: 12px; color: var(--on-surface-variant); margin: 8px 0 0; }
+  .swatches { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .swatch { width: 100%; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff; position: relative; }
+  .swatch::before { content: ""; grid-area: 1 / 1; width: 40px; height: 40px; border-radius: 50%; background: var(--sw, var(--sc-highest)); }
+  .swatch .ic { grid-area: 1 / 1; position: relative; opacity: 0; stroke-width: 2.6; width: 20px; font-size: 20px; height: 20px; }
+  .swatch[aria-checked="true"]::before { box-shadow: 0 0 0 1px var(--bg), 0 0 0 3px var(--on-surface); }
+  .swatch[aria-checked="true"] .ic { opacity: 1; }
+  .swatch.custom::after { content: ""; grid-area: 1 / 1; width: 40px; height: 40px; border-radius: 50%; pointer-events: none;
+    background: conic-gradient(var(--band-crimson), var(--band-rust), var(--band-olive), var(--band-teal), var(--band-ocean), var(--band-indigo), var(--band-violet), var(--band-magenta), var(--band-crimson));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px)); }
+  .swatch.custom .ic { opacity: 1; color: var(--on-surface-variant); }
+  .swatch.custom[aria-checked="true"] .ic { color: #fff; }
+  .cwheel { position: relative; width: 200px; height: 200px; margin: 8px auto; border-radius: 50%; cursor: crosshair;
+    background: conic-gradient(#FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000); }
+  .cwheel::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 70%); }
+  .ccursor { position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.45); transform: translate(-50%, -50%); pointer-events: none; z-index: 1; }
+  .cbright { display: block; width: calc(100% - 48px); height: 40px; margin: 12px 24px 4px; appearance: none; -webkit-appearance: none; border-radius: 6px;
+    background: linear-gradient(90deg, #000, var(--pure, #fff)); }
+  .cbright::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,.35); }
+  .cpreview { margin: 16px 24px 8px; border-radius: 18px; overflow: hidden; background: color-mix(in srgb, var(--band) 12%, var(--sc));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--band) 60%, #45454C); }
+  .cpreview .cband { height: 48px; display: flex; align-items: center; padding: 0 16px; color: #fff; font-size: 15px; font-weight: 700;
+    background: linear-gradient(118deg, var(--band) 0%, var(--band) 45%, color-mix(in srgb, var(--band) 72%, #fff) 140%); }
+  .cpreview .cbodyfill { height: 36px; }
+  .crecents { display: flex; padding: 0 16px 8px; }
+  .crecent { width: 48px; height: 48px; display: grid; place-items: center; }
+  .crecent span { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+  .footer { flex: none; padding: 12px 16px 32px; background: var(--bg); border-top: 1px solid var(--outline-variant); }
+  .actions-head { display: flex; gap: 16px; align-items: center; padding: 4px 24px 12px; }
+  .actions-head .sw { width: 24px; height: 16px; border-radius: 3px; flex: none; }
+  .actions-head .h { font-size: 16px; font-weight: 600; line-height: 22px; }
+  .actions-head .s { font-size: 13px; color: var(--on-surface-variant); }
+  .sheet .sh-body, .dialog { scrollbar-width: none; }
+  .sheet .sh-body::-webkit-scrollbar, .dialog::-webkit-scrollbar { display: none; }
+  .sheet .li { padding-left: 24px; padding-right: 24px; }
+  .sheet { --fieldbg: var(--sc); }
+  .sheet .tf { margin: 4px 24px 8px; }
+  .sheet .grp-h { padding: 16px 24px 4px; font-size: 14px; font-weight: 600; color: var(--on-surface-variant); }
+  .sheet .newtag { display: flex; gap: 8px; align-items: flex-start; margin: 4px 24px 4px; }
+  .sheet .newtag .tf { flex: 1; margin: 0; }
+  .sheet .newtag .btn { height: 56px; margin-top: 0; flex: none; }
+  .sheet .sh-note { padding: 0 24px 8px; font-size: 12px; color: var(--on-surface-variant); }
+  .checkrow { border-radius: 8px; display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 0 24px; width: 100%; text-align: left; font-size: 16px; }
+  .checkrow .cb { margin: 0 1px; }
+  .checkrow[disabled] { opacity: .38; pointer-events: none; }
+  .checkrow .cnt { margin-left: auto; font-size: 13px; color: var(--on-surface-variant); }
+  .file { display: flex; align-items: center; gap: 12px; border: 1px solid var(--outline-variant); border-radius: 12px; padding: 10px 6px 10px 12px; margin-bottom: 16px; }
+  .file .n { font-size: 14px; font-weight: 600; word-break: break-all; }
+  .file .m { font-size: 12px; color: var(--on-surface-variant); }
+  .file > div { flex: 1; min-width: 0; }
+  .dialog .checkrow { padding: 0; font-size: 14px; color: var(--on-surface); }
+  .dialog .radios .checkrow { font-size: 16px; }
+  .dialog { max-height: calc(100% - 96px); overflow-y: auto; }
+  .edge { position: absolute; left: -24px; top: 50%; width: 40px; height: 40px; margin-top: -20px; border-radius: 50%; background: var(--sc-highest); color: var(--on-surface); display: grid; place-items: center; z-index: 45; opacity: 0; pointer-events: none; }
+  .li .trail.val { font-size: 14px; color: var(--on-surface-variant); }
+  .tf .trail .caret { width: 48px; height: 48px; display: grid; place-items: center; color: var(--on-surface-variant); }
+  @media (max-height: 960px) and (min-width: 781px) { .bezel { zoom: .86; } body.page { padding-top: 16px; } }
+  @media (max-width: 780px) { body.page { flex-direction: column; align-items: center; } .panel { width: 100%; max-width: 410px; padding-top: 0; } }
+</style>
+</head>
+<body class="page">
+
+<aside class="panel">
+  <h1>QuickCards prototype v2</h1>
+  <p class="sub">Pass Stub · Android, Material 3 · 390 × 844 · changes are saved in this browser</p>
+  <h2>Try</h2>
+  <ul>
+    <li>Tap the masked number, expiry, CVV or name to copy it. Hold the number or CVV to see it for 5 seconds.</li>
+    <li>After copying a number, a notification shows expiry and CVV for 30 seconds.</li>
+    <li>Use the holder chips to switch between card holders.</li>
+    <li>Pin a card from its More sheet to keep it at the top of the list.</li>
+    <li>Manage holders, banks, networks, types and tags from the Manage tab. Try renaming or deleting one that cards use.</li>
+    <li>Archive a card from its ⋮ sheet and find it again in Manage › Archived cards; restore it from the same menu.</li>
+    <li>Long-press a note on a card to copy it, or use More to read the whole note. Notes, expired cards and archived search are set in Settings › Card list.</li>
+    <li>Tune masking, notifications, tags and more in Settings.</li>
+    <li>The app opens locked. Leave it untouched for the time set in Settings and it locks again.</li>
+    <li>Swipe in from the left edge or press Esc to go back.</li>
+  </ul>
+  <h2>Clipboard</h2>
+  <div class="clip" id="clip"><span>Nothing copied yet</span></div>
+  <h2>Simulate</h2>
+  <div class="acts">
+    <button type="button" id="leave">Leave the app</button>
+    <button type="button" id="reset">Reset prototype</button>
+  </div>
+  <h2>More</h2>
+  <a href="timeline.html">Open the timeline and design system</a>
+  <p class="note">Card numbers are synthetic test numbers. The sample backup file uses the passphrase <b>quickcards</b>.</p>
+</aside>
+
+<div class="bezel">
+  <div class="device qc" id="app" data-theme="dark">
+    <div class="statusbar"><span class="tnum">9:41</span><span class="icons">
+      <svg viewBox="0 0 24 24"><path d="M12 18.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM4.9 13.1a10 10 0 0 1 14.2 0l-1.6 1.6a7.7 7.7 0 0 0-11 0zM1.7 9.9a14.5 14.5 0 0 1 20.6 0l-1.6 1.6a12.2 12.2 0 0 0-17.4 0z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M3 20h3v-4H3zm5 0h3v-8H8zm5 0h3V8h-3zm5 0h3V4h-3z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M8 3h8v2h2a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2zm-1 7v10h10V10z"/></svg>
+    </span></div>
+    <div class="screens" id="screens"></div>
+    <nav class="navbar" id="nav" aria-label="Main" hidden></nav>
+    <div class="edge" id="edge"></div>
+    <div class="scrim" id="scrimSheet" hidden></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden></div>
+    <div class="scrim" id="scrimDialog" style="z-index:30" hidden></div>
+    <div class="dialog" id="dialog" role="dialog" aria-modal="true" tabindex="-1" style="outline:none" hidden></div>
+    <div class="bio" id="bio" role="dialog" aria-modal="true" hidden></div>
+    <div class="snackbar" id="snack" role="status" aria-live="polite"><span class="msg"></span></div>
+    <div class="lockscr" id="lockscr" role="dialog" aria-modal="true" aria-labelledby="lockT" hidden></div>
+    <div class="hun" id="hun" role="status" aria-live="polite"></div>
+    <div class="gesture"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const EMBED = /embed/.test(location.search);
+if (EMBED) document.body.classList.add('embed');
+const TODAY = { y: 2026, m: 10 };
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+/* ---------- Icons ---------- */
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', };
+const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
+
+const LOGO = (vb = '0 0 108 108') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="currentColor" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
+
+/* ---------- Card number rules ---------- */
+const NETWORKS0 = () => [
+  { id: 'visa', name: 'Visa', code: 'VISA', prefixes: '4', lengths: '13,16,19', cvv: 3, luhn: true, groups: '' },
+  { id: 'mc', name: 'Mastercard', code: 'MC', prefixes: '51-55,2221-2720', lengths: '16', cvv: 3, luhn: true, groups: '' },
+  { id: 'amex', name: 'American Express', code: 'AMEX', prefixes: '34,37', lengths: '15', cvv: 4, luhn: true, groups: '4-6-5' },
+  { id: 'rupay', name: 'RuPay', code: 'RUPAY', prefixes: '508500-508999,606985-607984,608001-608500,652150-653149,817200-820199', lengths: '16', cvv: 3, luhn: true, groups: '' },
+  { id: 'diners', name: 'Diners Club', code: 'DINERS', prefixes: '300-305,36,38,39', lengths: '14-19', cvv: 3, luhn: true, groups: '4-6-4' },
+  { id: 'discover', name: 'Discover', code: 'DISC', prefixes: '6011,644-649,65', lengths: '16-19', cvv: 3, luhn: true, groups: '' },
+  { id: 'jcb', name: 'JCB', code: 'JCB', prefixes: '3528-3589', lengths: '16-19', cvv: 3, luhn: true, groups: '' },
+  { id: 'maestro', name: 'Maestro', code: 'MAESTRO', prefixes: '5018,5020,5038,5893,6304,6759,6761-6763', lengths: '12-19', cvv: 3, luhn: true, groups: '' },
+  { id: 'unionpay', name: 'UnionPay', code: 'UPI', prefixes: '62', lengths: '16-19', cvv: 3, luhn: false, groups: '' },
+  { id: 'mir', name: 'Mir', code: 'MIR', prefixes: '2200-2204', lengths: '16-19', cvv: 3, luhn: true, groups: '' },
+];
+const lens = spec => { const out = new Set(); String(spec).split(',').forEach(t => { t = t.trim(); const m = t.match(/^(\d+)\s*-\s*(\d+)$/); if (m) { for (let i = +m[1]; i <= +m[2]; i++) out.add(i); } else if (/^\d+$/.test(t)) out.add(+t); }); return [...out].sort((a, b) => a - b); };
+const lensText = spec => { const l = lens(spec); if (!l.length) return ''; const runs = []; let s = l[0], p = l[0]; for (const x of l.slice(1).concat(null)) { if (x === p + 1) { p = x; continue; } runs.push(s === p ? `${s}` : `${s} to ${p}`); s = p = x; } return runs.length > 1 ? runs.slice(0, -1).join(', ') + ' or ' + runs.at(-1) : runs[0]; };
+const prefixScore = (num, spec) => { let best = 0; String(spec).split(',').forEach(t => { t = t.trim(); const m = t.match(/^(\d+)\s*-\s*(\d+)$/); if (m) { const L = m[1].length; if (num.length >= L) { const p = +num.slice(0, L); if (p >= +m[1] && p <= +m[2]) best = Math.max(best, L); } } else if (t && num.startsWith(t)) best = Math.max(best, t.length); }); return best; };
+const detect = num => { let best = null, bs = 0; for (const n of S.networks) { const s = prefixScore(num, n.prefixes); if (s > bs) { bs = s; best = n; } } return best; };
+const DEFG = { 12: [4,4,4], 13: [4,4,5], 14: [4,6,4], 15: [4,6,5], 16: [4,4,4,4], 17: [4,4,4,5], 18: [4,4,4,6], 19: [4,4,4,4,3] };
+const groupsFor = (net, len) => { if (net?.groups) { const g = net.groups.split('-').map(Number); if (g.reduce((a, b) => a + b, 0) === len) return g; } return DEFG[len] || null; };
+const maxLenOf = net => net ? Math.max(...lens(net.lengths), 12) : 19;
+function fmt(num, net, mask, typing) {
+  if (!num) return '';
+  const len = num.length, ls = net ? lens(net.lengths) : [];
+  const exact = groupsFor(net, len) && (!net || ls.includes(len));
+  const target = !typing && exact ? len : (typing && (!net || ls.includes(16)) && len <= 16 ? 16 : (ls.find(l => l >= len) || len));
+  const g = groupsFor(net, target) || [4, 4, 4, 4, 3];
+  const s = mask ? '•'.repeat(Math.max(0, len - 4)) + num.slice(-4) : num;
+  const out = []; let i = 0; for (const k of g) { if (i >= s.length) break; out.push(s.slice(i, i + k)); i += k; } if (i < s.length) out.push(s.slice(i));
+  return out.join(' ');
+}
+const luhnDigit = p => { let s = 0; for (let i = 0; i < p.length; i++) { let d = +p[p.length - 1 - i]; if (i % 2 === 0) { d *= 2; if (d > 9) d -= 9; } s += d; } return String((10 - s % 10) % 10); };
+const luhnValid = n => n.length > 1 && luhnDigit(n.slice(0, -1)) === n.slice(-1);
+const monoFor = name => { const w = name.replace(/\bof\b/gi, '').split(/\s+/).filter(Boolean); if (!w.length) return '?'; if (/^[A-Z]{2,}$/.test(w[0])) return w[0].slice(0, 2); if (w[1] && !/^bank$/i.test(w[1])) return (w[0][0] + w[1][0]).toUpperCase(); return w[0].slice(0, 2).toUpperCase(); };
+const initials = name => name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const COLORS = ['navy', 'rust', 'forest', 'plum', 'graphite', 'teal', 'ocean', 'indigo', 'violet', 'magenta', 'wine', 'crimson', 'burnt-orange', 'olive', 'moss'];
+const BAND_NAMES = { navy: 'Navy', rust: 'Rust', forest: 'Forest', plum: 'Plum', graphite: 'Graphite', teal: 'Teal', ocean: 'Ocean', indigo: 'Indigo', violet: 'Violet', magenta: 'Magenta', wine: 'Wine', crimson: 'Crimson', 'burnt-orange': 'Burnt orange', olive: 'Olive', moss: 'Moss', slate: 'Slate' };
+const BAND_HEX = { navy: '#1E3A8A', rust: '#7C2D12', forest: '#14532D', plum: '#4C1D95', graphite: '#3F3F46', teal: '#0F5E5A', ocean: '#0C4A6E', indigo: '#3730A3', violet: '#5B21B6', magenta: '#86198F', wine: '#6B1E3E', crimson: '#9F1239', 'burnt-orange': '#9A3412', olive: '#4D5D1B', moss: '#3F6212', slate: '#334155' };
+const isCurated = c => COLORS.includes(c);
+const bandValue = c => isCurated(c) ? `var(--band-${c})` : (c || '#1E3A8A');
+const rgbHex = rgb => '#' + rgb.map(x => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, '0')).join('').toUpperCase();
+const hexRgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+const hsvToHex = (h, s, v) => { const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c; let r = 0, g = 0, b = 0; if (h < 60) [r, g, b] = [c, x, 0]; else if (h < 120) [r, g, b] = [x, c, 0]; else if (h < 180) [r, g, b] = [0, c, x]; else if (h < 240) [r, g, b] = [0, x, c]; else if (h < 300) [r, g, b] = [x, 0, c]; else [r, g, b] = [c, 0, x]; return rgbHex([(r + m) * 255, (g + m) * 255, (b + m) * 255]); };
+const hexHsv = hex => { const [r, g, b] = hexRgb(hex).map(x => x / 255); const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min; let h = 0; if (d) { if (max === r) h = 60 * (((g - b) / d) % 6); else if (max === g) h = 60 * ((b - r) / d + 2); else h = 60 * ((r - g) / d + 4); } if (h < 0) h += 360; return { h, s: max ? d / max : 0, v: max }; };
+const relLum = hex => { const [r, g, b] = hexRgb(hex).map(x => x / 255).map(x => x <= .04045 ? x / 12.92 : Math.pow((x + .055) / 1.055, 2.4)); return .2126 * r + .7152 * g + .0722 * b; };
+const contrastWhite = hex => 1.05 / (relLum(hex) + .05);
+
+/* ---------- Expiry status ---------- */
+const todayYM = () => TODAY.y * 12 + TODAY.m - 1;
+const parseExpiry = exp => {
+  const m = String(exp ?? '').trim().match(/^(\d{2})\/(\d{2})$/);
+  if (!m) return null;
+  const month = +m[1], year = 2000 + +m[2];
+  return month >= 1 && month <= 12 ? { y: year, m: month } : null;
+};
+const ymValue = p => p.y * 12 + p.m - 1;
+const isExpired = c => { const p = parseExpiry(c.exp); return !!p && ymValue(p) < todayYM(); };
+const isSoon = c => { const p = parseExpiry(c.exp); if (!p) return false; const d = ymValue(p) - todayYM(); return d >= 0 && d <= S.cfg.expiresSoonMonths; };
+const expiryStatus = c => isExpired(c) ? 'expired' : isSoon(c) ? 'soon' : '';
+const EXPIRED_LABEL = { keep: 'Keep in place', end: 'Move to the end', hide: 'Hide from the list' };
+const ARCHIVED_LABEL = { only: 'Only in Archived cards', search: 'Also in search results' };
+
+/* ---------- Data ---------- */
+const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
+const CFG0 = () => ({ theme: 'dark', dynamic: false, windowSec: 60, clipSec: 60, mask: true, showType: true, pinned: 3, expiredCards: 'end', expiresSoonMonths: 1, archivedCards: 'only', showNotes: true, notif: { on: true, sec: 30, exp: true, cvv: true }, tags: { show: true, search: true, max: 3, len: 16 }, appLock: { on: true, after: 60, onLeave: true } });
+const REPAIR0 = () => ({ fixed: 12, need: 3, done: false });
+function seed() {
+  const holders = [{ id: 'h1', name: 'Aarav Mehta' }, { id: 'h2', name: 'Priya Mehta' }];
+  const banks = BANK_NAMES.map(name => ({ id: uid(), name, mono: name === 'American Express' ? 'AE' : monoFor(name) }));
+  const types = ['Credit', 'Debit', 'Prepaid', 'Forex'].map(name => ({ id: uid(), name }));
+  const tags = ['Travel', 'Online', 'Fuel', 'Bills', 'Business'].map(name => ({ id: uid(), name }));
+  const B = n => banks.find(b => b.name === n).id, T = n => n ? types.find(t => t.name === n).id : null, G = (...n) => n.map(x => tags.find(t => t.name === x).id);
+  const mk = (holderId, bank, prefix, exp, cvv, color, type, tg, note, extra = {}) => ({ id: uid(), holderId, bankId: B(bank), networkAuto: true, networkId: null, typeId: T(type), number: prefix + luhnDigit(prefix), exp, cvv, color, note, tagIds: G(...tg), pinned: false, pinnedAt: null, archived: false, archivedAt: null, archiveReason: null, needsReview: [], repairs: {}, ...extra });
+  const cards = [
+    mk('h1', 'HDFC Bank', '453277810349221', '12/29', '381', 'navy', 'Credit', ['Travel', 'Online'], 'Everyday spending'),
+    mk('h1', 'ICICI Bank', '431581026674093', '08/28', '902', 'rust', 'Credit', ['Online'], ''),
+    mk('h1', 'HDFC Bank', '3622720627166', '05/30', '447', 'graphite', null, ['Travel'], 'Lounge access'),
+    mk('h1', 'State Bank of India', '652188047712993', '03/27', '117', 'forest', 'Credit', ['Fuel'], ''),
+    mk('h2', 'American Express', '37828224631000', '09/28', '4821', 'plum', 'Credit', ['Business', 'Travel'], ''),
+    mk('h2', 'Kotak Mahindra Bank', '416622095583107', '06/29', '228', 'navy', 'Debit', ['Bills'], ''),
+    mk('h2', 'Axis Bank', '524199001137448', '11/30', '645', 'rust', 'Credit', [], ''),
+    mk('h1', 'Federal Bank', '402400718392016', '01/24', '533', 'graphite', 'Debit', ['Bills'], '', { repairs: { exp: { before: '1/24' } } }),
+    mk('h1', 'Axis Bank', '524199001137455', '11/26', '118', 'rust', 'Credit', ['Travel'], ''),
+    mk('h2', 'ICICI Bank', '601111111111111', '11/28', '229', 'forest', 'Credit', ['Online'], 'Used for the family account and the joint savings. Renewal is due before the annual fee posts in November; ask Priya for the latest statement.'),
+    mk('h2', 'Kotak Mahindra Bank', '552199001137441', '13/22', '640', 'navy', 'Credit', ['Bills'], '', { needsReview: ['exp'] }),
+    mk('h1', 'HDFC Bank', '448527000000000', '07/23', '312', 'plum', 'Credit', ['Travel'], 'Closed after the upgrade', { archived: true, archivedAt: Date.UTC(2026, 9, 18), archiveReason: 'Card closed' }),
+    mk('h2', 'State Bank of India', '353011133330000', '04/29', '887', 'rust', 'Debit', [], '', { archived: true, archivedAt: Date.UTC(2026, 9, 20) }),
+  ];
+  return { holders, banks, types, tags, cards, networks: NETWORKS0(), cfg: CFG0(), repair: REPAIR0() };
+}
+const KEY = 'qc-proto-v2';
+function load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.cards && d.cfg) { const D = CFG0(); d.cfg = { ...D, ...d.cfg, notif: { ...D.notif, ...d.cfg.notif }, tags: { ...D.tags, ...d.cfg.tags }, appLock: { ...D.appLock, ...d.cfg.appLock } }; d.cards.forEach(c => { c.pinned = !!c.pinned; c.pinnedAt = c.pinned ? (c.pinnedAt || 0) : null; c.archived = !!c.archived; c.archivedAt = c.archived ? (c.archivedAt ?? null) : null; c.archiveReason = c.archived ? (c.archiveReason ?? null) : null; c.needsReview = Array.isArray(c.needsReview) ? c.needsReview : []; c.repairs = c.repairs || {}; }); d.repair = { ...REPAIR0(), ...(d.repair || {}) }; return d; } } catch (_) {} return seed(); }
+const S = Object.assign(load(), {
+  unlockedUntil: 0, stack: [{ name: 'home' }], tab: 'cards', search: { on: false, q: '' }, archSearch: { on: false, q: '' },
+  filters: { holders: new Set(), banks: new Set(), networks: new Set(), types: new Set(), tags: new Set(), status: new Set(), review: false },
+  noteOpen: new Set(),
+  clip: null, clipTimer: null, lastExport: null, homeScroll: 0, form: null,
+});
+S.recentColors = Array.isArray(S.recentColors) ? S.recentColors : [];
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ holders: S.holders, banks: S.banks, types: S.types, tags: S.tags, cards: S.cards, networks: S.networks, cfg: S.cfg, repair: S.repair, recentColors: S.recentColors })); } catch (_) {} }
+
+const byId = (list, id) => S[list].find(x => x.id === id);
+const netOf = c => detect(c.number);
+const holderName = c => (byId('holders', c.holderId)?.name || '').toUpperCase();
+const cardTitle = c => { const type = byId('types', c.typeId); return `${byId('banks', c.bankId)?.name || 'Bank'}${type ? ' ' + type.name : ''}`; };
+const themeLabel = t => t === 'system' ? 'System default' : t === 'light' ? 'Light' : 'Dark';
+const orderCards = (list, mode = S.cfg.expiredCards) => [...list].sort((a, b) => {
+  if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+  if (a.pinned) return (a.pinnedAt || 0) - (b.pinnedAt || 0);
+  if (mode === 'end') { const ea = isExpired(a), eb = isExpired(b); if (ea !== eb) return ea ? 1 : -1; }
+  return 0;
+});
+const nextPinAt = () => Math.max(Date.now(), Math.max(0, ...S.cards.filter(c => c.pinned).map(c => c.pinnedAt || 0)) + 1);
+
+/* ---------- Elements ---------- */
+const app = $('#app'), screens = $('#screens'), sheet = $('#sheet'), dialog = $('#dialog'), bio = $('#bio'), snack = $('#snack'), hun = $('#hun');
+const scrimSheet = $('#scrimSheet'), scrimDialog = $('#scrimDialog');
+app.addEventListener('scroll', () => { app.scrollTop = 0; app.scrollLeft = 0; });
+let lastPtr = 0; app.addEventListener('pointerdown', () => { lastPtr = Date.now(); }, true);
+app.addEventListener('focusin', e => { const t = e.target; if (Date.now() - lastPtr > 300 && t.tagName === 'INPUT' && !t.readOnly && t.type !== 'password' && t.type !== 'checkbox') { const n = t.value.length; requestAnimationFrame(() => { try { t.setSelectionRange(n, n); } catch (_) {} }); } });
+const help = w => $('.hm', w) || $('.help', w);
+const scale = () => app.getBoundingClientRect().width / app.offsetWidth || 1;
+
+/* ---------- Theme ---------- */
+const mq = matchMedia('(prefers-color-scheme: dark)');
+function applyTheme() { app.dataset.theme = S.cfg.theme === 'system' ? (mq.matches ? 'dark' : 'light') : S.cfg.theme; app.dataset.dynamic = S.cfg.dynamic ? 'on' : 'off'; }
+mq.addEventListener('change', applyTheme);
+
+/* ---------- Unlock window ---------- */
+const unlocked = () => Date.now() < S.unlockedUntil;
+const fmtT = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+const secText = s => s === 0 ? 'Off' : s < 60 ? `${s} seconds` : s === 60 ? '1 minute' : `${s / 60} minutes`;
+let idleT = null;
+function idleWindow() {
+  clearTimeout(idleT);
+  idleT = setTimeout(() => {
+    if (unlocked()) return idleWindow();
+    S.unlockedUntil = 0;
+    hideReveals();
+  }, Math.max(50, S.unlockedUntil - Date.now() + 20));
+}
+/* ---------- App lock ---------- */
+const lockscr = $('#lockscr');
+let lastActive = Date.now();
+const isAppLocked = () => !lockscr.hidden;
+function lockApp(reason) {
+  if (!S.cfg.appLock.on) return;
+  lockNow(); hideHun(); hideSnack();
+  if (!sheet.hidden) closeSheet(); if (!dialog.hidden) closeDialog(); if (!bio.hidden) closeBio();
+  lockscr.innerHTML = `<div class="mid"><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
+    <button class="fpbtn sl" data-act="appunlock" aria-label="Unlock with fingerprint">${I('fp')}</button><div class="fphint">Touch to unlock</div>
+    <button class="btn text sl" data-act="appunlock" style="margin-top:8px">Use PIN</button></div>
+    <div class="foot">${I('shield')}Your cards stay encrypted on this phone</div>`;
+  lockscr.hidden = false; requestAnimationFrame(() => lockscr.classList.add('show'));
+}
+function unlockApp() { lockscr.classList.remove('show'); setTimeout(() => { lockscr.hidden = true; }, 250); lastActive = Date.now(); render(); }
+function markActive() {
+  lastActive = Date.now();
+  if (unlocked()) { S.unlockedUntil = Date.now() + S.cfg.windowSec * 1000; idleWindow(); }
+}
+['pointerdown', 'keydown', 'scroll', 'input'].forEach(t => app.addEventListener(t, markActive, true));
+setInterval(() => { const L = S.cfg.appLock; if (L.on && L.after > 0 && !isAppLocked() && Date.now() - lastActive >= L.after * 1000) lockApp('idle'); }, 500);
+function lockNow() { S.unlockedUntil = 0; clearTimeout(idleT); idleT = null; hideReveals(); }
+function requireUnlock(fn, reason) { if (unlocked()) fn(); else openBio(fn, reason); }
+
+/* ---------- Biometric prompt ---------- */
+function openBio(onOk, reason) {
+  bio.innerHTML = `<h2>Unlock QuickCards</h2><p>${esc(reason || `Copies stay instant for ${secText(S.cfg.windowSec)}`)}</p>
+    <button class="fp" data-bio="ok" aria-label="Touch the fingerprint sensor">${I('fp')}</button>
+    <div class="hint" id="bioHint">Touch the fingerprint sensor</div>
+    <div class="acts"><button class="btn text sl" data-bio="pin">Use PIN</button><button class="btn text sl" data-bio="cancel">Cancel</button></div>`;
+  bio.hidden = false; scrimDialog.hidden = false;
+  requestAnimationFrame(() => { bio.classList.add('show'); scrimDialog.classList.add('show'); });
+  bio._ok = onOk; setTimeout(() => $('[data-bio="ok"]', bio)?.focus({ preventScroll: true }), 50);
+}
+function closeBio() { bio.classList.remove('show'); if (dialog.hidden) scrimDialog.classList.remove('show'); setTimeout(() => { bio.hidden = true; if (dialog.hidden) scrimDialog.hidden = true; }, 260); }
+bio.addEventListener('click', e => {
+  const b = e.target.closest('[data-bio]'); if (!b) return;
+  if (b.dataset.bio === 'cancel') return closeBio();
+  const fp = $('.fp', bio); fp.classList.add('ok'); fp.innerHTML = I('check'); $('#bioHint').textContent = b.dataset.bio === 'pin' ? 'Screen lock confirmed' : 'Fingerprint recognised';
+  S.unlockedUntil = Date.now() + S.cfg.windowSec * 1000; idleWindow();
+  setTimeout(() => { closeBio(); const fn = bio._ok; bio._ok = null; fn && fn(); }, 380);
+});
+
+/* ---------- Snackbar ---------- */
+let snackT;
+function snackbar(msg, action, onAction) {
+  const r = top().name;
+  snack.style.bottom = (r === 'form' ? 108 : (r === 'entity' || r === 'banks' || r === 'archived') ? 28 : 108) + 'px';
+  snack.innerHTML = `<span class="msg">${esc(msg)}</span>${action ? `<button class="btn text" id="snackAct">${esc(action)}</button>` : ''}`;
+  snack.classList.add('show');
+  if (action) $('#snackAct').onclick = () => { hideSnack(); onAction && onAction(); };
+  clearTimeout(snackT); snackT = setTimeout(hideSnack, action ? 4500 : 3000);
+}
+function hideSnack() { snack.classList.remove('show'); }
+
+/* ---------- Clipboard ---------- */
+function setClip(label, value) {
+  S.clip = { label, value };
+  try { navigator.clipboard?.writeText(value).catch(() => {}); } catch (_) {}
+  clearTimeout(S.clipTimer);
+  if (S.cfg.clipSec) S.clipTimer = setTimeout(clearClip, S.cfg.clipSec * 1000);
+  renderClip();
+}
+function clearClip() { S.clip = null; clearTimeout(S.clipTimer); try { navigator.clipboard?.writeText('').catch(() => {}); } catch (_) {} renderClip(); }
+function renderClip() { const el = $('#clip'); if (el) el.innerHTML = S.clip ? `<span>${esc(S.clip.label)}</span>${esc(S.clip.value).replace(/\n/g, '<br>')}` : '<span>Nothing copied yet</span>'; }
+
+/* ---------- Heads-up notification ---------- */
+let hunT, hunI;
+function showHun(c) {
+  const n = S.cfg.notif; if (!n.on || (!n.exp && !n.cvv)) return;
+  const last4 = c.number.slice(-4);
+  hun.innerHTML = `<div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum" id="hunT">${fmtT(n.sec)}</span><button class="x" data-hun="x" aria-label="Dismiss notification">${I('close', 'sm')}</button></div>
+    <div class="t">${esc(cardTitle(c))} · <span class="tnum">${last4}</span></div>
+    <div class="vals">${n.exp ? `<div><div class="l">Expiry</div><div class="v">${esc(c.exp)}</div></div>` : ''}${n.cvv ? `<div><div class="l">CVV</div><div class="v">${esc(c.cvv)}</div></div>` : ''}</div>
+    <div class="acts">${n.exp ? '<button class="btn text sl" data-hun="exp">Copy expiry</button>' : ''}${n.cvv ? '<button class="btn text sl" data-hun="cvv">Copy CVV</button>' : ''}</div><div class="bar" id="hunBar"></div>`;
+  hun._card = c; hun.classList.add('show');
+  const bar = $('#hunBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth; bar.style.transition = `transform ${n.sec}s linear`; bar.style.transform = 'scaleX(0)';
+  const end = Date.now() + n.sec * 1000; clearInterval(hunI); hunI = setInterval(() => { const t = $('#hunT'); if (t) t.textContent = fmtT(Math.max(0, Math.ceil((end - Date.now()) / 1000))); }, 250);
+  clearTimeout(hunT); hunT = setTimeout(hideHun, n.sec * 1000);
+}
+function hideHun() { hun.classList.remove('show'); clearInterval(hunI); clearTimeout(hunT); }
+hun.addEventListener('click', e => {
+  const b = e.target.closest('[data-hun]'); if (!b) return; const c = hun._card;
+  if (b.dataset.hun === 'x') return hideHun();
+  const key = b.dataset.hun; setClip(`${cardTitle(c)} · ${key === 'cvv' ? 'CVV' : 'Expiry'}`, c[key]);
+  snackbar(`${key === 'cvv' ? 'CVV' : 'Expiry'} copied from notification`);
+});
+
+/* ---------- Navigation ---------- */
+const top = () => S.stack[S.stack.length - 1];
+function push(r) { saveScroll(); S.noteOpen.clear(); S.stack.push(r); render('fwd'); }
+function pop() { if (S.stack.length > 1) { S.noteOpen.clear(); S.stack.pop(); render('back'); return true; } return false; }
+function saveScroll() { if (top().name === 'home') { const sc = $('.scroll', screens); if (sc) S.homeScroll = sc.scrollTop; } }
+const ROOT = { cards: 'home', manage: 'manage', settings: 'settings' };
+function goTab(t) { if (S.tab === t && S.stack.length === 1) return; saveScroll(); S.noteOpen.clear(); S.tab = t; S.search = { on: false, q: '' }; S.stack = [{ name: ROOT[t] }]; render('fade'); }
+function back() {
+  if (!bio.hidden) return closeBio();
+  if (isAppLocked()) return;
+  if (!dialog.hidden) return closeDialog();
+  if (!sheet.hidden) return closeSheet();
+  if (S.search.on) { S.search = { on: false, q: '' }; return render('back'); }
+  if (top().name === 'archived' && S.archSearch.on) { S.archSearch = { on: false, q: '' }; return render('back'); }
+  if (top().name === 'form' && formDirty()) return discardDialog();
+  if (pop()) return;
+  if (S.tab !== 'cards') return goTab('cards');
+}
+
+/* ---------- Filtering ---------- */
+const emptyFilters = () => ({ holders: new Set(), banks: new Set(), networks: new Set(), types: new Set(), tags: new Set(), status: new Set(), review: false });
+const fKey = { holders: 'holderId', banks: 'bankId', types: 'typeId' };
+function passes(c, f) {
+  for (const g of ['holders', 'banks', 'types']) if (f[g].size && !f[g].has(c[fKey[g]])) return false;
+  if (f.networks.size && !f.networks.has(netOf(c)?.id)) return false;
+  if (f.tags.size && !c.tagIds.some(t => f.tags.has(t))) return false;
+  if (f.status.size && !f.status.has(expiryStatus(c))) return false;
+  if (f.review && !(c.needsReview && c.needsReview.length)) return false;
+  return true;
+}
+function matchesSearch(c, q, qd) {
+  if (/^\d+$/.test(qd) && c.number.includes(qd)) return true;
+  const fields = [byId('banks', c.bankId)?.name, byId('holders', c.holderId)?.name, c.note, byId('types', c.typeId)?.name, netOf(c)?.name, netOf(c)?.code];
+  if (S.cfg.tags.search) c.tagIds.forEach(t => fields.push(byId('tags', t)?.name));
+  return fields.some(v => String(v || '').toLowerCase().includes(q));
+}
+function visibleCards() {
+  const q = S.search.on ? S.search.q.trim().toLowerCase() : '', qd = q.replace(/\s+/g, '');
+  return orderCards(S.cards.filter(c => {
+    if (c.archived && !(S.cfg.archivedCards === 'search' && S.search.on && q)) return false;
+    if (!passes(c, S.filters)) return false;
+    if (q) return matchesSearch(c, q, qd);
+    if (isExpired(c) && S.cfg.expiredCards === 'hide' && !S.filters.status.has('expired')) return false;
+    return true;
+  }));
+}
+const filterCount = () => ['banks', 'networks', 'types', 'tags', 'status'].reduce((a, g) => a + S.filters[g].size, 0) + (S.filters.review ? 1 : 0);
+const statusCount = id => S.cards.filter(c => !c.archived && (id === 'expired' ? isExpired(c) : isSoon(c))).length;
+
+/* ---------- Pass ---------- */
+function passFlags(c) {
+  if (c.archived) return `<span class="passlabel archlab">${I('archive')}<span class="t">Archived${c.archiveReason ? ' · ' + esc(c.archiveReason) : ''}</span></span>`;
+  if (isExpired(c)) return `<span class="chip exp">${I('expired')}Expired</span>`;
+  const review = c.needsReview ?? c.review;
+  if (review && review.length) return `<span class="passlabel checklab">${I('info')}<span class="t">Check details</span></span>`;
+  if (isSoon(c)) return '<span class="passlabel">Expires soon</span>';
+  return '';
+}
+function typePillHTML(c, preview) {
+  const type = byId('types', c.typeId);
+  if (preview) return `<span class="type" id="pv-type" ${type && S.cfg.showType ? '' : 'hidden'}>${esc(type?.name || '')}</span>`;
+  return S.cfg.showType && type ? `<span class="type">${esc(type.name)}</span>` : '';
+}
+function passHTML(c, preview) {
+  const net = netOf(c), type = byId('types', c.typeId), mask = !preview && S.cfg.mask;
+  const title = cardTitle(c), name = holderName(c), bank = byId('banks', c.bankId)?.name || 'Bank';
+  const num = c.number ? fmt(c.number, net, mask) : '•••• •••• •••• ••••';
+  const tag = preview ? 'div' : 'button';
+  const expired = !!c.exp && isExpired(c), status = expiryStatus(c);
+  const typePill = typePillHTML(c, preview);
+  const flags = passFlags(c);
+  const labExtra = typePill ? `<span class="labend">${typePill}</span>` : '';
+  const expAria = `Expiry, ${esc(c.exp || 'MM/YY')}${status === 'expired' ? '. Expired' : status === 'soon' ? '. Expires soon' : ''}. Tap to copy.`;
+  const f = (cls, key, lab, val, ph, extra = '', aria = '') => {
+    const label = aria || `${lab}${key === 'cvv' || (key === 'number' && mask) ? ', hidden' : ', ' + esc(val)}. Tap to copy${key === 'cvv' || key === 'number' ? ', hold to show' : ''}.`;
+    return `<${tag} class="field ${cls}" ${preview ? '' : `data-copy="${key}" data-id="${c.id}" aria-label="${label}"`}><span class="lab">${lab}${extra}</span><span class="val ${ph ? 'ph' : ''} ${key === 'cvv' ? 'masked' : ''} ${key === 'number' && mask ? 'mask' : ''}" ${preview ? `id="pv-${key}"` : ''}>${esc(val)}</span>${key === 'cvv' || key === 'number' ? '<span class="drain"></span>' : ''}</${tag}>`;
+  };
+  const tagList = S.cfg.tags.show && c.tagIds?.length ? c.tagIds.map(t => byId('tags', t)).filter(Boolean).map(t => `<span class="ptag">${esc(t.name)}</span>`).join('') : '';
+  // Bottom row: tags wrap on the left, one status flag sits on the right.
+  const tags = tagList || flags || preview ? `<div class="pfoot"><div class="ptags" ${preview ? 'id="pv-tags"' : ''}>${tagList}</div>${flags ? `<span class="pstat">${flags}</span>` : ''}</div>` : '';
+  const showNote = S.cfg.showNotes && !!c.note;
+  const noteOpen = !preview && S.noteOpen?.has(c.id);
+  const note = showNote
+    ? `<div class="pnote${noteOpen ? ' open' : ''}" ${preview ? 'id="pv-note-wrap"' : `data-note="${c.id}" data-notefor="${c.id}"`}><div class="txt" ${preview ? 'id="pv-note"' : ''}>${esc(c.note)}</div>${preview ? '' : `<button class="btn text sl pmore" data-act="notemore" data-id="${c.id}" aria-label="${noteOpen ? 'Show less' : 'Show full note'}" aria-expanded="${noteOpen ? 'true' : 'false'}">${noteOpen ? 'Less' : 'More'}</button>`}</div>`
+    : (preview ? '<div class="pnote" id="pv-note-wrap" hidden><div class="txt" id="pv-note"></div></div>' : '');
+  return `<div class="pass-wrap" data-pass="${c.id || ''}"><article class="pass ${preview ? 'preview' : ''}${expired ? ' expired' : ''}${showNote ? ' has-note' : ''}" style="--band:${expired ? 'var(--pass-expired-band)' : bandValue(c.color)}" ${preview ? 'id="pv-pass"' : ''} aria-label="${esc(title)}, ${esc(net?.name || '')} ${esc(type?.name || '')} card">
+    <div class="band"><span class="bank" ${preview ? 'id="pv-bank"' : ''}>${esc(bank)}</span>
+      ${!preview && c.pinned ? `<span class="pinmark" role="img" aria-label="Pinned">${I('pin')}</span>` : ''}
+      <span class="net" ${preview ? 'id="pv-net"' : ''}>${esc(net?.code || '')}</span>
+      ${preview ? '<span style="width:12px"></span>' : `<button class="iconbtn" data-act="actions" data-id="${c.id}" aria-label="More for ${esc(title)}">${I('more')}</button>`}</div>
+    <div class="main">${f('pan', 'number', 'Card number', num, preview && !c.number, labExtra)}</div>
+    <div class="perf"></div>
+    <div class="stub">${f('', 'exp', 'Expiry', c.exp || 'MM/YY', preview && !c.exp, '', expAria)}${f('cvv', 'cvv', 'CVV', '•'.repeat(net?.cvv || 3), false)}${f('', 'name', 'Name', name || 'NAME', preview && !name)}</div>
+    ${tags}${note}
+  </article></div>`;
+}
+function syncPerf() { $$('.pass').forEach(p => { const f = $('.perf', p); if (f) p.style.setProperty('--perf-y', (f.offsetTop + 1) + 'px'); }); }
+function syncNotes() {
+  $$('.pnote').forEach(n => {
+    if (n.classList.contains('open')) return;
+    const t = $('.txt', n); if (!t) return;
+    n.classList.toggle('overflow', t.scrollHeight > t.clientHeight + 1);
+  });
+}
+function repairHTML() {
+  const n = S.repair.fixed, m = S.repair.need;
+  const text = `Fixed the format of ${plural(n, 'card')}.` + (m ? ` ${m} ${m === 1 ? 'needs' : 'need'} a quick check.` : '');
+  return `<div class="repair">${I('autofix')}<div class="rbody"><div class="rtext">${text}</div><div class="racts"><button class="btn text sl" data-act="repair-review"${m ? '' : ' hidden'}>Review</button><button class="btn text sl" data-act="repair-dismiss">Dismiss</button></div></div></div>`;
+}
+
+/* ---------- Render ---------- */
+function render(anim) {
+  const r = top();
+  const html = r.name === 'home' ? homeHTML() : r.name === 'archived' ? archivedHTML() : r.name === 'settings' ? settingsHTML() : r.name === 'manage' ? manageHTML() : r.name === 'form' ? formHTML() : r.name === 'entity' ? entityHTML(r.kind) : '';
+  const prevSc = $('.scroll', screens), keep = !anim && prevSc ? prevSc.scrollTop : null;
+  screens.innerHTML = `<section class="screen ${anim || ''}">${html}</section>`;
+  syncNav();
+  if (keep != null) { const sc = $('.scroll', screens); if (sc) sc.scrollTop = keep; }
+  hideSnack();
+  if (r.name === 'home') {
+    const sc = $('.scroll', screens); if (sc && anim === 'back') sc.scrollTop = S.homeScroll;
+    if (S.search.on) { const inp = $('#q'); inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
+  if (r.name === 'archived' && S.archSearch.on) { const inp = $('#aq'); inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  if (r.name === 'form') mountForm();
+  syncPerf(); syncNotes(); save();
+}
+new ResizeObserver(() => { syncPerf(); syncNotes(); }).observe(screens);
+
+const nav = $('#nav');
+nav.innerHTML = [['cards', 'card', 'Cards'], ['manage', 'stack', 'Manage'], ['settings', 'gear', 'Settings']].map(([t, ic, l]) => `<button data-act="tab" data-tab="${t}"><span class="ind">${I(ic)}</span>${l}</button>`).join('');
+function syncNav() {
+  const show = ['home', 'manage', 'settings'].includes(top().name) && !S.search.on;
+  nav.hidden = !show; screens.style.bottom = show ? '100px' : '0';
+  $$('button', nav).forEach(b => b.dataset.tab === S.tab ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+}
+
+function homeHTML() {
+  if (!S.cards.length) return `<header class="appbar"><h1 class="t-display">Cards</h1></header>
+    <div class="empty"><svg class="art" viewBox="0 0 168 120" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <rect x="30" y="8" width="128" height="80" rx="12" opacity=".5"/><rect x="10" y="30" width="128" height="82" rx="12" fill="var(--bg)"/>
+      <path d="M10 52h128"/><path d="M24 74h100" stroke-dasharray="5 5"/><path d="M24 92h28M64 92h22M98 92h26" stroke-width="3" stroke-linecap="round"/></svg>
+      <h2 class="t-headline">Add your first card</h2><p class="t-body t-muted">Stored encrypted on this phone. Nothing leaves it.</p>
+      <div class="stack"><button class="btn filled" data-act="add">${I('plus')}Add card</button><button class="btn tonal sl" data-act="import">${I('download')}Import</button></div></div>`;
+  const cards = visibleCards(), q = S.search.q;
+  const head = S.search.on
+    ? `<header class="searchbar"><div class="box"><button class="iconbtn on-surface" data-act="back" aria-label="Close search">${I('back')}</button>
+        <input id="q" type="search" placeholder="Search cards${S.cfg.tags.search ? ' and tags' : ''}" value="${esc(q)}" autocomplete="off" aria-label="Search cards">
+        ${q ? `<button class="iconbtn" data-act="clearq" aria-label="Clear search">${I('close')}</button>` : ''}</div></header>`
+    : `<header class="appbar"><h1 class="t-display">Cards</h1>
+        <button class="iconbtn" data-act="search" aria-label="Search">${I('search')}</button>
+        <button class="iconbtn ${filterCount() ? 'on-surface' : ''}" data-act="filter" aria-label="Filter cards${filterCount() ? `, ${filterCount()} active` : ''}">${I('tune')}</button>
+        <button class="iconbtn on-surface" data-act="add" aria-label="Add card">${I('plus')}</button></header>`;
+  const hs = S.holders.filter(h => S.cards.some(c => c.holderId === h.id));
+  const holderChips = hs.length > 1 ? `<button class="chip filter sl" aria-pressed="${!S.filters.holders.size}" data-act="holder" data-v="">All</button>` +
+    hs.map(h => `<button class="chip filter sl" aria-pressed="${S.filters.holders.has(h.id)}" data-act="holder" data-v="${h.id}">${S.filters.holders.has(h.id) ? I('check') : ''}${esc(h.name.split(' ')[0])}</button>`).join('') : '';
+  const LBL = { banks: id => byId('banks', id)?.name, networks: id => byId('networks', id)?.name, types: id => byId('types', id)?.name, tags: id => '#' + byId('tags', id)?.name, status: id => id === 'expired' ? 'Expired' : 'Expires soon' };
+  const fchips = ['banks', 'networks', 'types', 'tags', 'status'].flatMap(g => [...S.filters[g]].map(v => `<span class="chip input">${esc(LBL[g](v))}<button class="x" data-act="unfilter" data-g="${g}" data-v="${esc(v)}" aria-label="Remove filter">${I('close', 'sm')}</button></span>`)).join('');
+  const reviewChip = S.filters.review ? `<span class="chip input">Needs check (${S.repair.need})<button class="x" data-act="noreview" aria-label="Remove filter">${I('close', 'sm')}</button></span>` : '';
+  const repair = !S.search.on && S.repair && !S.repair.done ? repairHTML() : '';
+  const list = cards.length ? `<div class="list">${repair}${cards.map(c => passHTML(c)).join('')}</div>`
+    : `<div class="noresult"><div class="t-title">${S.search.on && q ? `No cards match “${esc(q)}”` : 'No cards match these filters'}</div><div class="t-body t-muted">${S.search.on && q ? 'Check the digits, or try a bank, holder or tag.' : 'Remove a filter to see more cards.'}</div></div>`;
+  return `${head}<div class="chiprow">${holderChips}${fchips}${reviewChip}</div>
+    ${S.search.on && !q ? `<div class="hint">Search by digits, bank, holder, network${S.cfg.tags.search ? ', tag' : ''} or note</div>` : ''}
+    <div class="scroll">${list}</div>`;
+}
+
+/* ---------- Manage ---------- */
+const KINDS = {
+  holders: { title: 'Card holders', one: 'card holder', icon: 'person', field: 'holderId', used: id => S.cards.filter(c => c.holderId === id) },
+  banks: { title: 'Banks', one: 'bank', icon: 'bank', field: 'bankId', used: id => S.cards.filter(c => c.bankId === id) },
+  networks: { title: 'Card networks', one: 'card network', icon: 'network', used: id => S.cards.filter(c => netOf(c)?.id === id) },
+  types: { title: 'Card types', one: 'card type', icon: 'type', field: 'typeId', used: id => S.cards.filter(c => c.typeId === id) },
+  tags: { title: 'Tags', one: 'tag', icon: 'tag', used: id => S.cards.filter(c => c.tagIds.includes(id)) },
+};
+function manageHTML() {
+  const sub = { holders: 'People whose cards you keep', banks: 'Issuing banks', networks: 'Detected from the first digits', types: 'Credit, debit and more', tags: 'Labels you attach to cards' };
+  const archivedN = S.cards.filter(c => c.archived).length;
+  return `<header class="appbar"><h1 class="t-display">Manage</h1></header><div class="scroll">
+    ${Object.entries(KINDS).map(([k, v]) => `<button class="li two sl" data-act="entity" data-k="${k}"><span class="lead">${I(v.icon)}</span><span class="txt"><span class="h">${v.title}</span><span class="s">${sub[k]}</span></span><span class="trail val tnum">${S[k].length}</span><span class="trail">${I('chev')}</span></button>`).join('')}
+    <button class="li two sl" data-act="archived"><span class="lead">${I('archive')}</span><span class="txt"><span class="h">Archived cards</span><span class="s">${archivedN ? plural(archivedN, 'card') : 'None yet'}</span></span><span class="trail">${I('chev')}</span></button>
+  </div>`;
+}
+function archMatches(c, q, qd) {
+  if (/^\d+$/.test(qd) && c.number.slice(-4).includes(qd)) return true;
+  const net = netOf(c), type = byId('types', c.typeId);
+  const fields = [byId('banks', c.bankId)?.name, byId('holders', c.holderId)?.name, net?.name, net?.code, type?.name, c.note, c.archiveReason];
+  c.tagIds.forEach(t => fields.push(byId('tags', t)?.name));
+  return fields.some(v => String(v || '').toLowerCase().includes(q));
+}
+function archivedHTML() {
+  const all = S.cards.filter(c => c.archived);
+  const q = S.archSearch.on ? S.archSearch.q.trim().toLowerCase() : '', qd = q.replace(/\s+/g, '');
+  const cards = q ? all.filter(c => archMatches(c, q, qd)) : all;
+  const list = [...cards].sort((a, b) => (b.archivedAt || 0) - (a.archivedAt || 0));
+  const head = S.archSearch.on
+    ? `<header class="searchbar"><div class="box"><button class="iconbtn on-surface" data-act="archsearchback" aria-label="Close search">${I('back')}</button>
+        <input id="aq" type="search" placeholder="Search archived cards" value="${esc(S.archSearch.q)}" autocomplete="off" aria-label="Search archived cards">
+        ${S.archSearch.q ? `<button class="iconbtn" data-act="archclearq" aria-label="Clear search">${I('close')}</button>` : ''}</div></header>`
+    : `<header class="appbar nested"><button class="iconbtn on-surface" data-act="back" aria-label="Back">${I('back')}</button><h1>Archived cards</h1>
+        ${all.length ? `<button class="iconbtn" data-act="archsearch" aria-label="Search archived cards">${I('search')}</button>` : ''}</header>`;
+  const body = !all.length
+    ? `<div class="noresult"><div class="t-title">No archived cards</div><div class="t-body t-muted">Archive a card from its ⋮ menu to keep it out of your list.</div></div>`
+    : (q && !list.length)
+      ? `<div class="noresult"><div class="t-title">No archived cards match “${esc(S.archSearch.q.trim())}”</div></div>`
+      : `<div class="list">${list.map(c => passHTML(c)).join('')}</div>`;
+  return `${head}<div class="scroll">${body}</div>`;
+}
+function leadFor(kind, x) {
+  if (kind === 'holders') return `<span class="hmono">${esc(initials(x.name))}</span>`;
+  if (kind === 'banks') return `<span class="mono">${esc(x.mono)}</span>`;
+  if (kind === 'networks') return `<span class="nbadge">${esc(x.code)}</span>`;
+  if (kind === 'tags') return `<span class="tagdot">${I('tag')}</span>`;
+  return `<span class="tagdot">${esc(x.name[0] || '?')}</span>`;
+}
+function entityHTML(kind) {
+  const K = KINDS[kind];
+  const rows = S[kind].map(x => { const n = K.used(x.id).length;
+    const sub = kind === 'networks' ? `${lensText(x.lengths)} digits · CVV ${x.cvv} · ${n ? plural(n, 'card') : 'Not used'}` : (n ? plural(n, 'card') : 'Not used');
+    return `<div class="li two">${leadFor(kind, x)}<span class="txt"><span class="h">${esc(x.name)}</span><span class="s">${esc(sub)}</span></span>
+      <span class="acts2"><button class="iconbtn" data-act="ent-edit" data-k="${kind}" data-id="${x.id}" aria-label="Edit ${esc(x.name)}">${I('edit')}</button><button class="iconbtn" data-act="ent-del" data-k="${kind}" data-id="${x.id}" aria-label="Delete ${esc(x.name)}">${I('trash')}</button></span></div>`; }).join('');
+  return `<header class="appbar nested"><button class="iconbtn on-surface" data-act="back" aria-label="Back">${I('back')}</button><h1>${K.title}</h1>
+    <button class="iconbtn on-surface" data-act="ent-add" data-k="${kind}" aria-label="Add ${K.one}">${I('plus')}</button></header>
+  <div class="scroll" style="padding-bottom:28px">${rows || `<div class="noresult"><div class="t-title">No ${K.title.toLowerCase()} yet</div><div class="t-body t-muted">Tap + to add one.</div></div>`}</div>`;
+}
+function entityDialog(kind, id, onCreated) {
+  const K = KINDS[kind], x = id ? byId(kind, id) : null, isNet = kind === 'networks', isTag = kind === 'tags';
+  const maxLen = isTag ? S.cfg.tags.len : kind === 'types' ? 20 : kind === 'networks' ? 24 : 40;
+  let cvv = x?.cvv || 3, luhn = x ? x.luhn : true;
+  const initial = x ? JSON.stringify({ name: x.name ?? '', ...(isNet ? { code: x.code ?? '', prefixes: x.prefixes ?? '', lengths: x.lengths || '16', cvv, luhn } : {}) }) : '';
+  const entityState = () => JSON.stringify({ name: $('#en-name')?.value ?? '', ...(isNet ? { code: $('#en-code')?.value ?? '', prefixes: $('#en-pre')?.value ?? '', lengths: $('#en-len')?.value ?? '', cvv, luhn } : {}) });
+  const tfH = (fid, label, val, help, attrs = '', max) => `<div class="tf" data-tf="${fid}" data-help="${esc(help)}"><input id="${fid}" name="qc-${fid}-${Date.now()}" placeholder=" " value="${esc(val ?? '')}" autocomplete="off" data-lpignore="true" data-1p-ignore ${attrs}><label for="${fid}">${label}</label><div class="help"><span class="hm">${esc(help)}</span>${max ? `<span class="hc">${String(val ?? '').length}/${max}</span>` : ''}</div></div>`;
+  openDialog(`<h2>${x ? 'Edit' : 'New'} ${K.one}</h2>
+    ${tfH('en-name', 'Name', x?.name, isTag ? 'No # needed' : '', `maxlength="${maxLen}"`, maxLen)}
+    ${isNet ? `${tfH('en-code', 'Label on card', x?.code, 'Up to 7 letters, for example VISA', 'maxlength="7" style="text-transform:uppercase"')}
+      ${tfH('en-pre', 'Starting digits', x?.prefixes, 'For example 4 or 51-55, separated by commas', 'inputmode="numeric"')}
+      ${tfH('en-len', 'Number lengths', x?.lengths || '16', 'For example 16 or 16-19', 'inputmode="numeric"')}
+      <div class="grp" style="margin:8px 0 12px"><div class="glab">CVV digits</div><div class="seg" role="radiogroup">${[3, 4].map(n => `<button role="radio" aria-checked="${cvv === n}" data-cvv="${n}">${I('check')}${n}</button>`).join('')}</div></div>
+      <button class="checkrow" role="checkbox" aria-checked="${luhn}" id="en-luhn" style="padding:0"><span class="cb">${I('check')}</span>Check the last digit (Luhn)</button>` : ''}
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok" ${x ? 'disabled' : ''}>${x ? 'Save' : 'Add'}</button></div>`, () => {
+    const syncOk = () => { const b = $('[data-d="ok"]', dialog); if (b) b.toggleAttribute('disabled', !!x && entityState() === initial); };
+    $$('.tf input', dialog).forEach(inp => inp.addEventListener('input', () => {
+      const limited = inp.maxLength > 0 ? inp.value.slice(0, inp.maxLength) : inp.value;
+      if (limited !== inp.value) { inp.value = limited; try { inp.setSelectionRange(limited.length, limited.length); } catch (_) {} }
+      const w = inp.closest('.tf'); w.classList.remove('err'); help(w).textContent = w.dataset.help; const hc = $('.hc', w); if (hc) hc.textContent = `${inp.value.length}/${inp.maxLength}`; syncOk();
+    }));
+    dialog.onclick = e => {
+      const cv = e.target.closest('[data-cvv]'); if (cv) { cvv = +cv.dataset.cvv; $$('[data-cvv]', dialog).forEach(b => b.setAttribute('aria-checked', +b.dataset.cvv === cvv)); syncOk(); return; }
+      if (e.target.closest('#en-luhn')) { luhn = !luhn; $('#en-luhn').setAttribute('aria-checked', luhn); syncOk(); return; }
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
+      if (d === 'cancel') return closeDialog();
+      const err = (fid, m) => { const w = $(`[data-tf="${fid}"]`); w.classList.add('err'); help(w).textContent = m; };
+      $$('.tf', dialog).forEach(w => { w.classList.remove('err'); help(w).textContent = w.dataset.help; });
+      const name = $('#en-name').value.trim().replace(/\s+/g, ' ').replace(isTag ? /^#+/ : /^$/, '');
+      let bad = false;
+      if (!name) { err('en-name', 'Enter a name'); bad = true; }
+      else if (name.length < 2) { err('en-name', 'Use at least 2 characters'); bad = true; }
+      else if (S[kind].some(y => y.name.toLowerCase() === name.toLowerCase() && y.id !== id)) { err('en-name', `This ${K.one} already exists`); bad = true; }
+      const next = { name };
+      if (isNet) {
+        next.code = $('#en-code').value.trim().toUpperCase(); next.prefixes = $('#en-pre').value.replace(/\s+/g, ''); next.lengths = $('#en-len').value.replace(/\s+/g, ''); next.cvv = cvv; next.luhn = luhn; next.groups = x?.groups || '';
+        if (!/^[A-Z0-9]{2,7}$/.test(next.code)) { err('en-code', 'Use 2 to 7 letters or digits'); bad = true; }
+        else if (S.networks.some(y => y.code === next.code && y.id !== id)) { err('en-code', 'Another network already uses this label'); bad = true; }
+        if (!/^\d+(-\d+)?(,\d+(-\d+)?)*$/.test(next.prefixes)) { err('en-pre', 'Use digits, ranges like 51-55, and commas'); bad = true; }
+        const L = lens(next.lengths); if (!/^\d+(-\d+)?(,\d+(-\d+)?)*$/.test(next.lengths) || !L.length || L[0] < 12 || L.at(-1) > 19) { err('en-len', 'Card numbers have 12 to 19 digits'); bad = true; }
+      }
+      if (kind === 'banks') next.mono = monoFor(name);
+      if (bad) return;
+      const apply = () => {
+        if (x) Object.assign(x, next); else { const nx = { id: uid(), ...next }; S[kind].push(nx); if (kind !== 'networks') S[kind].sort((a, b) => a.name.localeCompare(b.name)); if (onCreated) { closeDialog(); render(); return onCreated(nx); } }
+        closeDialog(); render(); snackbar(x ? `${K.one[0].toUpperCase() + K.one.slice(1)} updated` : `${K.one[0].toUpperCase() + K.one.slice(1)} added`);
+      };
+      const used = x ? K.used(x.id) : [];
+      const changed = x && (x.name !== name || (isNet && (x.prefixes !== next.prefixes || x.lengths !== next.lengths || x.code !== next.code || x.cvv !== next.cvv)));
+      if (x && used.length && changed) return confirmUpdate(K, x, next, used, apply);
+      apply();
+    };
+  });
+}
+const cardLine = c => `<li><span class="sw" style="background:${bandValue(c.color)}"></span><span>${esc(cardTitle(c))} · <span class="tnum">${c.number.slice(-4)}</span></span><span class="t-muted" style="margin-left:auto">${esc(byId('holders', c.holderId)?.name.split(' ')[0] || '')}</span></li>`;
+function confirmUpdate(K, x, next, used, apply) {
+  const what = x.name !== next.name ? `Renaming <b>${esc(x.name)}</b> to <b>${esc(next.name)}</b>` : `Changing <b>${esc(x.name)}</b>`;
+  openDialog(`<h2>Update ${plural(used.length, 'card')}?</h2><div class="warn">${I('warn')}<span>${what} will update ${used.length === 1 ? 'this card' : `these ${used.length} cards`}.</span></div>
+    <ul class="list">${used.map(cardLine).join('')}</ul>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok">Update ${plural(used.length, 'card')}</button></div>`, () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; if (d === 'cancel') return closeDialog(); apply(); };
+  });
+}
+function entityDelete(kind, id) {
+  const K = KINDS[kind], x = byId(kind, id), used = K.used(id);
+  if (used.length) {
+    openDialog(`<h2>Delete the cards first</h2><div class="body"><b style="color:var(--on-surface)">${esc(x.name)}</b> is used by ${plural(used.length, 'card')}. Delete ${used.length === 1 ? 'that card' : 'those cards'}${kind === 'tags' ? ', or remove the tag from them,' : ''} before deleting this ${K.one}.</div>
+      <ul class="list">${used.map(cardLine).join('')}</ul>
+      <div class="acts"><button class="btn text sl" data-d="show">Show cards</button><button class="btn text sl" data-d="ok">OK</button></div>`, () => {
+      dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog();
+        if (d === 'show') { S.filters = emptyFilters(); if (kind === 'holders') S.filters.holders.add(id); else S.filters[kind].add(id); goTab('cards'); render('fade'); } };
+    });
+    return;
+  }
+  openDialog(`<h2>Delete ${esc(x.name)}?</h2><div class="body">No cards use this ${K.one}.</div>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text danger sl" data-d="ok">Delete</button></div>`, () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog(); if (d !== 'ok') return;
+      const i = S[kind].indexOf(x); S[kind].splice(i, 1); render(); snackbar(`${x.name} deleted`, 'Undo', () => { S[kind].splice(i, 0, x); render(); }); };
+  });
+}
+
+/* ---------- Settings ---------- */
+function settingsHTML() {
+  const C = S.cfg, sw = (act, on, ic, h, s, dis) => `<button class="li two sl" role="switch" aria-checked="${on}" data-act="${act}" ${dis ? 'disabled' : ''}><span class="lead">${I(ic)}</span><span class="txt"><span class="h">${h}</span><span class="s">${s}</span></span><span class="switch" aria-checked="${on}"></span></button>`;
+  const row = (act, ic, h, s, dis) => `<button class="li two sl" data-act="${act}" ${dis ? 'disabled' : ''}><span class="lead">${I(ic)}</span><span class="txt"><span class="h">${h}</span><span class="s">${s}</span></span></button>`;
+  return `<header class="appbar"><h1 class="t-display">Settings</h1></header>
+  <div class="scroll">
+    <div class="subhead">Appearance</div>
+    ${row('theme', 'contrast', 'Theme', themeLabel(C.theme))}
+    ${sw('dynamic', C.dynamic, 'palette', 'Use system colours', 'Match your wallpaper on Android 12+')}
+    <div class="subhead">Cards</div>
+    ${sw('mask', C.mask, 'mask', 'Hide card numbers', 'Show only the last 4 digits')}
+    ${sw('showtype', C.showType, 'type', 'Show card type', 'Credit, debit and others on each card')}
+    ${row('pinnedmax', 'pin', 'Pinned cards', `Up to ${C.pinned} ${C.pinned === 1 ? "card" : "cards"} at the top`)}
+    <div class="subhead">Card list</div>
+    ${row('expiredcards', 'expired', 'Expired cards', EXPIRED_LABEL[C.expiredCards] || EXPIRED_LABEL.end)}
+    ${row('soonmonths', 'soon', 'Expires soon', C.expiresSoonMonths === 1 ? 'Within 1 month' : `Within ${C.expiresSoonMonths} months`)}
+    ${row('archivedcards', 'archive', 'Archived cards', ARCHIVED_LABEL[C.archivedCards] || ARCHIVED_LABEL.only)}
+    ${sw('shownotes', C.showNotes, 'notes', 'Show notes on cards', 'Up to 2 lines on each card')}
+    <div class="subhead">Copying</div>
+    ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
+    ${sw('notif', C.notif.on, 'bell', 'Expiry and CVV notification', 'Shown after you copy a card number')}
+    ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
+    ${sw('notifexp', C.notif.exp, 'eye', 'Show expiry in notification', 'Month and year in the notification', !C.notif.on)}
+    ${sw('notifcvv', C.notif.cvv, 'eye', 'Show CVV in notification', 'Hidden on the lock screen', !C.notif.on)}
+    <div class="subhead">Tags</div>
+    ${sw('tagshow', C.tags.show, 'tag', 'Show tags on cards', 'Tags appear under the stub')}
+    ${sw('tagsearch', C.tags.search, 'search', 'Search by tag', 'Include tag names in search')}
+    ${row('tagmax', 'listnum', 'Tags per card', `Up to ${C.tags.max}`)}
+    ${row('taglen', 'ruler', 'Tag length', `Up to ${C.tags.len} characters`)}
+    <div class="subhead">Security</div>
+    ${sw('applock', C.appLock.on, 'fp', 'App lock', 'Fingerprint needed to open QuickCards')}
+    ${row('idle', 'timer', 'Lock after inactivity', C.appLock.after ? `After ${secText(C.appLock.after)} without use` : 'Never locks while open', !C.appLock.on)}
+    ${sw('lockleave', C.appLock.onLeave, 'lock', 'Lock when you leave the app', 'When you switch apps or lock the phone', !C.appLock.on)}
+    ${row('window', 'copy', 'Instant copy window', `Copy without a fingerprint until ${secText(C.windowSec)} of no use`)}
+    <button class="li two sl" data-act="locknow"><span class="lead">${I('lock')}</span><span class="txt"><span class="h">Lock now</span><span class="s">Lock QuickCards right away</span></span></button>
+    <div class="li two"><span class="lead">${I('shield')}</span><span class="txt"><span class="h">Screenshots blocked</span><span class="s">Card details can’t be captured or recorded</span></span></div>
+    <div class="subhead">Backup</div>
+    ${row('export', 'upload', 'Export backup', 'Encrypted file protected by a passphrase', !S.cards.length)}
+    ${row('import', 'download', 'Import backup', 'QuickCards backups, including older versions')}
+    <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
+    <div class="subhead">About</div>
+    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.0.0</span></span></div>
+    <div class="li two" style="margin-bottom:24px"><span class="lead">${I('offline')}</span><span class="txt"><span class="h">Works offline</span><span class="s">QuickCards has no network access</span></span></div>
+  </div>`;
+}
+function radioDialog(title, body, opts, cur, onOk) {
+  let v = cur;
+  openDialog(`<h2>${title}</h2>${body ? `<div class="body">${body}</div>` : ''}<div class="radios" role="radiogroup">
+    ${opts.map(([val, l]) => `<button class="checkrow" role="radio" aria-checked="${String(val) === String(v)}" data-s="${esc(String(val))}"><span class="rb"></span>${l}</button>`).join('')}</div>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok">OK</button></div>`, () => {
+    dialog.onclick = e => { const r = e.target.closest('[data-s]'); if (r) { const found = opts.find(([val]) => String(val) === r.dataset.s); if (found) v = found[0]; $$('[data-s]', dialog).forEach(x => x.setAttribute('aria-checked', x.dataset.s === String(v))); }
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog(); if (d === 'ok') { onOk(v); render(); } };
+  });
+}
+
+/* ---------- Form ---------- */
+function formSignature() { const F = S.form; return JSON.stringify({ holderId: F.holderId, number: F.number, exp: F.exp, cvv: F.cvv, bankId: F.bankId, typeId: F.typeId, tagIds: F.tagIds, color: F.color, note: F.note, repairs: F.repairs, review: F.review }); }
+const formDirty = () => !!S.form && formSignature() !== S.form.base;
+function startForm(mode, id) {
+  const c = id ? S.cards.find(x => x.id === id) : null;
+  S.form = c ? { mode, id, holderId: c.holderId, number: c.number, exp: c.exp, cvv: c.cvv, bankId: c.bankId, typeId: c.typeId, tagIds: [...(c.tagIds || [])], color: c.color, note: c.note || '', archived: !!c.archived, archiveReason: c.archiveReason || null, repairs: { ...(c.repairs || {}) }, review: [...(c.needsReview || [])], errors: {} }
+    : { mode, id: null, holderId: S.filters.holders.size === 1 ? [...S.filters.holders][0] : (S.holders[0]?.id || null), number: '', exp: '', cvv: '', bankId: null, typeId: null, tagIds: [], color: 'navy', note: '', archived: false, archiveReason: null, repairs: {}, review: [], errors: {} };
+  S.form.base = formSignature();
+  S.form.backStack = S.stack.slice();
+  push({ name: 'form' });
+}
+const fNet = () => detect(S.form.number);
+function tf(key, label, val, opts = {}) {
+  const fix = opts.fix != null ? `<div class="fixrow" data-fix="${key}"><span class="fmsg">Changed from ${esc(opts.fix)}</span><button class="btn text sl fundo" data-act="undofix" data-key="${key}">Undo</button></div>` : '';
+  return `<div class="tf ${opts.trail ? 'has-trail' : ''} ${opts.ro ? 'ro' : ''}" data-tf="${key}" data-help="${esc(opts.help || '')}" ${opts.ro ? `data-act="picker" data-kind="${opts.ro}"` : ''}>
+    <input id="f-${key}" placeholder=" " value="${esc(val ?? '')}" ${opts.attrs || ''} ${opts.ro ? `readonly data-act="picker" data-kind="${opts.ro}" aria-haspopup="dialog"` : ''} aria-describedby="h-${key}">
+    <label for="f-${key}">${label}</label>${opts.trail ? `<span class="trail">${opts.trail}</span>` : ''}
+    <div class="help" id="h-${key}"><span class="hm">${esc(opts.help || '')}</span>${opts.max ? `<span class="hc" data-hc="${key}">${String(val ?? '').length}/${opts.max}</span>` : ''}</div>${fix}</div>`;
+}
+const setFieldValue = (el, value) => { if (el && el.value !== value) { el.value = value; try { el.setSelectionRange(value.length, value.length); } catch (_) {} } };
+function syncFormSave() { const b = $('[data-act="save"]'); if (b && S.form) b.toggleAttribute('disabled', S.form.mode === 'edit' && !formDirty()); }
+function formHTML() {
+  const F = S.form, edit = F.mode === 'edit', net = fNet();
+  const caret = `<span class="caret" aria-hidden="true">${I('caret')}</span>`;
+  return `<header class="appbar nested"><button class="iconbtn on-surface" data-act="back" aria-label="Back">${I('back')}</button><h1>${edit ? 'Edit card' : 'Add card'}</h1></header>
+  <div class="scroll"><div class="form">
+    ${passHTML({ ...F, id: '', needsReview: F.review }, true)}
+    ${tf('holder', 'Card holder', byId('holders', F.holderId)?.name, { ro: 'holders', trail: caret })}
+    ${tf('number', 'Card number', fmt(F.number, net, false, false), { trail: `<span class="tag" id="f-net">${esc(net?.code || '')}</span>`, attrs: 'inputmode="numeric" autocomplete="off"', fix: F.repairs?.number?.before })}
+    <div class="row2">${tf('exp', 'Expiry', F.exp, { help: 'MM/YY', attrs: 'inputmode="numeric" autocomplete="off" maxlength="7"', fix: F.repairs?.exp?.before })}
+      ${tf('cvv', 'CVV', F.cvv, { help: `${net?.cvv || '3 or 4'} digits`, attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
+    ${tf('bank', 'Bank', byId('banks', F.bankId)?.name, { ro: 'banks', trail: caret })}
+    ${tf('type', 'Card type (optional)', byId('types', F.typeId)?.name, { ro: 'types', trail: caret, help: 'Leave empty to show nothing on the card' })}
+    <div class="grp"><div class="glab">Tags<span class="counter" id="tagCount">${F.tagIds.length} of ${S.cfg.tags.max}</span></div><div class="tagbox" id="tagBox">${tagChips()}</div></div>
+    <div class="grp"><div class="glab">Card colour</div><div class="swatches" role="radiogroup" aria-label="Card colour">
+      ${COLORS.map(c => `<button type="button" class="swatch" role="radio" aria-label="${BAND_NAMES[c]} colour" aria-checked="${F.color === c}" data-act="fcolor" data-v="${c}" style="--sw:var(--band-${c})">${I('check')}</button>`).join('')}
+      ${isCurated(F.color)
+        ? `<button type="button" class="swatch custom" role="radio" aria-label="Custom" aria-checked="false" data-act="fcustom">${I('palette')}</button>`
+        : `<button type="button" class="swatch custom" role="radio" aria-label="Custom colour, ${esc(F.color)}" aria-checked="true" data-act="fcustom" style="--sw:${esc(F.color)}">${I('check')}</button>`}</div></div>
+    ${tf('note', 'Note (optional)', F.note, { max: 80, help: 'For example Everyday spending', attrs: 'maxlength="80"' })}
+  </div></div>
+  <div class="footer"><button class="btn filled lg" data-act="save" ${edit && !formDirty() ? 'disabled' : ''}>${edit ? 'Save changes' : 'Save card'}</button></div>`;
+}
+function tagChips() {
+  const F = S.form;
+  return F.tagIds.map(id => byId('tags', id)).filter(Boolean).map(t => `<span class="chip input">${esc(t.name)}<button class="x" data-act="untag" data-v="${t.id}" aria-label="Remove tag ${esc(t.name)}">${I('close', 'sm')}</button></span>`).join('')
+    + (F.tagIds.length < S.cfg.tags.max ? `<button class="chip add sl" data-act="tagsheet">${I('plus')}Add tag</button>` : '');
+}
+function refreshTags() { $('#tagBox').innerHTML = tagChips(); $('#tagCount').textContent = `${S.form.tagIds.length} of ${S.cfg.tags.max}`; updatePreview(); }
+function setErr(key, msg) {
+  const w = $(`[data-tf="${key}"]`); if (!w) return;
+  w.classList.toggle('err', !!msg); help(w).textContent = msg || w.dataset.help;
+  $('input', w).setAttribute('aria-invalid', msg ? 'true' : 'false'); S.form.errors[key] = msg || null;
+}
+function validate(key) {
+  const F = S.form, net = fNet(); let m = '';
+  if (key === 'number') {
+    const n = F.number, L = net ? lens(net.lengths) : [];
+    if (!n) m = 'Enter the card number';
+    else if (net && !L.includes(n.length)) m = `${net.name} numbers have ${lensText(net.lengths)} digits`;
+    else if (!net && (n.length < 12 || n.length > 19)) m = 'Card numbers have 12 to 19 digits';
+    else if ((net ? net.luhn : true) && !luhnValid(n)) m = 'This number doesn’t look right. Check the digits.';
+    else { const d = S.cards.find(c => c.number === n && c.id !== F.id); if (d) m = `Already saved as ${cardTitle(d)} for ${byId('holders', d.holderId)?.name || 'a holder'}`; }
+  }
+  if (key === 'exp') { const mm = +F.exp.slice(0, 2), yy = +F.exp.slice(3, 5); if (!/^\d{2}\/\d{2}$/.test(F.exp) || mm < 1 || mm > 12) m = 'Use MM/YY'; else if (2000 + yy > TODAY.y + 20) m = 'Check the year'; }
+  if (key === 'cvv') { const want = net?.cvv; if (want ? F.cvv.length !== want : (F.cvv.length < 3 || F.cvv.length > 4)) m = `Enter ${want || '3 or 4'} digits`; }
+  if (key === 'bank' && !F.bankId) m = 'Choose the bank';
+  if (key === 'holder' && !F.holderId) m = 'Choose who this card belongs to';
+  setErr(key, m); return !m;
+}
+function updatePreview() {
+  const F = S.form, net = fNet(), name = holderName(F);
+  const set = (id, t, ph) => { const el = $('#pv-' + id); if (el) { el.textContent = t; el.classList.toggle('ph', !!ph); } };
+  set('number', F.number ? fmt(F.number, net, false, document.activeElement?.id === 'f-number') : '•••• •••• •••• ••••', !F.number);
+  set('exp', F.exp || 'MM/YY', !F.exp); set('name', name || 'NAME', !name);
+  set('cvv', '•'.repeat(net?.cvv || 3)); set('bank', byId('banks', F.bankId)?.name || 'Bank'); set('net', net?.code || '');
+  $('#f-net').textContent = net?.code || '';
+  const pv = $('#pv-pass');
+  if (pv) {
+    const ex = isExpired(F);
+    pv.classList.toggle('expired', ex);
+    pv.style.setProperty('--band', ex ? 'var(--pass-expired-band)' : bandValue(F.color));
+    const labend = pv.querySelector('.labend');
+    if (labend) labend.innerHTML = passFlags(F) + typePillHTML({ ...F, id: '' }, true);
+  }
+  const tg = $('#pv-tags'); if (tg) tg.innerHTML = S.cfg.tags.show ? F.tagIds.map(t => byId('tags', t)).filter(Boolean).map(t => `<span class="ptag">${esc(t.name)}</span>`).join('') : '';
+  const nw = $('#pv-note-wrap');
+  if (nw) { const show = S.cfg.showNotes && !!F.note; nw.hidden = !show; const nt = $('#pv-note'); if (nt) nt.textContent = F.note; if (pv) pv.classList.toggle('has-note', show); }
+  const cv = $('[data-tf="cvv"]'); cv.dataset.help = `${net?.cvv || '3 or 4'} digits`; if (!cv.classList.contains('err')) help(cv).textContent = cv.dataset.help;
+  syncPerf(); syncFormSave();
+}
+function mountForm() {
+  const F = S.form;
+  const onIn = (key, fn, noVal) => { const el = $('#f-' + key); el.addEventListener('input', () => {
+    if (F.repairs && F.repairs[key]) { delete F.repairs[key]; const fx = $(`[data-fix="${key}"]`); if (fx) fx.remove(); }
+    F.review = (F.review || []).filter(x => x !== key);
+    fn(el); const hc = $(`[data-hc="${key}"]`); if (hc) hc.textContent = `${el.value.length}/${el.maxLength}`; updatePreview(); if (F.errors[key]) validate(key);
+  }); if (!noVal) el.addEventListener('blur', () => { if (el.value.trim() || F.tried) validate(key); }); };
+  onIn('number', el => {
+    const d = el.value.replace(/\D/g, '').slice(0, 19), net = detect(d);
+    F.number = d.slice(0, maxLenOf(net));
+    setFieldValue(el, fmt(F.number, net, false, true));
+    const want = fNet()?.cvv || 4;
+    if (F.cvv.length > want) { F.cvv = F.cvv.slice(0, want); setFieldValue($('#f-cvv'), F.cvv); }
+    if (F.errors.cvv || F.cvv) validate('cvv');
+  });
+  onIn('exp', el => { let d = el.value.replace(/\D/g, ''); if (d.length === 6) d = d.slice(0, 2) + d.slice(4); d = d.slice(0, 4); if (d.length === 1 && +d > 1) d = '0' + d; F.exp = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; setFieldValue(el, F.exp); });
+  onIn('cvv', el => { F.cvv = el.value.replace(/\D/g, '').slice(0, fNet()?.cvv || 4); setFieldValue(el, F.cvv); });
+  onIn('note', el => { F.note = el.value.slice(0, 80); setFieldValue(el, F.note); }, true);
+  $('#f-number').addEventListener('blur', e => { setFieldValue(e.target, fmt(F.number, fNet(), false)); updatePreview(); if (F.number) validate('number'); });
+  updatePreview();
+  (F.review || []).forEach(k => validate(k));
+  if (F.mode === 'add') setTimeout(() => $('#f-number').focus({ preventScroll: true }), 300);
+}
+function saveForm() {
+  S.form.tried = true;
+  const bad = ['holder', 'number', 'exp', 'cvv', 'bank'].filter(k => !validate(k));
+  if (bad.length) { const el = $('#f-' + bad[0]); scrollToEl(el, 'smooth'); if (!el.readOnly) el.focus({ preventScroll: true }); return; }
+  const F = S.form, net = fNet();
+  const still = (F.review || []).filter(k => { validate(k); return !!S.form.errors[k]; });
+  const data = { holderId: F.holderId, bankId: F.bankId, networkAuto: true, networkId: null, typeId: F.typeId, number: F.number, exp: F.exp, cvv: F.cvv, color: F.color, note: F.note.trim(), tagIds: [...F.tagIds], repairs: { ...(F.repairs || {}) }, needsReview: still };
+  let id = F.id;
+  if (F.mode === 'edit') Object.assign(S.cards.find(c => c.id === id), data); else { id = uid(); S.cards.push({ id, ...data, pinned: false, pinnedAt: null, archived: false, archivedAt: null, archiveReason: null }); }
+  S.stack = F.backStack && F.backStack.length ? F.backStack : [{ name: 'home' }];
+  S.form = null;
+  render('back');
+  snackbar(F.mode === 'edit' ? 'Changes saved' : `${net?.name || 'Card'} saved`);
+  const el = $(`[data-pass="${id}"]`); if (el) scrollToEl(el);
+}
+function discardDialog() {
+  openDialog(`<h2>Discard this card?</h2><div class="body">Your changes won’t be saved.</div>
+    <div class="acts"><button class="btn text sl" data-d="keep">Keep editing</button><button class="btn text danger sl" data-d="discard">Discard</button></div>`, () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog();
+      if (d !== 'discard') return; S.form = null; pop(); };
+  });
+}
+function scrollToEl(el, behavior) { const sc = el.closest('.scroll'); if (!sc) return; const r = el.getBoundingClientRect(), s = sc.getBoundingClientRect(); sc.scrollTo({ top: sc.scrollTop + ((r.top - s.top) - (s.height - r.height) / 2) / scale(), behavior: behavior || 'auto' }); app.scrollTop = 0; }
+
+/* ---------- Picker sheet (card holder, bank, card type) ---------- */
+function pickerSheet(kind) {
+  const F = S.form;
+  const META = {
+    holders: { title: 'Choose card holder', search: 'Search card holders', add: 'Add card holder', lead: x => `<span class="hmono">${esc(initials(x.name))}</span>`, current: () => F.holderId },
+    banks: { title: 'Choose bank', search: 'Search banks', add: 'Add a new bank', lead: x => `<span class="mono">${esc(x.mono)}</span>`, current: () => F.bankId },
+    types: { title: 'Choose card type', search: 'Search card types', add: 'Add card type', lead: x => `<span class="tagdot">${esc(x.name[0] || '?')}</span>`, current: () => F.typeId },
+  };
+  const M = META[kind]; if (!M) return;
+  const showSearch = S[kind].length > 7;
+  const none = kind === 'types' ? `<button class="li sl" data-p="__none"><span class="lead slot" aria-hidden="true"></span><span class="txt"><span class="h">None</span></span>${!F.typeId ? `<span class="trail">${I('check')}</span>` : ''}</button>` : '';
+  const draw = q => {
+    const s = q.trim().toLowerCase();
+    return none + S[kind].filter(x => !s || x.name.toLowerCase().includes(s)).map(x => `<button class="li sl" data-p="${x.id}">${M.lead(x)}<span class="txt"><span class="h">${esc(x.name)}</span></span>${M.current() === x.id ? `<span class="trail">${I('check')}</span>` : ''}</button>`).join('')
+      + `<button class="li sl" data-p="__new"><span class="lead slot">${I('plus')}</span><span class="txt"><span class="h">${M.add}</span></span></button>`;
+  };
+  const search = showSearch ? `<div class="tf"><input id="pq" placeholder=" " autocomplete="off" aria-label="${M.search}"><label for="pq">${M.search}</label></div>` : '';
+  openSheet(`<div class="sh-title t-headline">${M.title}</div>${search}<div class="sh-body" id="pl">${draw('')}</div>`, () => {
+    const pick = id => {
+      if (kind === 'holders') { F.holderId = id; const el = $('#f-holder'); if (el) el.value = byId('holders', id)?.name || ''; validate('holder'); }
+      else if (kind === 'banks') { F.bankId = id; const el = $('#f-bank'); if (el) el.value = byId('banks', id)?.name || ''; validate('bank'); }
+      else { F.typeId = id; const el = $('#f-type'); if (el) el.value = id ? (byId('types', id)?.name || '') : ''; }
+      updatePreview(); closeSheet();
+    };
+    if (showSearch) $('#pq').addEventListener('input', e => { $('#pl').innerHTML = draw(e.target.value); });
+    sheet.onclick = e => {
+      const b = e.target.closest('[data-p]'); if (!b) return;
+      if (b.dataset.p === '__new') return entityDialog(kind, null, nx => { render(); pick(nx.id); });
+      pick(b.dataset.p === '__none' ? null : b.dataset.p);
+    };
+  });
+}
+
+/* ---------- Sheets & dialogs ---------- */
+function openSheet(html, mount) { sheet.innerHTML = `<div class="handle" aria-hidden="true"></div>${html}`; sheet.hidden = false; scrimSheet.hidden = false; requestAnimationFrame(() => { sheet.classList.add('show'); scrimSheet.classList.add('show'); }); mount && mount(); }
+function closeSheet() { sheet.classList.remove('show'); scrimSheet.classList.remove('show'); setTimeout(() => { sheet.hidden = true; scrimSheet.hidden = true; }, 300); }
+function openDialog(html, mount) { dialog.innerHTML = html; dialog.hidden = false; scrimDialog.hidden = false; requestAnimationFrame(() => { dialog.classList.add('show'); scrimDialog.classList.add('show'); }); mount && mount(); setTimeout(() => ($('input', dialog) || dialog).focus({ preventScroll: true }), 60); }
+function closeDialog() { dialog.classList.remove('show'); if (bio.hidden) scrimDialog.classList.remove('show'); setTimeout(() => { dialog.hidden = true; if (bio.hidden) scrimDialog.hidden = true; }, 230); }
+scrimSheet.addEventListener('click', closeSheet);
+scrimDialog.addEventListener('click', () => { if (!bio.hidden) closeBio(); else closeDialog(); });
+
+function tagSheet() {
+  const F = S.form, max = S.cfg.tags.max, maxLen = S.cfg.tags.len;
+  const draw = () => S.tags.map(t => { const on = F.tagIds.includes(t.id); return `<button class="checkrow sl" role="checkbox" aria-checked="${on}" data-t="${t.id}" ${!on && F.tagIds.length >= max ? 'disabled' : ''}><span class="cb">${I('check')}</span>${esc(t.name)}</button>`; }).join('');
+  openSheet(`<div class="sh-title t-headline">Tags</div>
+    <div class="newtag"><div class="tf" data-tf="nt" data-help=""><input id="nt" placeholder=" " maxlength="${maxLen}" autocomplete="off"><label for="nt">New tag</label><div class="help"><span class="hm"></span><span class="hc" id="ntc">0/${maxLen}</span></div></div><button class="btn tonal" data-nt="add">Add</button></div>
+    <div class="sh-note" id="tagNote">${F.tagIds.length} of ${max} selected. Change the limit in Settings.</div>
+    <div class="sh-body" id="tl">${draw()}</div>
+    <div class="sh-foot"><button class="btn tonal" data-nt="done">Done</button></div>`, () => {
+    const upd = () => { $('#tl').innerHTML = draw(); $('#tagNote').textContent = `${F.tagIds.length} of ${max} selected. Change the limit in Settings.`; refreshTags(); };
+    $('#nt').addEventListener('input', e => { const v = e.target.value.slice(0, maxLen); if (v !== e.target.value) { e.target.value = v; try { e.target.setSelectionRange(v.length, v.length); } catch (_) {} } const w = $('[data-tf="nt"]'); w.classList.remove('err'); help(w).textContent = ''; $('#ntc').textContent = `${v.length}/${maxLen}`; });
+    sheet.onclick = e => {
+      const r = e.target.closest('[data-t]'); if (r) { const id = r.dataset.t; F.tagIds.includes(id) ? F.tagIds.splice(F.tagIds.indexOf(id), 1) : F.tagIds.push(id); return upd(); }
+      const a = e.target.closest('[data-nt]')?.dataset.nt; if (!a) return;
+      if (a === 'done') return closeSheet();
+      const name = $('#nt').value.trim().replace(/\s+/g, ' ').replace(/^#+/, ''), w = $('[data-tf="nt"]');
+      if (name.length < 2) { w.classList.add('err'); help(w).textContent = name ? 'Use at least 2 characters' : 'Type a tag name'; return; }
+      if (F.tagIds.length >= max) { w.classList.add('err'); help(w).textContent = `Up to ${max} tags per card`; return; }
+      let t = S.tags.find(x => x.name.toLowerCase() === name.toLowerCase());
+      if (t && F.tagIds.includes(t.id)) { w.classList.add('err'); help(w).textContent = 'Already on this card'; return; }
+      if (!t) { t = { id: uid(), name }; S.tags.push(t); S.tags.sort((x, y) => x.name.localeCompare(y.name)); save(); }
+      if (!F.tagIds.includes(t.id) && F.tagIds.length < max) F.tagIds.push(t.id);
+      $('#nt').value = ''; help(w).textContent = ''; $('#ntc').textContent = `0/${maxLen}`; upd();
+    };
+  });
+}
+function syncFormColor() {
+  const F = S.form, custom = $('[data-act="fcustom"]');
+  $$('[data-act="fcolor"]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === F.color)));
+  if (custom) {
+    const curated = isCurated(F.color);
+    custom.setAttribute('aria-checked', String(!curated));
+    custom.setAttribute('aria-label', curated ? 'Custom' : `Custom colour, ${F.color}`);
+    custom.innerHTML = I(curated ? 'palette' : 'check');
+    if (curated) custom.removeAttribute('style'); else custom.style.setProperty('--sw', F.color);
+  }
+  updatePreview();
+}
+function customColorSheet() {
+  const startHex = isCurated(S.form.color) ? BAND_HEX[S.form.color] : S.form.color;
+  const start = hexHsv(startHex);
+  const state = { h: start.h, s: start.s, v: start.v, hex: startHex };
+  const recent = S.recentColors || [];
+  openSheet(`<div class="sh-title t-headline">Custom colour</div>
+    <div class="sh-body">
+      <div class="cwheel" id="cwheel" role="slider" aria-label="Hue and saturation" tabindex="0"><span class="ccursor" id="ccursor"></span></div>
+      <input type="range" id="cbright" class="cbright" min="20" max="100" value="${Math.round(start.v * 100)}" aria-label="Brightness">
+      <div class="tf" data-tf="chex" data-help=""><input id="chex" placeholder=" " value="${startHex.slice(1)}" maxlength="6" autocomplete="off" spellcheck="false"><label for="chex">Hex</label><div class="help"><span class="hm" id="chelp"></span><span class="hc" id="chc">6/6</span></div></div>
+      <div class="cpreview" id="cpreview" style="--band:${startHex}"><div class="cband">Preview</div><div class="cbodyfill"></div></div>
+      ${recent.length ? `<div class="grp-h">Recent</div><div class="crecents" id="crecents">${recent.map(hex => `<button type="button" class="crecent" data-crecent="${hex}" aria-label="Custom colour, ${hex}"><span style="background:${hex}"></span></button>`).join('')}</div>` : ''}
+    </div>
+    <div class="sh-foot"><button class="btn text sl" data-cc="cancel">Cancel</button><button class="btn text sl" data-cc="use" id="cuse">Use colour</button></div>`, () => {
+    const wheel = $('#cwheel'), cursor = $('#ccursor'), input = $('#chex'), slider = $('#cbright'), preview = $('#cpreview'), use = $('#cuse'), field = $('[data-tf="chex"]');
+    const paint = () => {
+      const hex = state.hex;
+      if (hex) preview.style.setProperty('--band', hex);
+      cursor.style.background = hex || 'transparent';
+      const r = wheel.getBoundingClientRect(), cx = r.width / 2, cy = r.height / 2, rad = r.width / 2 - 12;
+      cursor.style.left = `${cx + Math.cos(state.h * Math.PI / 180) * state.s * rad}px`;
+      cursor.style.top = `${cy + Math.sin(state.h * Math.PI / 180) * state.s * rad}px`;
+      slider.style.setProperty('--pure', hsvToHex(state.h, state.s, 1));
+      const tooLight = !!hex && contrastWhite(hex) < 4.5;
+      field.classList.toggle('err', tooLight);
+      $('#chelp').textContent = tooLight ? 'Too light for white card text. Choose a darker shade.' : '';
+      use.disabled = !hex || tooLight;
+      $('#chc').textContent = `${input.value.length}/6`;
+    };
+    const pick = e => {
+      const r = wheel.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+      let h = Math.atan2(y, x) * 180 / Math.PI; if (h < 0) h += 360;
+      state.h = h; state.s = Math.min(1, Math.hypot(x, y) / (r.width / 2));
+      state.hex = hsvToHex(state.h, state.s, state.v);
+      input.value = state.hex.slice(1);
+      paint();
+    };
+    wheel.addEventListener('click', pick);
+    slider.addEventListener('input', () => { state.v = +slider.value / 100; state.hex = hsvToHex(state.h, state.s, state.v); input.value = state.hex.slice(1); paint(); });
+    input.addEventListener('input', () => {
+      const v = input.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 6);
+      input.value = v;
+      if (v.length === 6) {
+        const hex = '#' + v, n = hexHsv(hex);
+        state.h = n.h; state.s = n.s; state.v = n.v; state.hex = hex;
+        slider.value = Math.round(n.v * 100);
+      } else {
+        state.hex = null;
+      }
+      paint();
+    });
+    $$('[data-crecent]').forEach(b => b.addEventListener('click', () => {
+      const hex = b.dataset.crecent, n = hexHsv(hex);
+      state.h = n.h; state.s = n.s; state.v = n.v; state.hex = hex;
+      slider.value = Math.round(n.v * 100); input.value = hex.slice(1); paint();
+    }));
+    sheet.onclick = e => {
+      const a = e.target.closest('[data-cc]')?.dataset.cc;
+      if (!a) return;
+      if (a === 'cancel') return closeSheet();
+      if (!state.hex) return;
+      S.form.color = state.hex;
+      S.recentColors = [state.hex, ...S.recentColors.filter(x => x !== state.hex)].slice(0, 5);
+      save(); closeSheet(); syncFormColor();
+    };
+    paint();
+  });
+}
+function actionsSheet(id) {
+  const c = S.cards.find(x => x.id === id), net = netOf(c);
+  const pinRow = (() => { const full = !c.pinned && S.cards.filter(x => x.pinned).length >= S.cfg.pinned; return `<button class="li ${full ? 'two' : ''} sl" role="menuitem" data-sa="pin" ${full ? 'disabled aria-disabled="true" style="opacity:.38"' : ''}><span class="lead">${I('pin', c.pinned ? 'filled' : '')}</span><span class="txt"><span class="h">${c.pinned ? 'Unpin' : 'Pin'}</span>${full ? `<span class="s">${S.cfg.pinned} of ${S.cfg.pinned} pinned. Unpin a card or raise the limit in Settings.</span>` : ''}</span></button>`; })();
+  const menu = c.archived
+    ? `<button class="li sl" role="menuitem" data-sa="restore"><span class="lead">${I('unarchive')}</span><span class="txt"><span class="h">Restore</span></span></button>
+      <button class="li sl" role="menuitem" data-sa="edit"><span class="lead">${I('edit')}</span><span class="txt"><span class="h">Edit card</span></span></button>
+      <button class="li sl" role="menuitem" data-sa="copyall"><span class="lead">${I('copy')}</span><span class="txt"><span class="h">Copy details</span></span></button>`
+    : `<button class="li sl" role="menuitem" data-sa="copyall"><span class="lead">${I('copy')}</span><span class="txt"><span class="h">Copy details</span></span></button>
+      <button class="li sl" role="menuitem" data-sa="edit"><span class="lead">${I('edit')}</span><span class="txt"><span class="h">Edit card</span></span></button>
+      ${pinRow}
+      <button class="li sl" role="menuitem" data-sa="archive"><span class="lead">${I('archive')}</span><span class="txt"><span class="h">Archive</span></span></button>`;
+  openSheet(`<div class="actions-head"><div><div class="h">${esc(cardTitle(c))}</div><div class="s">${[net?.name, byId('holders', c.holderId)?.name].filter(Boolean).map(esc).join(' · ')} · <span class="tnum">${c.number.slice(-4)}</span>${c.note ? ' · ' + esc(c.note) : ''}</div></div></div>
+    <div class="sh-body" role="menu">
+      ${menu}
+      <button class="li sl danger" role="menuitem" data-sa="delete"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Delete card</span></span></button>
+    </div>`, () => {
+    sheet.onclick = e => { const b = e.target.closest('[data-sa]'); if (!b) return; const a = b.dataset.sa; closeSheet();
+      if (a === 'copyall') requireUnlock(() => { setClip(`${cardTitle(c)} details`, `${fmt(c.number, net, false)}\n${c.exp}\n${holderName(c)}`); snackbar('Number, expiry and name copied', 'Clear', clearClip); });
+      if (a === 'edit') requireUnlock(() => startForm('edit', id), 'Confirm it’s you to edit this card');
+      if (a === 'pin') togglePin(c);
+      if (a === 'archive') archiveDialog(c);
+      if (a === 'restore') { c.archived = false; c.archivedAt = null; c.archiveReason = null; render(); snackbar('Card restored'); }
+      if (a === 'delete') requireUnlock(() => deleteDialog(c), 'Confirm it’s you to delete this card');
+    };
+  });
+}
+function archiveDialog(c) {
+  openDialog(`<h2>Archive this card?</h2><div class="body">It moves to Manage › Archived cards. You can copy, edit or restore it there.</div>
+    <div class="tf" data-tf="ar" data-help="For example: Card closed"><input id="ar-reason" placeholder=" " maxlength="40" autocomplete="off"><label for="ar-reason">Reason (optional)</label><div class="help"><span class="hm">For example: Card closed</span><span class="hc" id="ar-count">0/40</span></div></div>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok">Archive</button></div>`, () => {
+    const inp = $('#ar-reason'), hc = $('#ar-count');
+    inp.addEventListener('input', () => {
+      const v = inp.value.slice(0, 40);
+      if (v !== inp.value) { inp.value = v; try { inp.setSelectionRange(v.length, v.length); } catch (_) {} }
+      hc.textContent = `${v.length}/40`;
+    });
+    dialog.onclick = e => {
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog(); if (d !== 'ok') return;
+      const prev = { pinned: c.pinned, pinnedAt: c.pinnedAt };
+      c.archived = true; c.archivedAt = Date.now(); c.archiveReason = inp.value.trim() || null; c.pinned = false; c.pinnedAt = null;
+      render();
+      snackbar('Card archived', 'Undo', () => { c.archived = false; c.archivedAt = null; c.archiveReason = null; c.pinned = prev.pinned; c.pinnedAt = prev.pinnedAt; render(); });
+    };
+  });
+}
+function togglePin(c) {
+  if (c.pinned) {
+    const at = c.pinnedAt;
+    c.pinned = false; c.pinnedAt = null; render();
+    snackbar('Unpinned', 'Undo', () => { c.pinned = true; c.pinnedAt = at; render(); });
+    return;
+  }
+  if (S.cards.filter(x => x.pinned).length >= S.cfg.pinned) return;
+  c.pinned = true; c.pinnedAt = nextPinAt(); render();
+  snackbar('Pinned', 'Undo', () => { c.pinned = false; c.pinnedAt = null; render(); });
+}
+function deleteDialog(c) {
+  openDialog(`<h2>Delete this card?</h2><div class="body">${esc(cardTitle(c))} ending <span class="tnum">${c.number.slice(-4)}</span> will be removed from this phone. This can’t be undone.</div>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text danger sl" data-d="ok">Delete</button></div>`, () => {
+    dialog.onclick = e => { const b = e.target.closest('[data-d]'); if (!b) return; closeDialog(); if (b.dataset.d === 'ok') {
+      const i = S.cards.indexOf(c); S.cards.splice(i, 1); render(); snackbar('Card deleted', 'Undo', () => { S.cards.splice(i, 0, c); render(); });
+    } };
+  });
+}
+function filterSheet() {
+  const T = emptyFilters();
+  ['holders', 'banks', 'networks', 'types', 'tags', 'status'].forEach(g => { T[g] = new Set(S.filters[g]); });
+  T.review = S.filters.review;
+  const inUse = (kind, getter) => S[kind].filter(x => S.cards.some(c => getter(c, x.id)));
+  const items = (kind, getter) => inUse(kind, getter).map(x => ({ id: x.id, name: x.name, n: KINDS[kind].used(x.id).length }));
+  const statusItems = [{ id: 'expired', name: 'Expired', n: statusCount('expired') }, { id: 'soon', name: 'Expires soon', n: statusCount('soon') }].filter(x => x.n);
+  const groups = [
+    ['holders', 'Card holder', items('holders', (c, id) => c.holderId === id)],
+    ['banks', 'Bank', items('banks', (c, id) => c.bankId === id)],
+    ['networks', 'Network', items('networks', (c, id) => netOf(c)?.id === id)],
+    ['types', 'Type', items('types', (c, id) => c.typeId === id)],
+    ['tags', 'Tag', items('tags', (c, id) => c.tagIds.includes(id))],
+    ['status', 'Status', statusItems],
+  ].filter(g => g[2].length);
+  const count = () => S.cards.filter(c => !c.archived && passes(c, T) && !(isExpired(c) && S.cfg.expiredCards === 'hide' && !T.status.has('expired'))).length;
+  openSheet(`<div class="sh-title t-headline">Filter cards</div><div class="sh-body">
+    ${groups.map(([g, l, xs]) => `<div class="grp-h">${l}</div>${xs.map(x => `<button class="checkrow sl" role="checkbox" aria-checked="${T[g].has(x.id)}" data-g="${g}" data-v="${x.id}"><span class="cb">${I('check')}</span>${esc(x.name)}<span class="cnt tnum">${x.n}</span></button>`).join('')}`).join('')}</div>
+    <div class="sh-foot"><button class="btn text sl" data-f="clear">Clear all</button><button class="btn filled" data-f="apply" id="fApply">Show ${plural(count(), 'card')}</button></div>`, () => {
+    sheet.onclick = e => {
+      const r = e.target.closest('.checkrow'); if (r) { const s = T[r.dataset.g]; s.has(r.dataset.v) ? s.delete(r.dataset.v) : s.add(r.dataset.v); r.setAttribute('aria-checked', s.has(r.dataset.v)); }
+      const f = e.target.closest('[data-f]');
+      if (f?.dataset.f === 'clear') { Object.values(T).forEach(s => { if (s?.clear) s.clear(); }); T.review = false; $$('.checkrow', sheet).forEach(x => x.setAttribute('aria-checked', 'false')); }
+      if (f?.dataset.f === 'apply') { S.filters = T; closeSheet(); render(); return; }
+      const n = count(); $('#fApply').textContent = `Show ${plural(n, 'card')}`; $('#fApply').toggleAttribute('disabled', n === 0);
+    };
+  });
+}
+const pwField = (id, label, help) => `<div class="tf has-trail" data-tf="${id}" data-help="${esc(help)}"><input id="${id}" type="password" placeholder=" " autocomplete="new-password"><label for="${id}">${label}</label><span class="trail"><button class="iconbtn" data-eye="${id}" aria-label="Show passphrase">${I('eye')}</button></span><div class="help">${esc(help)}</div></div>`;
+function eyeToggle(e) { const b = e.target.closest('[data-eye]'); if (!b) return false; const inp = $('#' + b.dataset.eye); const show = inp.type === 'password'; inp.type = show ? 'text' : 'password'; b.innerHTML = I(show ? 'eyeoff' : 'eye'); b.setAttribute('aria-label', (show ? 'Hide' : 'Show') + ' passphrase'); return true; }
+const snapshot = withSettings => JSON.parse(JSON.stringify({ meta: { app: 'QuickCards', format: 2, version: '2.1', exportedAt: '2026-10-23' }, holders: S.holders, banks: S.banks, types: S.types, tags: S.tags, networks: S.networks, cards: S.cards.map(c => { const { repairs, ...rest } = c; return rest; }), ...(withSettings ? { cfg: S.cfg } : {}) }));
+function exportDialog() {
+  let withSettings = true;
+  openDialog(`<h2>Export backup</h2><div class="body">${plural(S.cards.length, 'card')} with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this passphrase. You’ll need it to import, and it can’t be recovered.</div>
+    <button class="checkrow" role="checkbox" aria-checked="true" id="exSet"><span class="cb">${I('check')}</span>Include settings</button>
+    ${pwField('p1', 'Passphrase', 'At least 8 characters')}${pwField('p2', 'Confirm passphrase', '')}
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok" disabled id="expOk">Export</button></div>`, () => {
+    const chk = () => { const a = $('#p1').value, b = $('#p2').value, w = $('[data-tf="p2"]'); const mm = b && a !== b; w.classList.toggle('err', mm); help(w).textContent = mm ? 'Passphrases don’t match' : ''; $('#expOk').toggleAttribute('disabled', !(a.length >= 8 && a === b)); };
+    $('#p1').addEventListener('input', chk); $('#p2').addEventListener('input', chk);
+    dialog.onclick = e => { if (eyeToggle(e)) return;
+      if (e.target.closest('#exSet')) { withSettings = !withSettings; $('#exSet').setAttribute('aria-checked', withSettings); return; }
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
+      if (d === 'ok') { S.lastExport = { pass: $('#p1').value, data: snapshot(withSettings), file: 'quickcards-backup-2026-10-23.qcb' }; closeDialog(); snackbar(withSettings ? 'Backup with settings saved to Downloads' : 'Backup saved to Downloads'); } else closeDialog(); };
+  });
+}
+function sampleBackup() {
+  const d = seed(); d.meta = { app: 'QuickCards', format: 2, version: '2.1', exportedAt: '2026-09-30' };
+  d.cards = d.cards.map(c => { const { repairs, ...rest } = c; return rest; });
+  d.cards[0].exp = '12/31'; d.cards[0].cvv = '592'; d.cards[0].note = 'Renewed card';
+  const icici = d.banks.find(b => b.name === 'ICICI Bank').id, p = '401288888888188';
+  d.cards.push({ id: uid(), holderId: 'h2', bankId: icici, networkAuto: true, networkId: null, typeId: d.types.find(t => t.name === 'Debit').id, number: p + luhnDigit(p), exp: '07/30', cvv: '316', color: 'forest', note: '', tagIds: [], pinned: false, pinnedAt: null });
+  d.cfg.theme = 'light'; d.cfg.appLock.after = 300;
+  return { pass: 'quickcards', data: d, file: 'quickcards-sample.qcb' };
+}
+const CARD_FIELDS = ['holderId', 'bankId', 'typeId', 'exp', 'cvv', 'color', 'note', 'tagIds', 'pinned', 'pinnedAt', 'archived', 'archivedAt', 'archiveReason', 'needsReview'];
+function normalizeExpiry(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return null;
+  const d = s.replace(/\D/g, ''), pad = n => String(n).padStart(2, '0');
+  if (d.length === 6) {
+    const y4 = +d.slice(0, 4), m2 = +d.slice(4);
+    if (y4 >= 1900 && y4 <= 2100 && m2 >= 1 && m2 <= 12) return `${pad(m2)}/${String(y4).slice(2)}`;
+    const m = +d.slice(0, 2), y = d.slice(2);
+    if (m >= 1 && m <= 12) return `${pad(m)}/${y.slice(2)}`;
+    return null;
+  }
+  if (d.length === 4) {
+    const a = +d.slice(0, 2), b = +d.slice(2);
+    if (a >= 1 && a <= 12) return `${pad(a)}/${d.slice(2)}`;
+    if (a > 12 && b >= 1 && b <= 12) return `${pad(b)}/${d.slice(0, 2)}`;
+    return null;
+  }
+  if (d.length === 3) { const m = +d[0]; if (m >= 1 && m <= 12) return `${pad(m)}/${d.slice(1)}`; return null; }
+  if (d.length === 5) { const m = +d[0]; if (m >= 1 && m <= 12) return `${pad(m)}/${d.slice(1).slice(2)}`; return null; }
+  return null;
+}
+function scanFormats(cards) {
+  let fixed = 0, review = 0;
+  for (const c of cards) {
+    const exp = normalizeExpiry(c.exp);
+    if (exp == null) review++; else if (exp !== c.exp) fixed++;
+    const num = String(c.number ?? '').replace(/\D/g, '');
+    if (num !== String(c.number ?? '')) { if (num.length >= 12 && num.length <= 19) fixed++; else review++; }
+    else if (num.length < 12 || num.length > 19) review++;
+    const cvv = String(c.cvv ?? '').replace(/\D/g, '');
+    if (cvv !== String(c.cvv ?? '')) { if (cvv.length === 3 || cvv.length === 4) fixed++; else review++; }
+    else if (cvv && cvv.length !== 3 && cvv.length !== 4) review++;
+  }
+  return { fixed, review };
+}
+function planImport(D) {
+  const map = {}, newLists = {};
+  for (const k of ['holders', 'banks', 'types', 'tags', 'networks']) { newLists[k] = 0; (D[k] || []).forEach(x => { const m = S[k].find(y => y.name.toLowerCase() === x.name.toLowerCase()); if (m) map[x.id] = m.id; else { map[x.id] = null; newLists[k]++; } }); }
+  let add = 0, upd = 0, same = 0;
+  D.cards.forEach(c => { const ex = S.cards.find(x => x.number === c.number); if (!ex) { add++; return; }
+    const differs = CARD_FIELDS.some(f => {
+      const mine = ex[f], theirs = ['holderId', 'bankId', 'typeId'].includes(f) ? (c[f] ? (map[c[f]] ?? 'new') : null) : f === 'tagIds' ? (c.tagIds || []).map(t => map[t] ?? 'new') : f === 'pinned' ? !!c.pinned : f === 'pinnedAt' ? (c.pinned ? (c.pinnedAt ?? null) : null) : f === 'archived' ? !!c.archived : f === 'archivedAt' ? (c.archived ? (c.archivedAt ?? null) : null) : f === 'archiveReason' ? (c.archived ? (c.archiveReason ?? null) : null) : f === 'needsReview' ? (Array.isArray(c.needsReview) ? c.needsReview : []) : c[f];
+      return JSON.stringify(mine ?? null) !== JSON.stringify(theirs ?? null); });
+    differs ? upd++ : same++; });
+  return { add, upd, same, newLists, formats: scanFormats(D.cards) };
+}
+function importDialog() {
+  let file = null, step = 'pick', mode = 'update', restore = true;
+  const draw = () => {
+    if (step === 'review') {
+      const D = file.data, P = planImport(D), L = P.newLists;
+      const row = (k, label) => { const n = (D[k] || []).length; return n ? `<li><span>${plural(n, label)}</span><span class="t-muted" style="margin-left:auto">${L[k] ? `${L[k]} new` : 'all exist'}</span></li>` : ''; };
+      return `<h2>Review backup</h2><div class="body">${esc(file.file)}${D.meta ? ` · exported ${esc(D.meta.exportedAt)}` : ''}</div>
+        <ul class="list"><li><span>${plural(D.cards.length, 'card')}</span><span class="t-muted" style="margin-left:auto">${P.add} new · ${P.upd} changed · ${P.same} same</span></li><li><span>Formats fixed: ${P.formats.fixed} · Need a check: ${P.formats.review}</span></li>${row('holders', 'holder')}${row('banks', 'bank')}${row('networks', 'network')}${row('types', 'type')}${row('tags', 'tag')}${D.cfg ? '<li><span>Settings</span><span class="t-muted" style="margin-left:auto">included</span></li>' : '<li><span>Settings</span><span class="t-muted" style="margin-left:auto">not in this backup</span></li>'}</ul>
+        ${P.upd ? `<div class="glab" style="margin:12px 0 4px;font-size:14px;font-weight:600;color:var(--on-surface-variant)">Cards you’ve already saved</div><div class="radios" role="radiogroup">
+          <button class="checkrow" role="radio" aria-checked="${mode === 'update'}" data-m="update"><span class="rb"></span>Update with the backup’s details</button>
+          <button class="checkrow" role="radio" aria-checked="${mode === 'keep'}" data-m="keep"><span class="rb"></span>Keep what’s on this phone</button></div>` : ''}
+        ${D.cfg ? `<button class="checkrow" role="checkbox" aria-checked="${restore}" id="imSet"><span class="cb">${I('check')}</span>Restore settings from the backup</button>` : ''}
+        <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="go">Import</button></div>`;
+    }
+    return `<h2>Import backup</h2><div class="body">Choose a QuickCards backup and enter its passphrase. You’ll see what it contains before anything changes.</div>
+    ${file ? `<div class="file"><span style="color:var(--on-surface-variant)">${I('file')}</span><div><div class="n">${esc(file.file)}</div><div class="m">${plural(file.data.cards.length, 'card')} · Downloads</div></div><button class="btn text sl" data-d="pick">Change</button></div>${pwField('ip', 'Passphrase', '')}`
+      : `<button class="btn outlined" data-d="pick" style="width:100%;margin-bottom:16px">${I('file')}Choose backup file</button>`}
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="open" ${file ? '' : 'disabled'}>Open</button></div>`;
+  };
+  openDialog(draw(), () => {
+    dialog.onclick = e => { if (eyeToggle(e)) return;
+      const m = e.target.closest('[data-m]'); if (m) { mode = m.dataset.m; $$('[data-m]', dialog).forEach(x => x.setAttribute('aria-checked', x.dataset.m === mode)); return; }
+      if (e.target.closest('#imSet')) { restore = !restore; $('#imSet').setAttribute('aria-checked', restore); return; }
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
+      if (d === 'cancel') return closeDialog();
+      if (d === 'pick') { file = S.lastExport || sampleBackup(); dialog.innerHTML = draw(); setTimeout(() => $('#ip').focus({ preventScroll: true }), 30); return; }
+      if (d === 'open') { const w = $('[data-tf="ip"]'); if ($('#ip').value !== file.pass) { w.classList.add('err'); help(w).textContent = 'That passphrase doesn’t open this backup'; return; } step = 'review'; dialog.innerHTML = draw(); return; }
+      if (d !== 'go') return;
+      const D = file.data, map = {};
+      for (const k of ['holders', 'banks', 'types', 'tags', 'networks']) (D[k] || []).forEach(x => { let y = S[k].find(z => z.name.toLowerCase() === x.name.toLowerCase()); if (!y) { y = { ...x, id: uid() }; S[k].push(y); } map[x.id] = y.id; });
+      ['holders', 'banks', 'types', 'tags'].forEach(k => S[k].sort((a, b) => a.name.localeCompare(b.name)));
+      let added = 0, updated = 0, same = 0, kept = 0;
+      D.cards.forEach(c => {
+        const next = { holderId: map[c.holderId], bankId: map[c.bankId], networkAuto: true, networkId: null, typeId: c.typeId ? map[c.typeId] : null, exp: c.exp, cvv: c.cvv, color: c.color, note: c.note || '', tagIds: (c.tagIds || []).map(t => map[t]).filter(Boolean), pinned: !!c.pinned, pinnedAt: c.pinned ? (c.pinnedAt ?? null) : null, archived: !!c.archived, archivedAt: c.archived ? (c.archivedAt ?? null) : null, archiveReason: c.archived ? (c.archiveReason ?? null) : null, needsReview: Array.isArray(c.needsReview) ? [...c.needsReview] : [] };
+        const ex = S.cards.find(x => x.number === c.number);
+        if (!ex) { S.cards.push({ id: uid(), number: c.number, ...next }); added++; return; }
+        const differs = CARD_FIELDS.some(f => JSON.stringify(ex[f] ?? null) !== JSON.stringify(next[f] ?? null));
+        if (!differs) same++; else if (mode === 'update') { Object.assign(ex, next); updated++; } else kept++;
+      });
+      let setMsg = '';
+      if (D.cfg && restore) { const B = CFG0(); S.cfg = { ...B, ...D.cfg, notif: { ...B.notif, ...D.cfg.notif }, tags: { ...B.tags, ...D.cfg.tags }, appLock: { ...B.appLock, ...D.cfg.appLock } }; applyTheme(); setMsg = ' · settings restored'; }
+      closeDialog(); render();
+      const parts = [added && `${added} added`, updated && `${updated} updated`, kept && `${kept} kept`, same && `${same} unchanged`].filter(Boolean);
+      snackbar((parts.join(' · ') || 'Nothing to import') + setMsg);
+    };
+  });
+}
+function clearAllDialog() {
+  openDialog(`<h2>Erase all data?</h2><div class="body">Every card, holder, bank, type and tag will be erased from this phone. Card networks go back to the defaults. Export a backup first if you might need them.</div>
+    <button class="checkrow" role="checkbox" aria-checked="false" id="ack"><span class="cb">${I('check')}</span>I understand this can’t be undone</button>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text danger sl" data-d="ok" disabled id="caOk">Erase</button></div>`, () => {
+    dialog.onclick = e => { const a = e.target.closest('#ack'); if (a) { const v = a.getAttribute('aria-checked') !== 'true'; a.setAttribute('aria-checked', v); $('#caOk').toggleAttribute('disabled', !v); return; }
+      const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog();
+      if (d === 'ok') { Object.assign(S, { cards: [], holders: [], banks: [], types: [], tags: [], networks: NETWORKS0(), filters: emptyFilters() }); lockNow(); clearClip(); hideHun(); goTab('cards'); render('fade'); snackbar('All data erased'); } };
+  });
+}
+
+/* ---------- Copy & reveal ---------- */
+const LABEL = { number: 'Card number', exp: 'Expiry', cvv: 'CVV', name: 'Name' };
+const VALUE = (c, key) => key === 'name' ? holderName(c) : c[key];
+function copyField(el) {
+  const c = S.cards.find(x => x.id === el.dataset.id), key = el.dataset.copy; if (!c) return;
+  requireUnlock(() => {
+    setClip(`${cardTitle(c)} · ${LABEL[key]}`, VALUE(c, key));
+    const t = $(`[data-pass="${c.id}"] [data-copy="${key}"]`) || el, lab = $('.lab', t);
+    if (!t._lab) t._lab = lab.innerHTML;
+    t.classList.remove('flash', 'copied'); void t.offsetWidth; t.classList.add('flash', 'copied');
+    lab.innerHTML = `${I('check')}Copied`;
+    clearTimeout(t._t); t._t = setTimeout(() => { t.classList.remove('flash', 'copied'); lab.innerHTML = t._lab; }, 1200);
+    snackbar(`${LABEL[key]} copied${S.cfg.clipSec ? ` · clears in ${secText(S.cfg.clipSec).replace(' seconds', 's').replace(' minutes', ' min').replace(' minute', ' min')}` : ''}`, S.cfg.clipSec ? 'Clear' : '', clearClip);
+    if (key === 'number') showHun(c);
+  });
+}
+function reveal(el) {
+  const c = S.cards.find(x => x.id === el.dataset.id), key = el.dataset.copy;
+  requireUnlock(() => {
+    const t = $(`[data-pass="${c.id}"] [data-copy="${key}"]`) || el, v = $('.val', t);
+    v.textContent = key === 'cvv' ? c.cvv : fmt(c.number, netOf(c), false); v.classList.remove('masked', 'mask');
+    t.classList.remove('revealed'); void t.offsetWidth; t.classList.add('revealed');
+    clearTimeout(t._r); t._r = setTimeout(() => hideReveal(t), 5000);
+  }, `Confirm it’s you to show the ${key === 'cvv' ? 'CVV' : 'card number'}`);
+}
+function hideReveal(t) {
+  const c = S.cards.find(x => x.id === t.dataset.id), v = $('.val', t); if (!c || !v) return;
+  if (t.dataset.copy === 'cvv') { v.textContent = '•'.repeat(netOf(c)?.cvv || 3); v.classList.add('masked'); }
+  else { v.textContent = fmt(c.number, netOf(c), S.cfg.mask); if (S.cfg.mask) v.classList.add('mask'); }
+  t.classList.remove('revealed');
+}
+function hideReveals() { $$('.field.revealed').forEach(hideReveal); }
+function copyNote(el) {
+  const note = $('.txt', el)?.textContent || '';
+  if (!note) return;
+  requireUnlock(() => { setClip('Note', note); snackbar('Note copied'); }, 'Confirm it’s you to copy this note');
+}
+let pressT = null, longFired = false, notePressT = null;
+screens.addEventListener('pointerdown', e => {
+  const f = e.target.closest('[data-copy="cvv"], [data-copy="number"]');
+  longFired = false;
+  if (f) pressT = setTimeout(() => { longFired = true; reveal(f); }, 450);
+  clearTimeout(notePressT);
+  const n = e.target.closest('[data-note]');
+  if (n && !e.target.closest('.pmore')) notePressT = setTimeout(() => copyNote(n), 500);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => screens.addEventListener(t, () => { clearTimeout(pressT); clearTimeout(notePressT); }));
+screens.addEventListener('contextmenu', e => { if (e.target.closest('[data-copy], [data-note]')) e.preventDefault(); });
+
+/* ---------- Click routing ---------- */
+const CFG_TOGGLES = { applock: c => c.appLock.on = !c.appLock.on, lockleave: c => c.appLock.onLeave = !c.appLock.onLeave, dynamic: c => { c.dynamic = !c.dynamic; applyTheme(); }, mask: c => c.mask = !c.mask, showtype: c => c.showType = !c.showType, shownotes: c => c.showNotes = !c.showNotes, notif: c => c.notif.on = !c.notif.on, notifexp: c => c.notif.exp = !c.notif.exp, notifcvv: c => c.notif.cvv = !c.notif.cvv, tagshow: c => c.tags.show = !c.tags.show, tagsearch: c => c.tags.search = !c.tags.search };
+app.addEventListener('click', e => {
+  const cp = e.target.closest('[data-copy]');
+  if (cp && screens.contains(cp)) { if (longFired) { longFired = false; return; } return copyField(cp); }
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const a = t.dataset.act, C = S.cfg;
+  if (CFG_TOGGLES[a]) { CFG_TOGGLES[a](C); return render(); }
+  switch (a) {
+    case 'back': return back();
+    case 'tab': return goTab(t.dataset.tab);
+    case 'search': S.search = { on: true, q: '' }; return render('fwd');
+    case 'clearq': S.search.q = ''; return render();
+    case 'filter': return filterSheet();
+    case 'holder': S.filters.holders = t.dataset.v ? new Set([t.dataset.v]) : new Set(); return render();
+    case 'unfilter': S.filters[t.dataset.g].delete(t.dataset.v); return render();
+    case 'actions': return actionsSheet(t.dataset.id);
+    case 'add': return startForm('add');
+    case 'locknow': if (S.cfg.appLock.on) return lockApp('manual'); lockNow(); render(); return snackbar('Copying locked');
+    case 'appunlock': return openBio(unlockApp, 'Unlock to see your cards');
+    case 'idle': return radioDialog('Lock after inactivity', 'QuickCards locks itself when you haven’t touched it for this long.', [[10, '10 seconds'], [30, '30 seconds'], [60, '1 minute'], [120, '2 minutes'], [300, '5 minutes'], [600, '10 minutes'], [1800, '30 minutes'], [0, 'Never']], C.appLock.after, v => { C.appLock.after = v; });
+    case 'theme': return radioDialog('Theme', 'Choose how QuickCards looks.', [['system', 'System default'], ['light', 'Light'], ['dark', 'Dark']], C.theme, v => { C.theme = v; applyTheme(); });
+    case 'pinnedmax': return radioDialog('Pinned cards', 'Cards you pin stay at the top of the list.', [[1, '1'], [3, '3'], [5, '5'], [10, '10']], C.pinned, v => { C.pinned = v; const pinned = S.cards.filter(c => c.pinned); if (pinned.length > v) { const extras = pinned.sort((a, b) => (b.pinnedAt || 0) - (a.pinnedAt || 0)).slice(0, pinned.length - v); extras.forEach(c => { c.pinned = false; c.pinnedAt = null; }); setTimeout(() => snackbar(`Unpinned ${plural(extras.length, 'card')}`), 0); } });
+    case 'clipsec': return radioDialog('Clear clipboard', 'Copied details are removed from the clipboard after this time.', [[0, 'Never'], [30, '30 seconds'], [60, '1 minute'], [120, '2 minutes']], C.clipSec, v => { C.clipSec = v; });
+    case 'notifsec': return radioDialog('Notification time', 'How long expiry and CVV stay in the notification.', [[15, '15 seconds'], [30, '30 seconds'], [60, '1 minute']], C.notif.sec, v => { C.notif.sec = v; });
+    case 'tagmax': return radioDialog('Tags per card', 'Cards that already have more keep them.', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [8, '8'], [10, '10']], C.tags.max, v => { C.tags.max = v; });
+    case 'taglen': return radioDialog('Tag length', 'Longest tag name you can create.', [[8, '8 characters'], [12, '12 characters'], [16, '16 characters'], [24, '24 characters']], C.tags.len, v => { C.tags.len = v; });
+    case 'expiredcards': return radioDialog('Expired cards', 'Expired cards keep working; this only changes where they appear.', [['keep', 'Keep in place'], ['end', 'Move to the end'], ['hide', 'Hide from the list']], C.expiredCards, v => { C.expiredCards = v; });
+    case 'soonmonths': return radioDialog('Expires soon', 'Label cards that expire within this time.', [[1, 'Within 1 month'], [2, 'Within 2 months'], [3, 'Within 3 months']], C.expiresSoonMonths, v => { C.expiresSoonMonths = v; });
+    case 'archivedcards': return radioDialog('Archived cards', 'Choose whether search also finds archived cards.', [['only', 'Only in Archived cards'], ['search', 'Also in search results']], C.archivedCards, v => { C.archivedCards = v; });
+    case 'window': return radioDialog('Instant copy window', 'How long copies stay instant after a fingerprint, counting only time without use.', [[30, '30 seconds'], [60, '1 minute'], [120, '2 minutes']], C.windowSec, v => { C.windowSec = v; });
+    case 'entity': return push({ name: 'entity', kind: t.dataset.k });
+    case 'archived': S.archSearch = { on: false, q: '' }; return push({ name: 'archived' });
+    case 'archsearch': S.archSearch = { on: true, q: '' }; return render('fwd');
+    case 'archsearchback': S.archSearch = { on: false, q: '' }; return render('back');
+    case 'archclearq': S.archSearch.q = ''; return render();
+    case 'repair-review': S.repair.done = true; S.filters = emptyFilters(); S.filters.review = true; S.search = { on: false, q: '' }; return render();
+    case 'repair-dismiss': S.repair.done = true; return render();
+    case 'noreview': S.filters.review = false; return render();
+    case 'notemore': {
+      const id = t.dataset.id, box = $(`[data-notefor="${id}"]`); if (!box) return;
+      let open;
+      if (S.noteOpen.has(id)) { S.noteOpen.delete(id); open = false; } else { S.noteOpen.add(id); open = true; }
+      box.classList.toggle('open', open);
+      t.textContent = open ? 'Less' : 'More';
+      t.setAttribute('aria-label', open ? 'Show less' : 'Show full note');
+      t.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open) syncNotes();
+      return;
+    }
+    case 'undofix': {
+      const F = S.form; if (!F) return;
+      const key = t.dataset.key, before = F.repairs?.[key]?.before;
+      if (before == null) return;
+      delete F.repairs[key];
+      if (key === 'exp') F.exp = before;
+      else if (key === 'number') F.number = String(before).replace(/\D/g, '');
+      else if (key === 'cvv') F.cvv = String(before).replace(/\D/g, '');
+      F.errors[key] = null;
+      return render();
+    }
+    case 'ent-add': return entityDialog(t.dataset.k, null);
+    case 'ent-edit': return entityDialog(t.dataset.k, t.dataset.id);
+    case 'ent-del': return entityDelete(t.dataset.k, t.dataset.id);
+    case 'export': return requireUnlock(exportDialog, 'Confirm it’s you to export your cards');
+    case 'import': return requireUnlock(importDialog, 'Confirm it’s you to import cards');
+    case 'clearall': return requireUnlock(clearAllDialog, 'Confirm it’s you to erase all data');
+    case 'picker': return pickerSheet(t.dataset.kind);
+    case 'tagsheet': return tagSheet();
+    case 'untag': S.form.tagIds = S.form.tagIds.filter(x => x !== t.dataset.v); return refreshTags();
+    case 'fcolor': S.form.color = t.dataset.v; return syncFormColor();
+    case 'fcustom': return customColorSheet();
+    case 'save': return saveForm();
+  }
+});
+screens.addEventListener('input', e => {
+  if (e.target.id === 'q') { S.search.q = e.target.value; const pos = e.target.selectionStart; render(); $('#q').setSelectionRange(pos, pos); }
+  else if (e.target.id === 'aq') { S.archSearch.q = e.target.value; const pos = e.target.selectionStart; render(); $('#aq').setSelectionRange(pos, pos); }
+});
+screens.addEventListener('keydown', e => { const ro = e.target.closest?.('.tf.ro input'); if (ro && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown')) { e.preventDefault(); ro.click(); } });
+
+/* ---------- System back ---------- */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); back(); } });
+const edge = $('#edge'); edge.innerHTML = I('back');
+let sx = null;
+app.addEventListener('pointerdown', e => { const r = app.getBoundingClientRect(); if (e.clientX - r.left < 18 && !e.target.closest('button, input, .sheet, .dialog, .bio, .menu')) { sx = e.clientX; app.setPointerCapture(e.pointerId); } });
+app.addEventListener('pointermove', e => { if (sx == null) return; const dx = Math.min(80, Math.max(0, e.clientX - sx)); edge.style.opacity = dx / 80; edge.style.transform = `translateX(${dx * .6}px)`; });
+app.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; edge.style.opacity = 0; edge.style.transform = ''; if (dx > 60) back(); });
+
+/* ---------- Panel ---------- */
+$('#leave').onclick = () => { clearClip(); hideHun(); closeBio(); if (S.cfg.appLock.on && S.cfg.appLock.onLeave) lockApp('leave'); else { lockNow(); snackbar('Copying locked when you left'); } };
+$('#reset').onclick = () => { try { localStorage.removeItem(KEY); } catch (_) {} Object.assign(S, seed(), { stack: [{ name: 'home' }], tab: 'cards', search: { on: false, q: '' }, archSearch: { on: false, q: '' }, filters: emptyFilters(), noteOpen: new Set(), lastExport: null, form: null }); lockNow(); clearClip(); hideHun(); if (!sheet.hidden) closeSheet(); if (!dialog.hidden) closeDialog(); applyTheme(); render('fade'); };
+
+applyTheme(); render();
+if (S.cfg.appLock.on) lockApp('start');
+})();
+</script>
+</body>
+</html>

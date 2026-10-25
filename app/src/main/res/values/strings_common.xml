@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared UI copy -->
+    <string name="common_add_tag">Add tag</string>
+    <string name="common_remove_tag">Remove tag %1$s</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_unlock_title">Unlock QuickCards</string>
+</resources>

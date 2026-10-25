@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_brand">#C8202B</color>
+    <color name="primary_on">#FFFFFFFF</color>
+    <color name="secondary_brand">#18181B</color>
+
+    <color name="background_app">#F7F7F8</color>
+    <color name="text_primary">#18181B</color>
+    <color name="text_secondary">#5F5F66</color>
+
+    <color name="status_bar">#00000000</color>
+    <color name="navigation_bar">#00000000</color>
+</resources>

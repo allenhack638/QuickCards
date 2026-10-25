@@ -1,0 +1,191 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace 'com.quickcards.app'
+    compileSdk 34
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.quickcards.app"
+        minSdk 26
+        targetSdk 34
+        versionCode 3
+        versionName "2.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField "boolean", "SECURE_WINDOW", "false"
+        }
+        release {
+            signingConfig signingConfigs.release
+            buildConfigField "boolean", "SECURE_WINDOW", "true"
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildType = variant.buildType.name
+            
+            def apkName = "QuickCards"
+            if (buildType == "debug") {
+                apkName += "-debug"
+            }
+            apkName += ".apk"
+            
+            outputFileName = apkName
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+    lint {
+        disable += ["GradleDependency", "KaptUsageInsteadOfKsp"]
+    }
+
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+    sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas")
+    }
+}
+
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
+}
+
+// The app is offline and camera-free by contract. The verification reads the
+// *merged* debug and release manifests, not the source one, so a dependency
+// cannot add a permission behind our back.
+def mergedManifestFile = { variant ->
+    file("${layout.buildDirectory.get().asFile}/intermediates/merged_manifest/${variant}/process${variant.substring(0, 1).toUpperCase() + variant.substring(1)}MainManifest/AndroidManifest.xml")
+}
+
+def verifyOfflineManifest = tasks.register("verifyOfflineManifest") {
+    group = "verification"
+    description = "Fails if the merged manifests contain network or camera capabilities."
+    dependsOn "processDebugMainManifest", "processReleaseMainManifest"
+    def manifests = [
+        debug: mergedManifestFile("debug"),
+        release: mergedManifestFile("release")
+    ]
+    inputs.files(manifests.values()).withPropertyName("mergedManifests")
+    doLast {
+        def forbidden = [
+            "android.permission.INTERNET",
+            "android.permission.ACCESS_NETWORK_STATE",
+            "android.permission.CAMERA",
+            "com.google.android.datatransport"
+        ]
+        manifests.each { variant, manifest ->
+            if (!manifest.isFile()) {
+                throw new GradleException("Missing merged ${variant} manifest: ${manifest}")
+            }
+            def text = manifest.getText("UTF-8")
+            forbidden.each { token ->
+                if (text.contains(token)) {
+                    throw new GradleException(
+                        "Merged ${variant} manifest contains ${token}. Keep QuickCards offline."
+                    )
+                }
+            }
+        }
+        logger.lifecycle("Offline manifest check passed for debug and release.")
+    }
+}
+
+tasks.named("check").configure { dependsOn verifyOfflineManifest }
+
+tasks.withType(Test).configureEach { test ->
+    test.dependsOn "processDebugMainManifest", "processReleaseMainManifest"
+    test.systemProperty "qc.mergedDebugManifest", mergedManifestFile("debug").absolutePath
+    test.systemProperty "qc.mergedReleaseManifest", mergedManifestFile("release").absolutePath
+}
+
+dependencies {
+    implementation project(':domain')
+
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.activity:activity-compose:1.8.2'
+    implementation platform('androidx.compose:compose-bom:2024.02.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.window:window:1.3.0'
+    implementation 'androidx.navigation:navigation-compose:2.7.6'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
+    
+    // Lifecycle for ProcessLifecycleOwner
+    implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
+    
+    // Room database
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+    androidTestImplementation 'androidx.room:room-testing:2.6.1'
+    
+    // Biometric authentication
+    implementation 'androidx.biometric:biometric:1.1.0'
+    
+    // Material Design
+    implementation 'com.google.android.material:material:1.11.0'
+
+    // Custom pass colour picker (Apache-2.0, pure Compose, no permissions)
+    implementation 'com.github.skydoves:colorpicker-compose:1.1.2'
+    
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    
+    // Gson for JSON serialization
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.02.00')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_cards">Cards</string>
+    <string name="settings_section_card_list">Card list</string>
+    <string name="settings_section_copying">Copying</string>
+    <string name="settings_section_tags">Tags</string>
+    <string name="settings_section_security">Security</string>
+    <string name="settings_section_backup">Backup</string>
+    <string name="settings_section_about">About</string>
+
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_body"></string>
+    <string name="settings_theme_system">System default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+
+    <string name="settings_dynamic_title">Use system colours</string>
+    <string name="settings_dynamic_subtitle">Match your wallpaper on Android 12+</string>
+
+    <string name="settings_mask_title">Hide card numbers</string>
+    <string name="settings_mask_subtitle">Show only the last 4 digits</string>
+
+    <string name="settings_show_type_title">Show card type</string>
+    <string name="settings_show_type_subtitle">Credit, debit and more on cards</string>
+
+    <string name="settings_pinned_title">Pinned cards</string>
+    <plurals name="settings_pinned_subtitle">
+        <item quantity="one">Up to %1$d card at the top</item>
+        <item quantity="other">Up to %1$d cards at the top</item>
+    </plurals>
+    <string name="settings_pinned_body"></string>
+    <plurals name="settings_unpinned_cards">
+        <item quantity="one">Unpinned %1$d card</item>
+        <item quantity="other">Unpinned %1$d cards</item>
+    </plurals>
+
+    <string name="settings_expired_title">Expired cards</string>
+    <string name="settings_expired_body">Expired cards keep working; this only changes where they appear.</string>
+    <string name="settings_expired_keep">Keep in place</string>
+    <string name="settings_expired_end">Move to the end</string>
+    <string name="settings_expired_hide">Hide from the list</string>
+
+    <string name="settings_expires_soon_title">Expires soon</string>
+    <string name="settings_expires_soon_body">Label cards that expire within this time.</string>
+    <plurals name="settings_expires_soon_value">
+        <item quantity="one">Within %1$d month</item>
+        <item quantity="other">Within %1$d months</item>
+    </plurals>
+
+    <string name="settings_archived_title">Archived cards</string>
+    <string name="settings_archived_body">Choose whether search also finds archived cards.</string>
+    <string name="settings_archived_only">Only in Archived cards</string>
+    <string name="settings_archived_search">Also in search results</string>
+
+    <string name="settings_notes_title">Show notes on cards</string>
+    <string name="settings_notes_subtitle">Up to 2 lines on each card</string>
+
+    <string name="settings_clipboard_title">Clear clipboard</string>
+    <string name="settings_clipboard_after">After %1$s</string>
+    <string name="settings_clipboard_body">Copied details are removed from the clipboard after this time.</string>
+
+    <string name="settings_notification_title">Expiry and CVV notification</string>
+    <string name="settings_notification_subtitle">After you copy a number</string>
+    <string name="settings_notification_time_title">Notification time</string>
+    <string name="settings_notification_time_subtitle">Disappears after %1$s</string>
+    <string name="settings_notification_time_body">How long expiry and CVV stay in the notification.</string>
+    <string name="settings_notification_expiry_title">Show expiry in notification</string>
+    <string name="settings_notification_expiry_subtitle">Month and year in the notification</string>
+    <string name="settings_notification_cvv_title">Show CVV in notification</string>
+    <string name="settings_notification_cvv_subtitle">Hidden on the lock screen</string>
+
+    <string name="settings_tags_show_title">Show tags on cards</string>
+    <string name="settings_tags_show_subtitle">Tags appear under the stub</string>
+    <string name="settings_tags_search_title">Search by tag</string>
+    <string name="settings_tags_search_subtitle">Include tag names in search</string>
+    <string name="settings_tags_max_title">Tags per card</string>
+    <string name="settings_tags_max_subtitle">Up to %1$d</string>
+    <string name="settings_tags_max_body">Cards that already have more keep them.</string>
+    <string name="settings_tag_length_title">Tag length</string>
+    <plurals name="settings_tag_length_subtitle">
+        <item quantity="one">Up to %1$d character</item>
+        <item quantity="other">Up to %1$d characters</item>
+    </plurals>
+    <string name="settings_tag_length_body">Longest tag name you can create.</string>
+    <plurals name="settings_tag_length_option">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+
+    <string name="settings_app_lock_title">App lock</string>
+    <string name="settings_app_lock_subtitle">Fingerprint needed to open QuickCards</string>
+    <string name="settings_inactivity_title">Lock after inactivity</string>
+    <string name="settings_inactivity_never">Never locks while open</string>
+    <string name="settings_inactivity_subtitle">After %1$s without use</string>
+    <string name="settings_inactivity_body">QuickCards locks itself when you haven’t touched it for this long.</string>
+    <string name="settings_lock_on_leave_title">Lock when you leave the app</string>
+    <string name="settings_lock_on_leave_subtitle">When you switch apps or lock the phone</string>
+    <string name="settings_copy_window_title">Instant copy window</string>
+    <string name="settings_copy_window_subtitle">Copy without a fingerprint until %1$s of no use</string>
+    <string name="settings_copy_window_body">How long copies stay instant after a fingerprint.</string>
+    <string name="settings_lock_now_title">Lock now</string>
+    <string name="settings_lock_now_subtitle">Lock QuickCards right away</string>
+    <string name="settings_screenshots_title">Screenshots blocked</string>
+    <string name="settings_screenshots_subtitle">Card details can’t be captured or recorded</string>
+
+    <string name="settings_backup_export_title">Export backup</string>
+    <string name="settings_backup_export_subtitle">Encrypted file protected by a passphrase</string>
+    <string name="settings_backup_import_title">Import backup</string>
+    <string name="settings_backup_import_subtitle">QuickCards backups, including older versions</string>
+    <string name="settings_backup_erase_title">Erase all data</string>
+    <string name="settings_backup_erase_subtitle">Cards, holders, banks, types and tags</string>
+
+    <string name="settings_version_title">Version</string>
+    <string name="settings_version_value">%1$s</string>
+    <string name="settings_offline_title">Works offline</string>
+    <string name="settings_offline_subtitle">QuickCards has no network access</string>
+
+    <string name="settings_reason_app_lock_off">Confirm it’s you to turn off app lock</string>
+    <string name="settings_reason_inactivity_never">Confirm it’s you to turn off the inactivity lock</string>
+    <string name="settings_reason_lock_on_leave_off">Confirm it’s you to stop locking when you leave</string>
+    <string name="settings_reason_notification_cvv">Confirm it’s you to show the CVV in notifications</string>
+
+    <string name="settings_snackbar_copying_locked">Copying locked</string>
+
+    <string name="settings_option_never">Never</string>
+    <string name="settings_action_cancel">Cancel</string>
+    <string name="settings_action_ok">OK</string>
+</resources>

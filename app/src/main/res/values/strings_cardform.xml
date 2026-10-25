@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="form_back">Back</string>
+    <string name="form_title_add">Add card</string>
+    <string name="form_title_edit">Edit card</string>
+    <string name="form_unlock_edit_reason">Confirm it’s you to edit this card</string>
+
+    <string name="form_field_holder">Card holder</string>
+    <string name="form_field_number">Card number</string>
+    <string name="form_field_expiry">Expiry</string>
+    <string name="form_field_cvv">CVV</string>
+    <string name="form_field_bank">Bank</string>
+    <string name="form_field_type">Card type (optional)</string>
+    <string name="form_field_note">Note (optional)</string>
+    <string name="form_field_new_tag">New tag</string>
+
+    <string name="form_helper_expiry">MM/YY</string>
+    <string name="form_repair_changed_from">Changed from %1$s</string>
+    <string name="form_repair_undo">Undo</string>
+    <string name="form_helper_type">Leave empty to show nothing on the card</string>
+    <string name="form_helper_note">For example Everyday spending</string>
+    <string name="form_cvv_digits_unknown">3 or 4 digits</string>
+    <plurals name="form_cvv_digits">
+        <item quantity="one">%1$d digit</item>
+        <item quantity="other">%1$d digits</item>
+    </plurals>
+
+    <string name="form_group_tags">Tags</string>
+    <string name="form_group_band">Card colour</string>
+    <string name="form_band_navy">Navy</string>
+    <string name="form_band_rust">Rust</string>
+    <string name="form_band_forest">Forest</string>
+    <string name="form_band_plum">Plum</string>
+    <string name="form_band_graphite">Graphite</string>
+    <string name="form_band_teal">Teal</string>
+    <string name="form_band_ocean">Ocean</string>
+    <string name="form_band_indigo">Indigo</string>
+    <string name="form_band_violet">Violet</string>
+    <string name="form_band_magenta">Magenta</string>
+    <string name="form_band_wine">Wine</string>
+    <string name="form_band_crimson">Crimson</string>
+    <string name="form_band_burnt_orange">Burnt orange</string>
+    <string name="form_band_olive">Olive</string>
+    <string name="form_band_moss">Moss</string>
+    <string name="form_band_slate">Slate</string>
+    <string name="form_band_custom">Custom</string>
+    <string name="form_band_custom_title">Custom colour</string>
+    <string name="form_band_hex">Hex</string>
+    <string name="form_band_preview">Preview</string>
+    <string name="form_band_use">Use colour</string>
+    <string name="form_band_recent">Recent</string>
+    <string name="form_band_too_light">Too light for white card text. Choose a darker shade.</string>
+    <string name="form_band_color_desc">%1$s colour</string>
+    <string name="form_band_custom_desc">Custom colour, %1$s</string>
+    <string name="form_tags_count">%1$d of %2$d</string>
+    <plurals name="form_tags_selected">
+        <item quantity="one">%1$d of %2$d selected. Change the limit in Settings.</item>
+        <item quantity="other">%1$d of %2$d selected. Change the limit in Settings.</item>
+    </plurals>
+
+    <string name="form_action_add">Add</string>
+    <string name="form_action_done">Done</string>
+    <string name="form_expand_preview">Expand preview</string>
+
+    <string name="form_save_changes">Save changes</string>
+    <string name="form_save_card">Save card</string>
+    <string name="form_paste_number">Card number filled from the pasted text</string>
+    <string name="form_paste_number_and_expiry">Card number and expiry filled from the pasted text</string>
+    <string name="form_saved_changes">Changes saved</string>
+    <string name="form_saved_card">%1$s saved</string>
+    <string name="form_card">Card</string>
+    <string name="form_save_failed">Couldn’t save this card</string>
+
+    <string name="form_discard_title">Discard this card?</string>
+    <string name="form_discard_body">Your changes won’t be saved.</string>
+    <string name="form_discard_keep">Keep editing</string>
+    <string name="form_discard_confirm">Discard</string>
+
+    <string name="form_picker_holder_title">Choose card holder</string>
+    <string name="form_picker_holder_search">Search card holders</string>
+    <string name="form_picker_holder_add">Add card holder</string>
+    <string name="form_picker_bank_title">Choose bank</string>
+    <string name="form_picker_bank_search">Search banks</string>
+    <string name="form_picker_bank_add">Add a new bank</string>
+    <string name="form_picker_type_title">Choose card type</string>
+    <string name="form_picker_type_search">Search card types</string>
+    <string name="form_picker_type_add">Add card type</string>
+
+    <string name="form_tag_error_empty">Type a tag name</string>
+    <string name="form_tag_error_short">Use at least 2 characters</string>
+    <plurals name="form_tag_error_limit">
+        <item quantity="one">Up to %1$d tag per card</item>
+        <item quantity="other">Up to %1$d tags per card</item>
+    </plurals>
+    <string name="form_tag_error_duplicate">Already on this card</string>
+
+    <string name="form_a_holder">a holder</string>
+    <string name="form_error_holder_required">Choose who this card belongs to</string>
+    <string name="form_error_number_required">Enter the card number</string>
+    <string name="form_error_number_length_network">%1$s numbers have %2$s digits</string>
+    <string name="form_error_number_length_generic">Card numbers have 12 to 19 digits</string>
+    <string name="form_error_number_luhn">This number doesn’t look right. Check the digits.</string>
+    <string name="form_error_number_duplicate">Already saved as %1$s for %2$s</string>
+    <string name="form_error_expiry_format">Use MM/YY</string>
+    <string name="form_error_expiry_past">This card has expired</string>
+    <string name="form_error_expiry_future">Check the year</string>
+    <plurals name="form_error_cvv_length">
+        <item quantity="one">Enter %1$d digit</item>
+        <item quantity="other">Enter %1$d digits</item>
+    </plurals>
+    <string name="form_error_cvv_unknown">Enter 3 or 4 digits</string>
+    <string name="form_error_bank_required">Choose the bank</string>
+</resources>

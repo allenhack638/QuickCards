@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuickCards Redesign Timeline</title>
+<link rel="icon" href="../docs/brand/stub-lock/icon-play-512.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="quickcards-v2.css?v=14">
+<style>
+  html, body { margin: 0; scroll-behavior: smooth; }
+  body.qc { min-height: 100vh; }
+  .top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--outline-variant); }
+  .top .in { max-width: 1180px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 24px; }
+  .top .brand { font-weight: 700; font-size: 16px; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .top .brand i { width: 22px; height: 22px; border-radius: 6px; background: var(--primary); display: inline-block; }
+  .top nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+  .top nav a { color: var(--on-surface-variant); text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 8px; white-space: nowrap; }
+  .top nav a:hover { color: var(--on-surface); background: var(--state-hover); }
+  .top .seg { width: 180px; height: 36px; flex: none; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 120px; }
+  .hero { padding: 56px 0 24px; max-width: 760px; }
+  .hero h1 { font-size: 44px; line-height: 48px; font-weight: 700; letter-spacing: -.03em; margin: 0 0 14px; }
+  .hero p { font-size: 17px; line-height: 26px; color: var(--on-surface-variant); margin: 0; }
+  .stats { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .stats div { font-size: 14px; color: var(--on-surface-variant); }
+  .stats b { display: block; font-size: 26px; line-height: 32px; color: var(--on-surface); font-weight: 650; font-variant-numeric: tabular-nums; }
+  h2.sec { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -.02em; margin: 72px 0 8px; scroll-margin-top: 80px; }
+  .lead { font-size: 16px; line-height: 25px; color: var(--on-surface-variant); max-width: 72ch; margin: 0 0 24px; }
+  h3 { font-size: 18px; line-height: 24px; font-weight: 650; margin: 36px 0 12px; scroll-margin-top: 80px; }
+  p, li { font-size: 15px; line-height: 23px; color: var(--on-surface-variant); }
+  p b, li b, td b { color: var(--on-surface); font-weight: 600; }
+  code, pre { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 13px; }
+  code { background: var(--sc-high); padding: 2px 6px; border-radius: 6px; color: var(--on-surface); }
+  pre { background: var(--sc); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 16px 18px; overflow-x: auto; line-height: 20px; color: var(--on-surface); }
+
+  /* Timeline */
+  .tl { position: relative; margin-top: 32px; }
+  .tl::before { content: ""; position: absolute; left: 15px; top: 8px; bottom: 8px; width: 2px; background: var(--outline-variant); }
+  .step { position: relative; padding-left: 56px; margin-bottom: 64px; scroll-margin-top: 80px; }
+  .step .dot { position: absolute; left: 4px; top: 2px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); border: 2px solid var(--outline); display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--on-surface-variant); }
+  .step.now .dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .step .meta { font-size: 13px; font-weight: 600; color: var(--on-surface-variant); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pill { height: 22px; padding: 0 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: .06em; display: inline-flex; align-items: center; background: var(--sc-highest); color: var(--on-surface); }
+  .pill.red { background: var(--primary); color: #fff; }
+  .step h3 { margin: 6px 0 8px; font-size: 24px; line-height: 30px; letter-spacing: -.01em; }
+  .step > p { max-width: 72ch; margin: 0 0 16px; }
+  .cols { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 32px; align-items: start; margin-top: 12px; }
+  .frame { border-radius: 40px; overflow: hidden; flex: none; position: relative; }
+  .frame iframe { border: 0; transform-origin: 0 0; display: block; }
+  .frame.lg { width: 328px; height: 691px; } .frame.lg iframe { width: 410px; height: 864px; transform: scale(.8); }
+  .frame.sm { width: 195px; height: 422px; border-radius: 22px; border: 1px solid var(--outline-variant); } .frame.sm iframe { width: 390px; height: 844px; transform: scale(.5); }
+  .open { display: inline-flex; margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--on-surface); }
+  .gallery { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; margin-top: 8px; }
+  .gallery figure { margin: 0; flex: none; }
+  .gallery img { width: 180px; height: 381px; object-fit: cover; border-radius: 18px; border: 1px solid var(--outline-variant); display: block; }
+  .gallery figcaption { font-size: 12px; color: var(--on-surface-variant); margin-top: 6px; }
+  .sketches { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .sketches figure { margin: 0; }
+  .sketches figcaption { font-size: 13px; font-weight: 600; margin-top: 8px; color: var(--on-surface); display: flex; gap: 6px; align-items: center; }
+  .sketches figcaption span { font-weight: 400; color: var(--on-surface-variant); }
+  .box { background: var(--sc); border: 1px solid var(--outline-variant); border-radius: 16px; padding: 16px 18px; }
+  .box + .box { margin-top: 12px; }
+  .box h4 { margin: 0 0 8px; font-size: 15px; font-weight: 650; }
+  .box ul { margin: 0; padding-left: 18px; }
+  .box li { font-size: 14px; line-height: 21px; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; color: var(--on-surface-variant); font-size: 13px; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--outline-variant); white-space: nowrap; }
+  td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--outline-variant); vertical-align: top; color: var(--on-surface); }
+  td.m { color: var(--on-surface-variant); }
+  .tbl-wrap { overflow-x: auto; }
+  .sw { width: 40px; height: 28px; border-radius: 8px; border: 1px solid var(--outline-variant); }
+  .bands { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 12px; }
+  .bands div { height: 72px; border-radius: 12px; color: #fff; padding: 10px 12px; font-size: 13px; font-weight: 650; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(118deg, var(--band) 45%, color-mix(in srgb, var(--band) 72%, #fff) 140%); }
+  .bands span { font-weight: 400; opacity: .8; font-variant-numeric: tabular-nums; }
+  .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .rule { background: var(--sc); border: 1px solid var(--outline-variant); border-radius: 16px; padding: 18px 20px; }
+  .rule .h { font-size: 16px; font-weight: 650; margin-bottom: 6px; color: var(--on-surface); }
+  .rule p { margin: 0; font-size: 14px; line-height: 21px; }
+  .type-row { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--outline-variant); }
+  .type-row .meta { font-size: 13px; color: var(--on-surface-variant); line-height: 19px; }
+  .type-row .meta b { color: var(--on-surface); display: block; font-size: 14px; }
+  .radii { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+  .radii figure { margin: 0; text-align: center; font-size: 12px; color: var(--on-surface-variant); }
+  .radii div { width: 88px; height: 64px; border: 2px solid var(--on-surface); margin-bottom: 8px; }
+  .stage { background: var(--bg); border: 1px solid var(--outline-variant); border-radius: 20px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 12px; }
+  .stage > p { margin: 0; flex: 1; min-width: 240px; }
+  .w358 { width: 358px; max-width: 100%; }
+  .cap { font-size: 12px; color: var(--on-surface-variant); margin-top: 8px; }
+  .static .sheet, .static .dialog, .static .bio, .static .snackbar, .static .hun, .static .menu { position: relative; transform: none; opacity: 1; left: auto; right: auto; top: auto; bottom: auto; animation: none; }
+  .static .sheet, .static .bio, .static .snackbar, .static .hun { width: 358px; max-width: 100%; }
+  .static .sheet { padding-bottom: 16px; }
+  .logo-glyph { display: block; width: 100%; height: 100%; color: #fff; }
+  .lockscr .mark { background: var(--primary); padding: 0; }
+  .hun .app .logo { background: var(--primary); padding: 3px; }
+  .static .dialog { width: 330px; max-width: 100%; max-height: none; }
+  .static .menu { width: 300px; max-height: none; }
+  .static .appbar, .static .navbar { width: 358px; max-width: 100%; border: 1px solid var(--outline-variant); border-radius: 14px; overflow: hidden; }
+  .static .navbar { height: 80px; padding: 0; }
+  .demo-list { width: 358px; max-width: 100%; background: var(--surface); border: 1px solid var(--outline-variant); border-radius: 16px; overflow: hidden; }
+  .row-gap { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .feat { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .feat .box li { list-style: none; position: relative; padding-left: 22px; }
+  .feat .box ul { padding-left: 0; }
+  .feat .box li::before { content: ""; position: absolute; left: 0; top: 6px; width: 10px; height: 6px; border-left: 2px solid var(--on-surface); border-bottom: 2px solid var(--on-surface); transform: rotate(-45deg); }
+  .feat .box li.new::after { content: "v2"; margin-left: 6px; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; background: var(--sc-highest); color: var(--on-surface); }
+  .anat { position: relative; }
+  .pin { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--on-surface); color: var(--surface); font-size: 12px; font-weight: 700; display: grid; place-items: center; z-index: 2; }
+  .legend { flex: 1; min-width: 260px; }
+  .legend ol { margin: 0; padding-left: 20px; }
+  .legend li { margin-bottom: 8px; }
+  .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .marks { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+  .marks figure { margin: 0; width: 230px; }
+  .marks .tile { width: 140px; height: 140px; border-radius: 32px; overflow: hidden; }
+  .marks figure.chosen .tile { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--primary); }
+  .marks figcaption { margin-top: 12px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .marks figcaption span:not(.pill) { color: var(--on-surface-variant); line-height: 20px; }
+  .homes { display: flex; gap: 16px; flex-wrap: wrap; }
+  .home { width: 264px; border-radius: 24px; padding: 20px 14px 14px; }
+  .do-dont .box + .box { margin-top: 0; }
+  .home.dark { background: radial-gradient(120% 90% at 20% 0%, #2B3A55, #0E1320); }
+  .home.light { background: radial-gradient(120% 90% at 20% 0%, #F3E7D8, #D9E2EC); }
+  .home.themed { background: radial-gradient(120% 90% at 20% 0%, #DDE7DA, #C9D6CF); }
+  .home .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .home .app { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 10px; color: #fff; text-align: center; }
+  .home.light .app, .home.themed .app { color: #1b1b1b; }
+  .home .ico { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; display: block; }
+  .home .ico.ph { background: rgba(255,255,255,.35); }
+  .home.light .ico.ph { background: rgba(0,0,0,.12); }
+  .home .ico.mono { background: #2F4A3E; color: #CDE8D8; }
+  .home .ico.ph.mono { background: #2F4A3E; opacity: .9; }
+  .sizes { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+  .sizes [data-full] { display: block; border-radius: 22%; overflow: hidden; }
+  .sizes .sil { width: 24px; height: 24px; display: block; background: #3a3a40; border-radius: 6px; padding: 2px; color: #fff; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } .type-row { grid-template-columns: 1fr; gap: 4px; } .bands { grid-template-columns: repeat(2, 1fr); } .do-dont { grid-template-columns: 1fr; } .hero h1 { font-size: 34px; line-height: 40px; } .top .seg { display: none; } }
+</style>
+</head>
+<body class="qc" data-theme="dark">
+
+<header class="top"><div class="in">
+  <div class="brand"><img src="../docs/brand/stub-lock/icon-play-512.svg" alt="" width="24" height="24" style="border-radius:6px">QuickCards</div>
+  <nav aria-label="Sections"><a href="#timeline">Timeline</a><a href="#it13">Latest</a><a href="#brand">Logo</a><a href="#system">Design system</a><a href="#formats">Card formats</a><a href="#backup">Backup</a><a href="#rules">Rules</a><a href="#config">Settings</a><a href="#features">Features</a><a href="#compose">Compose</a></nav>
+  <div class="seg" role="radiogroup" aria-label="Page theme"><button role="radio" aria-checked="true" data-theme-set="dark">Dark</button><button role="radio" aria-checked="false" data-theme-set="light">Light</button></div>
+</div></header>
+
+<div class="wrap">
+<section class="hero">
+  <h1>From a card list to a multi-holder vault</h1>
+  <p>Every iteration of the QuickCards redesign in one place: what we started from, the direction we chose, each working prototype, and the complete design system the Android build follows. The v2 prototype below is live; tap inside it.</p>
+  <div class="stats"><div><b>13</b>iterations</div><div><b>1</b>live prototype</div><div><b id="statNets">10</b>card networks supported</div><div><b>5</b>managed lists</div></div>
+</section>
+
+<h2 class="sec" id="timeline">Timeline</h2>
+<p class="lead">Newest at the bottom. Each step records what changed and why, so the reasoning travels with the design.</p>
+<div class="tl">
+
+  <article class="step" id="it0"><span class="dot">0</span>
+    <div class="meta">23 Oct 2026 <span class="pill">Starting point</span></div>
+    <h3>The existing app</h3>
+    <p>The Android app before the redesign (“v2 Polished”, 19 screens). A design audit against Material 3 and the project’s own design rules scored it <b>7 out of 16</b>.</p>
+    <div class="box" style="margin-top:16px"><h4>What was wrong</h4><ul>
+      <li>Copying a number took three taps: open the card, find the tile, confirm.</li>
+      <li>Search and filter sat on a second header row, wasting space on five screens.</li>
+      <li>The floating add button covered card content; sticky footers clipped form fields.</li>
+      <li>Nested screens were inconsistent about the bottom bar; the tablet grid showed 2 of 3 cards.</li>
+      <li>Test content shipped in the UI, and three type families competed.</li>
+    </ul></div>
+  </article>
+
+  <article class="step" id="it1"><span class="dot">1</span>
+    <div class="meta">23 Oct 2026 <span class="pill">Direction</span></div>
+    <h3>Choosing a direction</h3>
+    <p>Three decisions came first: <b>copy straight from the home list</b>, <b>one fingerprint opens a 60-second unlock window</b>, and <b>CVV stays masked but copies with a tap</b>. Four visual directions were then sketched — Form Ink, Pass Stub, a High-Density Grid and a category-standard layout — and <b>Pass Stub</b> was chosen: every card is a boarding pass, built to be read at a counter.</p>
+  </article>
+
+  <article class="step" id="it2"><span class="dot">2</span>
+    <div class="meta">23 Oct 2026 <span class="pill">Prototype v1</span></div>
+    <h3>Pass Stub, first working prototype</h3>
+    <p>The v1 prototype was superseded by v2 below and is no longer published.</p>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+        <div class="box"><h4>What it delivered</h4><ul>
+          <li>Full card number visible; number, expiry, CVV and name each copy with one tap.</li>
+          <li>Fingerprint prompt on first copy, then a 60-second window in which copies need no further prompt.</li>
+          <li>Hold CVV to reveal for 5 seconds; a line drains as it counts down.</li>
+          <li>Search, filters, add and edit with real validation, banks, export, import, erase, light and dark.</li>
+        </ul></div>
+        <div class="box"><h4>What the independent review changed</h4><ul>
+          <li>Dropped the red floating button: at rest it covered the third card’s name. Add moved to the top bar.</li>
+          <li>Perforation notches now measured from layout; overflow buttons raised to 48dp.</li>
+          <li>Perforation made visible in dark; snackbar says when the clipboard clears.</li>
+        </ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="it3"><span class="dot">3</span>
+    <div class="meta">23 Oct 2026 <span class="pill">Prototype v2</span></div>
+    <h3>Multi-holder vault with full control</h3>
+    <p>QuickCards becomes one secure place for several card holders, with every list editable in the app and every behaviour configurable.</p>
+    <div class="cols">
+      <div><div class="frame lg"><iframe src="v2.html?embed=1" title="Prototype v2" loading="lazy"></iframe></div><a class="open" href="v2.html">Open v2 full screen</a></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Requested</th><th>v2 does</th></tr></thead>
+        <tbody>
+          <tr><td>Mask the number until edit</td><td class="m">Shows only the last 4 digits in the right grouping. Tap still copies the whole number; hold shows it for 5s; Edit shows it in full. Configurable.</td></tr>
+          <tr><td>Delete a bank</td><td class="m">Every bank row has edit and delete.</td></tr>
+          <tr><td>Every number and CVV format</td><td class="m">10 networks, 12 to 19 digits, 3 or 4 digit CVV, correct grouping and masking for each. Custom networks can be added.</td></tr>
+          <tr><td>Auto-fill the card company</td><td class="m">The network is detected from the first digits as you type, on add and edit. It is never set by hand.</td></tr>
+          <tr><td>Expiry and CVV in a notification</td><td class="m">After copying a number, a notification shows expiry and CVV with copy buttons for 30s. Time and contents are set in Settings.</td></tr>
+          <tr><td>Manage banks, companies and more</td><td class="m">Manage tab: holders, banks, networks, types, tags. Renaming one that cards use lists those cards and asks to confirm. Deleting one in use is blocked until its cards are deleted.</td></tr>
+          <tr><td>Better navigation and cards</td><td class="m">Three tabs with an animated indicator. Cards get a tinted body, a framed network label, a type pill and tags.</td></tr>
+          <tr><td>Card type dropdown, tags, notes</td><td class="m">Optional type from a dropdown, blank on the card if unset. Tags with a per-card limit, length limit, search and visibility settings. Notes on every card.</td></tr>
+          <tr><td>Card edges hard to see</td><td class="m">Every pass now has a 1px edge tinted with its own colour, and a slightly stronger body tint in dark.</td></tr>
+          <tr><td>Navigating shouldn’t reload</td><td class="m">The navigation bar stays in place and only the content changes. Toggling a setting keeps your scroll position.</td></tr>
+          <tr><td>Check every input and rule</td><td class="m">Every field validates on leave and on save, names the problem and the fix, turns its label red, and keeps its helper line so nothing shifts. See Rules below.</td></tr>
+          <tr><td>Multiple card holders</td><td class="m">Holder chips on the home screen switch between people; the pass shows that holder’s name in capitals.</td></tr>
+        </tbody></table></div>
+    </div>
+  </article>
+
+  <article class="step" id="it4"><span class="dot">4</span>
+    <div class="meta">23 Oct 2026 <span class="pill">v2.1</span></div>
+    <h3>App lock and one icon system</h3>
+    <p>QuickCards now opens to a lock screen and locks itself after a period without use, and every icon comes from Material Symbols Rounded, the Android system icon family.</p>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+      <div class="box"><h4>App lock</h4><ul>
+        <li>Lock screen on launch, after inactivity, when you leave the app, or from Lock now.</li>
+                <li>One fingerprint unlocks the app and starts the instant copy window.</li>
+        <li>Open sheets, dialogs, menus, revealed values and the notification close when it locks.</li>
+        <li>Settings: App lock on or off; Lock after inactivity from 10 seconds to Never; Lock when you leave the app.</li>
+      </ul></div>
+      <div class="box"><h4>Icons</h4><ul>
+        <li>Material Symbols Rounded everywhere in v2, at 24dp, weight 400.</li>
+        <li>Selected tab icons fill in; field confirmations use a heavier check.</li>
+        <li>Fingerprint, lock, card and shield glyphs match Android’s own BiometricPrompt and settings.</li>
+        <li>v1 keeps its original icons as a record of that iteration.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="it5"><span class="dot">5</span>
+    <div class="meta">23 Oct 2026 <span class="pill">Brand</span></div>
+    <h3>The QuickCards mark</h3>
+    <p>Three marks were drawn from the app’s own world. The recommendation is <b>Pass Stub</b>: the signature card, with its perforation and notches, cut out of a brand-red rounded square. It reads as a card at any size, says “quick, tear-off access” without words, and uses the only colour the app is allowed to shout with. The lock screen also lost its reason line.</p>
+    <div class="marks">
+      <figure class="chosen"><div class="tile" data-mark="a"></div><figcaption><b>Pass Stub</b> <span class="pill red">Recommended</span><span>The pass from the home screen, simplified to a card, a perforation and two notches. Works as a silhouette for themed icons and notifications.</span></figcaption></figure>
+      <figure><div class="tile" data-mark="b"></div><figcaption><b>Stacked passes</b><span>Two cards, one behind the other, for a vault of many cards and holders. Busier at 24dp and close to generic wallet icons.</span></figcaption></figure>
+      <figure><div class="tile" data-mark="c"></div><figcaption><b>Q monogram</b><span>A Q whose tail is a torn stub. Distinctive as a letter, but says less about cards and loses the notch at small sizes.</span></figcaption></figure>
+    </div>
+  </article>
+
+  <article class="step" id="it6"><span class="dot">6</span>
+    <div class="meta">23 Oct 2026 <span class="pill">v2.2</span></div>
+    <h3>Backups carry settings and update saved cards</h3>
+    <p>Export now includes your settings, and import shows a review of the backup before anything changes. Cards you’ve already saved can be updated with the backup’s details (the default) or kept as they are, and settings can be restored or left alone. The full flow is documented under <a href="#backup" style="color:var(--on-surface)">Backup and restore</a>.</p>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+      <div class="box"><h4>Export</h4><ul><li>Cards with every field, all five managed lists, and settings (on by default).</li><li>Passphrase of at least 8 characters, entered twice.</li><li>File records the app, format version and export date.</li></ul></div>
+      <div class="box"><h4>Import</h4><ul><li>Open with the passphrase, then review counts: new, changed and same cards; new list items; settings.</li><li>Choose: update saved cards, or keep what’s on this phone.</li><li>Choose: restore settings, or not.</li><li>Result: “1 added · 1 updated · 6 unchanged · settings restored”.</li></ul></div>
+    </div>
+  </article>
+
+  <!-- it7 — Build walkthrough (2026-10-24) -->
+  <article class="step" id="it7"><span class="dot">7</span>
+    <div class="meta">24 Oct 2026 <span class="pill">Build walkthrough</span></div>
+    <h3>One name, one network rule, no countdown</h3>
+    <p>A walkthrough of the build settled four things: the card form asks for less, the pass says who holds the card, the network is never a question, and locking is invisible until it happens.</p>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+      <div class="box"><h4>Card form and pass</h4><ul>
+        <li><b>No Card network field.</b> The network always follows the number’s first digits by the longest match. It appears only as the badge in the number field and on the pass; a number that matches nothing shows no badge and is checked with the generic rule, 12 to 19 digits and Luhn. Every save stores the card as auto-detected.</li>
+        <li><b>Card holder is the only name.</b> “Name on card” and “Card name” are gone, with their validation. The stub NAME is the holder’s name in capitals, the band shows the bank alone, and titles, search and the notification use the bank plus the card type when set.</li>
+        <li><b>Discard confirmation.</b> Leaving Add or Edit with changes asks “Discard this card?” with <b>Keep editing</b> and an error-coloured <b>Discard</b>; nothing changed leaves immediately.</li>
+        <li><b>Flush supporting lines.</b> Every helper, error and character counter sits on the field’s outline edges, in the form and in dialogs.</li>
+      </ul></div>
+      <div class="box"><h4>Locking and settings</h4><ul>
+        <li><b>No lock chip, no countdown.</b> The Cards chip row starts with the holder chips and Lock now lives in Settings, whose supporting text is “Lock QuickCards right away”.</li>
+        <li><b>Idle time only.</b> The unlock window and the inactivity lock both restart on any touch, key, scroll or typing. “Lock after inactivity” reads “After 1 minute without use”; “Instant copy window” reads “Copy without a fingerprint until 1 minute of no use”.</li>
+        <li><b>Settings copy and icons.</b> “Show expiry in notification” explains “Month and year in the notification”; “Lock when you leave the app” explains “When you switch apps or lock the phone”; “Tags per card” gets its own list icon.</li>
+      </ul></div>
+    </div>
+    <h3>Fixes carried in</h3>
+    <div class="box"><ul>
+      <li><b>Locking covers everything.</b> The inactivity lock closes every sheet, dialog, menu and the keyboard, and nothing draws above the lock screen.</li>
+      <li><b>One name and one network.</b> The removed fields and the manual network override are gone from the form; a card saved before this change keeps its stored values, but nothing reads them.</li>
+      <li><b>Focus and save.</b> A focused field and its helper line stay above the Save bar; a blocked save always shows an error on the right field, and a picked bank never changes itself.</li>
+      <li><b>Layout.</b> The pass shares the 16dp gutter, the search bar matches it, the 2-column grid and 360dp phones were checked, and the Add/Edit preview is compact on short screens.</li>
+      <li><b>Consistency.</b> One dialog surface, larger gaps before trailing switches, no single-word orphans, a distinct Tags per card icon, and “Month and year in the notification” for expiry.</li>
+      <li><b>Security and startup.</b> Turning off app lock, Never for inactivity, lock-on-leave off and showing the CVV in the notification ask for confirmation; startup work moved off the main thread and Manage counts wait for the first database emission.</li>
+    </ul></div>
+  </article>
+
+  <!-- it8 — Demo round 2 (2026-10-24) -->
+  <article class="step" id="it8"><span class="dot">8</span>
+    <div class="meta">24 Oct 2026 <span class="pill">Demo round 2</span></div>
+    <h3>Pins, one picker, and a red Save that waits for a change</h3>
+    <p>The second walkthrough tightened the everyday paths: settings look like settings, the card form asks for less typing and offers the same picker everywhere, and pinned cards stay on top without turning the pass into a different component.</p>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+      <div class="box"><h4>Pinned cards</h4><ul>
+        <li><b>More sheet.</b> “Copy number, expiry and name” became <b>Copy details</b> and copies the same three values. “Move to top” became <b>Pin card</b> / <b>Unpin card</b> with a filled <code>push_pin</code>.</li>
+        <li><b>Pinned first.</b> Pinned cards come before the rest in pin order (first pinned on top) in the list, the grid, holder filters and search. A 16dp pin glyph sits in the band before the network label.</li>
+        <li><b>Limit.</b> Cards › <b>Pinned cards</b> offers 1, 3, 5 or 10, default 3, with “Up to 3 cards at the top”. At the limit, Pin is disabled in the card menu with “3 of 3 pinned. Unpin a card or raise the limit in Settings.” (no dialog, no automatic unpinning).</li>
+        <li><b>Backups.</b> Format 2 writes each card’s pin state and the limit; older backups restore their cards unpinned.</li>
+      </ul></div>
+      <div class="box"><h4>Settings and inputs</h4><ul>
+        <li><b>Theme is a row.</b> Appearance shows a normal two-line <b>Theme</b> row whose supporting text is System default, Light or Dark; tapping it opens the shared radio dialog with those three options. The segmented control is gone.</li>
+        <li><b>One picker.</b> Card holder, Bank and Card type open the same bottom sheet, “Choose card holder”, “Choose bank” and “Choose card type”, with the item’s lead, a check on the current choice, search above seven items and a final <b>Add …</b> row. Card type starts with None.</li>
+        <li><b>Limits while typing.</b> Number, expiry, CVV, note, tag and every Manage name keep only the filtered value at the field’s limit, with the caret at the end; pasting is trimmed the same way.</li>
+        <li><b>Red actions, dirty Save.</b> Filled actions stay brand red with system colours on; dynamic colour tints surfaces only. In Edit, <b>Save changes</b> stays disabled until something changes, as does Save in every Manage edit dialog.</li>
+        <li><b>Tag row.</b> The Add button is 56dp tall and centred on the field box, with the 0/16 counter flush under the field.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <!-- it10 — Stub Lock logo (2026-10-24) -->
+  <article class="step" id="it10"><span class="dot">10</span>
+    <div class="meta">24 Oct 2026 <span class="pill">Brand</span></div>
+    <h3>Logo: Stub Lock (2026-10-24)</h3>
+    <p>One mark was approved for the whole product: a white landscape card split into a body and a torn-off stub by a thin red gap, with two number bars cut into the body and a padlock cut into the stub, on solid brand red <code>#C8202B</code>. The geometry is locked to the Compact weight (0.9 scale around the canvas centre, 54,54) and spans x 27.9–80.1 and y 38.7–71.1 on the 108dp canvas, inside the 66dp safe circle.</p>
+    <div class="box"><ul>
+      <li><b>Everywhere.</b> The launcher (adaptive, round and themed), the heads-up notification (24dp white silhouette), the Android 12+ splash screen and the 72dp lock-screen tile use the same mark.</li>
+      <li><b>Vectors only.</b> The app ships VectorDrawables built from <code>docs/brand/stub-lock/pathdata.txt</code>; no raster logo lives in <code>res/</code>. Store-only PNGs are rendered 4× and downscaled once.</li>
+      <li><b>Locked.</b> <code>BrandAssetsTest</code> fails if the path data, even-odd fill, layer colours or Compact weight drift.</li>
+    </ul></div>
+  </article>
+
+  <!-- it9 — Scan card (2026-10-24) -->
+  <article class="step" id="it9"><span class="dot">9</span>
+    <div class="meta">24 Oct 2026 <span class="pill">Scan card</span></div>
+    <h3>Read a card with the camera, entirely on the phone</h3>
+    <p>Add and Edit can now fill the number and expiry from the camera. The OCR model is bundled in the APK, frames are never stored or logged, the CVV is never read, and the app stays offline.</p>
+    <div class="cols" style="grid-template-columns:1fr 1fr">
+      <div class="box"><h4>In the form</h4><ul>
+        <li><b>Camera action.</b> Card number carries a 48dp camera icon; a detected network badge sits immediately to its left, with the 16dp end inset kept.</li>
+        <li><b>Permission.</b> The first tap opens the system camera prompt. A denial shows “Camera access needed” with <b>Not now</b> and <b>Allow</b>; a permanent denial turns the second action into <b>Open settings</b>. No camera hardware hides the icon.</li>
+        <li><b>Fill.</b> A scan goes through the normal field rules: number grouped and detected, expiry normalised, CVV left empty and focused. Snackbar: “Card number and expiry filled. Check them before saving.”</li>
+      </ul></div>
+      <div class="box"><h4>On the phone</h4><ul>
+        <li><b>Bundled model.</b> ML Kit bundled Latin text recognition (no Play-services download) with CameraX 1.3.4. No network permission and no transport scheduler in the merged manifest.</li>
+        <li><b>Scan screen.</b> Live preview under a dark scrim, ISO ID-1 frame (85.6:54, 18dp corners, 2dp white stroke), “Scan card”, “Hold the card inside the frame”, Close and a torch toggle when the camera has a flash.</li>
+        <li><b>Reading.</b> 720p <code>ImageAnalysis</code> (keep only latest), cropped to the frame; the same number must appear in two consecutive analyses, an expiry can come from the last three. Nothing in 20 seconds → “Couldn't read the card. Try more light or type the number.” with <b>Try again</b> and <b>Type instead</b>.</li>
+        <li><b>Privacy.</b> No frame is stored or logged; the camera and recogniser close on dispose; scanning counts as activity; the app lock closes the camera.</li>
+      </ul></div>
+    </div>
+    <p><b>Superseded by it11:</b> the in-app scanner was removed to keep the app small and camera-free; its parser now cleans pasted or keyboard-scanned text.</p>
+  </article>
+
+  <!-- it11 — Keyboard scan & smart paste (2026-10-24) -->
+  <article class="step" id="it11"><span class="dot">11</span>
+    <div class="meta">24 Oct 2026 <span class="pill">Keyboard scan</span></div>
+    <h3>Keyboard scan &amp; smart paste</h3>
+    <p>The in-app camera scanner was removed to keep the app small and camera-free. Card details can still be scanned with the keyboard’s own scan tool where the keyboard offers it; pasted or scanned text is cleaned and fills number and expiry (never CVV). No camera permission.</p>
+    <div class="box"><ul>
+      <li><b>Small and camera-free.</b> CameraX and the bundled ML Kit OCR model are gone; the debug APK drops from 61.2 MiB to 21.5 MiB and no camera permission is declared or merged.</li>
+      <li><b>Smart paste.</b> One input event that inserts two or more characters is parsed: the number is grouped and detected through the normal rules, and an expiry fills an empty Expiry field. Typing one character at a time is unchanged.</li>
+      <li><b>Copy.</b> “Card number filled from the pasted text” or “Card number and expiry filled from the pasted text”. Junk text keeps the field’s existing digit filter, with no snackbar.</li>
+      <li><b>Never the CVV.</b> Pasted or scanned text never fills the CVV; it keeps its own filter. The card-number field carries only the network badge, 16dp from the outline’s end edge.</li>
+      <li><b>Parser.</b> The old scan parser is now <code>CardTextParser</code> in <code>:domain</code>; its 25 fixtures are unchanged.</li>
+    </ul></div>
+  </article>
+
+  <!-- it12 — Expired, archive, notes & legacy repair (2026-10-24) -->
+  <article class="step" id="it12"><span class="dot">12</span>
+    <div class="meta">24 Oct 2026 <span class="pill">Card list care</span></div>
+    <h3>Expired, archive, notes &amp; legacy repair</h3>
+    <p>Real vaults predate this version of the app, and cards that are expired or finished still deserve to be kept without cluttering the list. This step repairs legacy formats once, flags what it cannot fix, greys an expired pass, labels one that expires soon, adds an archive with a reason, and puts the note on the card itself. Nothing new leaves the phone and every value stays one tap from the clipboard.</p>
+    <div class="cols">
+      <div class="box"><h4>Before</h4><ul>
+        <li>The in-place upgrade and every import copied expiry, number and CVV exactly as stored. Raw values such as <code>11//22</code> or <code>13/22</code> reached the pass and the form with no warning.</li>
+        <li>An expired card looked identical to a live one and stayed in the list until it was deleted.</li>
+        <li>A card that was no longer used could only be deleted; its history and reason were lost.</li>
+        <li>Notes were encrypted and searchable but only appeared in the card’s ⋮ sheet header.</li>
+      </ul></div>
+      <div class="box"><h4>After</h4><ul>
+        <li><b>One repair.</b> A one-time, non-destructive normaliser fixes number, expiry and CVV on upgrade and on import. Before values are kept for 30 days and Edit shows “Changed from …” with <b>Undo</b>. A single banner reports the result; unfixable cards carry <b>Check details</b> and a <b>Needs check</b> filter.</li>
+        <li><b>Expired pass.</b> After its expiry month a card renders in neutral graphite — band, sheen, body and edge — with an outlined <b>Expired</b> chip on the number label row. Values stay full contrast; copy, hold-to-reveal, edit, pin, archive and delete all keep working.</li>
+        <li><b>Expires soon</b> is a plain label on the same row (no chip, no grey, no behaviour change) within the chosen 1, 2 or 3 month window.</li>
+        <li><b>Archive.</b> The ⋮ sheet gains <b>Archive</b> above Delete with an optional 40-character reason. Archived cards live in Manage › <b>Archived cards</b>, searchable by digits, bank, holder, network, type, tags, note or reason, and come back with <b>Restore</b>. Archiving unpins.</li>
+        <li><b>Notes on the pass.</b> Up to two lines under the tags, with <b>More</b> / <b>Less</b> only when it overflows; a 500 ms hold copies the note.</li>
+        <li><b>One settings section.</b> Settings › Card list: Expired cards (keep, move to the end, hide), Expires soon (1–3 months), Archived cards (Archived only, or also in search) and Show notes on cards.</li>
+      </ul></div>
+    </div>
+    <div class="box" style="margin-top:16px"><h4>Copy, verbatim</h4><p>Expired · Expires soon · Archive / Archived / Restore · Check details · Note. The archive dialog says “It moves to Manage › Archived cards. You can copy, edit or restore it there.” Snackbars are “Card archived” + Undo, “Card restored” and “Note copied”. Never “inactive”, “old”, “deleted” or “hidden card”.</p></div>
+  </article>
+
+  <!-- it13 — Breathing room, status row & colours (2026-10-25) -->
+  <article class="step now" id="it13"><span class="dot">13</span>
+    <div class="meta">25 Oct 2026 <span class="pill red">Current</span> <span class="pill">Form &amp; palette</span></div>
+    <h3>Breathing room, status row &amp; colours</h3>
+    <p>The Add/Edit form gets more space around its fields, the pass status flags move onto one compact row, and the palette grows from five bands to sixteen plus a custom colour. The card's colour still lives in the same TEXT column, so nothing migrates and nothing leaves the phone.</p>
+    <div class="box"><ul>
+      <li><b>Status on the bottom row.</b> Expired, Check details, Expires soon and Archived move from the crowded CARD NUMBER row to the right end of the tags row; the number row keeps only the type pill. Cards without tags still get the row when they have a status.</li>
+      <li><b>Slightly more room.</b> Passes sit 16dp apart; the number, details and bottom rows each gain a few dp; every Add/Edit field has the same 36dp gap to the next; Undo for a repaired value sits on its "Changed from" line.</li>
+      <li><b>Small fixes.</b> Archived cards use the full list width; Manage › Archived cards shows its count like the other rows; old-app files import without a passphrase field; the repair banner reads "Fixed the format of {n} cards."</li>
+      <li><b>Sixteen bands, one grid.</b> Navy, Rust, Forest, Plum and Graphite keep their keys and hexes; Teal, Ocean, Indigo, Violet, Magenta, Wine, Crimson, Burnt orange, Olive, Moss and Slate join them. Swatches are 40dp discs in 48dp targets, eight per row at 412dp and six at 360dp, with the neutral selected ring and a white check as before. Every band clears 7:1 against white.</li>
+      <li><b>Custom colour.</b> A seventeenth swatch with a conic rainbow outline opens <b>Custom colour</b>: an HSV wheel and brightness slider, a six-character uppercase <b>Hex</b> field with the reserved helper line, a live mini pass preview (“Preview” band over its body tint) and up to five <b>Recent</b> swatches. A colour under 4.5:1 against white shows “Too light for white card text. Choose a darker shade.” and disables <b>Use colour</b>. Actions are Cancel / Use colour.</li>
+      <li><b>Stored as text.</b> The band column accepts a curated key or <code>#RRGGBB</code>; <code>PassColors.band(key)</code> parses the hex and an unknown value falls back to navy. No schema change. Format 2 round-trips a custom hex; format 1 keeps a readable legacy hex exactly and snaps an unreadable one to the nearest of the sixteen curated bands.</li>
+      <li><b>Accessible names.</b> “{Name} colour” for each curated swatch and “Custom colour, #RRGGBB” for a selected custom colour. Labels stay flush with the field outline and dark and light both keep the derived body tint and 1px edge.</li>
+    </ul></div>
+  </article>
+</div>
+
+
+<h2 class="sec" id="system">Design system v2</h2>
+<p class="lead">Pass Stub on Material 3. Everything below is rendered from the same stylesheet the v2 prototype uses, so it cannot drift from the build. Switch the page theme in the top bar.</p>
+
+<h3>Principles</h3>
+<div class="rules">
+  <div class="rule"><div class="h">Copy is the primary action</div><p>Every value on a card is a 48dp-plus copy target on the home list. No screen has to be opened to copy.</p></div>
+  <div class="rule"><div class="h">Private by default</div><p>Numbers show only their last 4 digits and CVVs are dots. Tap copies the real value; hold reveals it for 5 seconds.</p></div>
+  <div class="rule"><div class="h">One fingerprint, one window</div><p>The first sensitive action opens an unlock window. Inside it, everything is instant; any touch, key, scroll or typing keeps it alive, and nothing on screen counts it down.</p></div>
+  <div class="rule"><div class="h">At most one red per screen</div><p>Brand red marks the single primary or destructive action. Selection, navigation and chips stay neutral.</p></div>
+  <div class="rule"><div class="h">Colour belongs to the pass</div><p>Only the pass carries a hue: its band and a faint tint of its body. The chrome stays graphite or paper.</p></div>
+  <div class="rule"><div class="h">Nothing changes silently</div><p>Renaming anything that cards use lists those cards and asks first. Anything in use cannot be deleted.</p></div>
+</div>
+
+
+<h3 id="brand" style="scroll-margin-top:80px">Logo</h3>
+<p>The <b>Stub Lock</b> mark: a white landscape card split into a card body (left) and a torn-off stub (right) by a thin red gap; two red number bars are cut into the body and a padlock into the stub. It sits on a solid brand-red tile (<code>#C8202B</code>) at the approved <b>Compact</b> weight (0.9 scale around 54,54). The geometry spans x 27.9–80.1 and y 38.7–71.1 on the 108dp canvas, inside the 66dp safe circle. Source files in <code>docs/brand/stub-lock/</code>: <code>pathdata.txt</code> (one even-odd path), the full icon, the adaptive-icon foreground, the monochrome layer for Android 13 themed icons, and the 24dp notification silhouette. Geometry is locked by <code>BrandAssetsTest</code>.</p>
+<div class="stage">
+  <div class="homes">
+    <div class="home dark"><div class="grid"><span class="app"><span class="ico" data-full></span>QuickCards</span><span class="app"><span class="ico ph"></span>Camera</span><span class="app"><span class="ico ph"></span>Maps</span><span class="app"><span class="ico ph"></span>Files</span></div><div class="cap" style="color:#bbb">Launcher, dark wallpaper</div></div>
+    <div class="home light"><div class="grid"><span class="app"><span class="ico" data-full></span>QuickCards</span><span class="app"><span class="ico ph"></span>Camera</span><span class="app"><span class="ico ph"></span>Maps</span><span class="app"><span class="ico ph"></span>Files</span></div><div class="cap">Launcher, light wallpaper</div></div>
+    <div class="home themed"><div class="grid"><span class="app"><span class="ico mono" data-mono></span>QuickCards</span><span class="app"><span class="ico ph mono"></span>Camera</span><span class="app"><span class="ico ph mono"></span>Maps</span><span class="app"><span class="ico ph mono"></span>Files</span></div><div class="cap">Themed icons (monochrome layer)</div></div>
+  </div>
+  <div class="sizes"><span data-full style="width:96px;height:96px"></span><span data-full style="width:48px;height:48px"></span><span data-full style="width:32px;height:32px"></span><span class="sil" data-sil></span><div class="cap" style="width:100%">96, 48 and 32dp, and the 24dp notification silhouette</div></div>
+</div>
+<div class="do-dont" style="margin-top:12px">
+  <div class="box"><h4>Do</h4><ul><li>Keep the glyph inside the 66dp safe zone of the 108dp adaptive canvas.</li><li>Use the white silhouette for notifications and the monochrome layer for themed icons.</li><li>Pair the mark with the word QuickCards in Roboto Flex 650.</li></ul></div>
+  <div class="box"><h4>Don’t</h4><ul><li>Recolour the tile, or put the glyph on a band colour.</li><li>Add card art, gradients on the glyph, chips or network logos.</li><li>Use the mark below 24dp, or rotate it.</li></ul></div>
+</div>
+
+<h3>Colour roles</h3>
+<div class="tbl-wrap"><table><thead><tr><th></th><th>Token</th><th>Dark</th><th>Light</th><th>Material 3 role</th><th>Used for</th></tr></thead><tbody id="roles"></tbody></table></div>
+<h3>Pass bands</h3>
+<p>The only saturated colour in the app. Bands use a 118° gradient with a soft sheen; the pass body takes 12% of the band in dark and 6% in light, with a 1px edge in the band colour. White text passes 7:1 on every curated band, and the custom picker refuses anything under 4.5:1. A card stores either a curated key or a <code>#RRGGBB</code> custom value in the same TEXT column.</p>
+<div class="bands">
+  <div style="--band:var(--band-navy)">Navy<span>#1E3A8A</span></div><div style="--band:var(--band-rust)">Rust<span>#7C2D12</span></div>
+  <div style="--band:var(--band-forest)">Forest<span>#14532D</span></div><div style="--band:var(--band-plum)">Plum<span>#4C1D95</span></div>
+  <div style="--band:var(--band-graphite)">Graphite<span>#3F3F46</span></div><div style="--band:var(--band-teal)">Teal<span>#0F5E5A</span></div>
+  <div style="--band:var(--band-ocean)">Ocean<span>#0C4A6E</span></div><div style="--band:var(--band-indigo)">Indigo<span>#3730A3</span></div>
+  <div style="--band:var(--band-violet)">Violet<span>#5B21B6</span></div><div style="--band:var(--band-magenta)">Magenta<span>#86198F</span></div>
+  <div style="--band:var(--band-wine)">Wine<span>#6B1E3E</span></div><div style="--band:var(--band-crimson)">Crimson<span>#9F1239</span></div>
+  <div style="--band:var(--band-burnt-orange)">Burnt orange<span>#9A3412</span></div><div style="--band:var(--band-olive)">Olive<span>#4D5D1B</span></div>
+  <div style="--band:var(--band-moss)">Moss<span>#3F6212</span></div><div style="--band:var(--band-slate)">Slate<span>#334155</span></div>
+</div>
+
+<h3>Typography</h3>
+<p>Roboto Flex for everything. Hierarchy comes from size and weight. All numbers use tabular figures so digit groups line up across cards.</p>
+<div id="typerows"></div>
+
+<h3>Spacing and shape</h3>
+<p>8dp grid with a 4dp half-step. 16dp screen gutters, 12dp between passes, 24dp between list sections. Form fields sit 10dp apart and reserve a 20dp helper line so errors never move the layout. Touch targets are at least 48dp.</p>
+<div class="radii">
+  <figure><div style="border-radius:4px"></div>4 · fields, menus, snackbar</figure><figure><div style="border-radius:8px"></div>8 · chips, tags</figure>
+  <figure><div style="border-radius:12px"></div>12 · monograms</figure><figure><div style="border-radius:18px"></div>18 · pass</figure>
+  <figure><div style="border-radius:24px"></div>24 · notification</figure><figure><div style="border-radius:28px"></div>28 · sheets, dialogs</figure><figure><div style="border-radius:32px"></div>full · buttons</figure>
+</div>
+
+<h3>Motion</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Moment</th><th>Duration</th><th>Easing</th><th>Notes</th></tr></thead><tbody>
+  <tr><td>Push / pop screen</td><td class="m">280ms</td><td class="m">Emphasized decelerate</td><td class="m">Shared axis X, 32dp with fade</td></tr>
+  <tr><td>Switch tab</td><td class="m">220ms</td><td class="m">Standard</td><td class="m">Fade in from 98.5% scale</td></tr>
+  <tr><td>Navigation indicator</td><td class="m">350ms</td><td class="m">Emphasized decelerate</td><td class="m">Grows from 30% width</td></tr>
+  <tr><td>Sheet, biometric prompt, notification</td><td class="m">300–320ms</td><td class="m">Emphasized decelerate</td><td class="m">Slide from the nearest edge</td></tr>
+  <tr><td>Dropdown menu</td><td class="m">180ms</td><td class="m">Emphasized decelerate</td><td class="m">Scales down from its field</td></tr>
+  <tr><td><b>Copy confirmation</b></td><td class="m">180ms</td><td class="m">Step</td><td class="m">One-frame invert, label reads “Copied” for 1.2s</td></tr>
+  <tr><td>Reveal, notification timer</td><td class="m">5s / 30s</td><td class="m">Linear</td><td class="m">A line drains to show time left</td></tr>
+</tbody></table></div>
+
+<h3>The pass</h3>
+<div class="stage">
+  <div class="anat w358" id="anatPass"></div>
+  <div class="legend"><ol>
+    <li><b>Band</b>, 48dp, the card’s colour with a sheen. The bank name, truncated when long; no second line.</li>
+    <li><b>Network label</b>, framed, from the number’s detected network; blank when no network matches.</li>
+    <li><b>More</b>: Copy details, edit, pin or unpin, delete. A 16dp pin glyph shows in the band when pinned.</li>
+    <li><b>Card number</b>: 24sp tabular. Masked to the last 4 in the network’s grouping. Type pill on the right, blank when unset.</li>
+    <li><b>Perforation</b> with notches, positioned from layout.</li>
+    <li><b>Stub</b>: expiry, CVV (3 or 4 dots), the holder’s name in capitals. Each copies on tap.</li>
+    <li><b>Tags</b>, optional and configurable.</li>
+  </ol></div>
+</div>
+<h3>Field states</h3>
+<div class="stage" id="states"></div>
+
+<h3>Components</h3>
+<div class="stage static" id="comp1">
+  <header class="appbar"><h1 class="t-display">Cards</h1><button class="iconbtn" aria-label="Search" data-i="search"></button><button class="iconbtn" aria-label="Filter" data-i="tune"></button><button class="iconbtn on-surface" aria-label="Add" data-i="plus"></button></header>
+  <div class="row-gap"><span class="chip filter" aria-pressed="true">All</span><span class="chip filter" aria-pressed="false">Aarav</span><span class="chip filter" aria-pressed="false">Priya</span><span class="chip input">#Travel<span class="x" data-i="close" data-sm></span></span></div>
+  <p>Top app bar actions live in the title row. Holder chips are single-select filter chips and start the chip row; other filters show as removable input chips. Lock now lives in Settings.</p>
+</div>
+<div class="stage static">
+  <nav class="navbar"><button aria-current="page"><span class="ind" data-i="card"></span>Cards</button><button><span class="ind" data-i="stack"></span>Manage</button><button><span class="ind" data-i="gear"></span>Settings</button></nav>
+  <p>Three destinations. The neutral indicator grows in from 30% width; the selected label turns bold and its icon heavier. Hidden on nested screens and search; a rail at 600dp and wider.</p>
+</div>
+<div class="stage">
+  <div class="row-gap"><button class="btn filled">Save card</button><button class="btn tonal">Add</button><button class="btn outlined">Choose backup file</button><button class="btn text">Cancel</button><button class="btn text danger">Delete</button></div>
+</div>
+<div class="stage" id="fields"></div>
+<div class="stage static">
+  <div class="sheet" style="max-height:none">
+    <div class="handle" aria-hidden="true"></div>
+    <div class="sh-title t-headline">Choose card type</div>
+    <div class="sh-body">
+      <div class="li" style="padding:0 24px"><span class="lead slot" aria-hidden="true"></span><span class="txt"><span class="h">None</span></span><span class="trail" data-i="check"></span></div>
+      <div class="li" style="padding:0 24px"><span class="tagdot">C</span><span class="txt"><span class="h">Credit</span></span></div>
+      <div class="li" style="padding:0 24px"><span class="tagdot">D</span><span class="txt"><span class="h">Debit</span></span></div>
+      <div class="li" style="padding:0 24px"><span class="tagdot">P</span><span class="txt"><span class="h">Prepaid</span></span></div>
+      <div class="li" style="padding:0 24px"><span class="lead slot" data-i="plus"></span><span class="txt"><span class="h">Add card type</span></span></div>
+    </div>
+  </div>
+  <p>One picker sheet for card holder, bank and card type. The current choice is checked, search appears above seven items, and the last row creates a new entry without leaving the form. The field stays a read-only outline with a trailing caret.</p>
+</div>
+<div class="stage static" id="overlays"></div>
+<div class="stage static" id="manage"></div>
+
+<h2 class="sec" id="formats">Card number formats</h2>
+<p class="lead">The network is detected from the longest matching start of the number. Grouping, masking and CVV length follow the network. The card form has no network field: the badge in the number field and on the pass is its only appearance. Users can edit these rules or add networks in Manage.</p>
+<div class="tbl-wrap"><table><thead><tr><th>Network</th><th>Starts with</th><th>Digits</th><th>CVV</th><th>Shown as</th><th>Masked as</th></tr></thead><tbody id="nets"></tbody></table></div>
+<p>Numbers are checked with the Luhn digit unless the network turns it off (UnionPay). While typing, numbers group as 4-4-4-4 and settle into the network’s exact grouping when the field loses focus. Expiry accepts MM/YY and MM/YYYY and always stores MM/YY.</p>
+
+<h2 class="sec" id="config">Settings reference</h2>
+<p class="lead">Every behaviour the user can change, with its default. The inactivity lock and the instant copy window count only time without use: any touch, key, scroll or typing restarts both.</p>
+<div class="tbl-wrap"><table><thead><tr><th>Section</th><th>Setting</th><th>Options</th><th>Default</th></tr></thead><tbody>
+  <tr><td>Appearance</td><td>Theme</td><td class="m">System default, Light, Dark — a row opening a radio dialog</td><td>Dark</td></tr>
+  <tr><td></td><td>Use system colours</td><td class="m">On, Off (Android 12+)</td><td>Off</td></tr>
+  <tr><td>Cards</td><td>Hide card numbers</td><td class="m">Last 4 only until hold or edit</td><td>On</td></tr>
+  <tr><td></td><td>Show card type</td><td class="m">Pill on the card</td><td>On</td></tr>
+  <tr><td></td><td>Pinned cards</td><td class="m">1, 3, 5, 10</td><td>3</td></tr>
+  <tr><td>Card list</td><td>Expired cards</td><td class="m">Keep in place, Move to the end, Hide from the list</td><td>Move to the end</td></tr>
+  <tr><td></td><td>Expires soon</td><td class="m">Within 1 month, Within 2 months, Within 3 months</td><td>Within 1 month</td></tr>
+  <tr><td></td><td>Archived cards</td><td class="m">Only in Archived cards, Also in search results</td><td>Only in Archived cards</td></tr>
+  <tr><td></td><td>Show notes on cards</td><td class="m">On, Off. Up to 2 lines on each card</td><td>On</td></tr>
+  <tr><td>Copying</td><td>Clear clipboard</td><td class="m">Never, 30s, 1 min, 2 min</td><td>1 min</td></tr>
+  <tr><td></td><td>Expiry and CVV notification</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Notification time</td><td class="m">15s, 30s, 1 min</td><td>30s</td></tr>
+  <tr><td></td><td>Show expiry / CVV in notification</td><td class="m">On, Off each; hidden on the lock screen</td><td>On</td></tr>
+  <tr><td>Tags</td><td>Show tags on cards</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Search by tag</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Tags per card</td><td class="m">1, 2, 3, 5, 8, 10</td><td>3</td></tr>
+  <tr><td></td><td>Tag length</td><td class="m">8, 12, 16, 24 characters</td><td>16</td></tr>
+  <tr><td>Security</td><td>App lock</td><td class="m">On, Off. Fingerprint or PIN to open the app</td><td>On</td></tr>
+  <tr><td></td><td>Lock after inactivity</td><td class="m">10s, 30s, 1 min, 2 min, 5 min, 10 min, 30 min, Never</td><td>1 min</td></tr>
+  <tr><td></td><td>Lock when you leave the app</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Instant copy window</td><td class="m">30s, 1 min, 2 min</td><td>1 min</td></tr>
+  <tr><td></td><td>Lock now</td><td class="m">Ends the window immediately</td><td>—</td></tr>
+  <tr><td>Backup</td><td>Include settings (export)</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Saved cards (import)</td><td class="m">Update with the backup’s details, Keep what’s on this phone</td><td>Update</td></tr>
+  <tr><td></td><td>Restore settings (import)</td><td class="m">On, Off</td><td>On</td></tr>
+  <tr><td></td><td>Erase all data</td><td class="m">Needs the “I understand” checkbox</td><td>—</td></tr>
+</tbody></table></div>
+<h3>Managed lists and their rules</h3>
+<div class="tbl-wrap"><table><thead><tr><th>List</th><th>Fields</th><th>Rename in use</th><th>Delete in use</th></tr></thead><tbody>
+  <tr><td>Card holders</td><td class="m">Name</td><td class="m">Confirm, listing the cards</td><td class="m">Blocked: delete their cards first</td></tr>
+  <tr><td>Banks</td><td class="m">Name (monogram derived)</td><td class="m">Confirm, listing the cards</td><td class="m">Blocked</td></tr>
+  <tr><td>Card networks</td><td class="m">Name, label, starting digits, lengths, CVV digits, Luhn</td><td class="m">Confirm when name or rules change</td><td class="m">Blocked</td></tr>
+  <tr><td>Card types</td><td class="m">Name</td><td class="m">Confirm, listing the cards</td><td class="m">Blocked</td></tr>
+  <tr><td>Tags</td><td class="m">Name, within the length limit</td><td class="m">Confirm, listing the cards</td><td class="m">Blocked: remove it from cards first</td></tr>
+</tbody></table></div>
+<p>Names are unique per list (case-insensitive). The blocking dialog offers <b>Show cards</b>, which opens the card list filtered to exactly those cards.</p>
+
+
+<h2 class="sec" id="backup">Backup and restore</h2>
+<p class="lead">How a backup is made, what it contains, and exactly what happens to each piece when it comes back. Both directions need the unlock window, and nothing leaves the phone except the file you save.</p>
+<h3>Export, step by step</h3>
+<ol style="margin:0 0 12px;padding-left:20px">
+  <li>Settings, Backup, <b>Export backup</b>. If the copy window has ended, the fingerprint prompt opens first: “Confirm it’s you to export your cards”.</li>
+  <li><b>Include settings</b> is ticked by default; untick it for a cards-only backup.</li>
+  <li>Enter a passphrase (at least 8 characters) and confirm it. <b>Export</b> stays disabled until both match; a mismatch shows “Passphrases don’t match”.</li>
+  <li>The file is saved to Downloads as <code>quickcards-backup-YYYY-MM-DD.qcb</code>, and a snackbar confirms: “Backup with settings saved to Downloads”.</li>
+</ol>
+<h3>What a backup contains</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Contents</th><th>Included</th></tr></thead><tbody>
+  <tr><td>Header</td><td class="m">App name, backup format (2), app version, export date</td><td>Always</td></tr>
+  <tr><td>Cards</td><td class="m">Number, expiry, CVV, holder, bank, type, tags, note, pass colour, pin state and list order, plus the archive state and reason and the needs-check flags when present. The network is always detected from the number.</td><td>Always</td></tr>
+  <tr><td>Card holders</td><td class="m">Names</td><td>Always</td></tr>
+  <tr><td>Banks</td><td class="m">Names and monograms</td><td>Always</td></tr>
+  <tr><td>Card networks</td><td class="m">Name, label, starting digits, lengths, CVV digits, Luhn, grouping, including your custom networks</td><td>Always</td></tr>
+  <tr><td>Card types and tags</td><td class="m">Names</td><td>Always</td></tr>
+  <tr><td>Settings</td><td class="m">Theme, system colours, number masking, type pill, pinned-card limit, Card list (expired placement, expires-soon window, archived in search, notes on cards), clipboard time, notification on, time and contents, tag display, search, limits, app lock, inactivity time, lock on leave, copy window</td><td>When ticked (default)</td></tr>
+  <tr><td>Not included</td><td class="m">Unlock state, clipboard, search and filters, the passphrase itself, Android Keystore keys</td><td>Never</td></tr>
+</tbody></table></div>
+<p>The whole file is encrypted with the passphrase: AES-256-GCM with a key derived by PBKDF2-HMAC-SHA256 over 600,000 iterations. The passphrase cannot be recovered; without it the file is unreadable.</p>
+<h3>Import, step by step</h3>
+<ol style="margin:0 0 12px;padding-left:20px">
+  <li>Settings, Backup, <b>Import backup</b>, after the fingerprint prompt if needed.</li>
+  <li><b>Choose backup file</b>, enter its passphrase, tap <b>Open</b>. A wrong passphrase shows “That passphrase doesn’t open this backup” and nothing changes.</li>
+  <li><b>Review backup</b> shows the file and export date, then: cards as <i>new · changed · same</i>, <b>Formats fixed: {n} · Need a check: {m}</b>, and for each list how many items are new. Settings show as “included” when present.</li>
+  <li>If any saved cards differ, choose <b>Update with the backup’s details</b> (default) or <b>Keep what’s on this phone</b>.</li>
+  <li>If the backup has settings, <b>Restore settings from the backup</b> is ticked by default.</li>
+  <li><b>Import</b> applies everything at once and reports the result, for example “1 added · 1 updated · 6 unchanged · settings restored”. Cancel at any point changes nothing.</li>
+</ol>
+<h3>How each part is merged</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Matched by</th><th>If it exists</th><th>If it’s new</th></tr></thead><tbody>
+  <tr><td>Card</td><td class="m"><b>Card number</b>, digits only, across all holders</td><td class="m">Identical: counted as unchanged. Different: updated with the backup’s holder, bank, type, expiry, CVV, tags, note and colour, or kept, as chosen. The card keeps its place in the list.</td><td class="m">Added at the end of the list</td></tr>
+  <tr><td>Holder, bank, type, tag</td><td class="m">Name, ignoring case</td><td class="m">The phone’s item is reused; cards are linked to it</td><td class="m">Added, then sorted A to Z</td></tr>
+  <tr><td>Network</td><td class="m">Name, ignoring case</td><td class="m">The phone’s rules are kept</td><td class="m">Added with the backup’s rules</td></tr>
+  <tr><td>Settings</td><td class="m">—</td><td class="m">Replaced by the backup’s values when Restore settings is ticked; any setting the backup lacks keeps its default</td><td class="m">—</td></tr>
+</tbody></table></div>
+<h3>Edge cases</h3>
+<ul>
+  <li><b>Card numbers are unique.</b> A backup can never create a second card with a number you already have; it can only update or keep it.</li>
+  <li><b>Tag limits</b> are not applied to imported cards; like cards that predate a lower limit, they keep their tags and cannot gain more until under the limit.</li>
+  <li><b>Same-name holders merge.</b> Two different people with the same name become one holder; rename one before exporting to keep them apart.</li>
+  <li><b>Restored settings take effect at once</b>, including theme and lock times. The app does not lock immediately on restore.</li>
+  <li><b>Older backups</b> (format 1, from the current Android app) must stay importable: cards and banks only, no settings. The review shows “Settings: not in this backup”. Every import runs the legacy normaliser before the review, so raw values such as <code>11//22</code> are fixed and counted, and anything unfixable is flagged instead of failing the import.</li>
+  <li><b>Erase all data</b> followed by import restores a phone completely from one file.</li>
+</ul>
+
+<h2 class="sec" id="rules">Rules and validation</h2>
+<p class="lead">Every input checks itself when you leave it and again on save. An error turns the outline and label red, replaces the helper text with what is wrong and how to fix it, and moves focus to the first problem. Helper lines are reserved, so errors never shift the layout. Text is trimmed and repeated spaces collapsed before any check.</p>
+<h3>Card form</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Field</th><th>Rule</th><th>Message</th></tr></thead><tbody>
+  <tr><td>Card holder</td><td class="m">Required. Picked from the list, or a new holder created in place. The holder’s name is the only name on the pass.</td><td>Choose who this card belongs to</td></tr>
+  <tr><td rowspan="4">Card number</td><td class="m">Required, digits only (spaces ignored).</td><td>Enter the card number</td></tr>
+  <tr><td class="m">Length must be one the detected network allows; 12 to 19 when no network matches.</td><td>Visa numbers have 13, 16 or 19 digits</td></tr>
+  <tr><td class="m">Luhn check digit, unless the network turns it off.</td><td>This number doesn’t look right. Check the digits.</td></tr>
+  <tr><td class="m"><b>Unique</b> across all holders.</td><td>Already saved as HDFC Bank Credit for Aarav Mehta</td></tr>
+  <tr><td rowspan="2">Expiry</td><td class="m">MM/YY or MM/YYYY; month 01 to 12. Stored as MM/YY.</td><td>Use MM/YY</td></tr>
+  <tr><td class="m">No more than 20 years ahead.</td><td>Check the year</td></tr>
+  <tr><td>CVV</td><td class="m">Exactly the network’s length (3, or 4 for Amex); 3 or 4 if unknown.</td><td>Enter 4 digits</td></tr>
+  <tr><td>Name</td><td class="m">The selected holder’s name, in capitals on the stub. It is not typed on the card.</td><td>—</td></tr>
+  <tr><td>Bank</td><td class="m">Required. Searchable list, or a new bank created in place.</td><td>Choose the bank</td></tr>
+  <tr><td>Card type</td><td class="m">Optional. None leaves the card without a type pill.</td><td>—</td></tr>
+  <tr><td>Tags</td><td class="m">Up to the per-card limit; Add tag disappears at the limit.</td><td>Up to 3 tags per card</td></tr>
+  <tr><td>Note</td><td class="m">Optional, up to 80 characters, with counter.</td><td>—</td></tr>
+</tbody></table></div>
+ <p>The network is detected from the longest matching start of the number and is never set by hand. An unknown number shows no badge and is checked as 12 to 19 digits with Luhn. <b>Past dates are valid:</b> a card is expired after the last day of its expiry month, and that is never a form error.</p>
+<h3>Card list, archive and notes</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Rule</th><th>Behaviour</th></tr></thead><tbody>
+  <tr><td><b>Expired</b></td><td class="m">After the last day of the expiry month (local date). The whole pass renders in neutral graphite — band, sheen, body and edge — with an outlined <b>Expired</b> chip and the <code>event_busy</code> icon, 16dp, on the CARD NUMBER label row, left of the type pill. Values keep full contrast; copy, hold-to-reveal, edit, pin, archive and delete keep working.</td></tr>
+  <tr><td><b>Expires soon</b></td><td class="m">Not expired, expiring within the chosen window (1, 2 or 3 months; default 1). Plain <b>Expires soon</b> label in the same row: no chip, no icon, no grey, no behaviour change. Never also expired.</td></tr>
+  <tr><td><b>Expired cards setting</b></td><td class="m">Keep in place · Move to the end (default) · Hide from the list. Pinned expired cards stay pinned. Hidden cards still appear in search results and whenever the Status › Expired filter is on.</td></tr>
+  <tr><td><b>Status filter</b></td><td class="m">The filter sheet gains a Status group, Expired and Expires soon, with counts. A selected Status filter always shows matching cards even when Hide from the list is set.</td></tr>
+  <tr><td><b>Archive</b></td><td class="m">⋮ › Archive (above Delete) asks “Archive this card?” with an optional 40-character reason, helper “For example: Card closed” and a counter. It unpins the card and shows “Card archived” with Undo. Archived cards live in Manage › Archived cards with the same passes, a “Search archived cards” field (last 4, bank, holder, network, type, tags, note, reason) and ⋮ Restore, Edit, Copy details, Delete. “Card restored”.</td></tr>
+  <tr><td><b>Archived cards setting</b></td><td class="m">Only in Archived cards (default) · Also in search results. Archived cards never enter the main list; the second option lets the main search find them, labelled Archived.</td></tr>
+  <tr><td><b>Notes on cards</b></td><td class="m">Show notes on cards (default on): the note under the tags in Body Small, clamped to two lines, with a 48dp <b>More</b> / <b>Less</b> text button only when it overflows (accessible names “Show full note” / “Show less”). A 500ms hold copies it: “Note copied”.</td></tr>
+  <tr><td><b>Needs check</b></td><td class="m">A card with an unfixable legacy field carries <b>Check details</b> with the <code>info</code> icon on the pass and opens Edit with that field in error. The Review banner filter is <b>Needs check ({m})</b>.</td></tr>
+</tbody></table></div>
+<h3>Managed lists</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Rule</th><th>Applies to</th><th>Message</th></tr></thead><tbody>
+  <tr><td>Name required, at least 2 characters</td><td class="m">All lists</td><td>Enter a name · Use at least 2 characters</td></tr>
+  <tr><td><b>Name unique</b>, ignoring case</td><td class="m">All lists</td><td>This bank already exists</td></tr>
+  <tr><td>Length limit with counter</td><td class="m">Holders and banks 40, networks 24, types 20, tags per Settings</td><td>Counter stops input at the limit</td></tr>
+  <tr><td>Leading # removed</td><td class="m">Tags</td><td>—</td></tr>
+  <tr><td>Label 2 to 7 letters or digits, <b>unique</b></td><td class="m">Networks</td><td>Use 2 to 7 letters or digits · Another network already uses this label</td></tr>
+  <tr><td>Starting digits: numbers, ranges and commas</td><td class="m">Networks</td><td>Use digits, ranges like 51-55, and commas</td></tr>
+  <tr><td>Lengths within 12 to 19</td><td class="m">Networks</td><td>Card numbers have 12 to 19 digits</td></tr>
+  <tr><td>Rename or rule change while in use asks first, listing the cards</td><td class="m">All lists</td><td>Update 2 cards?</td></tr>
+  <tr><td>Delete while in use is blocked, listing the cards, with Show cards</td><td class="m">All lists</td><td>Delete the cards first</td></tr>
+  <tr><td>Delete when unused asks first and offers Undo</td><td class="m">All lists</td><td>Delete Fuel?</td></tr>
+  <tr><td>A new tag with an existing name reuses it; adding one already on the card is refused</td><td class="m">Tag sheet</td><td>Already on this card</td></tr>
+</tbody></table></div>
+<h3>Backup and security</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Rule</th><th>Message</th></tr></thead><tbody>
+  <tr><td>Export passphrase at least 8 characters, confirmed; Export stays disabled until both match</td><td>Passphrases don’t match</td></tr>
+  <tr><td>Import opens only with the right passphrase, then shows a review before changing anything</td><td>That passphrase doesn’t open this backup</td></tr>
+  <tr><td>Saved cards (same number) are updated or kept, as chosen; lists merge by name; settings restore only when ticked</td><td>1 added · 1 updated · 6 unchanged · settings restored</td></tr>
+  <tr><td>Erase needs the “I understand” checkbox before Erase enables</td><td>—</td></tr>
+  <tr><td>Copy, reveal, edit, delete, export, import and erase require the unlock window</td><td>Biometric prompt states the reason</td></tr>
+  <tr><td>Inactivity lock: any touch, key, scroll or typing resets the timer; shortest 10 seconds, or Never</td><td>After 1 minute without use</td></tr>
+  <tr><td>The unlock window counts idle time only: any touch, key, scroll or typing keeps copies instant; nothing shows a countdown</td><td>Copy without a fingerprint until 1 minute of no use</td></tr>
+  <tr><td>Locking closes every overlay, re-masks revealed values, hides the notification and ends the copy window</td><td>—</td></tr>
+  <tr><td>Back does nothing on the lock screen; only unlocking leaves it</td><td>—</td></tr>
+</tbody></table></div>
+
+<h2 class="sec" id="features">Features end to end</h2>
+<p class="lead">Everything the v2 prototype does. Items marked v2 are new in this iteration.</p>
+<div class="feat">
+  <div class="box"><h4>Copy</h4><ul><li>Tap number, expiry, CVV or name to copy</li><li>“Copied” confirmation and snackbar with Clear</li><li class="new">Expiry and CVV notification after copying a number</li><li>Copy details — number, expiry and name together</li><li>Clipboard clears after a set time and when you leave</li></ul></div>
+  <div class="box"><h4>Security</h4><ul><li>Fingerprint or PIN opens an unlock window</li><li>No countdown; any use keeps the window alive, Lock now is in Settings</li><li class="new">Numbers masked to the last 4 by default</li><li>Hold to reveal number or CVV for 5 seconds</li><li>Edit, delete, export, import and erase need unlock</li><li>Screenshots blocked</li><li class="new">Lock screen on launch, after inactivity and on leaving</li><li class="new">Inactivity time from 10 seconds to Never</li></ul></div>
+  <div class="box"><h4>Cards</h4><ul><li>Add and edit with a live preview</li><li class="new">Keyboard scan and smart paste: pasted or scanned text fills number and expiry</li><li class="new">Network detected from the number; no field and no override</li><li class="new">12 to 19 digit numbers, 3 or 4 digit CVV</li><li>Luhn, expiry, CVV and duplicate checks</li><li class="new">Optional card type, tags and note</li><li>One name, the holder, shown in capitals on the pass</li><li>Pass colour, pin and unpin, delete with undo</li><li class="new">Pinned cards first, up to the limit, with a pin glyph on the band</li></ul></div>
+  <div class="box"><h4>Organise</h4><ul><li class="new">Several card holders with home chips</li><li class="new">Manage holders, banks, networks, types and tags</li><li class="new">Rename warning listing affected cards</li><li class="new">Delete blocked while cards use an item</li></ul></div>
+  <div class="box"><h4>Find</h4><ul><li>Search by digits, bank, holder, note</li><li class="new">Search by network and tag</li><li class="new">Filter by holder, bank, network, type and tag</li><li class="new">Status filter: Expired and Expires soon, with counts</li><li>Live result count; removable filter chips</li></ul></div>
+  <div class="box"><h4>Settings and data</h4><ul><li>Theme row and system colours</li><li class="new">Masking, type pill, pinned limit, clipboard, notification and tag settings</li><li class="new">Card list: expired placement, expires-soon window, archived in search, notes on cards</li><li>Unlock window length</li><li>Encrypted export with confirmed passphrase</li><li class="new">Settings included in backups</li><li class="new">Import review; update or keep saved cards; restore settings; formats fixed and need a check</li><li>Erase everything with confirmation</li></ul></div>
+  <div class="box"><h4>Card list care</h4><ul><li class="new">One-time legacy repair; dismissible banner with Review and Dismiss; Check details on unfixable cards</li><li class="new">Edit shows “Changed from …” with Undo for an automatic fix</li><li class="new">Expired pass in neutral graphite with an outlined Expired chip; values still copy and reveal</li><li class="new">Expires soon label only, with a 1, 2 or 3 month window</li><li class="new">Archive with an optional reason; Archived cards screen with search and Restore</li><li class="new">Notes on the pass, two lines with More / Less, long-press to copy</li></ul></div>
+</div>
+
+<h2 class="sec" id="compose">Compose mapping</h2>
+<p class="lead">Starting point for <code>ui/theme</code>. Selection controls take <code>secondary</code>, never <code>primary</code>, so red stays reserved for actions.</p>
+<pre>val QuickCardsDark = darkColorScheme(
+    primary = Color(0xFFC8202B), onPrimary = Color.White,
+    secondary = Color(0xFFF4F4F5), onSecondary = Color(0xFF0B0B0C),
+    secondaryContainer = Color(0xFF2A2A2E), onSecondaryContainer = Color(0xFFF4F4F5),
+    background = Color(0xFF0B0B0C), surface = Color(0xFF0B0B0C),
+    surfaceContainerLow = Color(0xFF121214), surfaceContainer = Color(0xFF161618),
+    surfaceContainerHigh = Color(0xFF1F1F22), surfaceContainerHighest = Color(0xFF2A2A2E),
+    onSurface = Color(0xFFF4F4F5), onSurfaceVariant = Color(0xFFA1A1AA),
+    outline = Color(0xFF6E6E76), outlineVariant = Color(0xFF2A2A2E),
+    inverseSurface = Color(0xFFF4F4F5), inverseOnSurface = Color(0xFF18181B), inversePrimary = Color(0xFFB3161F),
+    error = Color(0xFFF47C82),
+)
+val QuickCardsLight = lightColorScheme(
+    primary = Color(0xFFC8202B), onPrimary = Color.White,
+    secondary = Color(0xFF18181B), onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE4E4E9), onSecondaryContainer = Color(0xFF18181B),
+    background = Color(0xFFF7F7F8), surface = Color(0xFFF7F7F8),
+    surfaceContainerLow = Color(0xFFFBFBFC), surfaceContainer = Color.White,
+    surfaceContainerHigh = Color(0xFFEFEFF2), surfaceContainerHighest = Color(0xFFE4E4E9),
+    onSurface = Color(0xFF18181B), onSurfaceVariant = Color(0xFF5F5F66),
+    outline = Color(0xFF8A8A93), outlineVariant = Color(0xFFE2E2E7),
+    inverseSurface = Color(0xFF2E2E33), inverseOnSurface = Color(0xFFF4F4F5), inversePrimary = Color(0xFFFFB3AE),
+    error = Color(0xFFB3261E),
+)
+object PassColors { val Navy = Color(0xFF1E3A8A); val Rust = Color(0xFF7C2D12); val Forest = Color(0xFF14532D)
+    val Plum = Color(0xFF4C1D95); val Graphite = Color(0xFF3F3F46)
+    fun bodyTint(band: Color, dark: Boolean) = lerp(surfaceContainer, band, if (dark) 0.12f else 0.06f) }
+data class CardNetwork(val name: String, val label: String, val prefixes: List&lt;IntRange&gt;, val lengths: Set&lt;Int&gt;,
+    val cvvLength: Int, val luhn: Boolean = true, val groups: List&lt;Int&gt;? = null)
+fun score(number: String, n: CardNetwork) = n.prefixes.maxOfOrNull { r -&gt;
+    val l = r.first.toString().length
+    if (number.length &gt;= l &amp;&amp; number.take(l).toInt() in r) l else 0 } ?: 0
+fun detect(number: String, networks: List&lt;CardNetwork&gt;): CardNetwork? =
+    networks.map { it to score(number, it) }.filter { it.second &gt; 0 }.maxByOrNull { it.second }?.first
+// Type: Roboto Flex, fontFeatureSettings = "tnum" on every number</pre>
+</div>
+
+<script>
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', up: 'vertical_align_top', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', warn: 'warning', fp: 'fingerprint'};
+const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
+document.querySelectorAll('[data-i]').forEach(el => { const svg = I(el.dataset.i, el.hasAttribute('data-sm') ? 'sm' : ''); if (el.classList.contains('chip')) el.insertAdjacentHTML('afterbegin', svg); else el.innerHTML = svg + el.innerHTML; });
+
+
+let logoN = 0;
+const LOGO = (vb = '0 0 108 108', fill = 'currentColor') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="${fill}" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
+const TILE = inner => `<svg viewBox="0 0 108 108" width="100%" height="100%" aria-hidden="true"><rect width="108" height="108" fill="#C8202B"/>${inner}</svg>`;
+const MARK_A = () => TILE(LOGO().replace('<svg class="logo-glyph" viewBox="0 0 108 108" aria-hidden="true">', '<g>').replace('</svg>', '</g>'));
+const MARK_B = () => { const id = 'qb' + (++logoN); return TILE(`<defs><mask id="${id}"><rect width="108" height="108" fill="#fff"/><circle cx="62" cy="45" r="4" fill="#000"/><circle cx="62" cy="77" r="4" fill="#000"/><path d="M62 51v20" stroke="#000" stroke-width="2.4" stroke-dasharray="3 3"/></mask></defs><rect x="34" y="31" width="48" height="30" rx="5.5" fill="#fff" opacity=".45"/><rect x="26" y="45" width="50" height="32" rx="6" fill="#fff" mask="url(#${id})"/>`); };
+const MARK_C = () => TILE(`<circle cx="52" cy="51" r="17" fill="none" stroke="#fff" stroke-width="9"/><g transform="rotate(45 66 66)"><rect x="60" y="61" width="22" height="10" rx="3" fill="#fff"/><circle cx="71" cy="61" r="2.6" fill="#C8202B"/><circle cx="71" cy="71" r="2.6" fill="#C8202B"/></g>`);
+document.querySelectorAll('[data-mark]').forEach(el => { el.innerHTML = ({ a: MARK_A, b: MARK_B, c: MARK_C })[el.dataset.mark](); });
+document.querySelectorAll('[data-full]').forEach(el => { el.innerHTML = MARK_A(); });
+document.querySelectorAll('[data-mono]').forEach(el => { el.innerHTML = LOGO('0 0 108 108'); });
+document.querySelectorAll('[data-sil]').forEach(el => { el.innerHTML = LOGO('24 25 60 60'); });
+
+/* Same number rules as the prototype */
+const NETS = [
+  ['Visa', 'VISA', '4', '13,16,19', 3, true, '', '411111111111111'], ['Mastercard', 'MC', '51-55, 2221-2720', '16', 3, true, '', '555555555555444'],
+  ['American Express', 'AMEX', '34, 37', '15', 4, true, '4-6-5', '37828224631000'], ['RuPay', 'RUPAY', '508500-508999, 606985-607984, 608001-608500, 652150-653149, 817200-820199', '16', 3, true, '', '652188047712993'],
+  ['Diners Club', 'DINERS', '300-305, 36, 38, 39', '14-19', 3, true, '4-6-4', '3622720627166'], ['Discover', 'DISC', '6011, 644-649, 65', '16-19', 3, true, '', '601111111111111'],
+  ['JCB', 'JCB', '3528-3589', '16-19', 3, true, '', '353011133330000'], ['Maestro', 'MAESTRO', '5018, 5020, 5038, 5893, 6304, 6759, 6761-6763', '12-19', 3, true, '', '675964982643845'],
+  ['UnionPay', 'UPI', '62', '16-19', 3, false, '', '6212345678901232'], ['Mir', 'MIR', '2200-2204', '16-19', 3, true, '', '220000000000000'],
+];
+const luhnDigit = p => { let s = 0; for (let i = 0; i < p.length; i++) { let d = +p[p.length - 1 - i]; if (i % 2 === 0) { d *= 2; if (d > 9) d -= 9; } s += d; } return String((10 - s % 10) % 10); };
+const DEFG = { 12: [4,4,4], 13: [4,4,5], 14: [4,6,4], 15: [4,6,5], 16: [4,4,4,4], 17: [4,4,4,5], 18: [4,4,4,6], 19: [4,4,4,4,3] };
+const grp = (s, g) => { const o = []; let i = 0; for (const k of g) { o.push(s.slice(i, i + k)); i += k; } return o.join(' '); };
+document.getElementById('statNets').textContent = NETS.length;
+document.getElementById('nets').innerHTML = NETS.map(([n, code, pre, len, cvv, luhn, gs, ex]) => {
+  const num = luhn ? ex + luhnDigit(ex) : ex; const L = num.length;
+  const g = gs && gs.split('-').map(Number).reduce((a, b) => a + b, 0) === L ? gs.split('-').map(Number) : DEFG[L];
+  return `<tr><td><b>${n}</b><br><span class="t-muted" style="font-size:12px">${code}</span></td><td class="m">${pre}</td><td class="m tnum">${len.replace(/-/g, ' to ').replace(/,/g, ', ')}</td><td class="m">${cvv}</td><td class="tnum" style="white-space:nowrap">${grp(num, g)}</td><td class="tnum" style="white-space:nowrap">${grp('•'.repeat(L - 4) + num.slice(-4), g)}</td></tr>`;
+}).join('');
+
+const roles = [
+  ['bg', '#0B0B0C', '#F7F7F8', 'background / surface', 'App ground'], ['sc', '#161618', '#FFFFFF', 'surfaceContainer', 'Pass body base, sheets'],
+  ['sc-high', '#1F1F22', '#EFEFF2', 'surfaceContainerHigh', 'Dialogs, menus, notification, search box'], ['sc-highest', '#2A2A2E', '#E4E4E9', 'surfaceContainerHighest', 'Monograms, tonal button, switch track'],
+  ['on-surface', '#F4F4F5', '#18181B', 'onSurface', 'Primary text, numbers, focus outline'], ['on-surface-variant', '#A1A1AA', '#5F5F66', 'onSurfaceVariant', 'Labels, supporting text, icons'],
+  ['outline', '#6E6E76', '#8A8A93', 'outline', 'Field and button outlines, network frame'], ['outline-variant', '#2A2A2E', '#E2E2E7', 'outlineVariant', 'Hairlines, chip borders'],
+  ['perf-line', 'F4F4F5 at 24%', '18181B at 22%', 'custom', 'Pass perforation'], ['primary', '#C8202B', '#C8202B', 'primary', 'At most one red action per screen'],
+  ['selected', '#F4F4F5', '#18181B', 'secondary', 'Switch on, checkbox, radio'], ['indicator', '#2A2A2E', '#E4E4E9', 'secondaryContainer', 'Nav indicator, selected chip and segment'],
+  ['inverse-surface', '#F4F4F5', '#2E2E33', 'inverseSurface', 'Snackbar'], ['error', '#F47C82', '#B3261E', 'error', 'Errors and destructive text'],
+];
+document.getElementById('roles').innerHTML = roles.map(([t, d, l, m, u]) => `<tr><td><div class="sw" style="background:var(--${t})"></div></td><td><code>${t}</code></td><td class="m tnum">${d}</td><td class="m tnum">${l}</td><td class="m">${m}</td><td class="m">${u}</td></tr>`).join('');
+const types = [
+  ['Screen title', '24 / 32 · 650 · −0.01em', 'Cards', 'font-size:24px;line-height:32px;font-weight:650;letter-spacing:-.01em'],
+  ['Pass number', '24 / 32 · 560 · +0.045em (masked +0.07em) · tnum', '•••• •••• •••• 2211', 'font-size:24px;line-height:32px;font-weight:560;letter-spacing:.06em;font-variant-numeric:tabular-nums'],
+  ['Headline', '22 / 28 · 600', 'Add your first card', 'font-size:22px;line-height:28px;font-weight:600'],
+  ['Notification value', '20 / 26 · 600 · tnum', '12/29   381', 'font-size:20px;line-height:26px;font-weight:600;font-variant-numeric:tabular-nums;white-space:pre'],
+  ['Nested title', '20 / 28 · 600', 'Card networks', 'font-size:20px;line-height:28px;font-weight:600'],
+  ['Stub value', '16 / 26 · 650 · tnum', 'AARAV MEHTA', 'font-size:16px;line-height:26px;font-weight:650'],
+  ['Body large', '16 / 24 · 500', 'Expiry and CVV notification', 'font-size:16px;line-height:24px;font-weight:500'],
+  ['Body', '14 / 20 · 400', 'Shown after you copy a card number', 'font-size:14px;line-height:20px;color:var(--on-surface-variant)'],
+  ['Tag', '12 / 16 · 600', 'Travel', 'font-size:12px;line-height:16px;font-weight:600'],
+  ['Field label', '11 / 16 · 600 · +0.06em · caps', 'CARD NUMBER', 'font-size:11px;line-height:16px;font-weight:600;letter-spacing:.06em;color:var(--on-surface-variant)'],
+];
+document.getElementById('typerows').innerHTML = types.map(([n, s, ex, st]) => `<div class="type-row"><div class="meta"><b>${n}</b>${s}</div><div style="${st}">${ex}</div></div>`).join('');
+
+const field = (cls, lab, val, extra = '', vcls = '') => `<button class="field ${cls}"><span class="lab">${lab}${extra}</span><span class="val ${vcls}">${val}</span><span class="drain"></span></button>`;
+const pass = (o) => `<div class="pass-wrap"><article class="pass" style="--band:var(--band-${o.color})"><div class="band"><span class="bank">${o.bank}</span><span class="net">${o.net}</span><button class="iconbtn" aria-label="More">${I('more')}</button></div>
+  <div class="main">${field('pan', 'Card number', o.num, o.type ? `<span class="type">${o.type}</span>` : '', 'mask')}</div><div class="perf"></div>
+  <div class="stub">${field('', 'Expiry', o.exp)}${field('cvv', 'CVV', o.cvv, '', 'masked')}${field('', 'Name', o.name)}</div>
+  ${o.tags ? `<div class="ptags">${o.tags.map(t => `<span class="ptag">${t}</span>`).join('')}</div>` : ''}</article></div>`;
+document.getElementById('anatPass').innerHTML = pass({ color: 'navy', bank: 'HDFC Bank', net: 'VISA', num: '•••• •••• •••• 2211', type: 'Credit', exp: '12/29', cvv: '•••', name: 'AARAV MEHTA', tags: ['Travel', 'Online'] })
+  + [[1, 'left:-11px;top:13px'], [2, 'right:58px;top:-11px'], [3, 'right:-11px;top:13px'], [4, 'left:-11px;top:76px'], [5, 'left:-11px;top:120px'], [6, 'left:-11px;top:158px'], [7, 'left:-11px;top:205px']].map(([n, s]) => `<span class="pin" style="${s}">${n}</span>`).join('');
+const one = (inner, cap) => `<div><div class="stub" style="width:180px;padding:0;grid-template-columns:1fr;--band:var(--band-navy)">${inner}</div><div class="cap">${cap}</div></div>`;
+document.getElementById('states').innerHTML = [
+  one(field('', 'Expiry', '12/29'), 'Rest'), one(`<button class="field" style="background:var(--state-press)"><span class="lab">Expiry</span><span class="val">12/29</span></button>`, 'Pressed'),
+  one(`<button class="field copied"><span class="lab">${I('check')}Copied</span><span class="val">12/29</span></button>`, 'Copied, 1.2s'),
+  one(`<button class="field cvv"><span class="lab">CVV</span><span class="val">381</span><span class="drain" style="transform:scaleX(.6)"></span></button>`, 'Revealed, draining'),
+  `<div style="width:100%"></div>`,
+  `<div class="w358">${pass({ color: 'plum', bank: 'American Express', net: 'AMEX', num: '•••• •••••• •1005', type: 'Credit', exp: '09/28', cvv: '••••', name: 'PRIYA MEHTA' })}<div class="cap">Amex: 4-6-5 grouping, 4-dot CVV</div></div>`,
+  `<div class="w358">${pass({ color: 'graphite', bank: 'HDFC Bank', net: 'DINERS', num: '•••• •••••• 1667', type: '', exp: '05/30', cvv: '•••', name: 'AARAV MEHTA' })}<div class="cap">Diners 14 digits: 4-6-4, no type set so no pill</div></div>`,
+].join('');
+const tf = (id, label, val, help, cls = '', trail = '') => `<div style="width:300px"><div class="tf ${cls}"><input id="${id}" placeholder=" " value="${val}" ${cls.includes('dd') ? 'readonly' : ''}><label for="${id}">${label}</label>${trail}<div class="help">${help}</div></div></div>`;
+document.getElementById('fields').innerHTML = tf('x1', 'Card number', '3714 496353 98431', 'American Express detected', 'has-trail', '<span class="trail"><span class="tag">AMEX</span></span>')
+  + tf('x3', 'CVV', '381', 'Enter 4 digits', 'err')
+  + `<div style="width:300px"><div style="font-size:14px;font-weight:600;color:var(--on-surface-variant);margin:10px 4px;display:flex">Tags<span class="counter">2 of 3</span></div><div class="tagbox"><span class="chip input">Travel<span class="x">${I('close', 'sm')}</span></span><span class="chip input">Online<span class="x">${I('close', 'sm')}</span></span><span class="chip add">${I('plus')}Add tag</span></div></div>`;
+document.getElementById('overlays').innerHTML = `
+  <div style="width:358px;height:600px;position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--outline-variant)"><div class="lockscr show" style="position:absolute"><div class="mid"><span class="mark">${LOGO()}</span><h2>QuickCards is locked</h2><button class="fpbtn">${I('fp')}</button><div class="fphint">Touch to unlock</div><button class="btn text" style="margin-top:8px">Use PIN</button></div><div class="foot">${I('shield')}Your cards stay encrypted on this phone</div></div></div>
+  <div class="hun"><div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum">0:24</span><span class="x">${I('close', 'sm')}</span></div><div class="t">HDFC Bank Credit · <span class="tnum">2211</span></div>
+    <div class="vals"><div><div class="l">Expiry</div><div class="v">12/29</div></div><div><div class="l">CVV</div><div class="v">381</div></div></div>
+    <div class="acts"><button class="btn text">Copy expiry</button><button class="btn text">Copy CVV</button></div><div class="bar" style="transform:scaleX(.8)"></div></div>
+  <div class="snackbar"><span class="msg">Card number copied · clears in 1 min</span><button class="btn text">Clear</button></div>
+  <div class="bio"><h2>Unlock QuickCards</h2><p>Copies stay instant for 1 minute</p><div class="fp">${I('fp')}</div><div class="hint">Touch the fingerprint sensor</div><div class="acts"><button class="btn text">Use PIN</button><button class="btn text">Cancel</button></div></div>
+  <div class="sheet"><div class="handle"></div><div class="actions-head" style="display:flex;gap:14px;align-items:center;padding:4px 24px 12px"><span style="width:40px;height:26px;border-radius:5px;background:var(--band-navy)"></span><div><div style="font-weight:600">HDFC Bank Credit</div><div class="t-muted" style="font-size:13px">Visa · Aarav Mehta · 2211</div></div></div>
+    <div class="li" style="padding:0 24px"><span class="lead">${I('copy')}</span><span class="txt"><span class="h">Copy details</span></span></div><div class="li" style="padding:0 24px"><span class="lead">${I('edit')}</span><span class="txt"><span class="h">Edit card</span></span></div><div class="li" style="padding:0 24px"><span class="lead">${I('pin')}</span><span class="txt"><span class="h">Pin card</span></span></div><div class="li danger" style="padding:0 24px"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Delete card</span></span></div></div>`;
+const cl = (c, t, d, h) => `<li><span class="sw" style="background:var(--band-${c})"></span><span>${t} · <span class="tnum">${d}</span></span><span class="t-muted" style="margin-left:auto">${h}</span></li>`;
+document.getElementById('manage').innerHTML = `
+  <div class="demo-list">
+    <div class="li two"><span class="mono">HD</span><span class="txt"><span class="h">HDFC Bank</span><span class="s">2 cards</span></span><span class="acts2"><button class="iconbtn">${I('edit')}</button><button class="iconbtn">${I('trash')}</button></span></div>
+    <div class="li two"><span class="nbadge">AMEX</span><span class="txt"><span class="h">American Express</span><span class="s">15 digits · CVV 4 · 1 card</span></span><span class="acts2"><button class="iconbtn">${I('edit')}</button><button class="iconbtn">${I('trash')}</button></span></div>
+    <div class="li two"><span class="tagdot">${I('tag')}</span><span class="txt"><span class="h">Fuel</span><span class="s">Not used</span></span><span class="acts2"><button class="iconbtn">${I('edit')}</button><button class="iconbtn">${I('trash')}</button></span></div>
+  </div>
+  <div class="dialog"><h2>Update 2 cards?</h2><div class="warn">${I('warn')}<span>Renaming <b>HDFC Bank</b> to <b>HDFC</b> will update these 2 cards.</span></div><ul class="list">${cl('navy', 'HDFC Bank Credit', '2211', 'Aarav')}${cl('graphite', 'HDFC Bank', '1667', 'Aarav')}</ul><div class="acts"><button class="btn text">Cancel</button><button class="btn text">Update 2 cards</button></div></div>
+  <div class="dialog"><h2>Delete the cards first</h2><div class="body"><b style="color:var(--on-surface)">HDFC Bank</b> is used by 2 cards. Delete those cards before deleting this bank.</div><ul class="list">${cl('navy', 'HDFC Bank Credit', '2211', 'Aarav')}${cl('graphite', 'HDFC Bank', '1667', 'Aarav')}</ul><div class="acts"><button class="btn text">Show cards</button><button class="btn text">OK</button></div></div>`;
+
+requestAnimationFrame(() => document.querySelectorAll('.pass').forEach(p => { const f = p.querySelector('.perf'); if (f) p.style.setProperty('--perf-y', (f.offsetTop + 1) + 'px'); }));
+document.querySelectorAll('[data-theme-set]').forEach(b => b.onclick = () => { document.body.dataset.theme = b.dataset.themeSet; document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-checked', x === b)); });
+</script>
+</body>
+</html>

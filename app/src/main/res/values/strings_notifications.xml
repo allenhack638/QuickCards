@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notif_channel_name">Card details after copying</string>
+    <string name="notif_hidden">Card details hidden</string>
+    <string name="notif_expiry_value">Expiry %1$s</string>
+    <string name="notif_cvv_value">CVV %1$s</string>
+    <string name="notif_value_separator">" · "</string>
+    <string name="notif_action_copy_expiry">Copy expiry</string>
+    <string name="notif_action_copy_cvv">Copy CVV</string>
+    <string name="notif_fallback_title">Card</string>
+    <string name="notif_field_expiry">Expiry</string>
+    <string name="notif_field_cvv">CVV</string>
+    <string name="notif_clipboard_label">%1$s · %2$s</string>
+    <string name="notif_expiry_copied">Expiry copied from notification</string>
+    <string name="notif_cvv_copied">CVV copied from notification</string>
+    <string name="notif_open_to_copy">Open QuickCards to copy</string>
+</resources>

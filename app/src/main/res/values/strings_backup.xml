@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="backup_reason_export">Confirm it’s you to export your cards</string>
+    <string name="backup_reason_import">Confirm it’s you to import cards</string>
+    <string name="backup_reason_erase">Confirm it’s you to erase all data</string>
+
+    <string name="backup_export_title">Export backup</string>
+    <plurals name="backup_export_body">
+        <item quantity="one">%1$d card with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this passphrase. You’ll need it to import, and it can’t be recovered.</item>
+        <item quantity="other">%1$d cards with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this passphrase. You’ll need it to import, and it can’t be recovered.</item>
+    </plurals>
+    <string name="backup_include_settings">Include settings</string>
+    <string name="backup_passphrase">Passphrase</string>
+    <string name="backup_passphrase_helper">At least 8 characters</string>
+    <string name="backup_confirm_passphrase">Confirm passphrase</string>
+    <string name="backup_passphrase_mismatch">Passphrases don’t match</string>
+    <string name="backup_action_export">Export</string>
+
+    <string name="backup_import_title">Import backup</string>
+    <string name="backup_import_body">Choose a QuickCards backup and enter its passphrase. You’ll see what it contains before anything changes.</string>
+    <string name="backup_choose_file">Choose backup file</string>
+    <string name="backup_file_encrypted">Encrypted backup</string>
+    <string name="backup_file_quickcards">QuickCards backup</string>
+    <plurals name="backup_file_card_count">
+        <item quantity="one">%1$d card</item>
+        <item quantity="other">%1$d cards</item>
+    </plurals>
+    <string name="backup_action_open">Open</string>
+    <string name="backup_action_import">Import</string>
+    <string name="backup_wrong_passphrase">That passphrase doesn’t open this backup</string>
+
+    <string name="backup_review_title">Review backup</string>
+    <string name="backup_review_exported">%1$s · exported %2$s</string>
+    <string name="backup_review_cards_summary" tools:ignore="PluralsCandidate">%1$d new · %2$d changed · %3$d same</string>
+    <plurals name="backup_review_new_count">
+        <item quantity="one">%1$d new</item>
+        <item quantity="other">%1$d new</item>
+    </plurals>
+    <string name="backup_review_all_exist">all exist</string>
+    <string name="backup_review_formats">Formats fixed: %1$d · Need a check: %2$d</string>
+    <string name="backup_review_settings_label">Settings</string>
+    <string name="backup_review_settings_included">included</string>
+    <string name="backup_review_settings_missing">not in this backup</string>
+    <string name="backup_review_saved_title">Cards you’ve already saved</string>
+    <string name="backup_review_update">Update with the backup’s details</string>
+    <string name="backup_review_keep">Keep what’s on this phone</string>
+    <string name="backup_review_restore">Restore settings from the backup</string>
+    <plurals name="backup_card_count">
+        <item quantity="one">%1$d card</item>
+        <item quantity="other">%1$d cards</item>
+    </plurals>
+    <plurals name="backup_holder_count">
+        <item quantity="one">%1$d holder</item>
+        <item quantity="other">%1$d holders</item>
+    </plurals>
+    <plurals name="backup_bank_count">
+        <item quantity="one">%1$d bank</item>
+        <item quantity="other">%1$d banks</item>
+    </plurals>
+    <plurals name="backup_network_count">
+        <item quantity="one">%1$d network</item>
+        <item quantity="other">%1$d networks</item>
+    </plurals>
+    <plurals name="backup_type_count">
+        <item quantity="one">%1$d type</item>
+        <item quantity="other">%1$d types</item>
+    </plurals>
+    <plurals name="backup_tag_count">
+        <item quantity="one">%1$d tag</item>
+        <item quantity="other">%1$d tags</item>
+    </plurals>
+
+    <string name="backup_erase_title">Erase all data?</string>
+    <string name="backup_erase_body">Every card, holder, bank, type and tag will be erased from this phone. Card networks go back to the defaults. Export a backup first if you might need them.</string>
+    <string name="backup_erase_ack">I understand this can’t be undone</string>
+    <string name="backup_action_erase">Erase</string>
+    <string name="backup_action_change">Change</string>
+    <string name="backup_action_cancel">Cancel</string>
+
+    <string name="backup_a11y_show_passphrase">Show passphrase</string>
+    <string name="backup_a11y_hide_passphrase">Hide passphrase</string>
+
+    <string name="backup_snack_saved_settings">Backup with settings saved to Downloads</string>
+    <string name="backup_snack_saved">Backup saved to Downloads</string>
+    <string name="backup_snack_erased">All data erased</string>
+
+    <string name="backup_value_separator">" · "</string>
+    <plurals name="backup_result_added">
+        <item quantity="one">%1$d added</item>
+        <item quantity="other">%1$d added</item>
+    </plurals>
+    <plurals name="backup_result_updated">
+        <item quantity="one">%1$d updated</item>
+        <item quantity="other">%1$d updated</item>
+    </plurals>
+    <plurals name="backup_result_kept">
+        <item quantity="one">%1$d kept</item>
+        <item quantity="other">%1$d kept</item>
+    </plurals>
+    <plurals name="backup_result_unchanged">
+        <item quantity="one">%1$d unchanged</item>
+        <item quantity="other">%1$d unchanged</item>
+    </plurals>
+    <string name="backup_result_nothing">Nothing to import</string>
+    <string name="backup_result_with_settings">%1$s · settings restored</string>
+
+    <string name="backup_error_create">Couldn’t create the backup</string>
+    <string name="backup_error_save">Couldn’t save the backup</string>
+    <string name="backup_error_read">Couldn’t read this file</string>
+    <string name="backup_error_format">This file isn’t a QuickCards backup</string>
+    <string name="backup_error_import">Couldn’t import this backup</string>
+    <string name="backup_error_erase">Couldn’t erase all data</string>
+</resources>
