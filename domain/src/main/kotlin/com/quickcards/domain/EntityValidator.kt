@@ -54,7 +54,7 @@ object EntityValidator {
 
     private val SPACES = Regex("""\s+""")
     private val LEADING_HASHES = Regex("""^#+""")
-    private val CODE = Regex("""^[A-Z0-9]{2,7}$""")
+    private val CODE = Regex("""^[A-Z0-9 ]{2,$NetworkLabelMax}$""")
     private val NUMBERS_AND_RANGES = Regex("""^\d+(-\d+)?(,\d+(-\d+)?)*$""")
 
     fun nameLimit(kind: EntityKind, tagMaxLength: Int = DEFAULT_TAG_MAX_LENGTH): Int = when (kind) {

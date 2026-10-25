@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,6 +57,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.quickcards.app.R
@@ -385,8 +388,8 @@ internal fun CardFormContent(
                     keyboardOptions = ScannableKeyboard,
                     trailing = if (network != null) {
                         {
-                            // M3 gives the trailing slot 12dp; 4dp more keeps
-                            // the badge 16dp from the outline's end edge.
+                            // The trailing slot does not pad arbitrary content,
+                            // so keep the label 16dp from the outline's end edge.
                             Text(
                                 text = network.code,
                                 style = QcType.FieldLabel.copy(
@@ -395,7 +398,14 @@ internal fun CardFormContent(
                                 ),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
-                                modifier = Modifier.padding(end = QcDimens.Half)
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier
+                                    .widthIn(
+                                        min = QcDimens.NetworkBadgeMinWidth,
+                                        max = QcDimens.NetworkBadgeMaxWidth
+                                    )
+                                    .padding(end = QcDimens.Gutter)
                             )
                         }
                     } else {

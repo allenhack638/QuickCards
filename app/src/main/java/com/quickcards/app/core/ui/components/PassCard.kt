@@ -573,20 +573,25 @@ private fun Band(
             if (code.isNotEmpty()) {
                 Box(
                     modifier = Modifier
+                        .widthIn(
+                            min = QcDimens.NetworkBadgeMinWidth,
+                            max = QcDimens.NetworkBadgeMaxWidth
+                        )
                         .height(22.dp)
                         .border(
                             QcDimens.Divider,
                             Color.White.copy(alpha = 0.55f),
                             RoundedCornerShape(QcDimens.CornerBandFrame)
                         )
-                        .padding(horizontal = 7.dp),
+                        .padding(horizontal = QcDimens.Base),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = code,
                         style = QcType.BandNetwork,
                         color = Color.White,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

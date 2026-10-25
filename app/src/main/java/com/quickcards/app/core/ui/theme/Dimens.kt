@@ -43,7 +43,9 @@ object QcDimens {
     val IconSmall = 18.dp
     val IconTiny = 14.dp
     val Monogram = 40.dp
-    val NetworkBadgeWidth = 56.dp
+    val NetworkBadgeMinWidth = 56.dp
+    val NetworkBadgeMaxWidth = 128.dp
+    val NetworkBadgeSlot = 96.dp
     val NetworkBadgeHeight = 28.dp
     val ChipHeight = 32.dp
     val TagHeight = 24.dp

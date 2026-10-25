@@ -85,6 +85,7 @@ import com.quickcards.domain.EntityKind
 import com.quickcards.domain.EntityUsage
 import com.quickcards.domain.EntityValidationError
 import com.quickcards.domain.EntityValidator
+import com.quickcards.domain.NetworkLabelMax
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -384,7 +385,7 @@ private fun EntityDialogContent(
             EntityTextField(
                 value = code,
                 onValueChange = { value ->
-                    val text = value.text.uppercase(Locale.ROOT).take(7)
+                    val text = value.text.uppercase(Locale.ROOT).take(NetworkLabelMax)
                     code = TextFieldValue(text, TextRange(text.length))
                     if (errors.containsKey(EntityField.CODE)) {
                         errors = errors - EntityField.CODE

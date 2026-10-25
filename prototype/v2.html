@@ -661,7 +661,7 @@ function archivedHTML() {
 function leadFor(kind, x) {
   if (kind === 'holders') return `<span class="hmono">${esc(initials(x.name))}</span>`;
   if (kind === 'banks') return `<span class="mono">${esc(x.mono)}</span>`;
-  if (kind === 'networks') return `<span class="nbadge">${esc(x.code)}</span>`;
+  if (kind === 'networks') return `<span class="nbslot"><span class="nbadge">${esc(x.code)}</span></span>`;
   if (kind === 'tags') return `<span class="tagdot">${I('tag')}</span>`;
   return `<span class="tagdot">${esc(x.name[0] || '?')}</span>`;
 }
@@ -684,7 +684,7 @@ function entityDialog(kind, id, onCreated) {
   const tfH = (fid, label, val, help, attrs = '', max) => `<div class="tf" data-tf="${fid}" data-help="${esc(help)}"><input id="${fid}" name="qc-${fid}-${Date.now()}" placeholder=" " value="${esc(val ?? '')}" autocomplete="off" data-lpignore="true" data-1p-ignore ${attrs}><label for="${fid}">${label}</label><div class="help"><span class="hm">${esc(help)}</span>${max ? `<span class="hc">${String(val ?? '').length}/${max}</span>` : ''}</div></div>`;
   openDialog(`<h2>${x ? 'Edit' : 'New'} ${K.one}</h2>
     ${tfH('en-name', 'Name', x?.name, isTag ? 'No # needed' : '', `maxlength="${maxLen}"`, maxLen)}
-    ${isNet ? `${tfH('en-code', 'Label on card', x?.code, 'Up to 7 letters, for example VISA', 'maxlength="7" style="text-transform:uppercase"')}
+    ${isNet ? `${tfH('en-code', 'Label on card', x?.code, 'Up to 15 characters, shown on the card', 'maxlength="15" style="text-transform:uppercase"')}
       ${tfH('en-pre', 'Starting digits', x?.prefixes, 'For example 4 or 51-55, separated by commas', 'inputmode="numeric"')}
       ${tfH('en-len', 'Number lengths', x?.lengths || '16', 'For example 16 or 16-19', 'inputmode="numeric"')}
       <div class="grp" style="margin:8px 0 12px"><div class="glab">CVV digits</div><div class="seg" role="radiogroup">${[3, 4].map(n => `<button role="radio" aria-checked="${cvv === n}" data-cvv="${n}">${I('check')}${n}</button>`).join('')}</div></div>
@@ -711,7 +711,7 @@ function entityDialog(kind, id, onCreated) {
       const next = { name };
       if (isNet) {
         next.code = $('#en-code').value.trim().toUpperCase(); next.prefixes = $('#en-pre').value.replace(/\s+/g, ''); next.lengths = $('#en-len').value.replace(/\s+/g, ''); next.cvv = cvv; next.luhn = luhn; next.groups = x?.groups || '';
-        if (!/^[A-Z0-9]{2,7}$/.test(next.code)) { err('en-code', 'Use 2 to 7 letters or digits'); bad = true; }
+        if (!/^[A-Z0-9 ]{2,15}$/.test(next.code)) { err('en-code', 'Use 2 to 15 letters, digits or spaces'); bad = true; }
         else if (S.networks.some(y => y.code === next.code && y.id !== id)) { err('en-code', 'Another network already uses this label'); bad = true; }
         if (!/^\d+(-\d+)?(,\d+(-\d+)?)*$/.test(next.prefixes)) { err('en-pre', 'Use digits, ranges like 51-55, and commas'); bad = true; }
         const L = lens(next.lengths); if (!/^\d+(-\d+)?(,\d+(-\d+)?)*$/.test(next.lengths) || !L.length || L[0] < 12 || L.at(-1) > 19) { err('en-len', 'Card numbers have 12 to 19 digits'); bad = true; }

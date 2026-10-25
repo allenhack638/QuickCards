@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -268,8 +269,13 @@ private fun EntityRow(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val leadSlot = if (kind == EntityKind.NETWORK) {
+            Modifier.width(QcDimens.NetworkBadgeSlot)
+        } else {
+            Modifier
+        }
         Box(
-            modifier = Modifier.heightIn(min = QcDimens.Monogram),
+            modifier = leadSlot.heightIn(min = QcDimens.Monogram),
             contentAlignment = Alignment.CenterStart
         ) {
             EntityLead(kind = kind, entity = entity)
@@ -372,15 +378,17 @@ private fun EntityLead(kind: EntityKind, entity: ManagedEntity) {
             val fontScale = LocalDensity.current.fontScale
             Box(
                 modifier = Modifier
-                    .size(
-                        width = QcDimens.NetworkBadgeWidth,
-                        height = QcDimens.NetworkBadgeHeight
+                    .widthIn(
+                        min = QcDimens.NetworkBadgeMinWidth,
+                        max = QcDimens.NetworkBadgeSlot
                     )
+                    .height(QcDimens.NetworkBadgeHeight)
                     .border(
                         width = QcDimens.Divider,
                         color = MaterialTheme.colorScheme.outline,
                         shape = RoundedCornerShape(QcDimens.CornerBadge)
-                    ),
+                    )
+                    .padding(horizontal = QcDimens.Base),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -391,7 +399,8 @@ private fun EntityLead(kind: EntityKind, entity: ManagedEntity) {
                         letterSpacing = 0.04.em
                     ),
                     color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

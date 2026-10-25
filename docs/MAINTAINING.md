@@ -254,8 +254,9 @@ be compared against them in dark and light.
 
 - 16dp screen gutters everywhere; passes 12dp apart; list sections 24dp apart.
 - Every touch target ≥ 48dp. Icon buttons 48dp with 24dp icons.
-- List rows: leading slot 56dp wide (icons 24dp centred; monograms/avatars 40dp with 8dp
-  side margin; network badge 56×28dp) so **all row titles start at the same x**.
+- List rows: leading slot 56dp wide for icons, monograms and avatars (icons 24dp centred;
+  monograms/avatars 40dp with 8dp side margin) and 56–128dp for a network badge that grows
+  with its label, so **short-label row titles start at the same x**.
 - Text fields: M3 `OutlinedTextField`, 56dp, 4dp corners, floating label, focus = 2dp
   onSurface outline (no colour), **helper line always reserved** (supportingText always
   present, even empty) so errors never shift layout; character counters right-aligned in
@@ -450,8 +451,8 @@ digits + Luhn.
 - Five lists: holders, banks, networks, types, tags. Names trimmed, spaces collapsed,
   required, at least 2 characters, unique per list ignoring case. Limits: holders and
   banks 40, networks 24, types 20, tags from Settings. A leading `#` is removed from tags.
-- Network labels are 2-7 uppercase letters/digits and unique; starting digits accept
-  digits, ranges and commas; lengths must stay within 12-19.
+- Network labels are 2-15 uppercase letters, digits or spaces and unique; starting digits
+  accept digits, ranges and commas; lengths must stay within 12-19.
 - Renaming an item that cards use, or changing a network's rules, opens “Update N cards?”
   with the affected cards. Deleting an item in use is blocked until those cards are gone;
   “Show cards” opens the list filtered to exactly those cards.
@@ -650,7 +651,7 @@ This is the widest change in the app. Do it in this order so no layer is forgott
 
 **Steps**
 
-1. Decide the exact name, 2-7 character label, prefixes (digits and ranges), allowed
+1. Decide the exact name, 2-15 character label, prefixes (digits and ranges), allowed
    lengths (12-19), CVV length (3/4), Luhn flag and optional grouping.
 2. Add it to both default lists in the same order, with a stable id and the next
    `sortOrder`.

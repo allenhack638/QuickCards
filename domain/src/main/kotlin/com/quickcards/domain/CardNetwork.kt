@@ -1,5 +1,7 @@
 package com.quickcards.domain
 
+const val NetworkLabelMax = 15
+
 data class CardNetwork(
     val id: String,
     val name: String,

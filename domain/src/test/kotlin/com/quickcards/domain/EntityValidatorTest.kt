@@ -115,20 +115,32 @@ class EntityValidatorTest {
     }
 
     @Test
-    fun networkLabelsMustBeTwoToSevenUppercaseLettersOrDigits() {
+    fun networkLabelsMustBeTwoToFifteenUppercaseLettersDigitsOrSpaces() {
         assertEquals(
             EntityValidationError.CodeFormat,
             EntityValidator.validate(networkDraft(code = "A"))[EntityField.CODE]
         )
         assertEquals(
             EntityValidationError.CodeFormat,
-            EntityValidator.validate(networkDraft(code = "TOOLONG8"))[EntityField.CODE]
+            EntityValidator.validate(networkDraft(code = "MASTERCARDPLUSXY"))[EntityField.CODE]
         )
         assertEquals(
             EntityValidationError.CodeFormat,
             EntityValidator.validate(networkDraft(code = "VISA!"))[EntityField.CODE]
         )
         assertFalse(EntityValidator.validate(networkDraft(code = "visa")).containsKey(EntityField.CODE))
+    }
+
+    @Test
+    fun networkLabelsAcceptFifteenCharactersIncludingSpaces() {
+        assertFalse(
+            EntityValidator.validate(networkDraft(code = "AMERICANEXPRESS"))
+                .containsKey(EntityField.CODE)
+        )
+        assertFalse(
+            EntityValidator.validate(networkDraft(code = "RUPAY PLATINUM"))
+                .containsKey(EntityField.CODE)
+        )
     }
 
     @Test

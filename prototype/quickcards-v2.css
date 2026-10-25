@@ -183,7 +183,7 @@ svg.ic { stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: ro
 .band::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.12) 52%, transparent 66%); pointer-events: none; }
 .band > * { position: relative; z-index: 1; }
 .band .bank { font-size: 15px; font-weight: 700; white-space: nowrap; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.band .net { font-size: 10px; font-weight: 800; letter-spacing: .1em; flex: none; height: 22px; padding: 0 7px; border-radius: 5px; border: 1px solid rgba(255,255,255,.55); display: grid; place-items: center; }
+.band .net { font-size: 10px; font-weight: 800; letter-spacing: .1em; flex: none; height: 22px; min-width: 56px; max-width: 128px; padding: 0 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,.55); display: grid; place-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .band .pinmark { width: 16px; height: 16px; flex: none; display: grid; place-items: center; color: rgba(255,255,255,.9); }
 .band .pinmark .ic { width: 16px; font-size: 16px; height: 16px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
 .band .net:empty { display: none; }
@@ -296,7 +296,7 @@ svg.ic { stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: ro
 .tf input:focus + label, .tf input:not(:placeholder-shown) + label { top: -9px; font-size: 12px; line-height: 16px; }
 .tf input:focus + label { color: var(--on-surface); }
 .tf .trail { position: absolute; right: 4px; top: 4px; height: 48px; display: flex; align-items: center; }
-.tf .trail .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--on-surface-variant); padding-right: 12px; }
+.tf .trail .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--on-surface-variant); padding-right: 12px; min-width: 56px; max-width: 128px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tf.has-trail input { padding-right: 56px; }
 .tf .help { min-height: 20px; padding: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--on-surface-variant); display: flex; gap: 12px; }
 .tf .help .hm { flex: 1; min-width: 0; }
@@ -394,7 +394,8 @@ svg.ic { stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: ro
 
 /* Shared list leads (holders, networks, tags) and sheet header */
 .hmono { width: 40px; height: 40px; border-radius: 50%; background: var(--sc-highest); display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
-.nbadge { width: 56px; height: 28px; padding: 0; border-radius: 6px; border: 1px solid var(--outline); display: grid; place-items: center; font-size: 9px; font-weight: 800; letter-spacing: .04em; flex: none; overflow: hidden; }
+.nbslot { width: 96px; display: flex; align-items: center; flex: none; }
+.nbadge { min-width: 56px; max-width: 96px; height: 28px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--outline); display: grid; place-items: center; font-size: 9px; font-weight: 800; letter-spacing: .04em; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .li > .mono, .li > .hmono, .li > .tagdot { margin: 0 8px; }
 .tagdot { width: 40px; height: 40px; border-radius: 12px; background: var(--sc-highest); display: grid; place-items: center; font-weight: 700; color: var(--on-surface-variant); flex: none; }
 .actions-head { display: flex; gap: 14px; align-items: center; padding: 4px 24px 12px; }
