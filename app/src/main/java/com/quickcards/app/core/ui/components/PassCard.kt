@@ -231,6 +231,7 @@ fun PassCard(
             Band(
                 card = card,
                 band = band,
+                dark = dark,
                 preview = preview,
                 onActions = onActions,
                 expiredColors = if (expired) expiredColors else null
@@ -538,6 +539,7 @@ fun PassCard(
 private fun Band(
     card: HomeCard,
     band: Color,
+    dark: Boolean,
     preview: Boolean,
     onActions: () -> Unit,
     expiredColors: ExpiredPassColors?
@@ -615,7 +617,14 @@ private fun Band(
             val code = card.network?.code.orEmpty()
             val mark = NetworkMarks.drawable(card.network?.id)
             if (mark != null) {
-                NetworkMark(resId = mark, contentDescription = card.network?.name)
+                NetworkMark(
+                    resId = mark,
+                    contentDescription = card.network?.name,
+                    plate = networkMarkPlate(MarkSurface.BAND, dark),
+                    width = QcDimens.NetworkMarkBandWidth,
+                    height = QcDimens.NetworkMarkBandHeight,
+                    corner = QcDimens.CornerBandFrame
+                )
             } else if (code.isNotEmpty()) {
                 Box(
                     modifier = Modifier
@@ -623,7 +632,7 @@ private fun Band(
                             min = QcDimens.NetworkBadgeMinWidth,
                             max = QcDimens.NetworkBadgeMaxWidth
                         )
-                        .height(22.dp)
+                        .height(QcDimens.NetworkMarkBandHeight)
                         .border(
                             QcDimens.Divider,
                             Color.White.copy(alpha = 0.55f),

@@ -11,8 +11,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import com.quickcards.app.core.data.settings.AppSettings
 import android.content.pm.PackageManager
+import com.quickcards.app.core.ui.components.MarkSurface
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
+import com.quickcards.app.core.ui.components.networkMarkPlate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -128,6 +131,7 @@ internal fun CardFormContent(
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     val locked = LocalAppLocked.current
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val configuration = LocalConfiguration.current
     val topOffsetPx = with(LocalDensity.current) { QcDimens.FieldHeight.roundToPx() }
 
@@ -439,7 +443,11 @@ internal fun CardFormContent(
                                 NetworkMark(
                                     resId = mark,
                                     contentDescription = network.name,
-                                    modifier = Modifier.padding(end = QcDimens.Gutter)
+                                    modifier = Modifier.padding(end = QcDimens.Gutter),
+                                    plate = networkMarkPlate(MarkSurface.FIELD, dark),
+                                    width = QcDimens.NetworkMarkBandWidth,
+                                    height = QcDimens.NetworkMarkBandHeight,
+                                    corner = QcDimens.CornerBandFrame
                                 )
                             } else Text(
                                 text = network.code,
