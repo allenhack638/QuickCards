@@ -46,6 +46,8 @@ object QcDimens {
     val NetworkBadgeMaxWidth = 128.dp
     val NetworkBadgeSlot = 96.dp
     val NetworkBadgeHeight = 28.dp
+    val NetworkMarkBandWidth = 44.dp
+    val NetworkMarkBandHeight = 22.dp
     val ChipHeight = 32.dp
     val TagHeight = 24.dp
     val TypePillHeight = 20.dp

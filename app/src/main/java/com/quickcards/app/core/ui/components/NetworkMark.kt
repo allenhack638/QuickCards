@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import com.quickcards.app.R
 import com.quickcards.app.core.ui.theme.NetworkPlate
 import com.quickcards.app.core.ui.theme.NetworkPlateEdge
@@ -42,20 +43,44 @@ object NetworkMarks {
     fun drawable(networkId: String?): Int? = networkId?.let { marks[it] }
 }
 
+/** Where a mark is drawn; only the Manage list can drop the plate, and only in light. */
+enum class MarkSurface { BAND, LIST, FIELD }
+
+fun networkMarkPlate(surface: MarkSurface, dark: Boolean): Boolean =
+    surface != MarkSurface.LIST || dark
+
+/**
+ * The Manage lead column is the logo width unless a custom text badge needs more, and it never
+ * exceeds the row's slot. Every row shares the result so names keep one left edge.
+ */
+fun networkLeadWidth(badgeWidths: List<Dp>, min: Dp, max: Dp): Dp =
+    badgeWidths.maxOrNull()?.coerceIn(min, max) ?: min
+
 /** The mark on its white plate: the brand colours stay legible on any band or surface. */
 @Composable
 fun NetworkMark(
     @DrawableRes resId: Int,
     contentDescription: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    plate: Boolean = true,
+    width: Dp = QcDimens.NetworkBadgeMinWidth,
+    height: Dp = QcDimens.NetworkBadgeHeight,
+    corner: Dp = QcDimens.CornerBadge
 ) {
-    val shape = RoundedCornerShape(QcDimens.CornerBadge)
+    val shape = RoundedCornerShape(corner)
     Box(
         modifier = modifier
-            .width(QcDimens.NetworkBadgeMinWidth)
-            .height(QcDimens.NetworkBadgeHeight)
-            .background(NetworkPlate, shape)
-            .border(QcDimens.Divider, NetworkPlateEdge, shape)
+            .width(width)
+            .height(height)
+            .then(
+                if (plate) {
+                    Modifier
+                        .background(NetworkPlate, shape)
+                        .border(QcDimens.Divider, NetworkPlateEdge, shape)
+                } else {
+                    Modifier
+                }
+            )
     ) {
         Image(
             painter = painterResource(resId),
