@@ -486,6 +486,7 @@ class VaultRepository(
         networkAuto = networkAuto,
         typeId = typeId,
         nameOnCard = encryption.decryptMetadata(nameOnCard),
+        ownerName = encryption.decryptMetadata(owner),
         cardName = cardVariant,
         note = encryption.decryptMetadata(description),
         dueDay = dueDay,

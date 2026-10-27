@@ -24,6 +24,23 @@ private fun CardField.toFormField(): Field = when (this) {
 }
 
 /**
+ * Keeps an imported custom name-on-card, but re-syncs an auto-synced one to the current
+ * holder. [baseOwnerName] is the holder name stored on the card at its last save, so a holder
+ * rename can be told apart from a genuinely custom imported name.
+ */
+internal fun resolveNameOnCard(
+    baseNameOnCard: String?,
+    baseOwnerName: String?,
+    currentHolderName: String
+): String {
+    val current = currentHolderName.trim().uppercase(Locale.ROOT)
+    val custom = baseNameOnCard
+        ?.takeIf { it.isNotBlank() }
+        ?.takeIf { baseOwnerName.isNullOrBlank() || !it.equals(baseOwnerName, ignoreCase = true) }
+    return custom ?: current
+}
+
+/**
  * Callers feed the TextFieldValue back from this, never the raw input, so rejected text
  * vanishes in the same frame and the caret stays at the end.
  */

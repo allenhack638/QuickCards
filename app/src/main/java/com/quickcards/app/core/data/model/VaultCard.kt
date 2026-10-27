@@ -15,6 +15,8 @@ data class VaultCard(
     val networkAuto: Boolean = true,
     val typeId: String? = null,
     val nameOnCard: String = "",
+    /** Holder name at the card's last save; tells an auto name from an imported custom one. */
+    val ownerName: String = "",
     val cardName: String = "",
     val note: String = "",
     val dueDay: Int? = null,
