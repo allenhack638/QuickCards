@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
  * value stays on the clipboard while the user switches to the app they are pasting into.
  *
  * A timer cannot outlive the process, so the deadline is also persisted (as a keyed
- * HMAC-SHA256 token, never the value). [expireIfNeeded] runs when the app is resumed and
+ * HMAC-SHA256 token, never the value). [expireIfNeeded] runs when the window gains focus and
  * clears a copy whose deadline passed while the process was dead.
  */
 object ClipboardHelper {
@@ -84,8 +84,9 @@ object ClipboardHelper {
     }
 
     /**
-     * Called from the foreground: a copy whose timer was lost to process death is cleared if it
-     * is still the clipboard value. A null read (unfocused) leaves it for the next resume.
+     * Called when the window gains focus: a copy whose timer was lost to process death is
+     * cleared if it is still the clipboard value. A null read (unfocused) keeps the record so
+     * the next focused read can decide.
      */
     fun expireIfNeeded(context: Context) {
         val app = context.applicationContext
@@ -103,14 +104,11 @@ object ClipboardHelper {
         val clipboard = app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val current = runCatching { clipboard.primaryClip?.getItemAt(0)?.text?.toString() }
             .getOrNull()
-        // An unfocused app reads null on Android 10+; keep the record and retry next resume.
-        if (current == null) return
-        val currentHash = runCatching { PanHasher.hashText(current) }.getOrNull()
-        if (currentHash == null) {
-            forgetCopy(app)
-            return
+        val action = ClipboardExpiry.decide(current, expected) { value ->
+            runCatching { PanHasher.hashText(value) }.getOrNull()
         }
-        if (currentHash == expected) {
+        if (action == ClipboardExpiryAction.KEEP_RECORD) return
+        if (action == ClipboardExpiryAction.CLEAR_AND_FORGET) {
             clearClipboard(clipboard)
             lastCopiedText = null
             clearJob?.cancel()

@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file.
 
 - Security: copied values are marked sensitive on Android 13+ so the system clipboard preview
   no longer renders the card, and a copy whose timer was lost to process death is cleared the
-  next time the app is resumed. The clipboard stays usable while switching apps to paste.
+  first focused read after process death. The clipboard stays usable while switching apps to paste.
 - Security: the expiry/CVV notification is off by default (enabling it still asks to unlock)
   and posts on a new silent, low-importance channel; upgrading installs get the old channel
   removed. It no longer appears as a heads-up over other apps.

@@ -16,9 +16,6 @@ abstract class BaseActivity : FragmentActivity() {
 
     protected open fun onSecureCreate(savedInstanceState: Bundle?) {}
 
-    /** Runs after the window is secured on every resume; for foreground-only clipboard work. */
-    protected open fun onSecureResume() {}
-
     final override fun onStart() {
         super.onStart()
         applySecureWindow()
@@ -27,7 +24,6 @@ abstract class BaseActivity : FragmentActivity() {
     final override fun onResume() {
         super.onResume()
         applySecureWindow()
-        onSecureResume()
     }
 
     private fun applySecureWindow() {

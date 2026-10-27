@@ -89,7 +89,7 @@ encrypted backup that you export yourself and open with its backup password.
 | App lock | `BiometricPrompt` with device-credential (PIN/pattern/password) fallback; fail-closed — a cancelled or failed prompt never lets a copy, reveal, edit, delete, export, import or erase proceed |
 | Instant-copy window | One successful prompt unlocks sensitive actions for a short, configurable idle window; locking ends it |
 | Screen capture | `FLAG_SECURE` on every activity in release builds: no screenshots, screen recording or recents preview |
-| Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into. The clip is marked sensitive on Android 13+, and an overdue copy is cleared the next time the app opens if its timer was lost with the process |
+| Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into. The clip is marked sensitive on Android 13+, and an overdue copy is cleared once its window gains focus if its timer was lost with the process |
 | Network and camera | No `INTERNET`, `ACCESS_NETWORK_STATE` or `CAMERA` permission. Unit tests and a Gradle task check the merged manifests, and CI checks the release APK's permissions before publishing |
 | Privacy policy | Bundled in Settings › About (no WebView or network); the public copy is [`docs/privacy.html`](docs/privacy.html) |
 | Android backup | `allowBackup=false`; app data is not copied to cloud backups |

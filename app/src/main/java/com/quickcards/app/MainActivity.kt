@@ -52,9 +52,11 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    override fun onSecureResume() {
-        // A copy timer dies with the process; clear an overdue value while we can read the clip.
-        ClipboardHelper.expireIfNeeded(this)
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // A copy timer dies with the process; clear an overdue value once this window can read
+        // the clipboard. onResume is too early on Android 10+ (the window has no focus yet).
+        if (hasFocus) ClipboardHelper.expireIfNeeded(this)
     }
 
     private fun installInteractionTracking() {
