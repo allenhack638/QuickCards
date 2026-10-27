@@ -11,7 +11,16 @@ class NetworkRuleSanitizerTest {
     fun aHugeLengthRangeIsClampedToCardLengths() {
         assertEquals((12..19).toList(), CardNumberRules.parseLengths("1-2147483647"))
         assertEquals("12,13,14,15,16,17,18,19", NetworkRuleSanitizer.lengths("1-99"))
-        assertEquals("", NetworkRuleSanitizer.lengths("1-2147483647"))
+    }
+
+    @Test
+    fun lengthsUseTheSameParserAsTheEditor() {
+        val spec = "1-2147483647"
+        assertEquals(
+            CardNumberRules.parseLengths(spec).joinToString(","),
+            NetworkRuleSanitizer.lengths(spec)
+        )
+        assertEquals("12,13,14,15,16,17,18,19", NetworkRuleSanitizer.lengths(spec))
     }
 
     @Test
@@ -28,9 +37,28 @@ class NetworkRuleSanitizerTest {
     @Test
     fun prefixesDropJunkAndAreBounded() {
         assertEquals("4,51-55", NetworkRuleSanitizer.prefixes("4, 51-55, abc, 123456789"))
-        assertEquals("12-19", NetworkRuleSanitizer.prefixes("19-12"))
         assertEquals("", NetworkRuleSanitizer.prefixes("abc"))
         assertTrue(NetworkRuleSanitizer.prefixes("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17").length <= 128)
+    }
+
+    @Test
+    fun prefixesStayWholeTokensWithinTheCap() {
+        val range = "100000-999999"
+        val out = NetworkRuleSanitizer.prefixes(List(10) { range }.joinToString(","))
+
+        assertTrue(out.length <= NetworkRuleSanitizer.MAX_PREFIX_SPEC)
+        assertTrue(out.isNotEmpty())
+        out.split(",").forEach { assertEquals(range, it) }
+    }
+
+    @Test
+    fun aReversedPrefixRangeIsDroppedNotReversed() {
+        assertEquals("", NetworkRuleSanitizer.prefixes("510-55"))
+    }
+
+    @Test
+    fun prefixLeadingZerosArePreserved() {
+        assertEquals("0123,0045-0099", NetworkRuleSanitizer.prefixes("0123, 0045-0099"))
     }
 
     @Test

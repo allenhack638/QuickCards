@@ -25,32 +25,7 @@ object NetworkRuleSanitizer {
     /** A canonical, bounded length spec (`13,16,19`); empty when nothing usable remains. */
     fun lengths(spec: String): String {
         if (spec.length > MAX_LENGTH_SPEC) return ""
-        val values = sortedSetOf<Int>()
-        spec.replace(SPACES, "").split(",").forEach { raw ->
-            if (values.size >= CardNumberRules.MAX_LENGTH - CardNumberRules.MIN_LENGTH + 1) {
-                return@forEach
-            }
-            val token = raw.trim()
-            val range = RANGE.matchEntire(token)
-            if (range != null) {
-                val first = range.groupValues[1].toIntOrNull()
-                val second = range.groupValues[2].toIntOrNull()
-                if (first != null && second != null && first <= second) {
-                    val start = maxOf(CardNumberRules.MIN_LENGTH, first)
-                    val end = minOf(CardNumberRules.MAX_LENGTH, second)
-                    var length = start
-                    while (length <= end) {
-                        values.add(length)
-                        length++
-                    }
-                }
-            } else {
-                token.toIntOrNull()
-                    ?.takeIf { it in CardNumberRules.MIN_LENGTH..CardNumberRules.MAX_LENGTH }
-                    ?.let(values::add)
-            }
-        }
-        return values.joinToString(",")
+        return CardNumberRules.parseLengths(spec).joinToString(",")
     }
 
     /** Strict form used by the editor: every token must itself be a valid card length. */
@@ -79,23 +54,31 @@ object NetworkRuleSanitizer {
         return any
     }
 
-    /** Keeps only numeric prefixes/ranges, drops junk and caps the spec's size. */
+    /** Keeps whole numeric prefixes/ranges only, dropping junk, reversed ranges and overflow. */
     fun prefixes(spec: String): String {
         if (spec.length > MAX_PREFIX_SPEC * 2) return ""
-        val tokens = spec.replace(SPACES, "").split(",")
-            .mapNotNull { token ->
-                val match = PREFIX_TOKEN.matchEntire(token.trim()) ?: return@mapNotNull null
-                val first = match.groupValues[1].toIntOrNull() ?: return@mapNotNull null
-                val secondText = match.groupValues[2]
-                if (secondText.isEmpty()) {
-                    match.groupValues[1]
-                } else {
-                    val second = secondText.toIntOrNull() ?: return@mapNotNull null
-                    if (first <= second) "$first-$second" else "$second-$first"
-                }
+        val kept = mutableListOf<String>()
+        var joinedLength = 0
+        for (raw in spec.replace(SPACES, "").split(",")) {
+            val token = raw.trim()
+            val match = PREFIX_TOKEN.matchEntire(token) ?: continue
+            val firstText = match.groupValues[1]
+            val secondText = match.groupValues[2]
+            val normalized = if (secondText.isEmpty()) {
+                firstText
+            } else {
+                val first = firstText.toIntOrNull() ?: continue
+                val second = secondText.toIntOrNull() ?: continue
+                if (first > second) continue
+                "$firstText-$secondText"
             }
-            .take(MAX_TOKENS)
-        return tokens.joinToString(",").take(MAX_PREFIX_SPEC)
+            val extra = if (kept.isEmpty()) normalized.length else normalized.length + 1
+            if (joinedLength + extra > MAX_PREFIX_SPEC) break
+            kept += normalized
+            joinedLength += extra
+            if (kept.size >= MAX_TOKENS) break
+        }
+        return kept.joinToString(",")
     }
 
     /** A display code that always satisfies the editor's `[A-Z0-9 ]{2,15}` rule. */
