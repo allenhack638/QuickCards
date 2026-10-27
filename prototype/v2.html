@@ -462,10 +462,10 @@ function saveScroll() { if (top().name === 'home') { const sc = $('.scroll', scr
 const ROOT = { cards: 'home', manage: 'manage', settings: 'settings' };
 
 const PRIVACY_TEXT = `QuickCards privacy policy
-Effective 27 October 2026
+Effective 28 October 2026
 
 Who we are
-QuickCards (package com.quickcards.app) is a local-first card organizer published by allenhack638. Privacy contact: open an issue at https://github.com/allenhack638/QuickCards/issues or use the developer email shown on the Google Play listing.
+QuickCards (package com.quickcards.app) is a local-first card organizer published by Surety. Privacy contact: support@surety.money.
 
 What the app stores
 You can enter card details (card number, expiry, CVV, name on card), plus a bank, card type, network, tags, a note and an optional payment due day. Holder, bank, card type, network and tag names are stored too.
@@ -499,7 +499,7 @@ Changes
 If this policy changes, the new version is published at this URL and in the app with a new effective date.
 
 Contact
-Privacy questions: https://github.com/allenhack638/QuickCards/issues or the developer email on the Google Play listing.`;
+Privacy questions: support@surety.money.`;
 function goTab(t) { if (S.tab === t && S.stack.length === 1) return; saveScroll(); S.noteOpen.clear(); S.tab = t; S.search = { on: false, q: '' }; S.stack = [{ name: ROOT[t] }]; render('fade'); }
 function back() {
   if (!bio.hidden) return closeBio();

@@ -9,7 +9,7 @@ it current when the Console answers or the release process change.
 |---|---|
 | `targetSdk`/`compileSdk` **36** (required since 31 Aug 2026) | Done in `app/build.gradle`; AGP 8.9.2 |
 | Signed **AAB** | `./gradlew :app:bundleRelease`; CI uploads the `.aab` + `mapping.txt` as the `play-upload` artifact |
-| Public privacy-policy URL | `docs/privacy.html` — publish it (GitHub Pages on `/docs`) and put the URL in Play Console |
+| Public privacy-policy URL | `https://surety.money/privacy.html`, served from `docs/privacy.html` by GitHub Pages (`docs/CNAME`) |
 | In-app privacy policy | Settings › About › Privacy policy, bundled in `res/values/strings_privacy.xml` (no network) |
 | Data safety / content declarations | Answers below; enter them in Play Console |
 | 12 testers × 14 continuous days | Not started; see the tester plan below |
@@ -33,7 +33,7 @@ it current when the Console answers or the release process change.
 
 ### App content
 
-- **Privacy policy:** the published `docs/privacy.html` URL.
+- **Privacy policy:** `https://surety.money/privacy.html`.
 - **Ads:** No.
 - **Sign-in details:** the app has no account, but the app lock is an authentication gate.
   Under "Any other instructions", say:

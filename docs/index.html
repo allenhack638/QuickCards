@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surety</title>
+<meta name="description" content="Surety makes private, offline tools for the cards you carry.">
+<link rel="icon" href="brand/stub-lock/icon-play-512.svg" type="image/svg+xml">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f6f3; --ink: #141414; --muted: #5d5b57; --rule: #dedbd4; --accent: #c8202b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0d0d0d; --ink: #f1efea; --muted: #a29f98; --rule: #2a2927; --accent: #e0444e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 40rem; margin: 0 auto; padding: 18vh 1.25rem 4rem; }
+  .word { font-size: 2.6rem; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .lede { color: var(--muted); font-size: 1.15rem; margin: .5rem 0 0; max-width: 30rem; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3.5rem 0 2rem; }
+  .eyebrow { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 1.25rem; }
+  .app { display: flex; gap: 1rem; align-items: flex-start; }
+  .app img { width: 56px; height: 56px; border-radius: 14px; flex: none; }
+  .app h2 { font-size: 1.15rem; margin: 0; }
+  .app p { margin: .25rem 0 .75rem; color: var(--muted); }
+  .links { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; font-size: .95rem; }
+  a { color: var(--ink); text-decoration-color: var(--accent); text-underline-offset: .2em; }
+  a:hover { color: var(--accent); }
+  footer { margin-top: 4rem; font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="word">Surety</h1>
+  <p class="lede">Private, offline tools for the cards you carry. Nothing leaves your phone.</p>
+
+  <hr>
+  <p class="eyebrow">Apps</p>
+  <section class="app">
+    <img src="brand/stub-lock/icon-play-512.svg" alt="">
+    <div>
+      <h2>QuickCards</h2>
+      <p>Copy a card number, expiry or CVV in one tap. Encrypted on your device, no internet permission.</p>
+      <div class="links">
+        <a href="https://github.com/allenhack638/QuickCards/releases/latest">Download</a>
+        <a href="privacy.html">Privacy policy</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="mailto:support@surety.money">support@surety.money</a>
+  </footer>
+</main>
+</body>
+</html>
