@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.quickcards.app.core.data.repository.DemoSeeder
 import com.quickcards.app.core.ui.base.BaseActivity
 import com.quickcards.app.core.security.AppLockController
+import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.InteractionTrackingWindowCallback
 import com.quickcards.app.navigation.QcApp
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
@@ -49,6 +50,11 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    override fun onSecureResume() {
+        // A copy timer dies with the process; clear an overdue value while we can read the clip.
+        ClipboardHelper.expireIfNeeded(this)
     }
 
     private fun installInteractionTracking() {

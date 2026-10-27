@@ -17,10 +17,18 @@ object PanHasher {
     @Volatile
     private var hmacKey: SecretKey? = null
 
-    fun hash(cardNumber: String): String {
+    fun hash(cardNumber: String): String = mac(normalize(cardNumber))
+
+    /**
+     * HMAC over arbitrary text (no digit normalization). Used for equality checks such as the
+     * clipboard deadline, where a plain SHA-256 of a 3-digit CVV would be brute-forceable.
+     */
+    fun hashText(text: String): String = mac(text)
+
+    private fun mac(value: String): String {
         val mac = Mac.getInstance(MAC_ALGORITHM)
         mac.init(getKey())
-        val digest = mac.doFinal(normalize(cardNumber).toByteArray(Charsets.UTF_8))
+        val digest = mac.doFinal(value.toByteArray(Charsets.UTF_8))
         return Base64.encodeToString(digest, Base64.NO_WRAP)
     }
 
