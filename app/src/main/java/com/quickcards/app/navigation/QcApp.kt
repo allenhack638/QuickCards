@@ -96,6 +96,7 @@ import com.quickcards.app.feature.manage.ManageScreen
 import com.quickcards.app.feature.manage.ManageViewModel
 import com.quickcards.app.feature.manage.entityKindFromRoute
 import com.quickcards.app.feature.manage.routeKey
+import com.quickcards.app.feature.settings.PrivacyScreen
 import com.quickcards.app.feature.settings.SettingsScreen
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
@@ -108,6 +109,7 @@ private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_CARD_ADD = "card/add"
 private const val ROUTE_CARD_EDIT = "card/edit/{cardId}"
 private const val ROUTE_ARCHIVED = "archived"
+private const val ROUTE_PRIVACY = "privacy"
 
 private val RootRoutes = setOf(ROUTE_CARDS, ROUTE_MANAGE, ROUTE_SETTINGS)
 private val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
@@ -321,13 +323,17 @@ fun QcApp() {
                             bottomInset = contentBottomInset
                         )
                     }
+                    composable(ROUTE_PRIVACY) {
+                        PrivacyScreen(onBack = { navController.popBackStack() })
+                    }
                     composable(ROUTE_SETTINGS) {
                         Box(modifier = tabModifier) {
                             SettingsScreen(
                                 bottomInset = tabBottomInset,
                                 onExport = backupHostState::requestExport,
                                 onImport = backupHostState::requestImport,
-                                onErase = backupHostState::requestErase
+                                onErase = backupHostState::requestErase,
+                                onPrivacy = { navController.navigate(ROUTE_PRIVACY) }
                             )
                         }
                     }

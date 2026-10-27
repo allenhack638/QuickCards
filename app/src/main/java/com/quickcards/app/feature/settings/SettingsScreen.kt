@@ -99,7 +99,8 @@ fun SettingsScreen(
     bottomInset: Dp = 0.dp,
     onExport: () -> Unit = {},
     onImport: () -> Unit = {},
-    onErase: () -> Unit = {}
+    onErase: () -> Unit = {},
+    onPrivacy: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val settings = remember(context) { AppSettings.get(context) }
@@ -550,6 +551,12 @@ fun SettingsScreen(
                 icon = QcIcons.info,
                 title = stringResource(R.string.settings_version_title),
                 subtitle = stringResource(R.string.settings_version_value, BuildConfig.VERSION_NAME)
+            )
+            ValueRow(
+                icon = QcIcons.shield,
+                title = stringResource(R.string.settings_privacy_title),
+                subtitle = stringResource(R.string.settings_privacy_subtitle),
+                onClick = onPrivacy
             )
             StaticRow(
                 icon = QcIcons.offline,
