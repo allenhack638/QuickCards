@@ -20,6 +20,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.trackAppLockInteraction
@@ -56,7 +58,10 @@ fun QcModalBottomSheet(
     val dismiss = remember { { latestDismiss() } }
     val stableContent: @Composable ColumnScope.() -> Unit = remember {
         {
-            Column(modifier = Modifier.fillMaxWidth().trackAppLockInteraction()) { latestContent() }
+            Column(modifier = Modifier.fillMaxWidth().trackAppLockInteraction()) {
+                SecureOverlayWindow()
+                latestContent()
+            }
         }
     }
     ModalBottomSheet(
@@ -66,6 +71,7 @@ fun QcModalBottomSheet(
         containerColor = containerColor,
         dragHandle = { QcSheetDragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets.union(WindowInsets.ime) },
+        properties = ModalBottomSheetProperties(securePolicy = SecureFlagPolicy.Inherit),
         content = stableContent
     )
 }
@@ -101,7 +107,10 @@ fun QcDropdownMenu(
         offset = offset,
         scrollState = scrollState,
         properties = properties,
-        content = content
+        content = {
+            SecureOverlayWindow()
+            content()
+        }
     )
 }
 
@@ -119,6 +128,7 @@ fun QcPopup(
         onDismissRequest = onDismissRequest,
         properties = properties
     ) {
+        SecureOverlayWindow()
         Box(modifier = Modifier.trackAppLockInteraction()) {
             content()
         }

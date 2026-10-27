@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.quickcards.app.core.ui.theme.QcDimens
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
@@ -51,8 +52,13 @@ fun QcDialog(
     val avoidAppBar = density.fontScale > 1.15f || configuration.screenHeightDp < 500
     Dialog(
         onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+            securePolicy = SecureFlagPolicy.Inherit
+        )
     ) {
+        SecureOverlayWindow()
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
