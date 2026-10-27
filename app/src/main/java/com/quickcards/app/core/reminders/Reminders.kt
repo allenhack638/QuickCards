@@ -202,9 +202,14 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 }
 
-/** Alarms do not survive a reboot; re-arm the daily check. */
+/** Alarms do not survive a reboot, a clock change or an app update; re-arm the daily check. */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) Reminders.ensureScheduled(context)
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED -> Reminders.ensureScheduled(context)
+        }
     }
 }
