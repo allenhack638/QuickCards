@@ -139,7 +139,7 @@
   <h2>Try</h2>
   <ul>
     <li>Tap the masked number, expiry, CVV or name to copy it. Hold the number or CVV to see it for 5 seconds.</li>
-    <li>After copying a number, a notification shows expiry and CVV for 30 seconds.</li>
+    <li>If enabled, after copying a number a silent notification shows expiry and CVV for 30 seconds.</li>
     <li>Use the holder chips to switch between card holders.</li>
     <li>Pin a card from its More sheet to keep it at the top of the list.</li>
     <li>Manage holders, banks, networks, types and tags from the Manage tab. Try renaming or deleting one that cards use.</li>
@@ -266,12 +266,12 @@ const PINNED_MAX = 10, TAGS_MAX = 10, TAGS_LEN = 16;
 
 /* ---------- Data ---------- */
 const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
-const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
+const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: false, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
 const cleanCfg = c => ({
   theme: c.theme ?? 'dark', windowSec: c.windowSec ?? 60,
   clipSec: c.clipSec ?? 60, mask: c.mask ?? true, expiredCards: c.expiredCards ?? 'end',
   expiresSoonMonths: c.expiresSoonMonths ?? 1, showNotes: c.showNotes ?? true,
-  notif: { on: c.notif?.on ?? true, sec: c.notif?.sec ?? 30 },
+  notif: { on: c.notif?.on ?? false, sec: c.notif?.sec ?? 30 },
   tags: { show: c.tags?.show ?? true },
   appLock: { on: c.appLock?.on ?? true, after: c.appLock?.after ?? 60, onLeave: c.appLock?.onLeave ?? true }
 });
@@ -421,6 +421,8 @@ function renderClip() { const el = $('#clip'); if (el) el.innerHTML = S.clip ? `
 
 /* ---------- Heads-up notification ---------- */
 let hunT, hunI;
+/* Content preview only: the app posts this as a silent system notification in the shade
+   (off by default), not as an in-app heads-up. */
 function showHun(c) {
   const n = S.cfg.notif; if (!n.on) return;
   const last4 = c.number.slice(-4);

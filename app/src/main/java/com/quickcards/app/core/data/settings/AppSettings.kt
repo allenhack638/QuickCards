@@ -40,7 +40,11 @@ object AppSettingsDefaults {
 
     const val SHOW_NOTES = true
 
-    const val NOTIF_ENABLED = true
+    /**
+     * Off by default: the notification can show the CVV, so it is enabled only by a user action
+     * (which asks for a fresh unlock) instead of appearing on a fresh install.
+     */
+    const val NOTIF_ENABLED = false
     const val NOTIF_SEC = 30
     val NOTIF_SEC_OPTIONS = listOf(15, 30, 60)
 

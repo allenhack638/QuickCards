@@ -20,7 +20,7 @@ class AppSettingsTest {
         assertEquals(ExpiredPlacement.END, settings.expiredCards.value)
         assertEquals(1, settings.expiresSoonMonths.value)
         assertTrue(settings.showNotes.value)
-        assertTrue(settings.notifEnabled.value)
+        assertFalse(settings.notifEnabled.value)
         assertEquals(30, settings.notifSec.value)
         assertTrue(settings.tagsShow.value)
         assertTrue(settings.appLockEnabled.value)
@@ -240,7 +240,7 @@ class AppSettingsTest {
 
         assertEquals("end", defaults[AppSettings.KEY_EXPIRED_CARDS_NAME])
         assertEquals(1, defaults[AppSettings.KEY_EXPIRES_SOON_MONTHS_NAME])
-        assertEquals(true, defaults[AppSettings.KEY_NOTIF_ENABLED_NAME])
+        assertEquals(false, defaults[AppSettings.KEY_NOTIF_ENABLED_NAME])
         assertEquals(true, defaults[AppSettings.KEY_SHOW_NOTES_NAME])
 
         val settings = AppSettings(FakePreferences())

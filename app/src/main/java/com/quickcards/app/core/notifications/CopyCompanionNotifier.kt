@@ -9,10 +9,17 @@ import android.content.Intent
 import com.quickcards.app.MainActivity
 import com.quickcards.app.R
 
-/** Post-copy notification: shows the expiry and CVV when enabled in Settings; no actions. */
+/**
+ * Post-copy notification: shows the expiry and CVV when enabled in Settings; no actions.
+ *
+ * The channel is low-importance and silent on purpose: this is a reference card the user can
+ * pull down while pasting, not a heads-up that renders the CVV over whatever app is in front.
+ * The channel id changed with 2.4.0 because channel importance is immutable once created.
+ */
 object CopyCompanionNotifier {
 
-    const val CHANNEL_ID = "card_details"
+    const val CHANNEL_ID = "card_details_v2"
+    private const val LEGACY_CHANNEL_ID = "card_details"
     const val NOTIFICATION_ID = 1001
 
 
@@ -67,12 +74,20 @@ object CopyCompanionNotifier {
     }
 
     private fun ensureChannel(context: Context, manager: NotificationManager) {
+        // Users upgrading from 2.3 keep the old channel; its importance cannot be lowered, so
+        // delete it and post future copies through the silent channel.
+        if (manager.getNotificationChannel(LEGACY_CHANNEL_ID) != null) {
+            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+        }
         if (manager.getNotificationChannel(CHANNEL_ID) != null) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             context.getString(R.string.notif_channel_name),
-            NotificationManager.IMPORTANCE_HIGH
-        )
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        }
         manager.createNotificationChannel(channel)
     }
 
