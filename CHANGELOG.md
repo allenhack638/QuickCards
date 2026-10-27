@@ -5,11 +5,11 @@ All notable changes to this project are documented in this file.
 ## [2.4.0] - 2026-10-27
 
 - Security: copied values are marked sensitive on Android 13+ so the system clipboard preview
-  no longer renders the card, and a copy whose timer was lost to process death is cleared the
+  no longer renders the card, and a copy whose timer was lost to process death is cleared on the
   first focused read after process death. The clipboard stays usable while switching apps to paste.
-- Security: the expiry/CVV notification is off by default (enabling it still asks to unlock)
-  and posts on a new silent, low-importance channel; upgrading installs get the old channel
-  removed. It no longer appears as a heads-up over other apps.
+- Security: the expiry/CVV notification is off by default on a fresh install (a 2.3 upgrade
+  with no stored switch is migrated to on once; enabling it still asks to unlock) and posts on
+  a new silent, low-importance channel; upgrading installs get the old channel removed. It no longer appears as a heads-up over other apps.
 - Security: dialogs, sheets and popups now apply `filterTouchesWhenObscured` and, on Android
   12+, hide overlay windows, so confirmation dialogs cannot be tapjacked.
 - Security: a backup's network rules are bounded on import (`lengths` can no longer expand a

@@ -33,7 +33,7 @@ Fast daily card access on a device-local vault for one or several card holders. 
 - Card details can be scanned with the keyboard's own scan tool where the keyboard offers it: pasted or scanned text fills the number and expiry, never the CVV, and no camera permission is used.
 - A card past the last day of its expiry month renders as a neutral graphite pass with an outlined "Expired" chip; it stays fully usable (copy, hold to reveal, edit, pin, archive, delete). A card expiring within the chosen 1, 2 or 3 months (default 1) shows a plain "Expires soon" label and is otherwise unchanged. Archived cards live in Manage › Archived cards, and a card's note can show on its pass. Settings › Card list holds those three choices.
 - CVV is always masked by default and re-masks five seconds after a reveal.
-- After a card number is copied, an optional silent notification (off by default; turning it on asks to unlock) shows that card's expiry and CVV for 30 seconds (configurable time; hidden on the lock screen, kept in the shade while the user switches apps). It is not a heads-up and has no buttons; values are copied from the card.
+- After a card number is copied, an optional silent notification (off by default for fresh installs; a 2.3 upgrade keeps the old on setting; turning it on asks to unlock) shows that card's expiry and CVV for 30 seconds (configurable time; hidden on the lock screen, kept in the shade while the user switches apps). It is not a heads-up and has no buttons; values are copied from the card.
 - Data moves between installs only through the user-initiated encrypted export/import in Settings, protected by a backup password.
 - No network is required or used.
 
