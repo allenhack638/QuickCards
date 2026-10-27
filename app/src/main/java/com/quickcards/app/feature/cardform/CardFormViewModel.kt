@@ -235,6 +235,16 @@ class CardFormViewModel(
         val network = form.network(attempted.lists.networks)
         val base = editingCard
         val holderName = attempted.lists.holderName(form.holderId).orEmpty()
+        // Editing another field must not silently rewrite the imported network override or a
+        // name-on-card that differs from the holder's display name.
+        val holderChanged = base != null && base.holderId != form.holderId
+        // A number edit re-detects the network; otherwise an imported override survives.
+        val numberChanged = base != null && base.number != form.number
+        val nameOnCard = if (base != null && !holderChanged && base.nameOnCard.isNotBlank()) {
+            base.nameOnCard
+        } else {
+            holderName.trim().uppercase(Locale.ROOT)
+        }
         val card = VaultCard(
             id = base?.id ?: java.util.UUID.randomUUID().toString(),
             number = form.number,
@@ -242,11 +252,11 @@ class CardFormViewModel(
             cvv = form.cvv,
             holderId = form.holderId,
             bankId = form.bankId,
-            networkId = null,
-            networkAuto = true,
+            networkId = if (numberChanged) null else base?.networkId,
+            networkAuto = if (numberChanged) true else base?.networkAuto ?: true,
             typeId = form.typeId,
-            nameOnCard = holderName.trim().uppercase(Locale.ROOT),
-            cardName = "",
+            nameOnCard = nameOnCard,
+            cardName = base?.cardName.orEmpty(),
             note = form.note.trim(),
             dueDay = form.dueDay.toIntOrNull()?.takeIf { it in 1..31 },
             bandColor = form.bandColor,
