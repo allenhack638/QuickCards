@@ -1,7 +1,8 @@
 package com.quickcards.app.core.data.backup
 
 import androidx.room.withTransaction
-import com.quickcards.domain.NetworkLabelMax
+import com.quickcards.domain.EntityKind
+import com.quickcards.domain.NetworkRuleSanitizer
 import com.quickcards.app.core.data.database.QuickCardsDatabase
 import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.model.Bank
@@ -135,7 +136,7 @@ object BackupImporter {
         }
         val holderMap = linkedMapOf<String, String?>()
         content.holders.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.HOLDER, item.name)
             if (displayName.isEmpty()) return@forEach
             val name = normalizeName(displayName)
             val id = holderIdsByName[name] ?: run {
@@ -157,7 +158,7 @@ object BackupImporter {
         }
         val bankMap = linkedMapOf<String, String?>()
         content.banks.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.BANK, item.name)
             if (displayName.isEmpty()) return@forEach
             val name = normalizeName(displayName)
             val id = bankIdsByName[name] ?: run {
@@ -180,7 +181,7 @@ object BackupImporter {
         }
         val typeMap = linkedMapOf<String, String?>()
         content.types.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.TYPE, item.name)
             if (displayName.isEmpty()) return@forEach
             val name = normalizeName(displayName)
             val id = typeIdsByName[name] ?: run {
@@ -199,7 +200,7 @@ object BackupImporter {
         }
         val tagMap = linkedMapOf<String, String?>()
         content.tags.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.TAG, item.name)
             if (displayName.isEmpty()) return@forEach
             val name = normalizeName(displayName)
             val id = tagIdsByName[name] ?: run {
@@ -222,19 +223,20 @@ object BackupImporter {
         val existingNetworkIdsByName = networkIdsByName.toMap()
         val networkMap = linkedMapOf<String, String?>()
         content.networks.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.NETWORK, item.name)
             if (displayName.isEmpty()) return@forEach
             val name = normalizeName(displayName)
             val id = networkIdsByName[name] ?: run {
+                val lengths = NetworkRuleSanitizer.lengths(item.lengths).ifEmpty { "16" }
                 val created = CardNetwork(
                     id = UUID.randomUUID().toString(),
                     name = displayName,
-                    code = item.code.take(NetworkLabelMax),
-                    prefixes = item.prefixes,
-                    lengths = item.lengths,
+                    code = NetworkRuleSanitizer.code(item.code),
+                    prefixes = NetworkRuleSanitizer.prefixes(item.prefixes),
+                    lengths = lengths,
                     cvvLength = if (item.cvv == 4) 4 else 3,
                     luhn = item.luhn,
-                    groups = item.groups,
+                    groups = NetworkRuleSanitizer.groups(item.groups, lengths),
                     sortOrder = nextNetworkSort++,
                     builtIn = false
                 )
@@ -401,7 +403,7 @@ object BackupImporter {
         networkAuto = resolved.networkAuto,
         typeId = resolved.typeId,
         nameOnCard = encryption.encryptMetadata(
-            resolved.nameOnCard.trim().uppercase(Locale.ROOT)
+            resolved.nameOnCard.trim().uppercase(Locale.ROOT).take(64)
         ),
         bandColor = resolved.color,
         sortOrder = sortOrder,
@@ -410,6 +412,8 @@ object BackupImporter {
         archived = resolved.archived,
         archivedAt = if (resolved.archived) resolved.archivedAt else null,
         archiveReason = resolved.archiveReason
+            .trim()
+            .take(40)
             .takeIf { it.isNotBlank() }
             ?.let(encryption::encryptMetadata),
         needsReview = reviewMask

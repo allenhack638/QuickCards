@@ -2,6 +2,10 @@ package com.quickcards.domain
 
 object CardNumberRules {
 
+    const val MIN_LENGTH = 12
+    const val MAX_LENGTH = 19
+    private const val MAX_PARSED_LENGTHS = MAX_LENGTH - MIN_LENGTH + 1
+
     private val RANGE = Regex("""^(\d+)\s*-\s*(\d+)$""")
     private val DIGITS = Regex("""^\d+$""")
     private val DEFAULT_GROUPS = listOf(4, 4, 4, 4, 3)
@@ -16,19 +20,30 @@ object CardNumberRules {
         19 to listOf(4, 4, 4, 4, 3)
     )
 
+    /**
+     * Parses a `12,16,19` / `14-19` style length spec. Only card lengths are kept, and a
+     * range is clamped: an imported rule like `1-2147483647` must never allocate a huge set.
+     */
     fun parseLengths(spec: String): List<Int> {
         val lengths = sortedSetOf<Int>()
         spec.split(",").forEach { raw ->
+            if (lengths.size >= MAX_PARSED_LENGTHS) return@forEach
             val token = raw.trim()
             val range = RANGE.matchEntire(token)
             if (range != null) {
-                val start = range.groupValues[1].toIntOrNull()
-                val end = range.groupValues[2].toIntOrNull()
-                if (start != null && end != null) {
-                    for (length in start..end) lengths.add(length)
+                val first = range.groupValues[1].toIntOrNull()
+                val second = range.groupValues[2].toIntOrNull()
+                if (first != null && second != null && first <= second) {
+                    val start = maxOf(MIN_LENGTH, first)
+                    val end = minOf(MAX_LENGTH, second)
+                    var length = start
+                    while (length <= end && lengths.size < MAX_PARSED_LENGTHS) {
+                        lengths.add(length)
+                        length++
+                    }
                 }
             } else if (DIGITS.matches(token)) {
-                token.toIntOrNull()?.let(lengths::add)
+                token.toIntOrNull()?.takeIf { it in MIN_LENGTH..MAX_LENGTH }?.let(lengths::add)
             }
         }
         return lengths.toList()
