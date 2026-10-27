@@ -118,6 +118,15 @@ class AutofillPickerActivity : BaseActivity() {
         if (unlocked && !isFinishing) cancel()
     }
 
+    /**
+     * `onUserLeaveHint` does not run on screen-off, so a stopped picker would otherwise keep the
+     * decrypted card list behind the keyguard and fill on one tap after the device unlocks.
+     */
+    override fun onStop() {
+        super.onStop()
+        if (unlocked && !isFinishing && !isChangingConfigurations) cancel()
+    }
+
     companion object {
         fun intent(context: Context, target: FillTarget): Intent =
             target.writeTo(Intent(context, AutofillPickerActivity::class.java))
