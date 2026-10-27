@@ -154,7 +154,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | Layer | Mechanism | Where |
 |---|---|---|
 | Sensitive card fields | Envelope encryption: a non-exportable Android Keystore AES key (KEK) wraps one random AES-256 data key (DEK, stored wrapped in `quickcards_vault_key` prefs, unwrapped once per process, never persisted in the clear). Fields are AES-256-GCM under the DEK in software (`v2:` prefix, random 12-byte IV, 128-bit tag), so a decrypt costs microseconds. Values without the prefix are pre-2.1 rows encrypted directly with the KEK; they still decrypt and `DataMaintenance.wrapUnderDataKey` re-wraps them at start-up (`EnvelopeMigrationTest`). A wrapped DEK that no longer unwraps means the KEK is gone: no new DEK is generated, so the vault reads as unavailable instead of restarting empty. | `core/security/EncryptionHelper.kt` |
-| Names / bank / note metadata | `md1:` envelope around the same `v2:` ciphertext, idempotent (`encryptMetadata`) | `EncryptionHelper.kt` |
+| Holder / card bank / note metadata | `md1:` envelope around the same `v2:` ciphertext, idempotent (`encryptMetadata`). The `banks`, `card_types`, `networks`, `tags` tables and the legacy `cardVariant` label are plain (not card data); the bank name copied onto a card is encrypted. | `EncryptionHelper.kt` |
 | Duplicate detection | Separate Keystore HMAC-SHA256 key over ASCII digits; unique index on `cards.panHash`. In a backup file the first copy of a number wins (`BackupPlanner.uniqueCards`, review shows the skipped count); on upgrade `DataMaintenance.removeDuplicateCards` deletes extra copies, keeping the most recently edited one and merging tags and a missing note (`DuplicateCleanupTest`) | `core/security/PanHasher.kt`, `Card` index |
 | Repair log / archive reason | `card_repairs.before` and `.after` use `encrypt` (both are card data); `cards.archiveReason` uses `encryptMetadata`; never logged | `core/data/repository/LegacyRepair.kt`, `VaultRepository` |
 | Key-loss detection | `core/security/KeySentinel.kt` keeps an encrypted sentinel in private prefs and checks it at start-up; when the Keystore key is gone, Cards shows the "Cards unavailable" dialog (`feature/cards/KeyUnavailableDialog.kt`) instead of rendering ciphertext. Covered by `KeySentinelTest`. |
@@ -162,11 +162,12 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | Authentication | `BiometricPrompt` with device-credential fallback (API 30+ combined, older `setDeviceCredentialAllowed`); fail-closed | `core/security/UnlockSession.kt` |
 | Unlock window | One successful prompt; idle time only (touch/key/scroll/typing extends); no countdown shown | `UnlockSession`, `CopyWindowPolicy` |
 | App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals; the clipboard and the notification keep their own timers so a paste into another app works | `core/security/AppLockController.kt` |
-| Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking | `core/ui/components`, `core/ui/LockGate.kt` |
-| Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+, cleared after the setting, and always on background | `core/security/ClipboardHelper.kt` |
-| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; values are copied from the card, and the CVV is only shown after a fresh unlock turns the setting on | `core/notifications/CopyCompanionNotifier.kt` |
+| Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking; `SecureOverlayWindow()` applies `filterTouchesWhenObscured` and (API 31+) `setHideOverlayWindows` to each overlay window | `core/ui/components`, `core/ui/LockGate.kt` |
+| Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+; cleared after the chosen time, by Clear, or by a new copy. The value deliberately survives switching apps so it can be pasted. The timer dies with the process, so the deadline (a keyed HMAC-SHA256 token, never the value) is persisted and an overdue copy is cleared on the next foreground resume. It is not cleared merely because the app went to the background. | `core/security/ClipboardHelper.kt` |
+| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; silent, low-importance channel (new id, the old channel is deleted on upgrade); **off by default**, and turning it on asks for a fresh unlock before the CVV is ever shown | `core/notifications/CopyCompanionNotifier.kt` |
 | Screen capture | `FLAG_SECURE` on every activity in release (`BuildConfig.SECURE_WINDOW`); recents screenshot disabled on API 33+; debug deliberately allows QA screenshots | `core/ui/base/BaseActivity.kt` |
-| Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest` | `AndroidManifest.xml`, `app/build.gradle` |
+| Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest`. The EmojiCompat initializer is removed in the manifest so the default downloadable-font path cannot run. | `AndroidManifest.xml`, `app/build.gradle` |
+| Privacy policy | Bundled as text in Settings › About, so it needs no WebView or network permission; the public copy is `docs/privacy.html` | `feature/settings/PrivacyScreen.kt`, `res/values/strings_privacy.xml` |
 
 **Invariants**
 
@@ -186,7 +187,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 
 ## 3. Build, test and device rules
 
-Requirements: JDK 17 (the version CI uses), Android SDK 34.
+Requirements: JDK 17 (the version CI uses), Android SDK 36.
 Use `./gradlew` from the repository root.
 
 ```bash
@@ -302,6 +303,14 @@ keyPassword=...
 `keystore.properties`. Debug builds intentionally allow screenshots for visual QA; never
 distribute a debug build.
 
+### Google Play release
+
+The Play upload is an `.aab` (`./gradlew :app:bundleRelease`) built with `targetSdk 36`, a
+public privacy policy plus the bundled in-app copy, and a complete Data safety form. See
+`docs/PLAY_RELEASE.md` for the Console answers and the tester plan. Play App Signing is
+mandatory for new apps; the legacy key described in `keystore/README.md` is compromised and
+must never be uploaded.
+
 ---
 
 ## 4. Current facts
@@ -313,8 +322,8 @@ distribute a debug build.
 | `android.permission.USE_BIOMETRIC`, `USE_FINGERPRINT` | App lock and sensitive actions | Device-credential fallback |
 | `android.permission.BIND_AUTOFILL_SERVICE` (on the service, not requested) | `core/autofill/QuickCardsAutofillService` offers "Search all cards" plus up to five cards (`AutofillChoice`: pinned, recent use from `CardUsage` ids and times, list order). Values are only decrypted after a fresh prompt, in `AutofillAuthActivity` (one card) or `AutofillPickerActivity` (search list, cancelled when the user leaves it). Type-to-narrow filters carry only the first six and last four digits. `onSaveRequest` is a no-op | Off via Settings › "Fill cards in other apps" |
 | `android.permission.NFC` (feature not required) | `core/nfc/NfcCardReader` reads PAN and expiry from a contactless chip while the Add-card "Tap your card" sheet is open; the CVV is never on the chip | Settings › "Add cards by tapping"; the row is hidden without NFC hardware |
-| `android.permission.RECEIVE_BOOT_COMPLETED` | `core/reminders/BootReceiver` re-arms the daily reminder alarm | Reminders are switched off in Settings |
-| `android.permission.POST_NOTIFICATIONS` | Copy companion notification (API 33+) | Text is private on the lock screen |
+| `android.permission.RECEIVE_BOOT_COMPLETED` | `core/reminders/BootReceiver` re-arms the daily reminder alarm after boot, an app update, or a clock/time-zone change | Each reminder has a Settings switch |
+| `android.permission.POST_NOTIFICATIONS` | Copy companion notification (off by default; API 33+) | Text is private on the lock screen |
 | `android.permission.HIDE_OVERLAY_WINDOWS` | Biometric prompt hardening (API 31+) | No runtime prompt |
 | `android.permission.INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA` | — | **Never present.** No network or camera dependency is declared; `OfflineManifestGuardTest` and `verifyOfflineManifest` parse the merged manifests |
 
@@ -324,7 +333,7 @@ scan tool) or the clipboard instead.
 
 ### Database
 
-- Room database `quickcards_database`, **version 12**, `exportSchema = true`.
+- Room database `quickcards_database`, **version 13**, `exportSchema = true`.
 - Schema JSON: `app/schemas/com.quickcards.app.core.data.database.QuickCardsDatabase/<version>.json`.
 - Tables: `cards`, `banks`, `holders`, `networks`, `card_types`, `tags`, `card_tags`,
   `card_repairs`.
@@ -332,8 +341,8 @@ scan tool) or the clipboard instead.
   index), `MIGRATION_8_9` (rebuild `cards`, drop the v1 `tags` table), `MIGRATION_9_10`
   (managed-list tables, card columns, seed networks/types, order backfill),
   `MIGRATION_10_11` (add `pinned`, `pinnedAt`), `MIGRATION_11_12` (add `archived`,
-  `archivedAt`, `archiveReason`, `needsReview`; create `card_repairs`). No
-  `fallbackToDestructiveMigration`.
+  `archivedAt`, `archiveReason`, `needsReview`; create `card_repairs`),
+  `MIGRATION_12_13` (add `dueDay`). No `fallbackToDestructiveMigration`.
 - `cards` archive/review columns: `archived INTEGER NOT NULL DEFAULT 0`,
   `archivedAt INTEGER`, `archiveReason TEXT` (`encryptMetadata`),
   `needsReview INTEGER NOT NULL DEFAULT 0` (bitmask 1 number, 2 expiry, 4 CVV).
@@ -399,7 +408,7 @@ restore fills missing keys with defaults, not the phone's current values.
 | Card list | Add cards by tapping (NFC phones only) | On / Off | On | `nfcAddEnabled` |
 | Reminders | Expiry reminders | On / Off | On | `expiryReminders` |
 | Reminders | Payment reminders | On / Off | On | `paymentReminders` |
-| Copying | Show expiry and CVV after copying (turning on asks to unlock) | On / Off | On | `notifEnabled` |
+| Copying | Show expiry and CVV after copying (turning on asks to unlock) | On / Off | Off | `notifEnabled` |
 | Copying | Notification time | 15 s / 30 s / 1 min | 30 s | `notifSec` |
 | Copying | Fill cards in other apps | On / Off (a restore can only turn it off) | On | `autofillEnabled` |
 | Tags | Show tags on cards | On / Off | On | `tagsShow` |

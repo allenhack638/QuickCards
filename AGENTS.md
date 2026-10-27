@@ -47,7 +47,7 @@ These rules apply to human contributors and AI coding agents alike.
 
 ## Build and test
 
-JDK 17, Android SDK 34, run from the repo root:
+JDK 17, Android SDK 36, run from the repo root:
 
 ```bash
 ./gradlew :domain:test
@@ -55,10 +55,12 @@ JDK 17, Android SDK 34, run from the repo root:
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:lintDebug
 ./gradlew :app:assembleRelease        # needs git-ignored keystore.properties
+./gradlew :app:bundleRelease          # Play upload (.aab)
 ```
 
 A Kapt warning about Kotlin 1.9 fallback for Room is expected. Test results live under
-`app/build/test-results/testDebugUnitTest/`.
+`app/build/test-results/testDebugUnitTest/`. Play Console declarations and the tester plan
+are in [`docs/PLAY_RELEASE.md`](docs/PLAY_RELEASE.md).
 
 ## Instrumented tests
 

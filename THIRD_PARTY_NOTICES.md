@@ -10,14 +10,13 @@ The full text is available at <https://www.apache.org/licenses/LICENSE-2.0>.
 
 | Component | Artifacts | Copyright |
 |---|---|---|
-| AndroidX core and lifecycle | `androidx.core:core-ktx`, `androidx.lifecycle:lifecycle-runtime-ktx`, `lifecycle-process`, `lifecycle-viewmodel-ktx`, `lifecycle-viewmodel-compose`, `lifecycle-livedata-ktx` | The Android Open Source Project |
+| AndroidX core and lifecycle | `androidx.core:core-ktx`, `androidx.lifecycle:lifecycle-runtime-ktx`, `lifecycle-process`, `lifecycle-viewmodel-ktx`, `lifecycle-viewmodel-compose` | The Android Open Source Project |
 | AndroidX Activity, Navigation and WindowManager | `androidx.activity:activity-compose`, `androidx.navigation:navigation-compose`, `androidx.window:window` | The Android Open Source Project |
-| Jetpack Compose | Compose BOM `2024.02.00`: `ui`, `ui-graphics`, `ui-tooling-preview`, `material3`, `runtime-livedata` (debug builds also include `ui-tooling` and `ui-test-manifest`) | The Android Open Source Project |
-| Material Icons (Compose) | `androidx.compose.material:material-icons-extended` | The Android Open Source Project / Google LLC |
+| AndroidX Profile Installer | `androidx.profileinstaller:profileinstaller` | The Android Open Source Project |
+| Jetpack Compose | Compose BOM `2024.12.01`: `ui`, `ui-graphics`, `material3`, `material-icons-extended` (debug builds also include `ui-tooling` and `ui-test-manifest`) | The Android Open Source Project |
 | Material Components for Android | `com.google.android.material:material` | The Android Open Source Project / Google LLC |
 | Room | `androidx.room:room-runtime`, `room-ktx` (and the `room-compiler` annotation processor at build time) | The Android Open Source Project |
 | Biometric | `androidx.biometric:biometric` | The Android Open Source Project |
-| AndroidX Security | `androidx.security:security-crypto` | The Android Open Source Project |
 | Gson | `com.google.code.gson:gson` | Google LLC |
 | colorpicker-compose | `com.github.skydoves:colorpicker-compose` | skydoves (Jaewoong Eum) |
 | Kotlin standard library and kotlinx.coroutines | `org.jetbrains.kotlin:kotlin-stdlib`, `org.jetbrains.kotlinx:kotlinx-coroutines-android` | JetBrains s.r.o. and Kotlin contributors |
@@ -32,8 +31,8 @@ The full text is available at <https://www.apache.org/licenses/LICENSE-2.0>.
 
 The Stub Lock logo and the QuickCards brand assets (`docs/brand/`, the launcher, splash,
 notification and lock-screen marks) are © allenhack638 and are not licensed under MIT
-unless stated otherwise. Card network names appear only as plain text labels; no issuer
-or network logos are bundled.
+unless stated otherwise. Card network names appear as text labels; the network marks and
+their trademark status are listed in the next section.
 
 ## Network marks
 

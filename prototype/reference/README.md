@@ -6,7 +6,7 @@ Captured from `prototype/v2.html` at a 390×844 phone frame (images are ~1.78× 
 |---|---|
 | 01-lock-screen.png | App lock screen (launch / inactivity / leave) |
 | 02-home-dark.png | Home: passes, unlock chip, holder chips, nav |
-| 03-home-copied-notification.png | After copying a number: field "Copied", snackbar, heads-up notification with expiry + CVV |
+| 03-home-copied-notification.png | Historical (pre-2.4.0): after copying a number, field "Copied" and snackbar. The mock heads-up in this capture is no longer the behaviour; 2.4.0 posts a silent notification in the shade. The Home layout and copy feedback still apply |
 | 04-search.png | Search mode (no bottom nav), hint line |
 | 05-filter-sheet.png | Filter bottom sheet with counts and pinned footer |
 | 06-card-actions-sheet.png | Card actions sheet (header swatch aligned to icon slot) |
