@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import com.quickcards.app.core.ui.theme.QcDimens
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
@@ -54,8 +53,7 @@ fun QcDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false,
-            securePolicy = SecureFlagPolicy.Inherit
+            decorFitsSystemWindows = false
         )
     ) {
         SecureOverlayWindow()

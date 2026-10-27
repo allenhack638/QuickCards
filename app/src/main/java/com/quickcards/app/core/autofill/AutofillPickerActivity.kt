@@ -112,15 +112,9 @@ class AutofillPickerActivity : BaseActivity() {
         finish()
     }
 
-    /** Decrypted cards never stay on screen behind another app: leaving the list cancels it. */
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (unlocked && !isFinishing) cancel()
-    }
-
     /**
-     * `onUserLeaveHint` does not run on screen-off, so a stopped picker would otherwise keep the
-     * decrypted card list behind the keyguard and fill on one tap after the device unlocks.
+     * Leaving the list (including screen-off, where `onUserLeaveHint` does not run) cancels the
+     * picker so decrypted cards are not kept behind the keyguard.
      */
     override fun onStop() {
         super.onStop()

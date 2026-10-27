@@ -203,8 +203,22 @@ data class CardFormSession(
     val reviewFields: Set<CardField> = emptySet(),
     val archived: Boolean = false,
     val archiveReason: String? = null,
+    private val baseNumber: String? = null,
+    private val baseNetworkId: String? = null,
+    private val baseNetworkAuto: Boolean = true,
     private val initialForm: CardFormModel? = null
 ) {
+
+    /**
+     * The network shown and reported by the form. An unchanged number keeps an imported
+     * network override; editing the number falls back to detection.
+     */
+    fun network(networks: List<CardNetwork>): CardNetwork? {
+        if (form.number == baseNumber && !baseNetworkAuto) {
+            networks.firstOrNull { it.id == baseNetworkId }?.let { return it }
+        }
+        return form.network(networks)
+    }
 
     private fun withForm(form: CardFormModel): CardFormSession = copy(form = form)
 
@@ -396,6 +410,9 @@ data class CardFormSession(
                 reviewFields = card.needsReview,
                 archived = card.archived,
                 archiveReason = card.archiveReason,
+                baseNumber = card.number,
+                baseNetworkId = card.networkId,
+                baseNetworkAuto = card.networkAuto,
                 initialForm = form
             )
         }

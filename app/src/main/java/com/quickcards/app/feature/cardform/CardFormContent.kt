@@ -124,7 +124,7 @@ internal fun CardFormContent(
 ) {
     val form = session.form
     val lists = session.lists
-    val network = form.network(lists.networks)
+    val network = session.network(lists.networks)
     val repairs by viewModel.repairs.collectAsState()
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
@@ -552,7 +552,7 @@ internal fun CardFormContent(
                     FormTextField(
                         value = cvvValue,
                         onValueChange = { input ->
-                            val next = CardFieldInput.cvv(input.text, form.network(lists.networks))
+                            val next = CardFieldInput.cvv(input.text, session.network(lists.networks))
                             viewModel.updateCvv(input.text)
                             cvvValue = TextFieldValue(next, TextRange(next.length))
                         },
@@ -815,7 +815,7 @@ private fun RepairUndo(onUndo: () -> Unit) {
 
 private fun CardFormSession.previewCard(bankFallback: String): HomeCard {
     val form = this.form
-    val network = form.network(lists.networks)
+    val resolvedNetwork = network(lists.networks)
     val holderName = lists.holderName(form.holderId).orEmpty()
     return HomeCard(
         card = VaultCard(
@@ -837,8 +837,8 @@ private fun CardFormSession.previewCard(bankFallback: String): HomeCard {
         bankName = lists.bankName(form.bankId) ?: bankFallback,
         holderName = holderName,
         typeName = lists.typeName(form.typeId),
-        network = network,
-        networkId = network?.id,
+        network = resolvedNetwork,
+        networkId = resolvedNetwork?.id,
         tagNames = form.tagIds.mapNotNull { lists.tagName(it) }
     )
 }

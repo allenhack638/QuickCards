@@ -104,11 +104,24 @@ object NetworkRuleSanitizer {
         return if (allowed.any { it.toLong() == total }) parts.joinToString("-") else ""
     }
 
+    /** Stable comparison key shared by imported and existing entity names. */
+    fun entityKey(
+        kind: EntityKind,
+        raw: String,
+        tagMaxLength: Int = EntityValidator.DEFAULT_TAG_MAX_LENGTH
+    ): String = entityName(kind, raw, tagMaxLength).lowercase(Locale.ROOT)
+
     /** A bounded display name for an imported holder/bank/type/tag/network. */
     fun entityName(
         kind: EntityKind,
         raw: String,
         tagMaxLength: Int = EntityValidator.DEFAULT_TAG_MAX_LENGTH
     ): String = EntityValidator.normalizeName(kind, raw)
-        .take(EntityValidator.nameLimit(kind, tagMaxLength))
+        .takeCodePoints(EntityValidator.nameLimit(kind, tagMaxLength))
+
+    private fun String.takeCodePoints(max: Int): String {
+        if (max <= 0) return ""
+        if (codePointCount(0, length) <= max) return this
+        return substring(0, offsetByCodePoints(0, max))
+    }
 }

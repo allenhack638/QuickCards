@@ -232,7 +232,7 @@ class CardFormViewModel(
         }
 
         val form = attempted.form
-        val network = form.network(attempted.lists.networks)
+        val network = attempted.network(attempted.lists.networks)
         val base = editingCard
         val holderName = attempted.lists.holderName(form.holderId).orEmpty()
         // A number edit re-detects the network; otherwise an imported override survives.

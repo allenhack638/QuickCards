@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
-import androidx.compose.ui.window.SecureFlagPolicy
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.trackAppLockInteraction
@@ -71,7 +70,7 @@ fun QcModalBottomSheet(
         containerColor = containerColor,
         dragHandle = { QcSheetDragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets.union(WindowInsets.ime) },
-        properties = ModalBottomSheetProperties(securePolicy = SecureFlagPolicy.Inherit),
+        properties = ModalBottomSheetProperties(),
         content = stableContent
     )
 }
