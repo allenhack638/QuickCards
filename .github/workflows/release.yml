@@ -149,7 +149,14 @@ jobs:
             echo "::error::No release AAB was produced."
             exit 1
           fi
-          jarsigner -verify "$aab" > /dev/null
+          verify_log=$(mktemp)
+          jarsigner -verify -strict "$aab" > "$verify_log" 2>&1 || true
+          if ! grep -q "jar verified" "$verify_log"; then
+            echo "::error::AAB signature verification failed"
+            cat "$verify_log"
+            exit 1
+          fi
+          rm -f "$verify_log"
           cp "$aab" "QuickCards-$VERSION_NAME.aab"
 
       - name: Upload Play upload artifacts
