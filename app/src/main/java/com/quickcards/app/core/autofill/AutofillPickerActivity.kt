@@ -44,7 +44,7 @@ class AutofillPickerActivity : BaseActivity() {
             if (!UnlockSession.requireUnlock(this@AutofillPickerActivity, reason, fresh = true)) return@launch cancel()
             unlocked = true
             val cards = loadCards()
-            val themeSettings = ThemeSettings(getSharedPreferences("quickcards_settings", MODE_PRIVATE))
+            val themeSettings = ThemeSettings(this@AutofillPickerActivity)
             setContent {
                 val themeMode by themeSettings.themeMode.collectAsState()
                 val dark = when (themeMode) {

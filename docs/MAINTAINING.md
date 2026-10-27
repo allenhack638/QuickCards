@@ -164,7 +164,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals; the clipboard and the notification keep their own timers so a paste into another app works | `core/security/AppLockController.kt` |
 | Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking; `SecureOverlayWindow()` applies `filterTouchesWhenObscured` and (API 31+) `setHideOverlayWindows` to each overlay window | `core/ui/components`, `core/ui/LockGate.kt` |
 | Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+; cleared after the chosen time, by Clear, or by a new copy. The value deliberately survives switching apps so it can be pasted. The timer dies with the process, so the deadline (a keyed HMAC-SHA256 token, never the value) is persisted and an overdue copy is cleared on the first focused read (onWindowFocusChanged). It is not cleared merely because the app went to the background. | `core/security/ClipboardHelper.kt` |
-| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; silent, low-importance channel (new id, the old channel is deleted on upgrade); **off by default**, and turning it on asks for a fresh unlock before the CVV is ever shown | `core/notifications/CopyCompanionNotifier.kt` |
+| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; silent, low-importance channel (new id, the old channel is deleted on upgrade); **off by default for fresh installs**; a 2.3 upgrade with no stored key is migrated to on once; turning it on asks for a fresh unlock before the CVV is ever shown | `core/notifications/CopyCompanionNotifier.kt` |
 | Screen capture | `FLAG_SECURE` on every activity in release (`BuildConfig.SECURE_WINDOW`); recents screenshot disabled on API 33+; debug deliberately allows QA screenshots | `core/ui/base/BaseActivity.kt` |
 | Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest`. The EmojiCompat initializer is removed in the manifest so the default downloadable-font path cannot run. | `AndroidManifest.xml`, `app/build.gradle` |
 | Privacy policy | Bundled as text in Settings › About, so it needs no WebView or network permission; the public copy is `docs/privacy.html` | `feature/settings/PrivacyScreen.kt`, `res/values/strings_privacy.xml` |
@@ -408,7 +408,7 @@ restore fills missing keys with defaults, not the phone's current values.
 | Card list | Add cards by tapping (NFC phones only) | On / Off | On | `nfcAddEnabled` |
 | Reminders | Expiry reminders | On / Off | On | `expiryReminders` |
 | Reminders | Payment reminders | On / Off | On | `paymentReminders` |
-| Copying | Show expiry and CVV after copying (turning on asks to unlock) | On / Off | Off | `notifEnabled` |
+| Copying | Show expiry and CVV after copying (turning on asks to unlock) | On / Off | Off (fresh); On for a migrated 2.3 install | `notifEnabled` |
 | Copying | Notification time | 15 s / 30 s / 1 min | 30 s | `notifSec` |
 | Copying | Fill cards in other apps | On / Off (a restore can only turn it off) | On | `autofillEnabled` |
 | Tags | Show tags on cards | On / Off | On | `tagsShow` |

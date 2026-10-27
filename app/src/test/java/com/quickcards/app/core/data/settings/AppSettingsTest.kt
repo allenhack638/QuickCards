@@ -33,6 +33,38 @@ class AppSettingsTest {
     }
 
     @Test
+    fun aFreshInstallKeepsTheNotificationOff() {
+        val preferences = FakePreferences()
+        val settings = AppSettings(preferences, isUpgrade = false)
+
+        assertFalse(settings.notifEnabled.value)
+        assertFalse(preferences.contains(AppSettings.KEY_NOTIF_ENABLED))
+    }
+
+    @Test
+    fun anUpgradeWithoutTheKeyKeepsTheOldNotificationDefaultOn() {
+        val settings = AppSettings(FakePreferences(), isUpgrade = true)
+
+        assertTrue(settings.notifEnabled.value)
+    }
+
+    @Test
+    fun anUpgradeWithTheKeyOffStaysOff() {
+        val preferences = FakePreferences()
+        preferences.edit().putBoolean(AppSettings.KEY_NOTIF_ENABLED, false).commit()
+
+        val settings = AppSettings(preferences, isUpgrade = true)
+
+        assertFalse(settings.notifEnabled.value)
+    }
+
+    @Test
+    fun packageTimestampsIdentifyAnUpgrade() {
+        assertTrue(AppSettings.isUpgrade(lastUpdateTime = 2L, firstInstallTime = 1L))
+        assertFalse(AppSettings.isUpgrade(lastUpdateTime = 1L, firstInstallTime = 1L))
+    }
+
+    @Test
     fun allowedValuesMatchPrototypeOptions() {
         assertEquals(listOf(30, 60, 120), AppSettingsDefaults.COPY_WINDOW_OPTIONS)
         assertEquals(listOf(0, 30, 60, 120), AppSettingsDefaults.CLIP_CLEAR_OPTIONS)

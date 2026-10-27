@@ -30,9 +30,7 @@ class MainActivity : BaseActivity() {
         installInteractionTracking()
         seedDemoDataIfRequested(intent)
 
-        val themeSettings = ThemeSettings(
-            getSharedPreferences("quickcards_settings", MODE_PRIVATE)
-        )
+        val themeSettings = ThemeSettings(this)
 
         setContent {
             val themeMode by themeSettings.themeMode.collectAsState()
