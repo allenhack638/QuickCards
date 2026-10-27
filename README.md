@@ -55,8 +55,8 @@ encrypted backup that you export yourself and open with its backup password.
   are pasting into.
 - **Expiry and CVV notification.** After copying a number, an optional silent notification
   shows that card's expiry and CVV for a configurable time; it is off by default for a fresh
-  install (a 2.3 upgrade keeps the old on setting) and turning it on asks to unlock. It stays in the shade while you switch apps and is hidden on the lock
-  screen.
+  install (a 2.3 upgrade keeps the old on setting) and turning it on asks to unlock. It stays
+  in the shade while you switch apps and is hidden on the lock screen.
 - **Several card holders.** Manage holders, banks, card networks (with editable rules),
   card types and tags. Renames that affect cards ask first; items in use cannot be
   deleted.
