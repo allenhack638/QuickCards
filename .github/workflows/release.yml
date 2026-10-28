@@ -35,6 +35,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install Android SDK 36
         run: yes | sdkmanager "platforms;android-36" "build-tools;36.0.0"
@@ -98,6 +100,8 @@ jobs:
 
       - uses: android-actions/setup-android@v3
         if: steps.version.outputs.publish == 'true'
+        with:
+          packages: platform-tools
 
       - name: Install Android SDK 36
         if: steps.version.outputs.publish == 'true'
