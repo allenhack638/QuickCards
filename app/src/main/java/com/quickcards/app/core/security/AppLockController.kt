@@ -37,8 +37,10 @@ object AppLockController {
     private var started = false
     private var systemPickerUntil = 0L
 
-    /** Instrumented tests drive the lock directly; the system prompt would cover the app. Debug only. */
-    @androidx.annotation.VisibleForTesting
+    /**
+     * Instrumented tests drive the lock directly; the prompt would cover the app. The only
+     * production read is guarded by BuildConfig.DEBUG, so release builds always auto-prompt.
+     */
     @Volatile
     var autoPromptOnLock = true
 

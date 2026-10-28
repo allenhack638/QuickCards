@@ -53,9 +53,10 @@ encrypted backup that you export yourself and open with its backup password.
   after inactivity (10 s – 30 min or never), when you leave the app, or with Lock now. Locking closes every dialog and clears revealed values. The
   clipboard and the notification keep their own timers, so you can switch to the app you
   are pasting into.
-- **Expiry and CVV notification.** After copying a number, an optional heads-up
-  notification shows that card's expiry and CVV for a configurable time; it stays in the
-  shade while you switch apps and is hidden on the lock screen.
+- **Expiry and CVV notification.** After copying a number, an optional silent notification
+  shows that card's expiry and CVV for a configurable time; it is off by default for a fresh
+  install (a 2.3 upgrade keeps the old on setting) and turning it on asks to unlock. It stays
+  in the shade while you switch apps and is hidden on the lock screen.
 - **Several card holders.** Manage holders, banks, card networks (with editable rules),
   card types and tags. Renames that affect cards ask first; items in use cannot be
   deleted.
@@ -83,13 +84,14 @@ encrypted backup that you export yourself and open with its backup password.
 | Area | What QuickCards does |
 |---|---|
 | Card number, expiry, CVV | Envelope encryption: a non-exportable Android Keystore key wraps a random AES-256 data key, which encrypts each field with AES-256-GCM (random 12-byte IV, 128-bit tag). The data key is unwrapped once per session and never stored in the clear |
-| Holder, bank, note, archive reason | Encrypted with the same Keystore key in a metadata envelope |
+| Holder, note, archive reason | Encrypted with the same Keystore key in a metadata envelope. Bank, card type, network, tag and card-variant labels are not card data and are stored as plain labels |
 | Duplicate detection | A separate Keystore HMAC-SHA256 key over the digits; only the hash is indexed |
 | App lock | `BiometricPrompt` with device-credential (PIN/pattern/password) fallback; fail-closed — a cancelled or failed prompt never lets a copy, reveal, edit, delete, export, import or erase proceed |
 | Instant-copy window | One successful prompt unlocks sensitive actions for a short, configurable idle window; locking ends it |
 | Screen capture | `FLAG_SECURE` on every activity in release builds: no screenshots, screen recording or recents preview |
-| Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into, and the keyboard's clipboard preview shows them |
+| Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into. The clip is marked sensitive on Android 13+, and an overdue copy is cleared once its window gains focus if its timer was lost with the process |
 | Network and camera | No `INTERNET`, `ACCESS_NETWORK_STATE` or `CAMERA` permission. Unit tests and a Gradle task check the merged manifests, and CI checks the release APK's permissions before publishing |
+| Privacy policy | Bundled in Settings › About (no WebView or network); the public copy is [`docs/privacy.html`](docs/privacy.html) |
 | Android backup | `allowBackup=false`; app data is not copied to cloud backups |
 | Export / import | PBKDF2-HMAC-SHA256 (600,000 iterations, 16-byte salt) + AES-256-GCM with an authenticated header. The backup password is never stored |
 | Keystore key lost | If the key disappears (uninstall, clearing app data, some lock-screen resets), encrypted cards cannot be decrypted. QuickCards detects this with an encrypted sentinel, hides the unreadable cards instead of showing ciphertext and does not offer to delete them. Recovery is only possible from an exported backup, so export regularly |
@@ -117,7 +119,7 @@ export a backup, uninstall, install the new APK and import the backup.
 
 ## Build and test
 
-Requirements: JDK 17 (the version CI uses; AGP 8.7, Gradle 8.11) and Android SDK 34.
+Requirements: JDK 17 (the version CI uses; AGP 8.9, Gradle 8.11) and Android SDK 36.
 Run from the repository root:
 
 ```bash
@@ -126,7 +128,11 @@ Run from the repository root:
 ./gradlew :app:testDebugUnitTest    # JVM tests, including the guard tests
 ./gradlew :app:lintDebug            # lint
 ./gradlew :app:assembleRelease      # needs a git-ignored keystore.properties
+./gradlew :app:bundleRelease        # Google Play upload (.aab)
 ```
+
+Play upload steps, Console declarations and the 12-tester plan are in
+[`docs/PLAY_RELEASE.md`](docs/PLAY_RELEASE.md).
 
 Instrumented tests must target one chosen device or emulator; see
 [`AGENTS.md`](AGENTS.md#instrumented-tests). Never run them on a phone that holds real

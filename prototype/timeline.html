@@ -210,7 +210,7 @@
           <tr><td>Delete a bank</td><td class="m">Every bank row has edit and delete.</td></tr>
           <tr><td>Every number and CVV format</td><td class="m">10 networks, 12 to 19 digits, 3 or 4 digit CVV, correct grouping and masking for each. Custom networks can be added.</td></tr>
           <tr><td>Auto-fill the card company</td><td class="m">The network is detected from the first digits as you type, on add and edit. It is never set by hand.</td></tr>
-          <tr><td>Expiry and CVV in a notification</td><td class="m">After copying a number, a notification shows expiry and CVV with copy buttons for 30s. Time and contents are set in Settings.</td></tr>
+          <tr><td>Expiry and CVV in a notification</td><td class="m">If enabled, after copying a number a silent notification shows expiry and CVV for 30s. Time is set in Settings; off by default.</td></tr>
           <tr><td>Manage banks, companies and more</td><td class="m">Manage tab: holders, banks, networks, types, tags. Renaming one that cards use lists those cards and asks to confirm. Deleting one in use is blocked until its cards are deleted.</td></tr>
           <tr><td>Better navigation and cards</td><td class="m">Three tabs with an animated indicator. Cards get a tinted body, a framed network label, a type pill and tags.</td></tr>
           <tr><td>Card type dropdown, tags, notes</td><td class="m">Optional type from a dropdown, blank on the card if unset. Tags with a per-card limit, length limit, search and visibility settings. Notes on every card.</td></tr>
@@ -320,7 +320,7 @@
     <h3>Logo: Stub Lock (2026-10-24)</h3>
     <p>One mark was approved for the whole product: a white landscape card split into a body and a torn-off stub by a thin red gap, with two number bars cut into the body and a padlock cut into the stub, on solid brand red <code>#C8202B</code>. The geometry is locked to the Compact weight (0.9 scale around the canvas centre, 54,54) and spans x 27.9–80.1 and y 38.7–71.1 on the 108dp canvas, inside the 66dp safe circle.</p>
     <div class="box"><ul>
-      <li><b>Everywhere.</b> The launcher (adaptive, round and themed), the heads-up notification (24dp white silhouette), the Android 12+ splash screen and the 72dp lock-screen tile use the same mark.</li>
+      <li><b>Everywhere.</b> The launcher (adaptive, round and themed), the notification (24dp white silhouette), the Android 12+ splash screen and the 72dp lock-screen tile use the same mark.</li>
       <li><b>Vectors only.</b> The app ships VectorDrawables built from <code>docs/brand/stub-lock/pathdata.txt</code>; no raster logo lives in <code>res/</code>. Store-only PNGs are rendered 4× and downscaled once.</li>
       <li><b>Locked.</b> <code>BrandAssetsTest</code> fails if the path data, even-odd fill, layer colours or Compact weight drift.</li>
     </ul></div>
@@ -467,7 +467,7 @@
   <tr><td>Sheet, biometric prompt, notification</td><td class="m">300–320ms</td><td class="m">Emphasized decelerate</td><td class="m">Slide from the nearest edge</td></tr>
   <tr><td>Dropdown menu</td><td class="m">180ms</td><td class="m">Emphasized decelerate</td><td class="m">Scales down from its field</td></tr>
   <tr><td><b>Copy confirmation</b></td><td class="m">180ms</td><td class="m">Step</td><td class="m">One-frame invert, label reads “Copied” for 1.2s</td></tr>
-  <tr><td>Reveal, notification timer</td><td class="m">5s / 30s</td><td class="m">Linear</td><td class="m">A line drains to show time left</td></tr>
+  <tr><td>Reveal</td><td class="m">5s</td><td class="m">Linear</td><td class="m">A line drains to show time left; the copy notification uses Android's own timeout</td></tr>
 </tbody></table></div>
 
 <h3>The pass</h3>
@@ -531,7 +531,7 @@
   <tr><td></td><td>Expires soon</td><td class="m">Within 1 month, Within 2 months, Within 3 months</td><td>Within 1 month</td></tr>
   <tr><td></td><td>Show notes on cards</td><td class="m">On, Off. Up to 2 lines on each card</td><td>On</td></tr>
   <tr><td>Copying</td><td>Clear clipboard</td><td class="m">Never, 30s, 1 min, 2 min</td><td>1 min</td></tr>
-  <tr><td></td><td>Show expiry and CVV after copying</td><td class="m">On, Off; both hidden on the lock screen</td><td>On</td></tr>
+  <tr><td></td><td>Show expiry and CVV after copying</td><td class="m">On, Off; silent, both hidden on the lock screen; off by default</td><td>Off</td></tr>
   <tr><td></td><td>Notification time</td><td class="m">15s, 30s, 1 min</td><td>30s</td></tr>
   <tr><td>Tags</td><td>Show tags on cards</td><td class="m">On, Off</td><td>On</td></tr>
   <tr><td>Security</td><td>App lock</td><td class="m">On, Off. Fingerprint or PIN to open the app</td><td>On</td></tr>
@@ -655,14 +655,14 @@
   <tr><td>Copy, reveal, edit, delete, export, import and erase require the unlock window</td><td>Biometric prompt states the reason</td></tr>
   <tr><td>Inactivity lock: any touch, key, scroll or typing resets the timer; shortest 10 seconds, or Never</td><td>After 1 minute without use</td></tr>
   <tr><td>The unlock window counts idle time only: any touch, key, scroll or typing keeps copies instant; nothing shows a countdown</td><td>Copy without a fingerprint until 1 minute of no use</td></tr>
-  <tr><td>Locking closes every overlay, re-masks revealed values, hides the notification and ends the copy window</td><td>—</td></tr>
+  <tr><td>Locking closes every overlay, re-masks revealed values and ends the copy window</td><td>—</td></tr>
   <tr><td>Back does nothing on the lock screen; only unlocking leaves it</td><td>—</td></tr>
 </tbody></table></div>
 
 <h2 class="sec" id="features">Features end to end</h2>
 <p class="lead">Everything the v2 prototype does. Items marked v2 are new in this iteration.</p>
 <div class="feat">
-  <div class="box"><h4>Copy</h4><ul><li>Tap number, expiry, CVV or name to copy</li><li>“Copied” confirmation and snackbar with Clear</li><li class="new">Expiry and CVV notification after copying a number</li><li>Copy details — number, expiry and name together</li><li>Clipboard clears after a set time and when you leave</li></ul></div>
+  <div class="box"><h4>Copy</h4><ul><li>Tap number, expiry, CVV or name to copy</li><li>“Copied” confirmation and snackbar with Clear</li><li class="new">Expiry and CVV notification after copying a number</li><li>Copy details — number, expiry and name together</li><li>Clipboard clears after a set time, or on the next app open if the timer was lost; it stays while you switch apps to paste</li></ul></div>
   <div class="box"><h4>Security</h4><ul><li>Fingerprint or PIN opens an unlock window</li><li>No countdown; any use keeps the window alive, Lock now is in Settings</li><li class="new">Numbers masked to the last 4 by default</li><li>Hold to reveal number or CVV for 5 seconds</li><li>Edit, delete, export, import and erase need unlock</li><li>Screenshots blocked</li><li class="new">Lock screen on launch, after inactivity and on leaving</li><li class="new">Inactivity time from 10 seconds to Never</li></ul></div>
   <div class="box"><h4>Cards</h4><ul><li>Add and edit with a live preview</li><li class="new">Keyboard scan and smart paste: pasted or scanned text fills number and expiry</li><li class="new">Network detected from the number; no field and no override</li><li class="new">12 to 19 digit numbers, 3 or 4 digit CVV</li><li>Luhn, expiry, CVV and duplicate checks</li><li class="new">Optional card type, tags and note</li><li>One name, the holder, shown in capitals on the pass</li><li>Pass colour, pin and unpin, delete with undo</li><li class="new">Pinned cards first, up to the limit, with a pin glyph on the band</li></ul></div>
   <div class="box"><h4>Organise</h4><ul><li class="new">Several card holders with home chips</li><li class="new">Manage holders, banks, networks, types and tags</li><li class="new">Rename warning listing affected cards</li><li class="new">Delete blocked while cards use an item</li></ul></div>
@@ -790,7 +790,7 @@ document.getElementById('fields').innerHTML = tf('x1', 'Card number', '3714 4963
   + tf('x3', 'CVV', '381', 'Enter 4 digits', 'err')
   + `<div style="width:300px"><div style="font-size:14px;font-weight:600;color:var(--on-surface-variant);margin:10px 4px;display:flex">Tags<span class="counter">2 of 3</span></div><div class="tagbox"><span class="chip input">Travel<span class="x">${I('close', 'sm')}</span></span><span class="chip input">Online<span class="x">${I('close', 'sm')}</span></span><span class="chip add">${I('plus')}Add tag</span></div></div>`;
 document.getElementById('overlays').innerHTML = `
-  <div style="width:358px;height:600px;position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--outline-variant)"><div class="lockscr show" style="position:absolute"><div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2>QuickCards is locked</h2><div class="why">Use your fingerprint or screen lock to see your cards</div></div><button class="btn filled unlock">${I('fp')}Unlock</button><div class="foot">${I('shield')}Encrypted on this phone · v2.3.0</div></div></div>
+  <div style="width:358px;height:600px;position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--outline-variant)"><div class="lockscr show" style="position:absolute"><div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2>QuickCards is locked</h2><div class="why">Use your fingerprint or screen lock to see your cards</div></div><button class="btn filled unlock">${I('fp')}Unlock</button><div class="foot">${I('shield')}Encrypted on this phone · v2.4.0</div></div></div>
   <div class="hun"><div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum">0:24</span><span class="x">${I('close', 'sm')}</span></div><div class="t">HDFC Bank Credit · <span class="tnum">2211</span></div>
     <div class="vals"><div><div class="l">Expiry</div><div class="v">12/29</div></div><div><div class="l">CVV</div><div class="v">381</div></div></div>
     <div class="bar" style="transform:scaleX(.8)"></div></div>

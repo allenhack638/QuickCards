@@ -1,6 +1,7 @@
 package com.quickcards.app.core.security
 
 import android.os.Build
+import android.os.SystemClock
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.StringRes
 import androidx.biometric.BiometricManager
@@ -71,12 +72,13 @@ object UnlockSession {
             return
         }
         windowSeconds = seconds
-        unlockedUntil = CopyWindowPolicy.expiresAt(System.currentTimeMillis(), seconds)
+        // Monotonic: changing the wall clock must not extend the copy window.
+        unlockedUntil = CopyWindowPolicy.expiresAt(SystemClock.elapsedRealtime(), seconds)
         refresh()
     }
 
     fun onUserInteraction() {
-        val now = System.currentTimeMillis()
+        val now = SystemClock.elapsedRealtime()
         val currentUntil = unlockedUntil
         val seconds = windowSeconds
         if (seconds <= 0) return
@@ -134,10 +136,10 @@ object UnlockSession {
         }
     }
 
-    private fun isWindowOpen(): Boolean = unlockedUntil > System.currentTimeMillis()
+    private fun isWindowOpen(): Boolean = unlockedUntil > SystemClock.elapsedRealtime()
 
     private fun refresh() {
-        val open = CopyWindowPolicy.isOpen(System.currentTimeMillis(), unlockedUntil)
+        val open = CopyWindowPolicy.isOpen(SystemClock.elapsedRealtime(), unlockedUntil)
         if (_isUnlocked.value != open) _isUnlocked.value = open
     }
 }

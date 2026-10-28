@@ -40,6 +40,7 @@ class SettingsCopyTest {
         "settings_backup_export_subtitle",
         "settings_backup_import_subtitle",
         "settings_backup_erase_subtitle",
+        "settings_privacy_subtitle",
         "settings_offline_subtitle",
         "settings_autofill_subtitle_off",
         "settings_autofill_subtitle_choose",

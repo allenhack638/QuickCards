@@ -139,7 +139,7 @@
   <h2>Try</h2>
   <ul>
     <li>Tap the masked number, expiry, CVV or name to copy it. Hold the number or CVV to see it for 5 seconds.</li>
-    <li>After copying a number, a notification shows expiry and CVV for 30 seconds.</li>
+    <li>If enabled, after copying a number a silent notification shows expiry and CVV for 30 seconds.</li>
     <li>Use the holder chips to switch between card holders.</li>
     <li>Pin a card from its More sheet to keep it at the top of the list.</li>
     <li>Manage holders, banks, networks, types and tags from the Manage tab. Try renaming or deleting one that cards use.</li>
@@ -266,12 +266,12 @@ const PINNED_MAX = 10, TAGS_MAX = 10, TAGS_LEN = 16;
 
 /* ---------- Data ---------- */
 const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
-const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
+const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: false, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
 const cleanCfg = c => ({
   theme: c.theme ?? 'dark', windowSec: c.windowSec ?? 60,
   clipSec: c.clipSec ?? 60, mask: c.mask ?? true, expiredCards: c.expiredCards ?? 'end',
   expiresSoonMonths: c.expiresSoonMonths ?? 1, showNotes: c.showNotes ?? true,
-  notif: { on: c.notif?.on ?? true, sec: c.notif?.sec ?? 30 },
+  notif: { on: c.notif?.on ?? false, sec: c.notif?.sec ?? 30 },
   tags: { show: c.tags?.show ?? true },
   appLock: { on: c.appLock?.on ?? true, after: c.appLock?.after ?? 60, onLeave: c.appLock?.onLeave ?? true }
 });
@@ -362,7 +362,7 @@ function lockApp(reason) {
   lockscr.innerHTML = `<div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
     <div class="why">Use your fingerprint or screen lock to see your cards</div></div>
     <button class="btn filled unlock sl" data-act="appunlock" aria-label="Unlock QuickCards">${I('fp')}Unlock</button>
-    <div class="foot">${I('shield')}Encrypted on this phone · v2.3.0</div>`;
+    <div class="foot">${I('shield')}Encrypted on this phone · v2.4.0</div>`;
   lockscr.hidden = false; requestAnimationFrame(() => lockscr.classList.add('show'));
   // The prompt opens on its own; Unlock re-opens it after a cancel.
   setTimeout(() => { if (isAppLocked() && bio.hidden) openBio(unlockApp, 'Unlock to see your cards'); }, 420);
@@ -421,6 +421,8 @@ function renderClip() { const el = $('#clip'); if (el) el.innerHTML = S.clip ? `
 
 /* ---------- Heads-up notification ---------- */
 let hunT, hunI;
+/* Content preview only: the app posts this as a silent system notification in the shade
+   (off by default), not as an in-app heads-up. */
 function showHun(c) {
   const n = S.cfg.notif; if (!n.on) return;
   const last4 = c.number.slice(-4);
@@ -458,6 +460,46 @@ function push(r) { saveScroll(); S.noteOpen.clear(); S.stack.push(r); render('fw
 function pop() { if (S.stack.length > 1) { S.noteOpen.clear(); S.stack.pop(); render('back'); return true; } return false; }
 function saveScroll() { if (top().name === 'home') { const sc = $('.scroll', screens); if (sc) S.homeScroll = sc.scrollTop; } }
 const ROOT = { cards: 'home', manage: 'manage', settings: 'settings' };
+
+const PRIVACY_TEXT = `QuickCards privacy policy
+Effective 28 October 2026
+
+Who we are
+QuickCards (package com.quickcards.app) is a local-first card organizer published by Surety. Privacy contact: support@surety.money.
+
+What the app stores
+You can enter card details (card number, expiry, CVV, name on card), plus a bank, card type, network, tags, a note and an optional payment due day. Holder, bank, card type, network and tag names are stored too.
+
+All of it stays in the app’s private storage on your device. Card number, expiry, CVV, holder name, note, archive reason and the bank name stored on each card are encrypted with a key held by the Android Keystore. Bank, card type, network, tag and card-variant names are plain labels because they are not card data. There is no QuickCards account, no QuickCards server, no analytics, no advertising and no crash-reporting SDK.
+
+What the app does not do
+QuickCards does not request the INTERNET permission and does not transmit your data to us or to anyone else. We cannot see your cards. We do not collect, sell or share your data.
+
+When you choose to send data somewhere
+- Share: the Android share sheet sends the card text you confirm to the app you pick.
+- Autofill: when you tap a QuickCards suggestion in another app’s payment form, QuickCards fills the fields you selected. It reads that form’s field labels only to fill it and does not save or transmit the form.
+- Export backup: you choose a file location. The backup is encrypted with the password you enter. Where the file goes, including a cloud provider you pick, is your choice.
+- Clipboard: copying a card value places it on the Android clipboard for the time you chose, then QuickCards clears it. On Android 13 and later the clip is marked sensitive.
+- Notifications: if you turn on “Show expiry and CVV after copying”, the copy notification is silent and private on the lock screen. It is off by default. Reminders show only the bank and the last four digits.
+
+Permissions and why
+- Biometric or device credential: unlock the app and sensitive actions.
+- Notifications: reminders and the optional copy notification.
+- NFC: read a contactless card’s number and expiry while the “Tap your card” sheet is open. The CVV is never on the chip. This is optional and hidden on phones without NFC.
+- Boot completed and time changes: re-arm the local reminder alarm.
+- Hide overlay windows: protect the app from tapjacking overlays.
+
+Retention and deletion
+Data stays on your device until you delete it. Settings › Backup › Erase all data permanently deletes cards, holders, banks, types and tags, and resets networks to the built-in defaults. Uninstalling the app removes its private storage. A backup you exported is outside the app and must be deleted by you.
+
+Children
+QuickCards is a personal organizer for adults and is not directed to children.
+
+Changes
+If this policy changes, the new version is published at this URL and in the app with a new effective date.
+
+Contact
+Privacy questions: support@surety.money.`;
 function goTab(t) { if (S.tab === t && S.stack.length === 1) return; saveScroll(); S.noteOpen.clear(); S.tab = t; S.search = { on: false, q: '' }; S.stack = [{ name: ROOT[t] }]; render('fade'); }
 function back() {
   if (!bio.hidden) return closeBio();
@@ -811,7 +853,8 @@ function settingsHTML() {
     ${row('import', 'download', 'Import backup', 'Restore from a QuickCards backup', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
-    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.3.0</span></span></div>
+    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.4.0</span></span></div>
+    ${row('privacy', 'shield', 'Privacy policy', 'How your card data is handled')}
     <div class="li two" style="margin-bottom:24px"><span class="lead">${I('offline')}</span><span class="txt"><span class="h">Works offline</span><span class="s">QuickCards has no network access</span></span></div>
   </div>`;
 }
@@ -1001,6 +1044,13 @@ function pickerSheet(kind) {
 /* ---------- Sheets & dialogs ---------- */
 function openSheet(html, mount) { sheet.innerHTML = `<div class="handle" aria-hidden="true"></div>${html}`; sheet.hidden = false; scrimSheet.hidden = false; requestAnimationFrame(() => { sheet.classList.add('show'); scrimSheet.classList.add('show'); }); mount && mount(); }
 function closeSheet() { sheet.classList.remove('show'); scrimSheet.classList.remove('show'); setTimeout(() => { sheet.hidden = true; scrimSheet.hidden = true; }, 300); }
+
+function privacyScreen() {
+  const body = PRIVACY_TEXT.split(/\n\n+/).map(p => `<p style="margin:0 0 12px">${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
+  openSheet(`<div class="sh-body" style="text-align:left;padding:8px 24px 24px"><h2 style="margin:0 0 16px">Privacy policy</h2><div style="max-height:62vh;overflow:auto">${body}</div><div class="acts" style="justify-content:flex-end"><button class="btn text sl" data-sheet="close">Close</button></div></div>`, () => {
+    sheet.onclick = e => { if (e.target.closest('[data-sheet="close"]')) closeSheet(); };
+  });
+}
 function openDialog(html, mount) { dialog.innerHTML = html; dialog.hidden = false; scrimDialog.hidden = false; requestAnimationFrame(() => { dialog.classList.add('show'); scrimDialog.classList.add('show'); }); mount && mount(); setTimeout(() => ($('input', dialog) || dialog).focus({ preventScroll: true }), 60); }
 function closeDialog() { dialog.classList.remove('show'); if (bio.hidden) scrimDialog.classList.remove('show'); setTimeout(() => { dialog.hidden = true; if (bio.hidden) scrimDialog.hidden = true; }, 230); }
 scrimSheet.addEventListener('click', closeSheet);
@@ -1398,6 +1448,7 @@ app.addEventListener('click', e => {
   if (CFG_TOGGLES[a]) { CFG_TOGGLES[a](C); return render(); }
   switch (a) {
     case 'back': return back();
+    case 'privacy': return privacyScreen();
     case 'tab': return goTab(t.dataset.tab);
     case 'search': S.search = { on: true, q: '' }; return render('fwd');
     case 'clearq': S.search.q = ''; return render();

@@ -34,6 +34,13 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK 36
+        run: yes | sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
       - name: Unit tests, lint and offline guard
         run: >
           ./gradlew --no-daemon
@@ -91,6 +98,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         if: steps.version.outputs.publish == 'true'
 
+      - uses: android-actions/setup-android@v3
+        if: steps.version.outputs.publish == 'true'
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK 36
+        if: steps.version.outputs.publish == 'true'
+        run: yes | sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
       - name: Restore signing key
         if: steps.version.outputs.publish == 'true'
         env:
@@ -112,9 +128,9 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
           } > keystore.properties
 
-      - name: Build signed APK
+      - name: Build signed APK and Play bundle
         if: steps.version.outputs.publish == 'true'
-        run: ./gradlew --no-daemon :app:assembleRelease
+        run: ./gradlew --no-daemon :app:assembleRelease :app:bundleRelease
 
       - name: Verify signature and permissions
         if: steps.version.outputs.publish == 'true'
@@ -131,6 +147,31 @@ jobs:
           out="QuickCards-$VERSION_NAME.apk"
           cp "$apk" "$out"
           sha256sum "$out" > "$out.sha256"
+
+          aab=$(find app/build/outputs/bundle/release -maxdepth 1 -name '*.aab' | head -1)
+          if [ -z "$aab" ]; then
+            echo "::error::No release AAB was produced."
+            exit 1
+          fi
+          verify_log=$(mktemp)
+          jarsigner -verify -strict "$aab" > "$verify_log" 2>&1 || true
+          if ! grep -q "jar verified" "$verify_log"; then
+            echo "::error::AAB signature verification failed"
+            cat "$verify_log"
+            exit 1
+          fi
+          rm -f "$verify_log"
+          cp "$aab" "QuickCards-$VERSION_NAME.aab"
+
+      - name: Upload Play upload artifacts
+        if: steps.version.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-upload
+          path: |
+            QuickCards-${{ steps.version.outputs.name }}.aab
+            app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
 
       - name: Publish release
         if: steps.version.outputs.publish == 'true'

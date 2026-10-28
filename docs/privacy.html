@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuickCards privacy policy</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0 auto; max-width: 42rem; padding: 2rem 1.25rem 4rem;
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 .25rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; }
+  p, li { margin: .5rem 0; }
+  .date { color: #666; font-size: .9rem; margin-bottom: 2rem; }
+  ul { padding-left: 1.25rem; }
+  code { font-size: .95em; }
+</style>
+</head>
+<body>
+<h1>QuickCards privacy policy</h1>
+<p class="date">Effective 28 October 2026</p>
+
+<h2>Who we are</h2>
+<p>QuickCards (package <code>com.quickcards.app</code>) is a local-first card organizer
+published by Surety. Privacy contact:
+<a href="mailto:support@surety.money">support@surety.money</a>.</p>
+
+<h2>What the app stores</h2>
+<p>You can enter card details (card number, expiry, CVV, name on card), plus a bank, card type,
+network, tags, a note and an optional payment due day. Holder, bank, card type, network and tag
+names are stored too.</p>
+<p>All of it stays in the app's private storage on your device. Card number, expiry, CVV, holder
+name, note, archive reason and the bank name stored on each card are encrypted with a key held by
+the Android Keystore. Bank, card type, network, tag and card-variant names are plain labels
+because they are not card data. There is no QuickCards account, no QuickCards server, no analytics,
+no advertising and no crash-reporting SDK.</p>
+
+<h2>What the app does not do</h2>
+<p>QuickCards does not request the <code>INTERNET</code> permission and does not transmit your data
+to us or to anyone else. We cannot see your cards. We do not collect, sell or share your data.</p>
+
+<h2>When you choose to send data somewhere</h2>
+<ul>
+  <li><strong>Share:</strong> the Android share sheet sends the card text you confirm to the app you pick.</li>
+  <li><strong>Autofill:</strong> when you tap a QuickCards suggestion in another app's payment form,
+      QuickCards fills the fields you selected. It reads that form's field labels only to fill it and
+      does not save or transmit the form.</li>
+  <li><strong>Export backup:</strong> you choose a file location. The backup is encrypted with the
+      password you enter. Where the file goes, including a cloud provider you pick, is your choice.</li>
+  <li><strong>Clipboard:</strong> copying a card value places it on the Android clipboard for the time
+      you chose, then QuickCards clears it. On Android 13 and later the clip is marked sensitive.</li>
+  <li><strong>Notifications:</strong> if you turn on "Show expiry and CVV after copying", the copy
+      notification is silent and private on the lock screen. It is off by default. Reminders show only
+      the bank and the last four digits.</li>
+</ul>
+
+<h2>Permissions and why</h2>
+<ul>
+  <li><strong>Biometric or device credential:</strong> unlock the app and sensitive actions.</li>
+  <li><strong>Notifications:</strong> reminders and the optional copy notification.</li>
+  <li><strong>NFC:</strong> read a contactless card's number and expiry while the "Tap your card" sheet
+      is open. The CVV is never on the chip. This is optional and hidden on phones without NFC.</li>
+  <li><strong>Boot completed and time changes:</strong> re-arm the local reminder alarm.</li>
+  <li><strong>Hide overlay windows:</strong> protect the app from tapjacking overlays.</li>
+</ul>
+
+<h2>Retention and deletion</h2>
+<p>Data stays on your device until you delete it. Settings &rsaquo; Backup &rsaquo; Erase all data permanently deletes
+cards, holders, banks, types and tags, and resets networks to the built-in defaults. Uninstalling
+the app removes its private storage. A backup you exported is outside the app and must be deleted
+by you.</p>
+
+<h2>Children</h2>
+<p>QuickCards is a personal organizer for adults and is not directed to children.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, the new version is published at this URL and in the app with a new
+effective date.</p>
+
+<h2>Contact</h2>
+<p>Privacy questions:
+<a href="mailto:support@surety.money">support@surety.money</a>.</p>
+</body>
+</html>

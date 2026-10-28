@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.quickcards.app.core.data.repository.DemoSeeder
 import com.quickcards.app.core.ui.base.BaseActivity
 import com.quickcards.app.core.security.AppLockController
+import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.InteractionTrackingWindowCallback
 import com.quickcards.app.navigation.QcApp
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
@@ -29,9 +30,7 @@ class MainActivity : BaseActivity() {
         installInteractionTracking()
         seedDemoDataIfRequested(intent)
 
-        val themeSettings = ThemeSettings(
-            getSharedPreferences("quickcards_settings", MODE_PRIVATE)
-        )
+        val themeSettings = ThemeSettings(this)
 
         setContent {
             val themeMode by themeSettings.themeMode.collectAsState()
@@ -49,6 +48,13 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // A copy timer dies with the process; clear an overdue value once this window can read
+        // the clipboard. onResume is too early on Android 10+ (the window has no focus yet).
+        if (hasFocus) ClipboardHelper.expireIfNeeded(this)
     }
 
     private fun installInteractionTracking() {

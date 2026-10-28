@@ -96,17 +96,14 @@ object EntityValidator {
             }
 
             val prefixes = draft.prefixes.replace(SPACES, "")
-            if (!NUMBERS_AND_RANGES.matches(prefixes)) {
+            if (prefixes.length > NetworkRuleSanitizer.MAX_PREFIX_SPEC ||
+                !NUMBERS_AND_RANGES.matches(prefixes)
+            ) {
                 errors[EntityField.PREFIXES] = EntityValidationError.PrefixesFormat
             }
 
             val lengths = draft.lengths.replace(SPACES, "")
-            val parsed = CardNumberRules.parseLengths(lengths)
-            if (!NUMBERS_AND_RANGES.matches(lengths) ||
-                parsed.isEmpty() ||
-                parsed.first() < 12 ||
-                parsed.last() > 19
-            ) {
+            if (!NetworkRuleSanitizer.isValidLengths(lengths)) {
                 errors[EntityField.LENGTHS] = EntityValidationError.LengthsRange
             }
         }

@@ -8,6 +8,7 @@ import com.quickcards.app.core.data.repository.RepairSummaryPrefs
 import com.quickcards.app.core.data.repository.RepairSummaryStore
 import com.quickcards.app.core.data.repository.VaultRepository
 import com.quickcards.app.core.data.settings.AppSettings
+import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.EncryptionHelper
 import com.quickcards.app.core.reminders.Reminders
 import com.quickcards.app.core.security.KeySentinel
@@ -42,6 +43,7 @@ class QuickCardsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         EncryptionHelper.init(this)
+        ClipboardHelper.init(this)
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(
                 StrictMode.ThreadPolicy.Builder()

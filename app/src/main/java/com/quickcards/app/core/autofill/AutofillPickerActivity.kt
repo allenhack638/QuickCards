@@ -44,7 +44,7 @@ class AutofillPickerActivity : BaseActivity() {
             if (!UnlockSession.requireUnlock(this@AutofillPickerActivity, reason, fresh = true)) return@launch cancel()
             unlocked = true
             val cards = loadCards()
-            val themeSettings = ThemeSettings(getSharedPreferences("quickcards_settings", MODE_PRIVATE))
+            val themeSettings = ThemeSettings(this@AutofillPickerActivity)
             setContent {
                 val themeMode by themeSettings.themeMode.collectAsState()
                 val dark = when (themeMode) {
@@ -112,10 +112,13 @@ class AutofillPickerActivity : BaseActivity() {
         finish()
     }
 
-    /** Decrypted cards never stay on screen behind another app: leaving the list cancels it. */
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (unlocked && !isFinishing) cancel()
+    /**
+     * Leaving the list (including screen-off, where `onUserLeaveHint` does not run) cancels the
+     * picker so decrypted cards are not kept behind the keyguard.
+     */
+    override fun onStop() {
+        super.onStop()
+        if (unlocked && !isFinishing && !isChangingConfigurations) cancel()
     }
 
     companion object {

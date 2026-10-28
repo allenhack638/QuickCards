@@ -51,8 +51,12 @@ fun QcDialog(
     val avoidAppBar = density.fontScale > 1.15f || configuration.screenHeightDp < 500
     Dialog(
         onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
     ) {
+        SecureOverlayWindow()
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()

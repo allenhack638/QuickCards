@@ -1,7 +1,8 @@
 package com.quickcards.app.core.data.backup
 
 import androidx.room.withTransaction
-import com.quickcards.domain.NetworkLabelMax
+import com.quickcards.domain.EntityKind
+import com.quickcards.domain.NetworkRuleSanitizer
 import com.quickcards.app.core.data.database.QuickCardsDatabase
 import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.model.Bank
@@ -43,8 +44,6 @@ data class BackupImportResult(
  * network rules win); cards match by normalized number (the PAN hash input).
  */
 object BackupImporter {
-
-    private val WHITESPACE = Regex("""\s+""")
 
     suspend fun import(
         database: QuickCardsDatabase,
@@ -131,13 +130,13 @@ object BackupImporter {
         holderDao.getAllHoldersSync().forEach { holder ->
             val name = runCatching { encryption.decryptMetadata(holder.name) }.getOrNull() ?: return@forEach
             holderNamesById[holder.id] = name
-            holderIdsByName.putIfAbsent(normalizeName(name), holder.id)
+            holderIdsByName.putIfAbsent(NetworkRuleSanitizer.entityKey(EntityKind.HOLDER, name), holder.id)
         }
         val holderMap = linkedMapOf<String, String?>()
         content.holders.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.HOLDER, item.name)
             if (displayName.isEmpty()) return@forEach
-            val name = normalizeName(displayName)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.HOLDER, displayName)
             val id = holderIdsByName[name] ?: run {
                 val created = Holder(name = encryption.encryptMetadata(displayName))
                 holderDao.insertHolder(created)
@@ -151,15 +150,15 @@ object BackupImporter {
         val bankNamesById = linkedMapOf<String, String>()
         val bankIdsByName = linkedMapOf<String, String>()
         bankDao.getAllBanksSync().forEach { bank ->
-            val name = normalizeName(bank.name)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.BANK, bank.name)
             bankNamesById[bank.id] = bank.name
             bankIdsByName.putIfAbsent(name, bank.id)
         }
         val bankMap = linkedMapOf<String, String?>()
         content.banks.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.BANK, item.name)
             if (displayName.isEmpty()) return@forEach
-            val name = normalizeName(displayName)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.BANK, displayName)
             val id = bankIdsByName[name] ?: run {
                 val created = Bank(name = displayName)
                 bankDao.insertBank(created)
@@ -174,15 +173,15 @@ object BackupImporter {
         val typeIdsByName = linkedMapOf<String, String>()
         var nextTypeSort = typeDao.maxSortOrder() + 1
         typeDao.getAllCardTypesSync().forEach { type ->
-            val name = normalizeName(type.name)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.TYPE, type.name)
             typeNamesById[type.id] = type.name
             typeIdsByName.putIfAbsent(name, type.id)
         }
         val typeMap = linkedMapOf<String, String?>()
         content.types.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.TYPE, item.name)
             if (displayName.isEmpty()) return@forEach
-            val name = normalizeName(displayName)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.TYPE, displayName)
             val id = typeIdsByName[name] ?: run {
                 val created = CardType(name = displayName, sortOrder = nextTypeSort++)
                 typeDao.insertCardType(created)
@@ -195,13 +194,13 @@ object BackupImporter {
 
         val tagIdsByName = linkedMapOf<String, String>()
         tagDao.getAllTagsSync().forEach { tag ->
-            tagIdsByName.putIfAbsent(normalizeName(tag.name), tag.id)
+            tagIdsByName.putIfAbsent(NetworkRuleSanitizer.entityKey(EntityKind.TAG, tag.name), tag.id)
         }
         val tagMap = linkedMapOf<String, String?>()
         content.tags.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.TAG, item.name)
             if (displayName.isEmpty()) return@forEach
-            val name = normalizeName(displayName)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.TAG, displayName)
             val id = tagIdsByName[name] ?: run {
                 val created = Tag(name = displayName)
                 tagDao.insertTag(created)
@@ -215,26 +214,27 @@ object BackupImporter {
         val networkIdsByName = linkedMapOf<String, String>()
         var nextNetworkSort = networkDao.maxSortOrder() + 1
         networkDao.getAllNetworksSync().forEach { network ->
-            val name = normalizeName(network.name)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.NETWORK, network.name)
             networkNamesById[network.id] = network.name
             networkIdsByName.putIfAbsent(name, network.id)
         }
         val existingNetworkIdsByName = networkIdsByName.toMap()
         val networkMap = linkedMapOf<String, String?>()
         content.networks.forEach { item ->
-            val displayName = cleanName(item.name)
+            val displayName = NetworkRuleSanitizer.entityName(EntityKind.NETWORK, item.name)
             if (displayName.isEmpty()) return@forEach
-            val name = normalizeName(displayName)
+            val name = NetworkRuleSanitizer.entityKey(EntityKind.NETWORK, displayName)
             val id = networkIdsByName[name] ?: run {
+                val lengths = NetworkRuleSanitizer.lengths(item.lengths).ifEmpty { "16" }
                 val created = CardNetwork(
                     id = UUID.randomUUID().toString(),
                     name = displayName,
-                    code = item.code.take(NetworkLabelMax),
-                    prefixes = item.prefixes,
-                    lengths = item.lengths,
+                    code = NetworkRuleSanitizer.code(item.code),
+                    prefixes = NetworkRuleSanitizer.prefixes(item.prefixes),
+                    lengths = lengths,
                     cvvLength = if (item.cvv == 4) 4 else 3,
                     luhn = item.luhn,
-                    groups = item.groups,
+                    groups = NetworkRuleSanitizer.groups(item.groups, lengths),
                     sortOrder = nextNetworkSort++,
                     builtIn = false
                 )
@@ -401,7 +401,7 @@ object BackupImporter {
         networkAuto = resolved.networkAuto,
         typeId = resolved.typeId,
         nameOnCard = encryption.encryptMetadata(
-            resolved.nameOnCard.trim().uppercase(Locale.ROOT)
+            resolved.nameOnCard.trim().uppercase(Locale.ROOT).take(64)
         ),
         bandColor = resolved.color,
         sortOrder = sortOrder,
@@ -410,6 +410,8 @@ object BackupImporter {
         archived = resolved.archived,
         archivedAt = if (resolved.archived) resolved.archivedAt else null,
         archiveReason = resolved.archiveReason
+            .trim()
+            .take(40)
             .takeIf { it.isNotBlank() }
             ?.let(encryption::encryptMetadata),
         needsReview = reviewMask
@@ -442,12 +444,6 @@ object BackupImporter {
                     .orEmpty()
             )
         }.getOrNull()
-
-    private fun cleanName(name: String): String =
-        name.trim().replace(WHITESPACE, " ")
-
-    private fun normalizeName(name: String): String =
-        cleanName(name).lowercase(Locale.ROOT)
 
     private data class Counts(
         var added: Int = 0,

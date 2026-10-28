@@ -20,7 +20,7 @@ class AppSettingsTest {
         assertEquals(ExpiredPlacement.END, settings.expiredCards.value)
         assertEquals(1, settings.expiresSoonMonths.value)
         assertTrue(settings.showNotes.value)
-        assertTrue(settings.notifEnabled.value)
+        assertFalse(settings.notifEnabled.value)
         assertEquals(30, settings.notifSec.value)
         assertTrue(settings.tagsShow.value)
         assertTrue(settings.appLockEnabled.value)
@@ -30,6 +30,38 @@ class AppSettingsTest {
         assertEquals(10, AppSettingsDefaults.PINNED_MAX)
         assertEquals(10, AppSettingsDefaults.TAGS_MAX)
         assertEquals(16, AppSettingsDefaults.TAGS_MAX_LEN)
+    }
+
+    @Test
+    fun aFreshInstallKeepsTheNotificationOff() {
+        val preferences = FakePreferences()
+        val settings = AppSettings(preferences, isUpgrade = false)
+
+        assertFalse(settings.notifEnabled.value)
+        assertFalse(preferences.contains(AppSettings.KEY_NOTIF_ENABLED))
+    }
+
+    @Test
+    fun anUpgradeWithoutTheKeyKeepsTheOldNotificationDefaultOn() {
+        val settings = AppSettings(FakePreferences(), isUpgrade = true)
+
+        assertTrue(settings.notifEnabled.value)
+    }
+
+    @Test
+    fun anUpgradeWithTheKeyOffStaysOff() {
+        val preferences = FakePreferences()
+        preferences.edit().putBoolean(AppSettings.KEY_NOTIF_ENABLED, false).commit()
+
+        val settings = AppSettings(preferences, isUpgrade = true)
+
+        assertFalse(settings.notifEnabled.value)
+    }
+
+    @Test
+    fun packageTimestampsIdentifyAnUpgrade() {
+        assertTrue(AppSettings.isUpgrade(lastUpdateTime = 2L, firstInstallTime = 1L))
+        assertFalse(AppSettings.isUpgrade(lastUpdateTime = 1L, firstInstallTime = 1L))
     }
 
     @Test
@@ -240,7 +272,7 @@ class AppSettingsTest {
 
         assertEquals("end", defaults[AppSettings.KEY_EXPIRED_CARDS_NAME])
         assertEquals(1, defaults[AppSettings.KEY_EXPIRES_SOON_MONTHS_NAME])
-        assertEquals(true, defaults[AppSettings.KEY_NOTIF_ENABLED_NAME])
+        assertEquals(false, defaults[AppSettings.KEY_NOTIF_ENABLED_NAME])
         assertEquals(true, defaults[AppSettings.KEY_SHOW_NOTES_NAME])
 
         val settings = AppSettings(FakePreferences())

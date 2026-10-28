@@ -2,7 +2,34 @@
 
 All notable changes to this project are documented in this file.
 
-## [Unreleased]
+## [2.4.0] - 2026-10-27
+
+- Security: copied values are marked sensitive on Android 13+ so the system clipboard preview
+  no longer renders the card, and a copy whose timer was lost to process death is cleared on the
+  first focused read after process death. The clipboard stays usable while switching apps to paste.
+- Security: the expiry/CVV notification is off by default on a fresh install (a 2.3 upgrade
+  with no stored switch is migrated to on once; enabling it still asks to unlock) and posts on
+  a new silent, low-importance channel; upgrading installs get the old channel removed. It no longer appears as a heads-up over other apps.
+- Security: dialogs, sheets and popups now apply `filterTouchesWhenObscured` and, on Android
+  12+, hide overlay windows, so confirmation dialogs cannot be tapjacked.
+- Security: a backup's network rules are bounded on import (`lengths` can no longer expand a
+  huge range), names are capped, and `parseLengths` itself only ever allocates card lengths.
+- Security: the autofill card list cancels when its activity stops, so it no longer survives
+  screen-off with decrypted cards and fills on one tap after unlock.
+- Security: the instant-copy window uses the monotonic clock, so changing the device time
+  cannot extend it.
+- Changed: editing a card keeps its imported network override, variant and name-on-card
+  instead of silently rewriting them.
+- Changed: the backup password field uses a password keyboard with autocorrect off.
+- Changed: the daily reminder alarm is re-armed after an app update and after a clock or time
+  zone change, not only after a reboot.
+- Changed: `targetSdk`/`compileSdk` 36 (Android 16) and AGP 8.9.2 for Google Play.
+- Added: a bundled Privacy policy screen in Settings > About; the public copy lives at
+  `docs/privacy.html`. The app still has no network permission.
+- Removed: the EmojiCompat startup initializer, whose default configuration can fetch a font
+  through Google Play services, to keep every asset bundled and the app offline.
+- Docs: corrected the clipboard and database-version claims in `docs/MAINTAINING.md`, updated
+  the settings defaults, and added `docs/PLAY_RELEASE.md` for the Play upload.
 
 - Removed: the Use system colours setting; QuickCards always uses its own palette.
 - Changed: network logos sit level with the bank name on cards, and the Card networks list is tighter with no tile in the light theme.

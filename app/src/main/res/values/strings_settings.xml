@@ -72,6 +72,9 @@
 
     <string name="settings_version_title">Version</string>
     <string name="settings_version_value">%1$s</string>
+    <string name="settings_privacy_title">Privacy policy</string>
+    <string name="settings_privacy_subtitle">How your card data is handled</string>
+    <string name="settings_privacy_back">Back</string>
     <string name="settings_offline_title">Works offline</string>
     <string name="settings_offline_subtitle">QuickCards has no network access</string>
 

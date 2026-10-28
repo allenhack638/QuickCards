@@ -13,7 +13,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace 'com.quickcards.app'
-    compileSdk 34
+    compileSdk 36
 
     signingConfigs {
         release {
@@ -29,9 +29,9 @@ android {
     defaultConfig {
         applicationId "com.quickcards.app"
         minSdk 26
-        targetSdk 34
-        versionCode 8
-        versionName "2.3.0"
+        targetSdk 36
+        versionCode 9
+        versionName "2.4.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
