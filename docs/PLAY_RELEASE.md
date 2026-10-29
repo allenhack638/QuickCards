@@ -12,8 +12,8 @@ it current when the Console answers or the release process change.
 | Public privacy-policy URL | `https://surety.money/privacy.html`, served from `docs/privacy.html` by GitHub Pages (`docs/CNAME`) |
 | In-app privacy policy | Settings › About › Privacy policy, bundled in `res/values/strings_privacy.xml` (no network) |
 | Data safety / content declarations | Answers below; enter them in Play Console |
-| 12 testers × 14 continuous days | Not started; see the tester plan below |
-| Play App Signing | Must be enabled on the first upload; decide the key first (below) |
+| 12 testers × 14 continuous days | Group `quickcards-testers@googlegroups.com` on the Alpha track; sign-up on https://surety.money |
+| Play App Signing | Enrolled with `quickcards-release.jks` (SHA-256 `B3:D9:…:D4:71`), same signature as the GitHub APK |
 
 ## Signing decision (do this first)
 
@@ -112,7 +112,16 @@ adb -s "$ANDROID_SERIAL" install -r app/build/outputs/apk/debug/QuickCards-debug
 ```
 
 CI builds the AAB on a `v<versionName>` release and uploads `play-upload` (AAB + mapping).
-Upload that artifact manually, or add a Play Developer API step with a service account.
+When the `PLAY_SERVICE_ACCOUNT_JSON` secret is set, CI also uploads the bundle and mapping to
+the closed testing (`alpha`) track. Promote to production by hand in Play Console.
+
+Service account setup (once):
+
+1. Google Cloud console (signed in as the Play account owner): create a project, enable the
+   Google Play Android Developer API, create a service account and download a JSON key.
+2. Play Console › Users and permissions: invite the service account email with release access
+   to testing tracks for QuickCards.
+3. `gh secret set PLAY_SERVICE_ACCOUNT_JSON < key.json`, then delete `key.json`.
 
 ## After launch
 
