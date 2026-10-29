@@ -4,6 +4,9 @@
 # Required secrets:
 #   KEYSTORE_BASE64    base64 of keystore/quickcards-release.jks
 #   KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD  from keystore.properties
+# Optional secret:
+#   PLAY_SERVICE_ACCOUNT_JSON  Play Developer API service account; when set, the bundle and
+#                              mapping also go to the Play closed testing (alpha) track
 name: Release
 
 on:
@@ -187,6 +190,29 @@ jobs:
             --title "QuickCards $VERSION_NAME" \
             --notes "Version $VERSION_NAME (build $VERSION_CODE). Offline: no internet or camera permission." \
             --generate-notes
+
+      - name: Check Play credentials
+        id: play
+        if: steps.version.outputs.publish == 'true'
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::PLAY_SERVICE_ACCOUNT_JSON is not set; upload the play-upload artifact by hand."
+          fi
+
+      - name: Upload to Play closed testing
+        if: steps.play.outputs.upload == 'true'
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.quickcards.app
+          releaseFiles: QuickCards-${{ steps.version.outputs.name }}.aab
+          mappingFile: app/build/outputs/mapping/release/mapping.txt
+          track: alpha
+          status: completed
 
       - name: Remove signing key
         if: always()
