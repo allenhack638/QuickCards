@@ -16,16 +16,20 @@ Captured from `prototype/v2.html` at a 390×844 phone frame (images are ~1.78× 
 | 10-bank-sheet.png | Bank picker sheet with search |
 | 11-tag-sheet.png | Tag sheet: new tag + counter, limit note, checkboxes |
 | 12-manage.png | Manage tab |
-| 13-networks-list.png | Card networks list (56dp lead slot, edit/delete) |
+| 13-networks-list.png | Card networks list (56dp lead slot, network marks, edit/delete; Maestro "CVV 3 or none") |
 | 14-network-dialog-errors.png | New network dialog with every error |
 | 15-rename-confirm.png | Rename-in-use confirmation listing cards |
 | 16-delete-blocked.png | Delete blocked while in use |
 | 17-settings-top.png | Settings: Appearance, Cards |
 | 18-settings-copying-tags.png | Settings: Copying, Tags |
 | 19-settings-security.png | Settings: Security (app lock, inactivity, copy window) |
-| 20-settings-backup-about.png | Settings: Backup, About |
+| 20-settings-backup-about.png | Settings: Backup, About (version, privacy policy, works offline) |
 | 21-export-dialog.png | Export with Include settings + backup password mismatch error |
 | 22-import-review.png | Import review: new/changed/same, update or keep, restore settings |
 | 23-home-light.png | Home, light theme |
 | 24-edit-card-light.png | Edit card (full number shown), light theme |
 | 25-empty-state.png | Empty state after erase |
+| 26-network-rules-changed.png | Built-in network edited away from its standard rules: "Cards may have no CVV" checkbox and the "Not the standard Visa rules" row with Reset to standard (2.5.0) |
+| 27-change-rules-confirm.png | Saving a changed built-in rule asks first; Cancel and Change anyway are both text buttons (2.5.0) |
+| 28-add-card-rules-notice.png | Add card: the changed Visa rule that blocks the CVV is named under the field, with Reset to standard (2.5.0) |
+| 29-maestro-no-cvv.png | A Maestro card saved without a CVV shows "None" in the CVV column (2.5.0) |
