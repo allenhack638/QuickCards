@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -866,8 +867,11 @@ private fun ChangedRulesNotice(networkName: String, onReset: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
+        // Text sits flush with the field edge above; the touch target stays full size.
         TextButton(
             onClick = onReset,
+            contentPadding = PaddingValues(horizontal = QcDimens.Base),
+            modifier = Modifier.offset(x = QcDimens.Base),
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface
             )

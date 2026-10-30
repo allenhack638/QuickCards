@@ -427,6 +427,7 @@ fun PassCard(
                         canReveal = !preview && !noCvv,
                         isUnlocked = isUnlocked,
                         interactive = !preview && !noCvv,
+                        placeholder = noCvv,
                         dense = dense,
                         onCopy = { onCopy(PassField.CVV) },
                         onReveal = { onReveal(PassField.CVV) }

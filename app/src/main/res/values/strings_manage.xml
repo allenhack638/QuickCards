@@ -95,7 +95,7 @@
     <string name="manage_rules_changed">Not the standard %1$s rules</string>
     <string name="manage_rules_reset">Reset to standard</string>
     <string name="manage_rules_title">Change %1$s rules?</string>
-    <string name="manage_rules_body">%1$s cards use %2$s. A card that does not fit your rule cannot be saved, and saved cards that do not fit are marked Review.</string>
+    <string name="manage_rules_body">%1$s cards use %2$s. Cards that do not match your rule cannot be saved, and saved ones show Check details.</string>
     <string name="manage_rules_confirm">Change anyway</string>
     <plurals name="manage_rule_cvv">
         <item quantity="one">a %1$d-digit CVV</item>

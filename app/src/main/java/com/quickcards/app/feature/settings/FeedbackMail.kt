@@ -3,8 +3,8 @@ package com.quickcards.app.feature.settings
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
+import androidx.core.net.toUri
 import com.quickcards.app.BuildConfig
 import com.quickcards.app.R
 import com.quickcards.app.core.security.AppLockController
@@ -28,7 +28,7 @@ object FeedbackMail {
     )
 
     fun intent(context: Context): Intent =
-        Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$ADDRESS"))
+        Intent(Intent.ACTION_SENDTO, "mailto:$ADDRESS".toUri())
             .putExtra(Intent.EXTRA_EMAIL, arrayOf(ADDRESS))
             .putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_feedback_subject))
             .putExtra(Intent.EXTRA_TEXT, body(context))

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -317,10 +318,10 @@ private fun EntityDialogContent(
                 confirmLabel = stringResource(R.string.manage_rules_confirm),
                 onConfirm = {
                     rulesWarning = null
-                    confirmUsageThenSave(rulesDraft)
+                    // The warning already covers the cards; ask again only for a rename.
+                    if (rulesDraft.name.trim() == initialName) saveNow(rulesDraft) else confirmUsageThenSave(rulesDraft)
                 },
-                confirmEnabled = !saving,
-                confirmPrimary = true
+                confirmEnabled = !saving
             )
         }
         return
@@ -644,8 +645,11 @@ private fun StandardRulesRow(text: String, onReset: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
+        // Text sits flush with the field edge above; the touch target stays full size.
         TextButton(
             onClick = onReset,
+            contentPadding = PaddingValues(horizontal = QcDimens.Base),
+            modifier = Modifier.offset(x = QcDimens.Base),
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface
             )

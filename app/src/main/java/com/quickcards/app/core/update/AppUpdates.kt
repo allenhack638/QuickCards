@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.core.content.edit
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
@@ -96,7 +97,7 @@ object AppUpdates {
             flexibleAllowed = info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
         )
         if (!prompt) return
-        prefs.edit().putInt(KEY_PROMPTED, info.availableVersionCode()).apply()
+        prefs.edit { putInt(KEY_PROMPTED, info.availableVersionCode()) }
         start(info, launcher)
     }
 

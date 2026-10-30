@@ -21,7 +21,7 @@
     <string name="form_helper_note">For example Everyday spending</string>
     <string name="form_cvv_digits_unknown">3 or 4 digits</string>
     <string name="form_cvv_digits_optional">3 digits or none</string>
-    <string name="form_rules_changed">Your %1$s rules were changed in Manage.</string>
+    <string name="form_rules_changed">%1$s rules were changed.</string>
     <string name="form_rules_reset">Reset to standard</string>
     <plurals name="form_cvv_digits">
         <item quantity="one">%1$d digit</item>
