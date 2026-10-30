@@ -328,12 +328,12 @@ must never be uploaded.
 | `android.permission.INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA` | — | **Never present.** No network or camera dependency is declared; `OfflineManifestGuardTest` and `verifyOfflineManifest` parse the merged manifests |
 
 The app is camera-free by design: an earlier in-app scanner and its CameraX/ML Kit
-payload were removed. Card text comes from the keyboard (including the keyboard's own
-scan tool) or the clipboard instead.
+payload were removed. Card text comes from typing (number pad), the clipboard or the
+NFC reader instead.
 
 ### Database
 
-- Room database `quickcards_database`, **version 13**, `exportSchema = true`.
+- Room database `quickcards_database`, **version 14**, `exportSchema = true`.
 - Schema JSON: `app/schemas/com.quickcards.app.core.data.database.QuickCardsDatabase/<version>.json`.
 - Tables: `cards`, `banks`, `holders`, `networks`, `card_types`, `tags`, `card_tags`,
   `card_repairs`.
@@ -342,7 +342,8 @@ scan tool) or the clipboard instead.
   (managed-list tables, card columns, seed networks/types, order backfill),
   `MIGRATION_10_11` (add `pinned`, `pinnedAt`), `MIGRATION_11_12` (add `archived`,
   `archivedAt`, `archiveReason`, `needsReview`; create `card_repairs`),
-  `MIGRATION_12_13` (add `dueDay`). No `fallbackToDestructiveMigration`.
+  `MIGRATION_12_13` (add `dueDay`), `MIGRATION_13_14` (add `networks.cvvOptional`, on for
+  built-in Maestro). No `fallbackToDestructiveMigration`.
 - `cards` archive/review columns: `archived INTEGER NOT NULL DEFAULT 0`,
   `archivedAt INTEGER`, `archiveReason TEXT` (`encryptMetadata`),
   `needsReview INTEGER NOT NULL DEFAULT 0` (bitmask 1 number, 2 expiry, 4 CVV).
@@ -894,10 +895,12 @@ implementation. Never let the code, prototype and docs describe different behavi
 multi-line scan text, spaces/dashes, Expiry, junk, single digits, replacing a partly typed
 number, Amex, a phone-number line), `OfflineManifestGuardTest`.
 
-### 5.12a Built-in network rules, Maestro CVV, updates and feedback
+### 5.12a Built-in network rules, Maestro CVV and updates
 
-- `domain/.../CardNetwork.kt` — `DefaultNetworks.standard(id)`, `changedRules(network)` and
-  `cvvOptional(network)` (Maestro only). The app seed (`SeedData`) must match `DefaultNetworks`;
+- `domain/.../CardNetwork.kt` — `DefaultNetworks` is the single source of the built-in rules;
+  `SeedData.networks` is built from it (`SeedDataTest`). `standard(id)`, `changedRules(network)`
+  and the per-network `cvvOptional` flag ("Cards may have no CVV"; on for built-in Maestro, stored
+  in `networks.cvvOptional`, carried in backups as `cvvOptional`, missing means off).
   `DefaultNetworksTest` pins the CVV lengths to the scheme rules (Amex 4, everything else 3).
 - `core/ui/entity/EntityDialog.kt` — the "Change Visa rules?" warning for a new difference and the
   Reset to standard row. `feature/cardform` — `CardFormSession.changedRulesBlocking()` and
@@ -906,9 +909,7 @@ number, Amex, a phone-number line), `OfflineManifestGuardTest`.
 - `VaultRepository.updateNetwork` recomputes every card's Check details flag; values are never
   rewritten (`NetworkRuleReviewTest`).
 - `core/update/AppUpdates.kt` + `AppUpdatePrompts.kt` — flexible Play update, prompted once per
-  version (`UpdatePolicy`, prefs `app_updates`); the Play sheet uses the system-picker lock grace.
-- `feature/settings/FeedbackMail.kt` — `ACTION_SENDTO` to support@surety.money with versions and
-  model, never card data; same lock grace.
+  version (`UpdatePolicy`, prefs `app_updates`); the Play sheet gets a one-minute lock grace (`beginPlayUpdateSheet`).
 
 ### 5.13 Change expired / expiring-soon behaviour
 
