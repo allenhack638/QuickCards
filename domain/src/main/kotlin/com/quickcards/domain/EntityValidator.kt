@@ -41,7 +41,8 @@ data class EntityDraft(
     val prefixes: String = "",
     val lengths: String = "16",
     val cvvLength: Int = 3,
-    val luhn: Boolean = true
+    val luhn: Boolean = true,
+    val cvvOptional: Boolean = false
 )
 
 object EntityValidator {

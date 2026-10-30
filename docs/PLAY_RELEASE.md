@@ -3,7 +3,7 @@
 This is the working checklist for the Play upload. It is not part of the app contract; keep
 it current when the Console answers or the release process change.
 
-## Current status (2.4.0 branch)
+## Current status (2.5.0)
 
 | Requirement | Status |
 |---|---|

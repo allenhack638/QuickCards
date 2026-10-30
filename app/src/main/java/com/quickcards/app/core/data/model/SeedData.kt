@@ -1,130 +1,26 @@
 package com.quickcards.app.core.data.model
 
-/** Initial networks and card types, verbatim from prototype/v2.html. */
+import com.quickcards.domain.DefaultNetworks
+
+/** Initial networks and card types; card types verbatim from prototype/v2.html. */
 object SeedData {
 
-    val networks: List<CardNetwork> = listOf(
+    /** The built-in networks, in list order; the rules come from the domain's single source. */
+    val networks: List<CardNetwork> = DefaultNetworks.all.mapIndexed { index, network ->
         CardNetwork(
-            id = "visa",
-            name = "Visa",
-            code = "VISA",
-            prefixes = "4",
-            lengths = "13,16,19",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 0,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "mc",
-            name = "Mastercard",
-            code = "MC",
-            prefixes = "51-55,2221-2720",
-            lengths = "16",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 1,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "amex",
-            name = "American Express",
-            code = "AMEX",
-            prefixes = "34,37",
-            lengths = "15",
-            cvvLength = 4,
-            luhn = true,
-            groups = "4-6-5",
-            sortOrder = 2,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "rupay",
-            name = "RuPay",
-            code = "RUPAY",
-            prefixes = "508500-508999,606985-607984,608001-608500,652150-653149,817200-820199",
-            lengths = "16",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 3,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "diners",
-            name = "Diners Club",
-            code = "DINERS",
-            prefixes = "300-305,36,38,39",
-            lengths = "14-19",
-            cvvLength = 3,
-            luhn = true,
-            groups = "4-6-4",
-            sortOrder = 4,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "discover",
-            name = "Discover",
-            code = "DISC",
-            prefixes = "6011,644-649,65",
-            lengths = "16-19",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 5,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "jcb",
-            name = "JCB",
-            code = "JCB",
-            prefixes = "3528-3589",
-            lengths = "16-19",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 6,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "maestro",
-            name = "Maestro",
-            code = "MAESTRO",
-            prefixes = "5018,5020,5038,5893,6304,6759,6761-6763",
-            lengths = "12-19",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 7,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "unionpay",
-            name = "UnionPay",
-            code = "UPI",
-            prefixes = "62",
-            lengths = "16-19",
-            cvvLength = 3,
-            luhn = false,
-            groups = "",
-            sortOrder = 8,
-            builtIn = true
-        ),
-        CardNetwork(
-            id = "mir",
-            name = "Mir",
-            code = "MIR",
-            prefixes = "2200-2204",
-            lengths = "16-19",
-            cvvLength = 3,
-            luhn = true,
-            groups = "",
-            sortOrder = 9,
-            builtIn = true
+            id = network.id,
+            name = network.name,
+            code = network.code,
+            prefixes = network.prefixes,
+            lengths = network.lengths,
+            cvvLength = network.cvvLength,
+            luhn = network.luhn,
+            groups = network.groups,
+            sortOrder = index,
+            builtIn = true,
+            cvvOptional = network.cvvOptional
         )
-    )
+    }
 
     val cardTypes: List<CardType> = listOf(
         CardType(id = "b0a1c2d3-0001-4e5f-8a9b-000000000001", name = "Credit", sortOrder = 0),

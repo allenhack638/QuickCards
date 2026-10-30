@@ -69,6 +69,7 @@ object BackupCodec {
                     addProperty("cvv", network.cvv)
                     addProperty("luhn", network.luhn)
                     addProperty("groups", network.groups)
+                    addProperty("cvvOptional", network.cvvOptional)
                 })
             }
         })
@@ -199,7 +200,8 @@ object BackupCodec {
                     ?: item.intOrNull("cvvLength")
                     ?: 3,
                 luhn = item.booleanOrNull("luhn") ?: true,
-                groups = item.string("groups")
+                groups = item.string("groups"),
+                cvvOptional = item.booleanOrNull("cvvOptional") ?: false
             )
         }
 

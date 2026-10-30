@@ -66,6 +66,7 @@ import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.QcDialog
 import com.quickcards.app.core.ui.theme.QcDimens
+import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 import com.quickcards.app.core.ui.theme.qcSwitchColors
@@ -100,7 +101,10 @@ fun SettingsScreen(
     onExport: () -> Unit = {},
     onImport: () -> Unit = {},
     onErase: () -> Unit = {},
-    onPrivacy: () -> Unit = {}
+    onPrivacy: () -> Unit = {},
+    updateState: AppUpdates.State = AppUpdates.State.None,
+    onUpdate: () -> Unit = {},
+    onCompleteUpdate: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val settings = remember(context) { AppSettings.get(context) }
@@ -547,11 +551,7 @@ fun SettingsScreen(
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_about))
-            StaticRow(
-                icon = QcIcons.info,
-                title = stringResource(R.string.settings_version_title),
-                subtitle = stringResource(R.string.settings_version_value, BuildConfig.VERSION_NAME)
-            )
+            VersionRow(state = updateState, onUpdate = onUpdate, onCompleteUpdate = onCompleteUpdate)
             ValueRow(
                 icon = QcIcons.shield,
                 title = stringResource(R.string.settings_privacy_title),
@@ -572,6 +572,39 @@ fun SettingsScreen(
         RadioDialog(
             config = activeDialog,
             onDismiss = { dialog = null }
+        )
+    }
+}
+
+/** The version, plus the Google Play update when one is waiting; static otherwise. */
+@Composable
+private fun VersionRow(state: AppUpdates.State, onUpdate: () -> Unit, onCompleteUpdate: () -> Unit) {
+    val version = BuildConfig.VERSION_NAME
+    val title = stringResource(R.string.settings_version_title)
+    when (state) {
+        AppUpdates.State.Available -> ValueRow(
+            icon = QcIcons.update,
+            title = title,
+            subtitle = stringResource(R.string.settings_update_available, version),
+            opens = false,
+            onClick = onUpdate
+        )
+        AppUpdates.State.Downloading -> StaticRow(
+            icon = QcIcons.update,
+            title = title,
+            subtitle = stringResource(R.string.settings_update_downloading, version)
+        )
+        AppUpdates.State.Downloaded -> ValueRow(
+            icon = QcIcons.update,
+            title = title,
+            subtitle = stringResource(R.string.settings_update_ready, version),
+            opens = false,
+            onClick = onCompleteUpdate
+        )
+        AppUpdates.State.None -> StaticRow(
+            icon = QcIcons.info,
+            title = title,
+            subtitle = stringResource(R.string.settings_version_value, version)
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.quickcards.app.feature.backup
 
+import com.quickcards.app.core.data.model.toDomain
 import android.app.NotificationManager
 import com.quickcards.app.core.autofill.CardUsage
 import androidx.compose.runtime.setValue
@@ -567,18 +568,6 @@ fun BackupHost(state: BackupHostState) {
         EraseAllDataDialog(state)
     }
 }
-
-private fun com.quickcards.app.core.data.model.CardNetwork.toDomain() =
-    com.quickcards.domain.CardNetwork(
-        id = id,
-        name = name,
-        code = code,
-        prefixes = prefixes,
-        lengths = lengths,
-        cvvLength = cvvLength,
-        luhn = luhn,
-        groups = groups
-    )
 
 private fun Context.findFragmentActivity(): FragmentActivity? {
     var current: Context? = this

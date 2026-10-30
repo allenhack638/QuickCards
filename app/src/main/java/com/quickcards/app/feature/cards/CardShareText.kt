@@ -19,6 +19,6 @@ object CardShareText {
         if (card.holderName.isNotBlank()) {
             appendLine(context.getString(R.string.cards_share_name, card.holderName))
         }
-        if (includeCvv) appendLine(context.getString(R.string.cards_share_cvv, card.card.cvv))
+        if (includeCvv && card.card.cvv.isNotEmpty()) appendLine(context.getString(R.string.cards_share_cvv, card.card.cvv))
     }.trimEnd()
 }

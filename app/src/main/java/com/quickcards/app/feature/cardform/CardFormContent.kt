@@ -11,6 +11,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import com.quickcards.app.core.data.settings.AppSettings
 import android.content.pm.PackageManager
+import com.quickcards.app.core.ui.components.RulesResetRow
 import com.quickcards.app.core.ui.components.MarkSurface
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -48,6 +50,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -60,6 +63,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
@@ -103,13 +107,13 @@ import java.time.LocalDate
 import kotlin.math.roundToInt
 
 /**
- * Text keyboard (not the number pad) so the keyboard's own scan-text tool is offered;
- * the field filters to digits. Suggestions off so the keyboard does not learn card numbers.
+ * Number pad for the number and expiry. A text keyboard drops back to letters after each
+ * group space, forcing a layout switch every four digits. Paste and Tap your card still fill.
  */
-private val ScannableKeyboard = KeyboardOptions(
+private val DigitsKeyboard = KeyboardOptions(
     capitalization = KeyboardCapitalization.None,
     autoCorrectEnabled = false,
-    keyboardType = KeyboardType.Text
+    keyboardType = KeyboardType.Number
 )
 
 private val SaveButtonText = QcType.MenuItem.copy(fontWeight = FontWeight(600))
@@ -433,7 +437,7 @@ internal fun CardFormContent(
                         context.getString(R.string.form_repair_changed_from, it.before)
                     }.orEmpty(),
                     error = cardErrorText(form.errors[Field.NUMBER]),
-                    keyboardOptions = ScannableKeyboard,
+                    keyboardOptions = DigitsKeyboard,
                     trailing = if (network != null) {
                         {
                             // The trailing slot does not pad arbitrary content,
@@ -530,7 +534,7 @@ internal fun CardFormContent(
                             context.getString(R.string.form_repair_changed_from, it.before)
                         } ?: stringResource(R.string.form_helper_expiry),
                         error = cardErrorText(form.errors[Field.EXPIRY]),
-                        keyboardOptions = ScannableKeyboard,
+                        keyboardOptions = DigitsKeyboard,
                         fieldTag = "form_expiry",
                         helperAction = if (repairs.containsKey(CardField.EXPIRY)) {
                             { RepairUndo(onUndo = { viewModel.undoRepair(CardField.EXPIRY) }) }
@@ -580,6 +584,22 @@ internal fun CardFormContent(
                                     viewModel.cvvBlur()
                                 }
                             }
+                    )
+                }
+
+                session.changedRulesBlocking()?.let { blocking ->
+                    val network = blocking.network
+                    RulesResetRow(
+                        text = when (blocking.kind) {
+                            BlockingRule.Kind.CVV -> pluralStringResource(
+                                R.plurals.form_rules_cvv,
+                                network.cvvLength,
+                                network.name,
+                                network.cvvLength
+                            )
+                            BlockingRule.Kind.NUMBER -> stringResource(R.string.form_rules_number, network.name)
+                        },
+                        onReset = { viewModel.resetNetworkRules(network.id) }
                     )
                 }
 
@@ -842,3 +862,4 @@ private fun CardFormSession.previewCard(bankFallback: String): HomeCard {
         tagNames = form.tagIds.mapNotNull { lists.tagName(it) }
     )
 }
+

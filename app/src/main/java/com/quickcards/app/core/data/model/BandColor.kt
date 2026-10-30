@@ -97,7 +97,8 @@ object BandColor {
         val trimmed = value?.trim().orEmpty()
         if (trimmed.isEmpty()) return NAVY
         val lower = trimmed.lowercase(Locale.ROOT)
-        if (lower in ALL) return lower
+        // Off-grid keys like slate still belong to stored cards, so a restore keeps them.
+        if (isCurated(lower)) return lower
         val custom = parseHex(trimmed)
             ?: parseColour(trimmed)?.let { formatHex(it.first, it.second, it.third) }
             ?: return NAVY

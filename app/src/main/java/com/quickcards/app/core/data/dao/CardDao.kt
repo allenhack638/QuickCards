@@ -61,6 +61,9 @@ interface CardDao {
     @Query("SELECT * FROM cards WHERE id = :id")
     suspend fun getCardById(id: String): Card?
 
+    @Query("UPDATE cards SET needsReview = :mask WHERE id = :id")
+    suspend fun setNeedsReview(id: String, mask: Int)
+
     @Query("SELECT * FROM cards WHERE panHash = :hash LIMIT 1")
     suspend fun getCardByPanHash(hash: String): Card?
 

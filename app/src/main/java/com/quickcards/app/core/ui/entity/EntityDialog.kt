@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -62,6 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.error as semanticsError
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -74,10 +76,14 @@ import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.ui.components.FormSupportingLine
 import com.quickcards.app.core.ui.components.LocalSnackbar
+import com.quickcards.app.core.ui.components.RulesResetRow
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 import com.quickcards.app.core.ui.theme.qcPrimaryButtonColors
+import com.quickcards.domain.CardNetwork as RuleNetwork
+import com.quickcards.domain.CardNumberRules
+import com.quickcards.domain.DefaultNetworks
 import com.quickcards.domain.EntityBefore
 import com.quickcards.domain.EntityDraft
 import com.quickcards.domain.EntityField
@@ -86,6 +92,8 @@ import com.quickcards.domain.EntityUsage
 import com.quickcards.domain.EntityValidationError
 import com.quickcards.domain.EntityValidator
 import com.quickcards.domain.NetworkLabelMax
+import com.quickcards.domain.NetworkRule
+import com.quickcards.domain.NetworkRules
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -159,10 +167,12 @@ private fun EntityDialogContent(
     }
     var cvvLength by remember { mutableIntStateOf(before?.cvvLength ?: 3) }
     var luhn by remember { mutableStateOf(before?.luhn ?: true) }
+    var cvvOptional by remember { mutableStateOf(before?.cvvOptional ?: false) }
     var errors by remember {
         mutableStateOf<Map<EntityField, EntityValidationError>>(emptyMap())
     }
     var pending by remember { mutableStateOf<PendingUpdate?>(null) }
+    var rulesWarning by remember { mutableStateOf<EntityDraft?>(null) }
     var saving by remember { mutableStateOf(false) }
 
     val one = stringResource(kind.oneRes)
@@ -177,7 +187,19 @@ private fun EntityDialogContent(
         prefixes.text != initialPrefixes ||
         lengths.text != initialLengths ||
         cvvLength != (before?.cvvLength ?: 3) ||
-        luhn != (before?.luhn ?: true)
+        luhn != (before?.luhn ?: true) ||
+        cvvOptional != (before?.cvvOptional ?: false)
+
+    // Built-in networks only: compare the form and the saved rules with the standard ones.
+    val standard = if (kind == EntityKind.NETWORK) DefaultNetworks.standard(editingId) else null
+    fun changedFromStandard(rules: NetworkRules): Set<NetworkRule> =
+        if (standard == null) emptySet() else DefaultNetworks.changedRules(standard.id, rules)
+    val changedNow = changedFromStandard(
+        NetworkRules(prefixes.text, lengths.text, cvvLength, luhn, cvvOptional)
+    )
+    val changedBefore = before?.let {
+        changedFromStandard(NetworkRules(it.prefixes, it.lengths, it.cvvLength, it.luhn, it.cvvOptional))
+    }.orEmpty()
 
     val nameFocus = remember { FocusRequester() }
     val codeFocus = remember { FocusRequester() }
@@ -199,7 +221,8 @@ private fun EntityDialogContent(
         prefixes = prefixes.text,
         lengths = lengths.text,
         cvvLength = cvvLength,
-        luhn = luhn
+        luhn = luhn,
+        cvvOptional = cvvOptional
     )
 
     fun saveNow(draft: EntityDraft) {
@@ -216,6 +239,19 @@ private fun EntityDialogContent(
                 snackbar.show(saveFailedMessage)
             }
         }
+    }
+
+    fun confirmUsageThenSave(draft: EntityDraft) {
+        val used = data.usedCards(kind, editingId)
+        if (EntityUsage.requiresUpdateConfirmation(kind, before, draft, used.size)) {
+            pending = PendingUpdate(
+                draft = draft,
+                nextName = EntityValidator.normalizeName(kind, draft.name),
+                usedCards = used.map { it.toManageCardItem() }
+            )
+            return
+        }
+        saveNow(draft)
     }
 
     fun attemptSave() {
@@ -256,16 +292,46 @@ private fun EntityDialogContent(
             }
             return
         }
-        val used = data.usedCards(kind, editingId)
-        if (EntityUsage.requiresUpdateConfirmation(kind, before, draft, used.size)) {
-            pending = PendingUpdate(
-                draft = draft,
-                nextName = EntityValidator.normalizeName(kind, draft.name),
-                usedCards = used.map { it.toManageCardItem() }
-            )
+        if ((changedNow - changedBefore).isNotEmpty()) {
+            rulesWarning = draft
             return
         }
-        saveNow(draft)
+        confirmUsageThenSave(draft)
+    }
+
+    val rulesDraft = rulesWarning
+    if (rulesDraft != null && standard != null) {
+        val networkName = initialName.ifBlank { standard.name }
+        ManageDialogFrame(onDismissRequest = onDismiss) {
+            Text(
+                text = stringResource(R.string.manage_rules_title, networkName),
+                style = QcType.DialogTitle,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(QcDimens.Gutter))
+            WarningPanel(
+                text = AnnotatedString(
+                    stringResource(
+                        R.string.manage_rules_body,
+                        networkName,
+                        standardRulesText(standard, changedNow - changedBefore)
+                    )
+                )
+            )
+            DialogActions(
+                onCancel = { rulesWarning = null },
+                confirmLabel = stringResource(R.string.manage_rules_confirm),
+                onConfirm = {
+                    rulesWarning = null
+                    // The warning already covers the rule change; ask again only for a new name or label.
+                    val sameName = EntityValidator.normalizeName(kind, rulesDraft.name) == initialName
+                    val sameCode = rulesDraft.code.trim().uppercase(Locale.ROOT) == initialCode
+                    if (sameName && sameCode) saveNow(rulesDraft) else confirmUsageThenSave(rulesDraft)
+                },
+                confirmEnabled = !saving
+            )
+        }
+        return
     }
 
     val update = pending
@@ -457,11 +523,32 @@ private fun EntityDialogContent(
                 onSelect = { cvvLength = it }
             )
             Spacer(modifier = Modifier.height(QcDimens.Base))
-            LuhnCheckbox(
+            RuleCheckbox(
                 checked = luhn,
                 onToggle = { luhn = !luhn },
                 label = stringResource(R.string.manage_luhn)
             )
+            RuleCheckbox(
+                checked = cvvOptional,
+                onToggle = { cvvOptional = !cvvOptional },
+                label = stringResource(R.string.manage_cvv_optional)
+            )
+            if (standard != null && changedNow.isNotEmpty()) {
+                RulesResetRow(
+                    text = stringResource(
+                        R.string.manage_rules_changed,
+                        initialName.ifBlank { standard.name }
+                    ),
+                    onReset = {
+                        prefixes = TextFieldValue(standard.prefixes, TextRange(standard.prefixes.length))
+                        lengths = TextFieldValue(standard.lengths, TextRange(standard.lengths.length))
+                        cvvLength = standard.cvvLength
+                        luhn = standard.luhn
+                        cvvOptional = standard.cvvOptional
+                        errors = errors - EntityField.PREFIXES - EntityField.LENGTHS
+                    }
+                )
+            }
         }
 
 
@@ -557,6 +644,31 @@ private fun EntityTextField(
 }
 
 @Composable
+private fun standardRulesText(standard: RuleNetwork, rules: Set<NetworkRule>): String {
+    val parts = NetworkRule.entries.filter { it in rules }.map { rule ->
+        when (rule) {
+            NetworkRule.CVV -> pluralStringResource(
+                if (standard.cvvOptional) R.plurals.manage_rule_cvv_optional else R.plurals.manage_rule_cvv,
+                standard.cvvLength,
+                standard.cvvLength
+            )
+            NetworkRule.PREFIXES -> stringResource(
+                R.string.manage_rule_prefixes,
+                standard.prefixes.replace(",", ", ")
+            )
+            NetworkRule.LENGTHS -> stringResource(
+                R.string.manage_rule_lengths,
+                CardNumberRules.lengthsText(standard.lengths)
+            )
+            NetworkRule.LUHN -> stringResource(
+                if (standard.luhn) R.string.manage_rule_luhn_on else R.string.manage_rule_luhn_off
+            )
+        }
+    }
+    return parts.joinToString(stringResource(R.string.manage_rule_join))
+}
+
+@Composable
 private fun CvvSegmented(
     selected: Int,
     onSelect: (Int) -> Unit
@@ -625,7 +737,7 @@ private fun CvvSegmented(
 }
 
 @Composable
-private fun LuhnCheckbox(
+private fun RuleCheckbox(
     checked: Boolean,
     onToggle: () -> Unit,
     label: String

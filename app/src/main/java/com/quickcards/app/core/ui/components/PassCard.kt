@@ -414,17 +414,20 @@ fun PassCard(
                         onReveal = null
                     )
                     val cvvLength = card.network?.cvvLength ?: 3
+                    // Some Maestro cards have no CVV: show that plainly, with nothing to copy.
+                    val noCvv = !preview && card.card.cvv.isEmpty()
                     PassCopyField(
                         modifier = cvvWidth,
                         label = stringResource(R.string.cards_field_cvv),
-                        value = "•".repeat(cvvLength),
-                        valueStyle = valueStyle.copy(letterSpacing = FieldValueSpacingMasked),
+                        value = if (noCvv) stringResource(R.string.cards_cvv_none) else "•".repeat(cvvLength),
+                        valueStyle = if (noCvv) valueStyle else valueStyle.copy(letterSpacing = FieldValueSpacingMasked),
                         revealedValue = card.card.cvv,
                         revealedValueStyle = valueStyle,
-                        hidden = true,
-                        canReveal = !preview,
+                        hidden = !noCvv,
+                        canReveal = !preview && !noCvv,
                         isUnlocked = isUnlocked,
-                        interactive = !preview,
+                        interactive = !preview && !noCvv,
+                        placeholder = noCvv,
                         dense = dense,
                         onCopy = { onCopy(PassField.CVV) },
                         onReveal = { onReveal(PassField.CVV) }

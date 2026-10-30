@@ -56,7 +56,8 @@ object BackupSnapshot {
                     lengths = network.lengths,
                     cvv = network.cvvLength,
                     luhn = network.luhn,
-                    groups = network.groups
+                    groups = network.groups,
+                    cvvOptional = network.cvvOptional
                 )
             },
             cards = cards.map { card ->

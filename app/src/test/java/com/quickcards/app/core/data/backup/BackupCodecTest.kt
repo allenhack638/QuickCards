@@ -56,6 +56,16 @@ class BackupCodecTest {
                 cvv = 4,
                 luhn = true,
                 groups = "4-6-5"
+            ),
+            BackupNetwork(
+                id = "maestro",
+                name = "Maestro",
+                code = "MAESTRO",
+                prefixes = "6759",
+                lengths = "12-19",
+                cvv = 3,
+                luhn = true,
+                cvvOptional = true
             )
         ),
         cards = listOf(
@@ -186,6 +196,17 @@ class BackupCodecTest {
 
         assertFalse(card.pinned)
         assertNull(card.pinnedAt)
+    }
+
+    @Test
+    fun `networks from before the blank CVV setting import with it off`() {
+        val json = """
+            {"meta":{"app":"QuickCards","format":2,"version":"2.4","exportedAt":"2026-10-20"},
+             "networks":[{"id":"maestro","name":"Maestro","code":"MAESTRO","prefixes":"6759",
+                          "lengths":"12-19","cvv":3,"luhn":true,"groups":""}]}
+        """.trimIndent()
+
+        assertFalse(BackupCodec.decodePayload(json).content.networks.single().cvvOptional)
     }
 
     @Test

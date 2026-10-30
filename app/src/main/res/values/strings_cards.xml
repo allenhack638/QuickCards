@@ -78,6 +78,7 @@
         <item quantity="other">%1$d need a quick check.</item>
     </plurals>
     <string name="cards_repair_review">Review</string>
+    <string name="cards_cvv_none">None</string>
     <string name="cards_repair_dismiss">Dismiss</string>
 
     <!-- Archive and restore -->

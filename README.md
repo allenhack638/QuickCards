@@ -62,9 +62,10 @@ encrypted backup that you export yourself and open with its backup password.
   deleted.
 - **Card formats.** 12–19 digit numbers, automatic network detection by prefix, per-network
   grouping, CVV length and Luhn check; 10 built-in networks plus custom ones. Built-in networks show their official mark on the card. Duplicate
-  numbers are rejected across all holders.
+  numbers are rejected across all holders. Built-in network rules can be edited, with a warning and Reset to standard; a network can allow a blank CVV (Maestro does by default).
 - **Reminders.** A notification 30 days before a card expires and, if you set a payment due day on a card, 3 days before it, with a "Bill due" strip on the card and a Paid button on both; both can be switched off.
 - **Autofill in other apps.** Set QuickCards as Android's autofill service and checkout forms offer your cards, with a "Search all cards" list for when you have many; one fingerprint fills number, expiry, CVV and name straight into the form, with no clipboard. It can be switched off in Settings.
+- **Updates from Google Play.** When a newer version is on Play, Settings offers it and it downloads in the background; a Restart button installs it. This asks the Play Store app on the phone and adds no permission.
 - **Share a card.** From a card's menu, after the unlock prompt; you choose whether the CVV goes along (off by default) before the system share sheet opens.
 - **Pinning, notes, archive.** Pin up to 10 cards to the top, show notes on
   cards, archive cards with an optional reason and restore them later.
@@ -90,7 +91,7 @@ encrypted backup that you export yourself and open with its backup password.
 | Instant-copy window | One successful prompt unlocks sensitive actions for a short, configurable idle window; locking ends it |
 | Screen capture | `FLAG_SECURE` on every activity in release builds: no screenshots, screen recording or recents preview |
 | Clipboard | Copied values are cleared after the chosen time (never / 30 s / 1 min / 2 min), when you tap Clear, or when you copy something else. They stay while you switch to the app you are pasting into. The clip is marked sensitive on Android 13+, and an overdue copy is cleared once its window gains focus if its timer was lost with the process |
-| Network and camera | No `INTERNET`, `ACCESS_NETWORK_STATE` or `CAMERA` permission. Unit tests and a Gradle task check the merged manifests, and CI checks the release APK's permissions before publishing |
+| Network and camera | No `INTERNET`, `ACCESS_NETWORK_STATE` or `CAMERA` permission. Unit tests and a Gradle task check the merged manifests, and CI checks the release APK's permissions before publishing. The update check asks the Play Store app on the phone; QuickCards itself makes no network request |
 | Privacy policy | Bundled in Settings › About (no WebView or network); the public copy is [`docs/privacy.html`](docs/privacy.html) |
 | Android backup | `allowBackup=false`; app data is not copied to cloud backups |
 | Export / import | PBKDF2-HMAC-SHA256 (600,000 iterations, 16-byte salt) + AES-256-GCM with an authenticated header. The backup password is never stored |

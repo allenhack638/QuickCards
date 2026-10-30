@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.5.0] - 2026-10-31
+
+- Fixed: card number and expiry open the number pad and stay on it; the keyboard no longer switches to letters after four digits.
+- Fixed: when a built-in network's rules were changed (for example Visa set to a 4-digit CVV), the card form names it and offers Reset to standard; saved card values are never rewritten.
+- Fixed: restoring a backup keeps the slate card colour and checks restored cards against the backup's own networks.
+- Added: Google Play update prompt; a new version downloads in the background and a Restart button installs it. It asks the Play Store app on the phone and adds no permission.
+- Added: a network can allow a blank CVV, and Maestro does by default; sharing a card without a CVV hides Include CVV.
+- Changed: editing a built-in network warns when it differs from the standard rules and offers Reset to standard.
+- Tests: property-based tests generate thousands of inputs per run for card numbers, expiry, CVV, smart paste and backup round trips; Espresso 3.7.0 so UI tests run on Android 15+.
+
 ## [2.4.0] - 2026-10-27
 
 - Security: copied values are marked sensitive on Android 13+ so the system clipboard preview

@@ -442,6 +442,7 @@ fun HomeScreen(
     val shareTarget = shareCard
     if (shareTarget != null && LockGate.visible(true, locked)) {
         ShareCardDialog(
+            hasCvv = shareTarget.card.cvv.isNotEmpty(),
             onDismiss = { shareCard = null },
             onShare = { includeCvv -> shareNow(shareTarget, includeCvv) }
         )

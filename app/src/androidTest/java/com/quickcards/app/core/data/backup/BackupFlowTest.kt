@@ -17,8 +17,10 @@ import com.quickcards.domain.BackupCard
 import com.quickcards.domain.BackupContent
 import com.quickcards.domain.BackupMeta
 import com.quickcards.domain.BackupNamed
+import com.quickcards.domain.BackupNetwork
 import com.quickcards.domain.BackupPlanner
 import com.quickcards.domain.CardField
+import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.MergeMode
 import com.quickcards.domain.WrongPassphraseException
 import kotlinx.coroutines.flow.first
@@ -467,5 +469,47 @@ class BackupFlowTest {
         assertEquals(first.id, cards.first().id)
         assertEquals("01/30", cards.first().expiry)
         assertEquals("Platinum", cards.last().cardName)
+    }
+
+    @Test
+    fun blankCvvRestoresOnANetworkThePhoneHasNeverSeen() = runBlocking {
+        val number = ("88" + "1".repeat(13)).let { partial ->
+            partial + CardNumberRules.luhnCheckDigit(partial)
+        }
+        val content = BackupContent(
+            meta = BackupMeta(version = "2.0", exportedAt = "2026-10-23"),
+            networks = listOf(
+                BackupNetwork(
+                    id = "local-debit",
+                    name = "Local Debit",
+                    code = "LOCAL",
+                    prefixes = "88",
+                    lengths = "16",
+                    cvv = 3,
+                    luhn = true,
+                    cvvOptional = true
+                )
+            ),
+            cards = listOf(
+                BackupCard(
+                    id = "local-card",
+                    number = number,
+                    exp = "12/29",
+                    cvv = "",
+                    networkAuto = false,
+                    networkId = "local-debit",
+                    variant = "Local",
+                    color = "navy"
+                )
+            )
+        )
+
+        BackupImporter.eraseAll(database)
+        val result = BackupImporter.import(database, content, MergeMode.UPDATE)
+
+        assertEquals(1, result.added)
+        val restored = repository.cards.first().single()
+        assertTrue(restored.needsReview.isEmpty())
+        assertEquals("", restored.cvv)
     }
 }

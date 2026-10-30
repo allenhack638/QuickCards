@@ -37,7 +37,8 @@ data class EntityBefore(
     val prefixes: String = "",
     val lengths: String = "",
     val cvvLength: Int = 3,
-    val luhn: Boolean = true
+    val luhn: Boolean = true,
+    val cvvOptional: Boolean = false
 )
 
 enum class EntityDeleteDecision {
@@ -97,7 +98,8 @@ object EntityUsage {
         return before.code != code ||
             before.prefixes != prefixes ||
             before.lengths != lengths ||
-            before.cvvLength != draft.cvvLength
+            before.cvvLength != draft.cvvLength ||
+            before.cvvOptional != draft.cvvOptional
     }
 
     fun deleteDecision(usedCount: Int): EntityDeleteDecision =

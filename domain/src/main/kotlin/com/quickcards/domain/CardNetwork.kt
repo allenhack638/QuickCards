@@ -10,10 +10,62 @@ data class CardNetwork(
     val lengths: String,
     val cvvLength: Int,
     val luhn: Boolean,
-    val groups: String = ""
+    val groups: String = "",
+    /** Cards on this network may have no printed CVV (many Maestro cards), so it may stay blank. */
+    val cvvOptional: Boolean = false
 )
 
+/** The fields that decide which numbers and CVVs a network accepts; they always travel together. */
+data class NetworkRules(
+    val prefixes: String,
+    val lengths: String,
+    val cvvLength: Int,
+    val luhn: Boolean,
+    val cvvOptional: Boolean
+)
+
+val CardNetwork.rules: NetworkRules
+    get() = NetworkRules(prefixes, lengths, cvvLength, luhn, cvvOptional)
+
+fun CardNetwork.withRules(rules: NetworkRules): CardNetwork = copy(
+    prefixes = rules.prefixes,
+    lengths = rules.lengths,
+    cvvLength = rules.cvvLength,
+    luhn = rules.luhn,
+    cvvOptional = rules.cvvOptional
+)
+
+/** One rule of a network, as reported by [DefaultNetworks.changedRules]. */
+enum class NetworkRule {
+    PREFIXES,
+    LENGTHS,
+    CVV,
+    LUHN
+}
+
 object DefaultNetworks {
+
+    fun standard(id: String?): CardNetwork? = all.firstOrNull { it.id == id }
+
+    fun cvvOptional(network: CardNetwork?): Boolean = network?.cvvOptional == true
+
+    /** Empty for custom networks and for built-in networks still on their standard rules. */
+    fun changedRules(network: CardNetwork): Set<NetworkRule> = changedRules(network.id, network.rules)
+
+    fun changedRules(id: String?, rules: NetworkRules): Set<NetworkRule> {
+        val standard = standard(id)?.rules ?: return emptySet()
+        return buildSet {
+            if (compact(rules.prefixes) != compact(standard.prefixes)) add(NetworkRule.PREFIXES)
+            if (compact(rules.lengths) != compact(standard.lengths)) add(NetworkRule.LENGTHS)
+            if (rules.cvvLength != standard.cvvLength || rules.cvvOptional != standard.cvvOptional) {
+                add(NetworkRule.CVV)
+            }
+            if (rules.luhn != standard.luhn) add(NetworkRule.LUHN)
+        }
+    }
+
+    private fun compact(spec: String): String = spec.filterNot(Char::isWhitespace)
+
     val all: List<CardNetwork> = listOf(
         CardNetwork(
             id = "visa",
@@ -87,7 +139,8 @@ object DefaultNetworks {
             prefixes = "5018,5020,5038,5893,6304,6759,6761-6763",
             lengths = "12-19",
             cvvLength = 3,
-            luhn = true
+            luhn = true,
+            cvvOptional = true
         ),
         CardNetwork(
             id = "unionpay",
