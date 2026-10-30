@@ -40,6 +40,28 @@ class BackupCodecPropertyTest {
         }
     }
 
+    /** AppSettings.applyMap reads cfg numbers through `as? Number`, so a restore keeps the value. */
+    @Test
+    fun `numeric settings keep their value`() = runBlocking<Unit> {
+        checkAll(1_000, config, seeds) { seed ->
+            val random = Random(seed)
+            val settings = linkedMapOf<String, Any?>(
+                "copyWindowSec" to random.nextInt(0, 3_600),
+                "clipClearSec" to random.nextInt(0, 3_600),
+                "appLockAfterSec" to random.nextInt(0, 3_600)
+            )
+            val content = BackupContent(meta = BackupMeta(), settings = settings)
+
+            val decoded = requireNotNull(
+                BackupCodec.decodePayload(BackupCodec.encode(content)).content.settings
+            )
+
+            settings.forEach { (key, value) ->
+                assertEquals("seed=$seed key=$key", value, (decoded[key] as Number).toInt())
+            }
+        }
+    }
+
     /** BackupCodec.decodePayload reports bad input as BackupFormatException, never another throw. */
     @Test
     fun `random bytes only ever fail as a format error`() = runBlocking<Unit> {
