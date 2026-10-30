@@ -93,7 +93,9 @@ object CardValidator {
         validateExpiry(draft.expiry, today)?.let { errors[Field.EXPIRY] = it }
 
         val wantedCvv = network?.cvvLength
-        val invalidCvv = if (wantedCvv != null) {
+        val invalidCvv = if (draft.cvv.isEmpty() && DefaultNetworks.cvvOptional(network)) {
+            false
+        } else if (wantedCvv != null) {
             draft.cvv.length != wantedCvv
         } else {
             draft.cvv.length !in 3..4

@@ -184,6 +184,7 @@ object LegacyCardNormalizer {
 
     private fun normalizeCvv(raw: String, network: CardNetwork?): String? {
         val compact = raw.replace(CVV_SEPARATORS, "")
+        if (compact.isEmpty() && DefaultNetworks.cvvOptional(network)) return compact
         if (compact.isEmpty() || compact.any { it !in '0'..'9' }) return null
         val expected = network?.cvvLength
         val validLength = if (expected != null) {

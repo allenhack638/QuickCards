@@ -13,7 +13,36 @@ data class CardNetwork(
     val groups: String = ""
 )
 
+/** The parts of a network that decide which numbers and CVVs a card accepts. */
+enum class NetworkRule {
+    PREFIXES,
+    LENGTHS,
+    CVV,
+    LUHN
+}
+
 object DefaultNetworks {
+
+    /** Many Maestro cards have no printed CVV, so the field may stay blank. */
+    private val cvvOptionalIds = setOf("maestro")
+
+    fun standard(id: String?): CardNetwork? = all.firstOrNull { it.id == id }
+
+    fun cvvOptional(network: CardNetwork?): Boolean = network?.id in cvvOptionalIds
+
+    /** Empty for custom networks and for built-in networks still on their standard rules. */
+    fun changedRules(network: CardNetwork): Set<NetworkRule> {
+        val standard = standard(network.id) ?: return emptySet()
+        return buildSet {
+            if (compact(network.prefixes) != compact(standard.prefixes)) add(NetworkRule.PREFIXES)
+            if (compact(network.lengths) != compact(standard.lengths)) add(NetworkRule.LENGTHS)
+            if (network.cvvLength != standard.cvvLength) add(NetworkRule.CVV)
+            if (network.luhn != standard.luhn) add(NetworkRule.LUHN)
+        }
+    }
+
+    private fun compact(spec: String): String = spec.filterNot(Char::isWhitespace)
+
     val all: List<CardNetwork> = listOf(
         CardNetwork(
             id = "visa",

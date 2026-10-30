@@ -221,4 +221,14 @@ class LegacyCardNormalizerTest {
         assertEquals(fields, CardFieldMask.decode(mask))
         assertEquals(emptySet<CardField>(), CardFieldMask.decode(0))
     }
+
+    @Test
+    fun `a blank Maestro CVV is valid but a blank Visa CVV needs review`() {
+        val maestro = normalize(number = "6759649826438453", cvv = "")
+        assertTrue(maestro.needsReview.isEmpty())
+        assertEquals("", maestro.cvv)
+
+        val visa = normalize(cvv = "")
+        assertEquals(setOf(CardField.CVV), visa.needsReview)
+    }
 }

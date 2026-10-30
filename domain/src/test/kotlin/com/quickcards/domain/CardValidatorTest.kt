@@ -173,6 +173,17 @@ class CardValidatorTest {
     }
 
     @Test
+    fun maestroCvvMayBeBlankButNotShort() {
+        assertNull(errors(draft(number = "6759649826438453", cvv = ""))[Field.CVV])
+        assertNull(errors(draft(number = "6759649826438453", cvv = "123"))[Field.CVV])
+        assertEquals(
+            CardError.CvvLength(3),
+            errors(draft(number = "6759649826438453", cvv = "12"))[Field.CVV]
+        )
+        assertEquals(CardError.CvvLength(3), errors(draft(cvv = ""))[Field.CVV])
+    }
+
+    @Test
     fun unknownNetworkAcceptsThreeOrFourCvvDigits() {
         val unknown = unknownNumber(12)
         assertEquals(CardError.CvvUnknown, errors(draft(number = unknown, cvv = "12"))[Field.CVV])
