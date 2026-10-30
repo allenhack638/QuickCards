@@ -1,9 +1,9 @@
 package com.quickcards.app.core.update
 
-import android.app.Activity
 import android.content.Context
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
@@ -54,16 +54,24 @@ object AppUpdates {
 
     fun attach(context: Context) {
         if (manager != null) return
-        manager = AppUpdateManagerFactory.create(context.applicationContext).also {
-            it.registerListener(listener)
-        }
+        use(AppUpdateManagerFactory.create(context.applicationContext))
+    }
+
+    /** Tests swap in Play's `FakeAppUpdateManager`; this also forgets the per-process prompt. */
+    @VisibleForTesting
+    fun use(updates: AppUpdateManager) {
+        manager?.unregisterListener(listener)
+        manager = updates.also { it.registerListener(listener) }
+        latest = null
+        promptedThisProcess = false
+        _state.value = State.None
     }
 
     /**
      * Runs on every resume while unlocked. Offers the Play prompt at most once per new
      * version; a declined update stays reachable from Settings › About.
      */
-    fun check(activity: Activity, launcher: ActivityResultLauncher<IntentSenderRequest>) {
+    fun check(context: Context, launcher: ActivityResultLauncher<IntentSenderRequest>) {
         val updates = manager ?: return
         updates.appUpdateInfo
             .addOnSuccessListener { info ->
@@ -73,7 +81,7 @@ object AppUpdates {
                     info.installStatus() == InstallStatus.DOWNLOADING -> _state.value = State.Downloading
                     info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE -> {
                         _state.value = State.Available
-                        maybePrompt(activity, info, launcher)
+                        maybePrompt(context, info, launcher)
                     }
                     else -> _state.value = State.None
                 }
@@ -82,13 +90,13 @@ object AppUpdates {
     }
 
     private fun maybePrompt(
-        activity: Activity,
+        context: Context,
         info: AppUpdateInfo,
         launcher: ActivityResultLauncher<IntentSenderRequest>
     ) {
         if (promptedThisProcess) return
         promptedThisProcess = true
-        val prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val prompt = UpdatePolicy.shouldPrompt(
             installedVersion = BuildConfig.VERSION_CODE,
             availableVersion = info.availableVersionCode(),
