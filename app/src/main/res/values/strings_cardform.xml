@@ -20,9 +20,15 @@
     <string name="form_helper_type">Leave empty to show nothing on the card</string>
     <string name="form_helper_note">For example Everyday spending</string>
     <string name="form_cvv_digits_unknown">3 or 4 digits</string>
-    <string name="form_cvv_digits_optional">3 digits or none</string>
-    <string name="form_rules_changed">%1$s rules were changed.</string>
-    <string name="form_rules_reset">Reset to standard</string>
+    <plurals name="form_cvv_digits_optional">
+        <item quantity="one">%1$d digit or none</item>
+        <item quantity="other">%1$d digits or none</item>
+    </plurals>
+    <plurals name="form_rules_cvv">
+        <item quantity="one">%1$s is set to a %2$d-digit CVV.</item>
+        <item quantity="other">%1$s is set to a %2$d-digit CVV.</item>
+    </plurals>
+    <string name="form_rules_number">%1$s number rules were changed.</string>
     <plurals name="form_cvv_digits">
         <item quantity="one">%1$d digit</item>
         <item quantity="other">%1$d digits</item>

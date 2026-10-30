@@ -164,6 +164,7 @@ fun QcApp() {
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { }
     AppUpdatePrompts(locked = locked, launcher = updateLauncher, snackbar = snackbarController)
+    val updateState by AppUpdates.state.collectAsState()
 
     CompositionLocalProvider(
         LocalSnackbar provides snackbarController,
@@ -341,7 +342,9 @@ fun QcApp() {
                                 onImport = backupHostState::requestImport,
                                 onErase = backupHostState::requestErase,
                                 onPrivacy = { navController.navigate(ROUTE_PRIVACY) },
-                                onUpdate = { AppUpdates.startFromSettings(updateLauncher) }
+                                updateState = updateState,
+                                onUpdate = { AppUpdates.startFromSettings(updateLauncher) },
+                                onCompleteUpdate = AppUpdates::completeUpdate
                             )
                         }
                     }

@@ -11,6 +11,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import com.quickcards.app.core.data.settings.AppSettings
 import android.content.pm.PackageManager
+import com.quickcards.app.core.ui.components.RulesResetRow
 import com.quickcards.app.core.ui.components.MarkSurface
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
@@ -62,6 +63,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
@@ -585,10 +587,19 @@ internal fun CardFormContent(
                     )
                 }
 
-                session.changedRulesBlocking()?.let { changed ->
-                    ChangedRulesNotice(
-                        networkName = changed.name,
-                        onReset = { viewModel.resetNetworkRules(changed.id) }
+                session.changedRulesBlocking()?.let { blocking ->
+                    val network = blocking.network
+                    RulesResetRow(
+                        text = when (blocking.kind) {
+                            BlockingRule.Kind.CVV -> pluralStringResource(
+                                R.plurals.form_rules_cvv,
+                                network.cvvLength,
+                                network.name,
+                                network.cvvLength
+                            )
+                            BlockingRule.Kind.NUMBER -> stringResource(R.string.form_rules_number, network.name)
+                        },
+                        onReset = { viewModel.resetNetworkRules(network.id) }
                     )
                 }
 
@@ -852,31 +863,3 @@ private fun CardFormSession.previewCard(bankFallback: String): HomeCard {
     )
 }
 
-/** Shown only when a changed built-in rule is what blocks the number or CVV. */
-@Composable
-private fun ChangedRulesNotice(networkName: String, onReset: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = QcDimens.Half),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(R.string.form_rules_changed, networkName),
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f)
-        )
-        // Text sits flush with the field edge above; the touch target stays full size.
-        TextButton(
-            onClick = onReset,
-            contentPadding = PaddingValues(horizontal = QcDimens.Base),
-            modifier = Modifier.offset(x = QcDimens.Base),
-            colors = ButtonDefaults.textButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
-        ) {
-            Text(stringResource(R.string.form_rules_reset))
-        }
-    }
-}

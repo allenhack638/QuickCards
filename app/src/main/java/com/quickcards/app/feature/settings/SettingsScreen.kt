@@ -102,14 +102,15 @@ fun SettingsScreen(
     onImport: () -> Unit = {},
     onErase: () -> Unit = {},
     onPrivacy: () -> Unit = {},
-    onUpdate: () -> Unit = {}
+    updateState: AppUpdates.State = AppUpdates.State.None,
+    onUpdate: () -> Unit = {},
+    onCompleteUpdate: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val settings = remember(context) { AppSettings.get(context) }
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
 
-    val updateState by AppUpdates.state.collectAsState()
     val theme by settings.theme.collectAsState()
     val clipClearSec by settings.clipClearSec.collectAsState()
     val maskNumbers by settings.maskNumbers.collectAsState()
@@ -550,7 +551,7 @@ fun SettingsScreen(
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_about))
-            VersionRow(state = updateState, onUpdate = onUpdate)
+            VersionRow(state = updateState, onUpdate = onUpdate, onCompleteUpdate = onCompleteUpdate)
             ValueRow(
                 icon = QcIcons.shield,
                 title = stringResource(R.string.settings_privacy_title),
@@ -577,7 +578,7 @@ fun SettingsScreen(
 
 /** The version, plus the Google Play update when one is waiting; static otherwise. */
 @Composable
-private fun VersionRow(state: AppUpdates.State, onUpdate: () -> Unit) {
+private fun VersionRow(state: AppUpdates.State, onUpdate: () -> Unit, onCompleteUpdate: () -> Unit) {
     val version = BuildConfig.VERSION_NAME
     val title = stringResource(R.string.settings_version_title)
     when (state) {
@@ -598,7 +599,7 @@ private fun VersionRow(state: AppUpdates.State, onUpdate: () -> Unit) {
             title = title,
             subtitle = stringResource(R.string.settings_update_ready, version),
             opens = false,
-            onClick = AppUpdates::completeUpdate
+            onClick = onCompleteUpdate
         )
         AppUpdates.State.None -> StaticRow(
             icon = QcIcons.info,

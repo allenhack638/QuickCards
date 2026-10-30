@@ -14,7 +14,6 @@ import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.quickcards.app.BuildConfig
-import com.quickcards.app.core.security.AppLockController
 import com.quickcards.domain.UpdatePolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +41,7 @@ object AppUpdates {
 
     private var manager: AppUpdateManager? = null
     private var latest: AppUpdateInfo? = null
-    private var checked = false
+    private var promptedThisProcess = false
 
     private val listener = InstallStateUpdatedListener { install ->
         _state.value = when (install.installStatus()) {
@@ -87,8 +86,8 @@ object AppUpdates {
         info: AppUpdateInfo,
         launcher: ActivityResultLauncher<IntentSenderRequest>
     ) {
-        if (checked) return
-        checked = true
+        if (promptedThisProcess) return
+        promptedThisProcess = true
         val prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val prompt = UpdatePolicy.shouldPrompt(
             installedVersion = BuildConfig.VERSION_CODE,
@@ -108,8 +107,7 @@ object AppUpdates {
 
     private fun start(info: AppUpdateInfo, launcher: ActivityResultLauncher<IntentSenderRequest>) {
         val updates = manager ?: return
-        // The Play sheet is another app's window: keep "Lock when you leave" from firing.
-        AppLockController.beginPlayUpdateSheet()
+        // No lock grace: if Play's sheet takes the app to the background, it locks as usual.
         runCatching {
             updates.startUpdateFlowForResult(
                 info,

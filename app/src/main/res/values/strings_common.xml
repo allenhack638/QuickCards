@@ -4,4 +4,5 @@
     <string name="common_remove_tag">Remove tag %1$s</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_unlock_title">Unlock QuickCards</string>
+    <string name="rules_reset_to_standard">Reset to standard</string>
 </resources>

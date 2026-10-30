@@ -44,7 +44,7 @@ internal fun cvvHelperText(network: CardNetwork?): String =
     if (network == null) {
         stringResource(R.string.form_cvv_digits_unknown)
     } else if (DefaultNetworks.cvvOptional(network)) {
-        stringResource(R.string.form_cvv_digits_optional)
+        pluralStringResource(R.plurals.form_cvv_digits_optional, network.cvvLength, network.cvvLength)
     } else {
         pluralStringResource(R.plurals.form_cvv_digits, network.cvvLength, network.cvvLength)
     }

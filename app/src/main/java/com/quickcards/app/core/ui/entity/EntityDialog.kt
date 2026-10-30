@@ -76,6 +76,7 @@ import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.ui.components.FormSupportingLine
 import com.quickcards.app.core.ui.components.LocalSnackbar
+import com.quickcards.app.core.ui.components.RulesResetRow
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
@@ -92,6 +93,7 @@ import com.quickcards.domain.EntityValidationError
 import com.quickcards.domain.EntityValidator
 import com.quickcards.domain.NetworkLabelMax
 import com.quickcards.domain.NetworkRule
+import com.quickcards.domain.NetworkRules
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -190,15 +192,13 @@ private fun EntityDialogContent(
 
     // Built-in networks only: compare the form and the saved rules with the standard ones.
     val standard = if (kind == EntityKind.NETWORK) DefaultNetworks.standard(editingId) else null
-    fun rulesOf(p: String, l: String, cvv: Int, check: Boolean, blankCvv: Boolean): Set<NetworkRule> =
-        standard?.let {
-            DefaultNetworks.changedRules(
-                it.copy(prefixes = p, lengths = l, cvvLength = cvv, luhn = check, cvvOptional = blankCvv)
-            )
-        }.orEmpty()
-    val changedNow = rulesOf(prefixes.text, lengths.text, cvvLength, luhn, cvvOptional)
+    fun changedFromStandard(rules: NetworkRules): Set<NetworkRule> =
+        if (standard == null) emptySet() else DefaultNetworks.changedRules(standard.id, rules)
+    val changedNow = changedFromStandard(
+        NetworkRules(prefixes.text, lengths.text, cvvLength, luhn, cvvOptional)
+    )
     val changedBefore = before?.let {
-        rulesOf(it.prefixes, it.lengths, it.cvvLength, it.luhn, it.cvvOptional)
+        changedFromStandard(NetworkRules(it.prefixes, it.lengths, it.cvvLength, it.luhn, it.cvvOptional))
     }.orEmpty()
 
     val nameFocus = remember { FocusRequester() }
@@ -534,7 +534,7 @@ private fun EntityDialogContent(
                 label = stringResource(R.string.manage_cvv_optional)
             )
             if (standard != null && changedNow.isNotEmpty()) {
-                StandardRulesRow(
+                RulesResetRow(
                     text = stringResource(
                         R.string.manage_rules_changed,
                         initialName.ifBlank { standard.name }
@@ -639,35 +639,6 @@ private fun EntityTextField(
         )
         Box(modifier = Modifier.fillMaxWidth().padding(top = QcDimens.Half)) {
             FormSupportingLine(helper = helper, error = error, counter = counter)
-        }
-    }
-}
-
-/** One quiet line under the rules with the way back to the standard ones. */
-@Composable
-private fun StandardRulesRow(text: String, onReset: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = QcDimens.Half),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = text,
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f)
-        )
-        // Text sits flush with the field edge above; the touch target stays full size.
-        TextButton(
-            onClick = onReset,
-            contentPadding = PaddingValues(horizontal = QcDimens.Base),
-            modifier = Modifier.offset(x = QcDimens.Base),
-            colors = ButtonDefaults.textButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
-        ) {
-            Text(stringResource(R.string.manage_rules_reset))
         }
     }
 }

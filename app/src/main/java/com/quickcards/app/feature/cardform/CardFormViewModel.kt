@@ -16,11 +16,13 @@ import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.model.toDomain
+import com.quickcards.app.core.data.model.withRules
 import com.quickcards.app.core.data.repository.DuplicateCardException
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
 import com.quickcards.domain.DefaultNetworks
+import com.quickcards.domain.rules
 import com.quickcards.domain.EntityKind
 import com.quickcards.domain.ExistingCardRef
 import com.quickcards.domain.Field
@@ -207,14 +209,7 @@ class CardFormViewModel(
         val standard = DefaultNetworks.standard(networkId) ?: return
         viewModelScope.launch {
             val stored = repository.getNetwork(networkId) ?: return@launch
-            repository.updateNetwork(
-                stored.copy(
-                    prefixes = standard.prefixes,
-                    lengths = standard.lengths,
-                    cvvLength = standard.cvvLength,
-                    luhn = standard.luhn
-                )
-            )
+            repository.updateNetwork(stored.withRules(standard.rules))
         }
     }
 

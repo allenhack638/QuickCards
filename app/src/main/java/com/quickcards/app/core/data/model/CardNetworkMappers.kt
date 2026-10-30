@@ -1,6 +1,7 @@
 package com.quickcards.app.core.data.model
 
 import com.quickcards.domain.CardNetwork as DomainCardNetwork
+import com.quickcards.domain.NetworkRules
 
 fun CardNetwork.toDomain(): DomainCardNetwork = DomainCardNetwork(
     id = id,
@@ -12,4 +13,12 @@ fun CardNetwork.toDomain(): DomainCardNetwork = DomainCardNetwork(
     luhn = luhn,
     groups = groups,
     cvvOptional = cvvOptional
+)
+
+fun CardNetwork.withRules(rules: NetworkRules): CardNetwork = copy(
+    prefixes = rules.prefixes,
+    lengths = rules.lengths,
+    cvvLength = rules.cvvLength,
+    luhn = rules.luhn,
+    cvvOptional = rules.cvvOptional
 )

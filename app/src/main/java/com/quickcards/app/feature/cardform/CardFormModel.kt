@@ -13,6 +13,7 @@ import com.quickcards.domain.DefaultNetworks
 import com.quickcards.domain.ExistingCardRef
 import com.quickcards.domain.Field
 import com.quickcards.domain.NamedRef
+import com.quickcards.domain.NetworkRule
 import java.time.YearMonth
 import java.util.Locale
 
@@ -64,6 +65,11 @@ object CardFieldInput {
         raw.filter { it in '0'..'9' }.take(network?.cvvLength ?: 4)
 
     fun note(raw: String): String = raw.take(CardValidator.NOTE_MAX_LENGTH)
+}
+
+/** A changed built-in network rule that is blocking the card, and which field it blocks. */
+data class BlockingRule(val network: CardNetwork, val kind: Kind) {
+    enum class Kind { NUMBER, CVV }
 }
 
 /** Immutable form state with no Android imports, so it is JVM-tested. */
@@ -377,11 +383,25 @@ data class CardFormSession(
         return next
     }
 
-    /** The detected network has non-standard rules and they are why the number or CVV fails. */
-    fun changedRulesBlocking(): CardNetwork? {
+    /**
+     * A changed built-in rule is exactly why the number or CVV fails (a typo or duplicate never
+     * counts), so the form can name it and offer Reset to standard.
+     */
+    fun changedRulesBlocking(): BlockingRule? {
         val network = form.network(lists.networks) ?: return null
-        val failing = Field.NUMBER in form.errors || Field.CVV in form.errors
-        return network.takeIf { failing && DefaultNetworks.changedRules(it).isNotEmpty() }
+        val changed = DefaultNetworks.changedRules(network)
+        if (changed.isEmpty()) return null
+        val cvvBlocked = form.errors[Field.CVV] is CardError.CvvLength && NetworkRule.CVV in changed
+        val numberBlocked = when (form.errors[Field.NUMBER]) {
+            is CardError.NetworkLength -> NetworkRule.LENGTHS in changed
+            CardError.Luhn -> NetworkRule.LUHN in changed
+            else -> false
+        }
+        return when {
+            cvvBlocked -> BlockingRule(network, BlockingRule.Kind.CVV)
+            numberBlocked -> BlockingRule(network, BlockingRule.Kind.NUMBER)
+            else -> null
+        }
     }
 
     companion object {

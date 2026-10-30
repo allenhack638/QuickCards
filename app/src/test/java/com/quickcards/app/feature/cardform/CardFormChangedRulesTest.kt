@@ -22,7 +22,8 @@ class CardFormChangedRulesTest {
         val blocked = session(visaFourDigits).updateCvv("123").cvvBlur()
 
         assertTrue(Field.CVV in blocked.form.errors)
-        assertEquals("visa", blocked.changedRulesBlocking()?.id)
+        assertEquals("visa", blocked.changedRulesBlocking()?.network?.id)
+        assertEquals(BlockingRule.Kind.CVV, blocked.changedRulesBlocking()?.kind)
     }
 
     @Test
@@ -40,6 +41,14 @@ class CardFormChangedRulesTest {
         val fine = session(visaFourDigits).updateCvv("1234").cvvBlur()
 
         assertNull(fine.changedRulesBlocking())
+    }
+
+    @Test
+    fun aTypoOnANetworkWithChangedRulesShowsNoNotice() {
+        val typo = session(visaFourDigits).updateNumber("4111111111111112").numberBlur()
+
+        assertTrue(Field.NUMBER in typo.form.errors)
+        assertNull(typo.changedRulesBlocking())
     }
 
     @Test

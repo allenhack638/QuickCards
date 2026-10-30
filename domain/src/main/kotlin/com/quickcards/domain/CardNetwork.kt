@@ -15,7 +15,27 @@ data class CardNetwork(
     val cvvOptional: Boolean = false
 )
 
-/** The parts of a network that decide which numbers and CVVs a card accepts. */
+/** The fields that decide which numbers and CVVs a network accepts; they always travel together. */
+data class NetworkRules(
+    val prefixes: String,
+    val lengths: String,
+    val cvvLength: Int,
+    val luhn: Boolean,
+    val cvvOptional: Boolean
+)
+
+val CardNetwork.rules: NetworkRules
+    get() = NetworkRules(prefixes, lengths, cvvLength, luhn, cvvOptional)
+
+fun CardNetwork.withRules(rules: NetworkRules): CardNetwork = copy(
+    prefixes = rules.prefixes,
+    lengths = rules.lengths,
+    cvvLength = rules.cvvLength,
+    luhn = rules.luhn,
+    cvvOptional = rules.cvvOptional
+)
+
+/** One rule of a network, as reported by [DefaultNetworks.changedRules]. */
 enum class NetworkRule {
     PREFIXES,
     LENGTHS,
@@ -30,15 +50,17 @@ object DefaultNetworks {
     fun cvvOptional(network: CardNetwork?): Boolean = network?.cvvOptional == true
 
     /** Empty for custom networks and for built-in networks still on their standard rules. */
-    fun changedRules(network: CardNetwork): Set<NetworkRule> {
-        val standard = standard(network.id) ?: return emptySet()
+    fun changedRules(network: CardNetwork): Set<NetworkRule> = changedRules(network.id, network.rules)
+
+    fun changedRules(id: String?, rules: NetworkRules): Set<NetworkRule> {
+        val standard = standard(id)?.rules ?: return emptySet()
         return buildSet {
-            if (compact(network.prefixes) != compact(standard.prefixes)) add(NetworkRule.PREFIXES)
-            if (compact(network.lengths) != compact(standard.lengths)) add(NetworkRule.LENGTHS)
-            if (network.cvvLength != standard.cvvLength || network.cvvOptional != standard.cvvOptional) {
+            if (compact(rules.prefixes) != compact(standard.prefixes)) add(NetworkRule.PREFIXES)
+            if (compact(rules.lengths) != compact(standard.lengths)) add(NetworkRule.LENGTHS)
+            if (rules.cvvLength != standard.cvvLength || rules.cvvOptional != standard.cvvOptional) {
                 add(NetworkRule.CVV)
             }
-            if (network.luhn != standard.luhn) add(NetworkRule.LUHN)
+            if (rules.luhn != standard.luhn) add(NetworkRule.LUHN)
         }
     }
 
