@@ -449,11 +449,11 @@ hun.addEventListener('click', e => {
 function shareDialog(c) {
   const net = detectNet(c.number);
   openDialog(`<h2>Share this card?</h2><div class="body">The bank, card number, expiry and name are shared as text. Add the CVV only if the person needs it.</div>
-    <button class="checkrow sl" role="checkbox" aria-checked="false" id="shareCvv" style="padding:0;margin-top:8px"><span class="cb">${I('check')}</span>Include CVV</button>
+    ${c.cvv ? `<button class="checkrow sl" role="checkbox" aria-checked="false" id="shareCvv" style="padding:0;margin-top:8px"><span class="cb">${I('check')}</span>Include CVV</button>` : ''}
     <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="share">Share</button></div>`, () => {
     dialog.onclick = e => { const cb = e.target.closest('#shareCvv'); if (cb) { cb.setAttribute('aria-checked', cb.getAttribute('aria-checked') !== 'true'); return; }
       const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; const cvv = $('#shareCvv', dialog)?.getAttribute('aria-checked') === 'true'; closeDialog(); if (d !== 'share') return;
-      const text = [cardTitle(c), `Card number: ${fmt(c.number, net, false)}`, `Expiry: ${c.exp}`, holderName(c) ? `Name: ${holderName(c)}` : null, cvv ? `CVV: ${c.cvv}` : null].filter(Boolean).join('\n');
+      const text = [cardTitle(c), `Card number: ${fmt(c.number, net, false)}`, `Expiry: ${c.exp}`, holderName(c) ? `Name: ${holderName(c)}` : null, cvv && c.cvv ? `CVV: ${c.cvv}` : null].filter(Boolean).join('\n');
       if (navigator.share) navigator.share({ text }).catch(() => {}); else snackbar('Share sheet opens here on the phone'); };
   });
 }
