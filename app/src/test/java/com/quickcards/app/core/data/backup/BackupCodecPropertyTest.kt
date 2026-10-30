@@ -62,6 +62,29 @@ class BackupCodecPropertyTest {
         }
     }
 
+    /**
+     * DESIGN.md "Card colour": slate left the grid but stored slate cards still render, so an
+     * export must keep it. The import normaliser maps it to navy.
+     */
+    @Test
+    fun `bug_stored_slate_colour_is_restored_as_navy`() = runBlocking<Unit> {
+        val storedColours = BandColor.ALL + BandColor.SLATE
+        checkAll(1_000, config, seeds) { seed ->
+            val random = Random(seed)
+            val colour = storedColours[seed % storedColours.size]
+            val card = BackupCard(
+                id = "card-${random.nextInt(1_000)}",
+                number = digits(random, random.nextInt(1, 20)),
+                color = colour
+            )
+            val content = BackupContent(meta = BackupMeta(), cards = listOf(card))
+
+            val decoded = BackupCodec.decodePayload(BackupCodec.encode(content)).content
+
+            assertEquals("seed=$seed colour=$colour", colour, decoded.cards.single().color)
+        }
+    }
+
     /** BackupCodec.decodePayload reports bad input as BackupFormatException, never another throw. */
     @Test
     fun `random bytes only ever fail as a format error`() = runBlocking<Unit> {
