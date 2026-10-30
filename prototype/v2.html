@@ -198,7 +198,7 @@ const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 /* ---------- Icons ---------- */
 // Built-in networks ship an acceptance mark on the standard 56x28 plate; custom ones keep the text badge.
 const NET_MARKS = new Set(['visa', 'mc', 'amex', 'rupay', 'diners', 'discover', 'jcb', 'maestro', 'unionpay', 'mir']);
-const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', payments: 'payments', };
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', payments: 'payments', mail: 'mail', update: 'system_update', };
 const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
 
 const LOGO = (vb = '0 0 108 108') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="currentColor" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
@@ -219,6 +219,11 @@ const NETWORKS0 = () => [
 const lens = spec => { const out = new Set(); String(spec).split(',').forEach(t => { t = t.trim(); const m = t.match(/^(\d+)\s*-\s*(\d+)$/); if (m) { for (let i = +m[1]; i <= +m[2]; i++) out.add(i); } else if (/^\d+$/.test(t)) out.add(+t); }); return [...out].sort((a, b) => a - b); };
 const lensText = spec => { const l = lens(spec); if (!l.length) return ''; const runs = []; let s = l[0], p = l[0]; for (const x of l.slice(1).concat(null)) { if (x === p + 1) { p = x; continue; } runs.push(s === p ? `${s}` : `${s} to ${p}`); s = p = x; } return runs.length > 1 ? runs.slice(0, -1).join(', ') + ' or ' + runs.at(-1) : runs[0]; };
 const prefixScore = (num, spec) => { let best = 0; String(spec).split(',').forEach(t => { t = t.trim(); const m = t.match(/^(\d+)\s*-\s*(\d+)$/); if (m) { const L = m[1].length; if (num.length >= L) { const p = +num.slice(0, L); if (p >= +m[1] && p <= +m[2]) best = Math.max(best, L); } } else if (t && num.startsWith(t)) best = Math.max(best, t.length); }); return best; };
+/* Built-in networks keep a standard rule set; a change warns, and Reset to standard restores it. */
+const NET_STD = id => NETWORKS0().find(n => n.id === id);
+const CVV_OPTIONAL = new Set(['maestro']);
+const rulesChanged = n => { const s = n && NET_STD(n.id); if (!s) return []; const c = v => String(v).replace(/\s+/g, ''); return [c(n.prefixes) !== c(s.prefixes) && 'prefixes', c(n.lengths) !== c(s.lengths) && 'lengths', n.cvv !== s.cvv && 'cvv', n.luhn !== s.luhn && 'luhn'].filter(Boolean); };
+const cvvHelp = net => net ? (CVV_OPTIONAL.has(net.id) ? '3 digits or none' : `${net.cvv} digits`) : '3 or 4 digits';
 const detect = num => { let best = null, bs = 0; for (const n of S.networks) { const s = prefixScore(num, n.prefixes); if (s > bs) { bs = s; best = n; } } return best; };
 const DEFG = { 12: [4,4,4], 13: [4,4,5], 14: [4,6,4], 15: [4,6,5], 16: [4,4,4,4], 17: [4,4,4,5], 18: [4,4,4,6], 19: [4,4,4,4,3] };
 const groupsFor = (net, len) => { if (net?.groups) { const g = net.groups.split('-').map(Number); if (g.reduce((a, b) => a + b, 0) === len) return g; } return DEFG[len] || null; };
@@ -362,7 +367,7 @@ function lockApp(reason) {
   lockscr.innerHTML = `<div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2 id="lockT">QuickCards is locked</h2>
     <div class="why">Use your fingerprint or screen lock to see your cards</div></div>
     <button class="btn filled unlock sl" data-act="appunlock" aria-label="Unlock QuickCards">${I('fp')}Unlock</button>
-    <div class="foot">${I('shield')}Encrypted on this phone · v2.4.0</div>`;
+    <div class="foot">${I('shield')}Encrypted on this phone · v2.5.0</div>`;
   lockscr.hidden = false; requestAnimationFrame(() => lockscr.classList.add('show'));
   // The prompt opens on its own; Unlock re-opens it after a cancel.
   setTimeout(() => { if (isAppLocked() && bio.hidden) openBio(unlockApp, 'Unlock to see your cards'); }, 420);
@@ -603,7 +608,7 @@ function passHTML(c, preview) {
       ${preview ? '<span style="width:12px"></span>' : `<button class="iconbtn" data-act="actions" data-id="${c.id}" aria-label="More for ${esc(title)}">${I('more')}</button>`}</div>
     <div class="main">${f('pan', 'number', 'Card number', num, preview && !c.number, labExtra)}</div>
     <div class="perf"></div>
-    <div class="stub">${f('', 'exp', 'Expiry', c.exp || 'MM/YY', preview && !c.exp, '', expAria)}${f('cvv', 'cvv', 'CVV', '•'.repeat(net?.cvv || 3), false)}${f('', 'name', 'Name', name || 'NAME', preview && !name)}</div>
+    <div class="stub">${f('', 'exp', 'Expiry', c.exp || 'MM/YY', preview && !c.exp, '', expAria)}${!preview && !c.cvv ? `<div class="field"><span class="lab">CVV</span><span class="val ph">None</span></div>` : f('cvv', 'cvv', 'CVV', '•'.repeat(net?.cvv || 3), false)}${f('', 'name', 'Name', name || 'NAME', preview && !name)}</div>
     ${tags}${note}${preview ? '' : dueStrip(c)}
   </article></div>`;
 }
@@ -749,9 +754,13 @@ function entityDialog(kind, id, onCreated) {
       ${tfH('en-pre', 'Starting digits', x?.prefixes, 'For example 4 or 51-55, separated by commas', 'inputmode="numeric"')}
       ${tfH('en-len', 'Number lengths', x?.lengths || '16', 'For example 16 or 16-19', 'inputmode="numeric"')}
       <div class="grp" style="margin:8px 0 12px"><div class="glab">CVV digits</div><div class="seg" role="radiogroup">${[3, 4].map(n => `<button role="radio" aria-checked="${cvv === n}" data-cvv="${n}">${I('check')}${n}</button>`).join('')}</div></div>
-      <button class="checkrow" role="checkbox" aria-checked="${luhn}" id="en-luhn" style="padding:0"><span class="cb">${I('check')}</span>Check the last digit (Luhn)</button>` : ''}
+      <button class="checkrow" role="checkbox" aria-checked="${luhn}" id="en-luhn" style="padding:0"><span class="cb">${I('check')}</span>Check the last digit (Luhn)</button>
+      ${NET_STD(id) ? `<div class="stdrow" id="en-std" hidden style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span class="t-body t-muted">Not the standard ${esc(x.name)} rules</span><button class="btn text sl" data-d="std" style="margin-right:-8px">Reset to standard</button></div>` : ''}` : ''}
     <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok" ${x ? 'disabled' : ''}>${x ? 'Save' : 'Add'}</button></div>`, () => {
-    const syncOk = () => { const b = $('[data-d="ok"]', dialog); if (b) b.toggleAttribute('disabled', !!x && entityState() === initial); };
+    const formRules = () => ({ id, prefixes: $('#en-pre')?.value ?? '', lengths: $('#en-len')?.value ?? '', cvv, luhn });
+    const syncStd = () => { const r = $('#en-std', dialog); if (r) { const on = rulesChanged(formRules()).length > 0; r.hidden = !on; r.style.display = on ? 'flex' : 'none'; } };
+    const syncOk = () => { const b = $('[data-d="ok"]', dialog); if (b) b.toggleAttribute('disabled', !!x && entityState() === initial); syncStd(); };
+    syncStd();
     $$('.tf input', dialog).forEach(inp => inp.addEventListener('input', () => {
       const limited = inp.maxLength > 0 ? inp.value.slice(0, inp.maxLength) : inp.value;
       if (limited !== inp.value) { inp.value = limited; try { inp.setSelectionRange(limited.length, limited.length); } catch (_) {} }
@@ -762,6 +771,7 @@ function entityDialog(kind, id, onCreated) {
       if (e.target.closest('#en-luhn')) { luhn = !luhn; $('#en-luhn').setAttribute('aria-checked', luhn); syncOk(); return; }
       const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
       if (d === 'cancel') return closeDialog();
+      if (d === 'std') { const st = NET_STD(id); $('#en-pre').value = st.prefixes; $('#en-len').value = st.lengths; cvv = st.cvv; luhn = st.luhn; $$('[data-cvv]', dialog).forEach(b => b.setAttribute('aria-checked', +b.dataset.cvv === cvv)); $('#en-luhn').setAttribute('aria-checked', luhn); syncOk(); return; }
       const err = (fid, m) => { const w = $(`[data-tf="${fid}"]`); w.classList.add('err'); help(w).textContent = m; };
       $$('.tf', dialog).forEach(w => { w.classList.remove('err'); help(w).textContent = w.dataset.help; });
       const name = $('#en-name').value.trim().replace(/\s+/g, ' ').replace(isTag ? /^#+/ : /^$/, '');
@@ -785,12 +795,22 @@ function entityDialog(kind, id, onCreated) {
       };
       const used = x ? K.used(x.id) : [];
       const changed = x && (x.name !== name || (isNet && (x.prefixes !== next.prefixes || x.lengths !== next.lengths || x.code !== next.code || x.cvv !== next.cvv)));
-      if (x && used.length && changed) return confirmUpdate(K, x, next, used, apply);
-      apply();
+      const updateOrApply = () => (x && used.length && changed ? confirmUpdate(K, x, next, used, apply) : apply());
+      const fresh = isNet && x ? rulesChanged({ id, ...next }).filter(r => !rulesChanged(x).includes(r)) : [];
+      if (fresh.length) return confirmRules(x, next, fresh, () => (x.name === next.name ? apply() : updateOrApply()));
+      updateOrApply();
     };
   });
 }
 const cardLine = c => `<li><span class="sw" style="background:${bandValue(c.color)}"></span><span>${esc(cardTitle(c))} · <span class="tnum">${c.number.slice(-4)}</span></span><span class="t-muted" style="margin-left:auto">${esc(byId('holders', c.holderId)?.name.split(' ')[0] || '')}</span></li>`;
+function confirmRules(x, next, fresh, go) {
+  const st = NET_STD(x.id), parts = { cvv: `a ${st.cvv}-digit CVV`, prefixes: `numbers starting ${st.prefixes.replace(/,/g, ', ')}`, lengths: `${lensText(st.lengths)} digits`, luhn: st.luhn ? 'the last-digit check' : 'no last-digit check' };
+  const uses = ['prefixes', 'lengths', 'cvv', 'luhn'].filter(r => fresh.includes(r)).map(r => parts[r]).join(', ');
+  openDialog(`<h2>Change ${esc(x.name)} rules?</h2><div class="warn">${I('warn')}<span>${esc(x.name)} cards use ${esc(uses)}. Cards that do not match your rule cannot be saved, and saved ones show Check details.</span></div>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="ok">Change anyway</button></div>`, () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; if (d === 'cancel') return closeDialog(); go(); };
+  });
+}
 function confirmUpdate(K, x, next, used, apply) {
   const what = x.name !== next.name ? `Renaming <b>${esc(x.name)}</b> to <b>${esc(next.name)}</b>` : `Changing <b>${esc(x.name)}</b>`;
   openDialog(`<h2>Update ${plural(used.length, 'card')}?</h2><div class="warn">${I('warn')}<span>${what} will update ${used.length === 1 ? 'this card' : `these ${used.length} cards`}.</span></div>
@@ -853,7 +873,8 @@ function settingsHTML() {
     ${row('import', 'download', 'Import backup', 'Restore from a QuickCards backup', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
-    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.4.0</span></span></div>
+    <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.5.0</span></span></div>
+    ${row('feedback', 'mail', 'Send feedback', 'Email support@surety.money', false, false)}
     ${row('privacy', 'shield', 'Privacy policy', 'How your card data is handled')}
     <div class="li two" style="margin-bottom:24px"><span class="lead">${I('offline')}</span><span class="txt"><span class="h">Works offline</span><span class="s">QuickCards has no network access</span></span></div>
   </div>`;
@@ -899,7 +920,8 @@ function formHTML() {
     ${F.mode === 'add' && S.cfg.nfc ? `<button class="btn text sl" data-act="nfc" style="margin:0 0 8px -12px">${I('nfc')}Tap your card</button>` : ''}
     ${tf('number', 'Card number', fmt(F.number, net, false, false), { trail: `<span class="tag" id="f-net">${esc(net?.code || '')}</span>`, attrs: 'inputmode="numeric" autocomplete="off"', fix: F.repairs?.number?.before })}
     <div class="row2">${tf('exp', 'Expiry', F.exp, { help: 'MM/YY', attrs: 'inputmode="numeric" autocomplete="off" maxlength="7"', fix: F.repairs?.exp?.before })}
-      ${tf('cvv', 'CVV', F.cvv, { help: `${net?.cvv || '3 or 4'} digits`, attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
+      ${tf('cvv', 'CVV', F.cvv, { help: cvvHelp(net), attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
+    <div class="stdrow" id="f-std" style="display:none;align-items:center;justify-content:space-between;margin-top:4px"><span class="t-body t-muted" id="f-std-t"></span><button class="btn text sl" data-act="f-std" style="margin-right:-8px">Reset to standard</button></div>
     ${tf('bank', 'Bank', byId('banks', F.bankId)?.name, { ro: 'banks', trail: caret })}
     ${tf('type', 'Card type (optional)', byId('types', F.typeId)?.name, { ro: 'types', trail: caret, help: 'Leave empty to show nothing on the card' })}
     <div class="grp"><div class="glab">Tags<span class="counter" id="tagCount">${F.tagIds.length} of ${TAGS_MAX}</span></div><div class="tagbox" id="tagBox">${tagChips()}</div></div>
@@ -935,10 +957,16 @@ function validate(key) {
     else { const d = S.cards.find(c => c.number === n && c.id !== F.id); if (d) m = `Already saved as ${cardTitle(d)} for ${byId('holders', d.holderId)?.name || 'a holder'}`; }
   }
   if (key === 'exp') { const mm = +F.exp.slice(0, 2), yy = +F.exp.slice(3, 5); if (!/^\d{2}\/\d{2}$/.test(F.exp) || mm < 1 || mm > 12) m = 'Use MM/YY'; else if (2000 + yy > TODAY.y + 20) m = 'Check the year'; }
-  if (key === 'cvv') { const want = net?.cvv; if (want ? F.cvv.length !== want : (F.cvv.length < 3 || F.cvv.length > 4)) m = `Enter ${want || '3 or 4'} digits`; }
+  if (key === 'cvv' && !(F.cvv === '' && CVV_OPTIONAL.has(net?.id))) { const want = net?.cvv; if (want ? F.cvv.length !== want : (F.cvv.length < 3 || F.cvv.length > 4)) m = `Enter ${want || '3 or 4'} digits`; }
   if (key === 'bank' && !F.bankId) m = 'Choose the bank';
   if (key === 'holder' && !F.holderId) m = 'Choose who this card belongs to';
-  setErr(key, m); return !m;
+  setErr(key, m); syncFormStd(); return !m;
+}
+/* Shown only when a changed built-in rule is what blocks the number or CVV. */
+function syncFormStd() {
+  const row = $('#f-std'); if (!row) return; const net = fNet(), E = S.form.errors;
+  const on = !!net && (E.number || E.cvv) && rulesChanged(net).length > 0;
+  row.style.display = on ? 'flex' : 'none'; if (on) $('#f-std-t').textContent = `${net.name} rules were changed.`;
 }
 function updatePreview() {
   const F = S.form, net = fNet(), name = holderName(F);
@@ -958,7 +986,7 @@ function updatePreview() {
   const tg = $('#pv-tags'); if (tg) tg.innerHTML = S.cfg.tags.show ? F.tagIds.map(t => byId('tags', t)).filter(Boolean).map(t => `<span class="ptag">${esc(t.name)}</span>`).join('') : '';
   const nw = $('#pv-note-wrap');
   if (nw) { const show = S.cfg.showNotes && !!F.note; nw.hidden = !show; const nt = $('#pv-note'); if (nt) nt.textContent = F.note; if (pv) pv.classList.toggle('has-note', show); }
-  const cv = $('[data-tf="cvv"]'); cv.dataset.help = `${net?.cvv || '3 or 4'} digits`; if (!cv.classList.contains('err')) help(cv).textContent = cv.dataset.help;
+  const cv = $('[data-tf="cvv"]'); cv.dataset.help = cvvHelp(net); if (!cv.classList.contains('err')) help(cv).textContent = cv.dataset.help;
   syncPerf(); syncFormSave();
 }
 function mountForm() {
@@ -1500,6 +1528,8 @@ app.addEventListener('click', e => {
     }
     case 'ent-add': return entityDialog(t.dataset.k, null);
     case 'ent-edit': return entityDialog(t.dataset.k, t.dataset.id);
+    case 'feedback': return snackbar('Opens your email app to support@surety.money');
+    case 'f-std': { const n = fNet(), st = n && NET_STD(n.id); if (st) { Object.assign(n, { prefixes: st.prefixes, lengths: st.lengths, cvv: st.cvv, luhn: st.luhn }); ['number', 'cvv'].forEach(k => { if (S.form.errors[k]) validate(k); }); const cv = $('[data-tf="cvv"]'); if (cv) { cv.dataset.help = cvvHelp(n); if (!cv.classList.contains('err')) help(cv).textContent = cv.dataset.help; } updatePreview(); } return; }
     case 'ent-del': return entityDelete(t.dataset.k, t.dataset.id);
     case 'export': return requireUnlock(exportDialog, 'Confirm it’s you to export your cards');
     case 'import': return requireUnlock(importDialog, 'Confirm it’s you to import cards');

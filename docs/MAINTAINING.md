@@ -166,7 +166,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+; cleared after the chosen time, by Clear, or by a new copy. The value deliberately survives switching apps so it can be pasted. The timer dies with the process, so the deadline (a keyed HMAC-SHA256 token, never the value) is persisted and an overdue copy is cleared on the first focused read (onWindowFocusChanged). It is not cleared merely because the app went to the background. | `core/security/ClipboardHelper.kt` |
 | Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; silent, low-importance channel (new id, the old channel is deleted on upgrade); **off by default for fresh installs**; a 2.3 upgrade with no stored key is migrated to on once; turning it on asks for a fresh unlock before the CVV is ever shown | `core/notifications/CopyCompanionNotifier.kt` |
 | Screen capture | `FLAG_SECURE` on every activity in release (`BuildConfig.SECURE_WINDOW`); recents screenshot disabled on API 33+; debug deliberately allows QA screenshots | `core/ui/base/BaseActivity.kt` |
-| Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest`. The EmojiCompat initializer is removed in the manifest so the default downloadable-font path cannot run. | `AndroidManifest.xml`, `app/build.gradle` |
+| Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest`. The EmojiCompat initializer is removed in the manifest so the default downloadable-font path cannot run. Play in-app updates (`com.google.android.play:app-update`, `core/update/AppUpdates.kt`) is the one Google library: it binds to the Play Store app over IPC, adds no permission, and fails quietly on non-Play installs. | `AndroidManifest.xml`, `app/build.gradle` |
 | Privacy policy | Bundled as text in Settings › About, so it needs no WebView or network permission; the public copy is `docs/privacy.html` | `feature/settings/PrivacyScreen.kt`, `res/values/strings_privacy.xml` |
 
 **Invariants**
@@ -862,7 +862,7 @@ implementation. Never let the code, prototype and docs describe different behavi
    uninstall and loses the Keystore data, so export first.
 6. Do not distribute a debug build: debug allows screenshots by design.
 
-### 5.12 Change card text parsing (keyboard scan and smart paste)
+### 5.12 Change card text parsing (paste and smart paste)
 
 **Files**
 
@@ -870,7 +870,9 @@ implementation. Never let the code, prototype and docs describe different behavi
   lines to `ParsedCardText(number, expiry)`. Never add a CVV or name field.
 - `feature/cardform/SmartPaste.kt` — detects a paste (one event that inserted 2+ characters)
   and turns the field text into a number and, when useful, an expiry.
-- `feature/cardform/CardFormContent.kt` — the number and expiry `onValueChange` handlers;
+- `feature/cardform/CardFormContent.kt` — the number and expiry `onValueChange` handlers
+  (both on the number pad, `DigitsKeyboard`: a text keyboard drops back to letters after every
+  group space);
   the number field keeps only the network badge as its trailing element (16dp end inset).
 - `strings_cardform.xml` — the two paste snackbars.
 
@@ -891,6 +893,22 @@ implementation. Never let the code, prototype and docs describe different behavi
 **Tests:** `CardTextParserTest` (JVM, realistic OCR/paste fixtures), `SmartPasteTest` (JVM:
 multi-line scan text, spaces/dashes, Expiry, junk, single digits, replacing a partly typed
 number, Amex, a phone-number line), `OfflineManifestGuardTest`.
+
+### 5.12a Built-in network rules, Maestro CVV, updates and feedback
+
+- `domain/.../CardNetwork.kt` — `DefaultNetworks.standard(id)`, `changedRules(network)` and
+  `cvvOptional(network)` (Maestro only). The app seed (`SeedData`) must match `DefaultNetworks`;
+  `DefaultNetworksTest` pins the CVV lengths to the scheme rules (Amex 4, everything else 3).
+- `core/ui/entity/EntityDialog.kt` — the "Change Visa rules?" warning for a new difference and the
+  Reset to standard row. `feature/cardform` — `CardFormSession.changedRulesBlocking()` and
+  `CardFormViewModel.resetNetworkRules`; `withLists` revalidates the number and CVV when networks
+  change.
+- `VaultRepository.updateNetwork` recomputes every card's Check details flag; values are never
+  rewritten (`NetworkRuleReviewTest`).
+- `core/update/AppUpdates.kt` + `AppUpdatePrompts.kt` — flexible Play update, prompted once per
+  version (`UpdatePolicy`, prefs `app_updates`); the Play sheet uses the system-picker lock grace.
+- `feature/settings/FeedbackMail.kt` — `ACTION_SENDTO` to support@surety.money with versions and
+  model, never card data; same lock grace.
 
 ### 5.13 Change expired / expiring-soon behaviour
 

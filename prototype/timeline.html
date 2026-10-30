@@ -613,7 +613,7 @@
   <tr><td class="m"><b>Unique</b> across all holders.</td><td>Already saved as HDFC Bank Credit for Aarav Mehta</td></tr>
   <tr><td rowspan="2">Expiry</td><td class="m">MM/YY or MM/YYYY; month 01 to 12. Stored as MM/YY.</td><td>Use MM/YY</td></tr>
   <tr><td class="m">No more than 20 years ahead.</td><td>Check the year</td></tr>
-  <tr><td>CVV</td><td class="m">Exactly the network’s length (3, or 4 for Amex); 3 or 4 if unknown.</td><td>Enter 4 digits</td></tr>
+  <tr><td>CVV</td><td class="m">Exactly the network’s length (3, or 4 for Amex); 3 or 4 if unknown. Maestro may be left blank (helper “3 digits or none”); a saved card without one shows <b>CVV None</b> with nothing to copy or share. When a changed built-in rule is what fails, one line below says “Visa rules were changed.” with <b>Reset to standard</b>.</td><td>Enter 4 digits</td></tr>
   <tr><td>Name</td><td class="m">The selected holder’s name, in capitals on the stub. It is not typed on the card.</td><td>—</td></tr>
   <tr><td>Bank</td><td class="m">Required. Searchable list, or a new bank created in place.</td><td>Choose the bank</td></tr>
   <tr><td>Card type</td><td class="m">Optional. None leaves the card without a type pill.</td><td>—</td></tr>
@@ -642,6 +642,7 @@
   <tr><td>Starting digits: numbers, ranges and commas</td><td class="m">Networks</td><td>Use digits, ranges like 51-55, and commas</td></tr>
   <tr><td>Lengths within 12 to 19</td><td class="m">Networks</td><td>Card numbers have 12 to 19 digits</td></tr>
   <tr><td>Rename or rule change while in use asks first, listing the cards</td><td class="m">All lists</td><td>Update 2 cards?</td></tr>
+  <tr><td>Changing a built-in network away from its standard rules warns first; saved cards that stop fitting show Check details. The editor shows “Not the standard Visa rules” with <b>Reset to standard</b> while they differ</td><td class="m">Built-in networks</td><td>Change Visa rules?</td></tr>
   <tr><td>Delete while in use is blocked, listing the cards, with Show cards</td><td class="m">All lists</td><td>Delete the cards first</td></tr>
   <tr><td>Delete when unused asks first and offers Undo</td><td class="m">All lists</td><td>Delete Fuel?</td></tr>
   <tr><td>A new tag with an existing name reuses it; adding one already on the card is refused</td><td class="m">Tag sheet</td><td>Already on this card</td></tr>
@@ -790,7 +791,7 @@ document.getElementById('fields').innerHTML = tf('x1', 'Card number', '3714 4963
   + tf('x3', 'CVV', '381', 'Enter 4 digits', 'err')
   + `<div style="width:300px"><div style="font-size:14px;font-weight:600;color:var(--on-surface-variant);margin:10px 4px;display:flex">Tags<span class="counter">2 of 3</span></div><div class="tagbox"><span class="chip input">Travel<span class="x">${I('close', 'sm')}</span></span><span class="chip input">Online<span class="x">${I('close', 'sm')}</span></span><span class="chip add">${I('plus')}Add tag</span></div></div>`;
 document.getElementById('overlays').innerHTML = `
-  <div style="width:358px;height:600px;position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--outline-variant)"><div class="lockscr show" style="position:absolute"><div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2>QuickCards is locked</h2><div class="why">Use your fingerprint or screen lock to see your cards</div></div><button class="btn filled unlock">${I('fp')}Unlock</button><div class="foot">${I('shield')}Encrypted on this phone · v2.4.0</div></div></div>
+  <div style="width:358px;height:600px;position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--outline-variant)"><div class="lockscr show" style="position:absolute"><div class="mid"><span class="glow"></span><span class="mark">${LOGO()}</span><h2>QuickCards is locked</h2><div class="why">Use your fingerprint or screen lock to see your cards</div></div><button class="btn filled unlock">${I('fp')}Unlock</button><div class="foot">${I('shield')}Encrypted on this phone · v2.5.0</div></div></div>
   <div class="hun"><div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum">0:24</span><span class="x">${I('close', 'sm')}</span></div><div class="t">HDFC Bank Credit · <span class="tnum">2211</span></div>
     <div class="vals"><div><div class="l">Expiry</div><div class="v">12/29</div></div><div><div class="l">CVV</div><div class="v">381</div></div></div>
     <div class="bar" style="transform:scaleX(.8)"></div></div>
