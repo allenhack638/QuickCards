@@ -552,17 +552,6 @@ fun SettingsScreen(
             SettingsSubhead(stringResource(R.string.settings_section_about))
             VersionRow(state = updateState, onUpdate = onUpdate)
             ValueRow(
-                icon = QcIcons.feedback,
-                title = stringResource(R.string.settings_feedback_title),
-                subtitle = stringResource(R.string.settings_feedback_subtitle),
-                opens = false,
-                onClick = {
-                    if (!FeedbackMail.open(context)) {
-                        snackbar.show(context.getString(R.string.settings_feedback_no_app), long = true)
-                    }
-                }
-            )
-            ValueRow(
                 icon = QcIcons.shield,
                 title = stringResource(R.string.settings_privacy_title),
                 subtitle = stringResource(R.string.settings_privacy_subtitle),

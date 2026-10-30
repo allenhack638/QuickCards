@@ -80,11 +80,6 @@
     <string name="settings_update_ready">%1$s · Restart to update</string>
     <string name="settings_update_snackbar">Update downloaded</string>
     <string name="settings_update_restart">Restart</string>
-    <string name="settings_feedback_title">Send feedback</string>
-    <string name="settings_feedback_subtitle">Email support@surety.money</string>
-    <string name="settings_feedback_subject">QuickCards feedback</string>
-    <string name="settings_feedback_body">\n\n\nQuickCards %1$s (%2$d)\nAndroid %3$s (API %4$d)\n%5$s %6$s\nPlease do not include card numbers or CVVs.</string>
-    <string name="settings_feedback_no_app">No email app found. Write to support@surety.money</string>
     <string name="settings_offline_title">Works offline</string>
     <string name="settings_offline_subtitle">QuickCards has no network access</string>
 
