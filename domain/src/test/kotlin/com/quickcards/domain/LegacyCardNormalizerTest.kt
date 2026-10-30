@@ -13,6 +13,19 @@ class LegacyCardNormalizerTest {
     private val amex = "378282246310005"
     private val unionPay = "6212345678901231"
 
+    private val customNetwork = CardNetwork(
+        id = "custom-1",
+        name = "Custom",
+        code = "CUSTOM",
+        prefixes = "88",
+        lengths = "16",
+        cvvLength = 3,
+        luhn = true,
+        cvvOptional = true
+    )
+    private val customNumber = ("88" + "1".repeat(13))
+        .let { partial -> partial + CardNumberRules.luhnCheckDigit(partial) }
+
     private fun normalize(
         number: String = visa,
         expiry: String = "12/29",
@@ -230,5 +243,31 @@ class LegacyCardNormalizerTest {
 
         val visa = normalize(cvv = "")
         assertEquals(setOf(CardField.CVV), visa.needsReview)
+    }
+
+    @Test
+    fun `a custom network with an optional CVV keeps a blank CVV`() {
+        val result = LegacyCardNormalizer.normalize(
+            customNumber,
+            "12/29",
+            "",
+            networks + customNetwork
+        )
+
+        assertEquals(customNumber, result.number)
+        assertEquals("", result.cvv)
+        assertFalse(result.fixed.containsKey(CardField.CVV))
+        assertTrue(result.needsReview.isEmpty())
+    }
+
+    @Test
+    fun `a custom network without an optional CVV flags a blank CVV`() {
+        val required = networks + customNetwork.copy(cvvOptional = false)
+        val result = LegacyCardNormalizer.normalize(customNumber, "12/29", "", required)
+
+        assertEquals(customNumber, result.number)
+        assertEquals("", result.cvv)
+        assertFalse(result.fixed.containsKey(CardField.CVV))
+        assertEquals(setOf(CardField.CVV), result.needsReview)
     }
 }

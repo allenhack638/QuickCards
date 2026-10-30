@@ -46,6 +46,26 @@ class CardValidatorTest {
         return partial + CardNumberRules.luhnCheckDigit(partial)
     }
 
+    private val customNetwork = CardNetwork(
+        id = "custom-1",
+        name = "Custom",
+        code = "CUSTOM",
+        prefixes = "88",
+        lengths = "16",
+        cvvLength = 3,
+        luhn = true,
+        cvvOptional = true
+    )
+    private val customNumber = ("88" + "1".repeat(13))
+        .let { partial -> partial + CardNumberRules.luhnCheckDigit(partial) }
+
+    private fun customErrors(cvv: String, network: CardNetwork = customNetwork): Map<Field, CardError> =
+        CardValidator.validate(
+            draft = draft(number = customNumber, cvv = cvv),
+            networks = networks + network,
+            today = today
+        )
+
     @Test
     fun completeDraftHasNoErrors() {
         assertEquals(emptyMap<Field, CardError>(), errors(draft()))
@@ -181,6 +201,22 @@ class CardValidatorTest {
             errors(draft(number = "6759649826438453", cvv = "12"))[Field.CVV]
         )
         assertEquals(CardError.CvvLength(3), errors(draft(cvv = ""))[Field.CVV])
+    }
+
+    @Test
+    fun customNetworkWithOptionalCvvAcceptsBlankButRejectsWrongLength() {
+        assertEquals("custom-1", CardNumberRules.detect(customNumber, networks + customNetwork)?.id)
+        assertNull(customErrors("")[Field.CVV])
+        assertNull(customErrors("123")[Field.CVV])
+        assertEquals(CardError.CvvLength(3), customErrors("12")[Field.CVV])
+        assertEquals(CardError.CvvLength(3), customErrors("1234")[Field.CVV])
+    }
+
+    @Test
+    fun customNetworkWithoutOptionalCvvRejectsBlankCvv() {
+        val required = customNetwork.copy(cvvOptional = false)
+        assertEquals(CardError.CvvLength(3), customErrors("", required)[Field.CVV])
+        assertNull(customErrors("123", required)[Field.CVV])
     }
 
     @Test
