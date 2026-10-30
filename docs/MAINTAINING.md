@@ -909,7 +909,7 @@ number, Amex, a phone-number line), `OfflineManifestGuardTest`.
 - `VaultRepository.updateNetwork` recomputes every card's Check details flag; values are never
   rewritten (`NetworkRuleReviewTest`).
 - `core/update/AppUpdates.kt` + `AppUpdatePrompts.kt` — flexible Play update, prompted once per
-  version (`UpdatePolicy`, prefs `app_updates`); the Play sheet gets a one-minute lock grace (`beginPlayUpdateSheet`).
+  version (`UpdatePolicy`, prefs `app_updates`); no lock grace, so a Play sheet that backgrounds the app locks it as usual.
 
 ### 5.13 Change expired / expiring-soon behaviour
 

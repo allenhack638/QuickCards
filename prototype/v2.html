@@ -222,7 +222,7 @@ const prefixScore = (num, spec) => { let best = 0; String(spec).split(',').forEa
 /* Built-in networks keep a standard rule set; a change warns, and Reset to standard restores it. */
 const NET_STD = id => NETWORKS0().find(n => n.id === id);
 const rulesChanged = n => { const s = n && NET_STD(n.id); if (!s) return []; const c = v => String(v).replace(/\s+/g, ''); return [c(n.prefixes) !== c(s.prefixes) && 'prefixes', c(n.lengths) !== c(s.lengths) && 'lengths', (n.cvv !== s.cvv || !!n.cvvOptional !== !!s.cvvOptional) && 'cvv', n.luhn !== s.luhn && 'luhn'].filter(Boolean); };
-const cvvHelp = net => net ? (net.cvvOptional ? '3 digits or none' : `${net.cvv} digits`) : '3 or 4 digits';
+const cvvHelp = net => net ? (net.cvvOptional ? `${net.cvv} digits or none` : `${net.cvv} digits`) : '3 or 4 digits';
 const detect = num => { let best = null, bs = 0; for (const n of S.networks) { const s = prefixScore(num, n.prefixes); if (s > bs) { bs = s; best = n; } } return best; };
 const DEFG = { 12: [4,4,4], 13: [4,4,5], 14: [4,6,4], 15: [4,6,5], 16: [4,4,4,4], 17: [4,4,4,5], 18: [4,4,4,6], 19: [4,4,4,4,3] };
 const groupsFor = (net, len) => { if (net?.groups) { const g = net.groups.split('-').map(Number); if (g.reduce((a, b) => a + b, 0) === len) return g; } return DEFG[len] || null; };
@@ -964,9 +964,12 @@ function validate(key) {
 }
 /* Shown only when a changed built-in rule is what blocks the number or CVV. */
 function syncFormStd() {
-  const row = $('#f-std'); if (!row) return; const net = fNet(), E = S.form.errors;
-  const on = !!net && (E.number || E.cvv) && rulesChanged(net).length > 0;
-  row.style.display = on ? 'flex' : 'none'; if (on) $('#f-std-t').textContent = `${net.name} rules were changed.`;
+  const row = $('#f-std'); if (!row) return; const net = fNet(), E = S.form.errors, ch = rulesChanged(net);
+  const cvvRule = !!E.cvv && E.cvv.startsWith('Enter') && ch.includes('cvv');
+  const numRule = !!E.number && ((E.number.includes(' numbers have ') && ch.includes('lengths')) || (E.number.startsWith('This number') && ch.includes('luhn')));
+  row.style.display = cvvRule || numRule ? 'flex' : 'none';
+  if (cvvRule) $('#f-std-t').textContent = `${net.name} is set to a ${net.cvv}-digit CVV.`;
+  else if (numRule) $('#f-std-t').textContent = `${net.name} number rules were changed.`;
 }
 function updatePreview() {
   const F = S.form, net = fNet(), name = holderName(F);
