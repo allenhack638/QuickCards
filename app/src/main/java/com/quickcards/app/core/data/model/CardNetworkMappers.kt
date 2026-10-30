@@ -10,5 +10,6 @@ fun CardNetwork.toDomain(): DomainCardNetwork = DomainCardNetwork(
     lengths = lengths,
     cvvLength = cvvLength,
     luhn = luhn,
-    groups = groups
+    groups = groups,
+    cvvOptional = cvvOptional
 )

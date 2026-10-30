@@ -36,6 +36,7 @@
 
     <string name="manage_usage_not_used">Not used</string>
     <string name="manage_usage_network">%1$s digits · CVV %2$d · %3$s</string>
+    <string name="manage_usage_network_cvv_optional">%1$s digits · CVV %2$d or none · %3$s</string>
     <plurals name="manage_usage_cards">
         <item quantity="one">%1$d card</item>
         <item quantity="other">%1$d cards</item>
@@ -92,6 +93,7 @@
     <string name="manage_helper_lengths" tools:ignore="TypographyDashes">For example 16 or 16-19</string>
     <string name="manage_group_cvv">CVV digits</string>
     <string name="manage_luhn">Check the last digit (Luhn)</string>
+    <string name="manage_cvv_optional">Cards may have no CVV</string>
     <string name="manage_rules_changed">Not the standard %1$s rules</string>
     <string name="manage_rules_reset">Reset to standard</string>
     <string name="manage_rules_title">Change %1$s rules?</string>
@@ -100,6 +102,10 @@
     <plurals name="manage_rule_cvv">
         <item quantity="one">a %1$d-digit CVV</item>
         <item quantity="other">a %1$d-digit CVV</item>
+    </plurals>
+    <plurals name="manage_rule_cvv_optional">
+        <item quantity="one">a %1$d-digit CVV or none</item>
+        <item quantity="other">a %1$d-digit CVV or none</item>
     </plurals>
     <string name="manage_rule_prefixes">numbers starting %1$s</string>
     <string name="manage_rule_lengths">%1$s digits</string>

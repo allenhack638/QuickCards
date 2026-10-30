@@ -18,5 +18,7 @@ data class CardNetwork(
     @ColumnInfo(defaultValue = "''")
     val groups: String = "",
     val sortOrder: Int = 0,
-    val builtIn: Boolean = true
+    val builtIn: Boolean = true,
+    @ColumnInfo(defaultValue = "0")
+    val cvvOptional: Boolean = false
 )

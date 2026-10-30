@@ -353,7 +353,7 @@ private fun usageSubtitle(kind: EntityKind, entity: ManagedEntity): String {
     if (kind != EntityKind.NETWORK) return usage
     val network = entity.network ?: return usage
     return stringResource(
-        R.string.manage_usage_network,
+        if (network.cvvOptional) R.string.manage_usage_network_cvv_optional else R.string.manage_usage_network,
         CardNumberRules.lengthsText(network.lengths),
         network.cvvLength,
         usage

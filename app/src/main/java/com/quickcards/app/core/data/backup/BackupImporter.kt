@@ -13,6 +13,7 @@ import com.quickcards.app.core.data.model.CardTag
 import com.quickcards.app.core.data.model.CardType
 import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.SeedData
+import com.quickcards.app.core.data.model.toDomain
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.security.EncryptionHelper
@@ -54,18 +55,7 @@ object BackupImporter {
         encryption: EncryptionHelper = EncryptionHelper.getInstance(),
         now: Long = System.currentTimeMillis()
     ): BackupImportResult {
-        val networks = database.networkDao().getAllNetworksSync().map { network ->
-            com.quickcards.domain.CardNetwork(
-                id = network.id,
-                name = network.name,
-                code = network.code,
-                prefixes = network.prefixes,
-                lengths = network.lengths,
-                cvvLength = network.cvvLength,
-                luhn = network.luhn,
-                groups = network.groups
-            )
-        }
+        val networks = database.networkDao().getAllNetworksSync().map { it.toDomain() }
         val normalized = BackupNormalizer.normalize(content, networks)
 
         var counts = Counts()
@@ -236,7 +226,8 @@ object BackupImporter {
                     luhn = item.luhn,
                     groups = NetworkRuleSanitizer.groups(item.groups, lengths),
                     sortOrder = nextNetworkSort++,
-                    builtIn = false
+                    builtIn = false,
+                    cvvOptional = item.cvvOptional
                 )
                 networkDao.insertNetwork(created)
                 networkNamesById[created.id] = displayName

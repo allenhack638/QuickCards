@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
         CardTag::class,
         CardRepairEntity::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = true
 )
 abstract class QuickCardsDatabase : RoomDatabase() {
@@ -213,6 +213,14 @@ abstract class QuickCardsDatabase : RoomDatabase() {
             }
         }
 
+        /** Per-network "CVV may be blank"; built-in Maestro starts with it on. */
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `networks` ADD COLUMN `cvvOptional` INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("UPDATE `networks` SET `cvvOptional` = 1 WHERE `id` = 'maestro' AND `builtIn` = 1")
+            }
+        }
+
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `cards` ADD COLUMN `archived` INTEGER NOT NULL DEFAULT 0")
@@ -295,7 +303,8 @@ abstract class QuickCardsDatabase : RoomDatabase() {
                         MIGRATION_9_10,
                         MIGRATION_10_11,
                         MIGRATION_11_12,
-                        MIGRATION_12_13
+                        MIGRATION_12_13,
+                        MIGRATION_13_14
                     )
                     .build()
                 INSTANCE = instance

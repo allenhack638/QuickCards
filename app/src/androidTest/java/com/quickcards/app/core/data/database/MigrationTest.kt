@@ -343,6 +343,40 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate13To14_addsCvvOptionalOnForBuiltInMaestroOnly() {
+        helper.createDatabase(TEST_DB_13_14, 13).apply {
+            listOf(
+                "('maestro', 'Maestro', 'MAESTRO', '6759', '12-19', 3, 1, '', 7, 1)",
+                "('visa', 'Visa', 'VISA', '4', '16', 3, 1, '', 0, 1)",
+                "('custom-1', 'Maestro Local', 'MLOC', '6799', '16', 3, 1, '', 10, 0)"
+            ).forEach { row ->
+                execSQL(
+                    "INSERT INTO networks (id, name, code, prefixes, lengths, cvvLength, luhn, " +
+                        "`groups`, sortOrder, builtIn) VALUES $row"
+                )
+            }
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB_13_14,
+            14,
+            true,
+            QuickCardsDatabase.MIGRATION_13_14
+        )
+
+        db.query("SELECT id, cvvOptional, cvvLength FROM networks ORDER BY id").use { cursor ->
+            val rows = buildMap {
+                while (cursor.moveToNext()) put(cursor.getString(0), cursor.getInt(1) to cursor.getInt(2))
+            }
+            assertEquals(1 to 3, rows["maestro"])
+            assertEquals(0 to 3, rows["visa"])
+            assertEquals(0 to 3, rows["custom-1"])
+        }
+        db.close()
+    }
+
+    @Test
     fun migrate11To12_addsArchiveAndReviewColumnsAndCreatesRepairs() {
         helper.createDatabase(TEST_DB_11_12, 11).apply {
             execSQL(
@@ -433,5 +467,6 @@ class MigrationTest {
         const val TEST_DB_10_11 = "quickcards-migration-10-11-test"
         const val TEST_DB_11_12 = "quickcards-migration-11-12-test"
         const val TEST_DB_12_13 = "quickcards-migration-12-13-test"
+        const val TEST_DB_13_14 = "quickcards-migration-13-14-test"
     }
 }

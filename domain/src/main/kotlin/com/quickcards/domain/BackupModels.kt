@@ -38,7 +38,8 @@ data class BackupNetwork(
     val lengths: String,
     val cvv: Int = 3,
     val luhn: Boolean = true,
-    val groups: String = ""
+    val groups: String = "",
+    val cvvOptional: Boolean = false
 )
 
 data class BackupCard(

@@ -10,7 +10,9 @@ data class CardNetwork(
     val lengths: String,
     val cvvLength: Int,
     val luhn: Boolean,
-    val groups: String = ""
+    val groups: String = "",
+    /** Cards on this network may have no printed CVV (many Maestro cards), so it may stay blank. */
+    val cvvOptional: Boolean = false
 )
 
 /** The parts of a network that decide which numbers and CVVs a card accepts. */
@@ -23,12 +25,9 @@ enum class NetworkRule {
 
 object DefaultNetworks {
 
-    /** Many Maestro cards have no printed CVV, so the field may stay blank. */
-    private val cvvOptionalIds = setOf("maestro")
-
     fun standard(id: String?): CardNetwork? = all.firstOrNull { it.id == id }
 
-    fun cvvOptional(network: CardNetwork?): Boolean = network?.id in cvvOptionalIds
+    fun cvvOptional(network: CardNetwork?): Boolean = network?.cvvOptional == true
 
     /** Empty for custom networks and for built-in networks still on their standard rules. */
     fun changedRules(network: CardNetwork): Set<NetworkRule> {
@@ -36,7 +35,9 @@ object DefaultNetworks {
         return buildSet {
             if (compact(network.prefixes) != compact(standard.prefixes)) add(NetworkRule.PREFIXES)
             if (compact(network.lengths) != compact(standard.lengths)) add(NetworkRule.LENGTHS)
-            if (network.cvvLength != standard.cvvLength) add(NetworkRule.CVV)
+            if (network.cvvLength != standard.cvvLength || network.cvvOptional != standard.cvvOptional) {
+                add(NetworkRule.CVV)
+            }
             if (network.luhn != standard.luhn) add(NetworkRule.LUHN)
         }
     }
@@ -116,7 +117,8 @@ object DefaultNetworks {
             prefixes = "5018,5020,5038,5893,6304,6759,6761-6763",
             lengths = "12-19",
             cvvLength = 3,
-            luhn = true
+            luhn = true,
+            cvvOptional = true
         ),
         CardNetwork(
             id = "unionpay",

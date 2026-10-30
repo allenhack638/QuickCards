@@ -38,6 +38,18 @@ class DefaultNetworksTest {
     }
 
     @Test
+    fun `turning the blank CVV setting on or off counts as a CVV rule change`() {
+        assertEquals(setOf(NetworkRule.CVV), DefaultNetworks.changedRules(visa.copy(cvvOptional = true)))
+        val maestro = DefaultNetworks.standard("maestro")!!
+        assertEquals(setOf(NetworkRule.CVV), DefaultNetworks.changedRules(maestro.copy(cvvOptional = false)))
+    }
+
+    @Test
+    fun `a custom network can allow a blank CVV`() {
+        assertTrue(DefaultNetworks.cvvOptional(visa.copy(id = "custom-1", cvvOptional = true)))
+    }
+
+    @Test
     fun `only Maestro has an optional CVV`() {
         assertTrue(DefaultNetworks.cvvOptional(DefaultNetworks.standard("maestro")))
         DefaultNetworks.all.filter { it.id != "maestro" }.forEach {

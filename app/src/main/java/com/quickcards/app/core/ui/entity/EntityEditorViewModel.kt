@@ -60,7 +60,8 @@ data class EntityEditorData(
                     prefixes = it.prefixes,
                     lengths = it.lengths,
                     cvvLength = it.cvvLength,
-                    luhn = it.luhn
+                    luhn = it.luhn,
+                    cvvOptional = it.cvvOptional
                 )
             }
 
@@ -171,7 +172,8 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
                     lengths = lengths,
                     cvvLength = draft.cvvLength,
                     luhn = draft.luhn,
-                    groups = ""
+                    groups = "",
+                    cvvOptional = draft.cvvOptional
                 )
             ).id
         }
@@ -184,7 +186,8 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
                 prefixes = prefixes,
                 lengths = lengths,
                 cvvLength = draft.cvvLength,
-                luhn = draft.luhn
+                luhn = draft.luhn,
+                cvvOptional = draft.cvvOptional
             )
         )
         return editingId
