@@ -109,7 +109,7 @@ object AppUpdates {
     private fun start(info: AppUpdateInfo, launcher: ActivityResultLauncher<IntentSenderRequest>) {
         val updates = manager ?: return
         // The Play sheet is another app's window: keep "Lock when you leave" from firing.
-        AppLockController.beginSystemPicker()
+        AppLockController.beginPlayUpdateSheet()
         runCatching {
             updates.startUpdateFlowForResult(
                 info,

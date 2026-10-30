@@ -24,6 +24,7 @@ import com.quickcards.domain.LegacyCardNormalizer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 class DuplicateCardException(val existingCardId: String?) : Exception("Card already saved")
@@ -443,7 +444,7 @@ class VaultRepository(
      * A rule change can make saved cards fit or stop fitting their network. Only the Review
      * flag follows; card values are never rewritten. Unreadable cards are skipped.
      */
-    private suspend fun refreshReviewFlags() {
+    private suspend fun refreshReviewFlags() = withContext(Dispatchers.Default) {
         val networks = networkDao.getAllNetworksSync().map { it.toDomain() }
         cardDao.getAllCardsSync().forEach { card ->
             val mask = runCatching {

@@ -45,6 +45,7 @@ object AppLockController {
     var autoPromptOnLock = true
 
     private const val SYSTEM_PICKER_GRACE_MS = 5 * 60_000L
+    private const val PLAY_UPDATE_GRACE_MS = 60_000L
 
     fun attach(context: Context) {
         if (started) return
@@ -90,6 +91,14 @@ object AppLockController {
      */
     fun beginSystemPicker() {
         systemPickerUntil = SystemClock.elapsedRealtime() + SYSTEM_PICKER_GRACE_MS
+    }
+
+    /**
+     * Call right before Google Play's update sheet opens over the app. The sheet is a short
+     * Update / No thanks choice, so the grace is one minute, not the picker's five.
+     */
+    fun beginPlayUpdateSheet() {
+        systemPickerUntil = SystemClock.elapsedRealtime() + PLAY_UPDATE_GRACE_MS
     }
 
     fun onUserInteraction() {
