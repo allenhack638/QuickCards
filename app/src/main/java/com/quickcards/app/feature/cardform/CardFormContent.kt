@@ -103,13 +103,13 @@ import java.time.LocalDate
 import kotlin.math.roundToInt
 
 /**
- * Text keyboard (not the number pad) so the keyboard's own scan-text tool is offered;
- * the field filters to digits. Suggestions off so the keyboard does not learn card numbers.
+ * Number pad for the number and expiry. A text keyboard drops back to letters after each
+ * group space, forcing a layout switch every four digits. Paste and Tap your card still fill.
  */
-private val ScannableKeyboard = KeyboardOptions(
+private val DigitsKeyboard = KeyboardOptions(
     capitalization = KeyboardCapitalization.None,
     autoCorrectEnabled = false,
-    keyboardType = KeyboardType.Text
+    keyboardType = KeyboardType.Number
 )
 
 private val SaveButtonText = QcType.MenuItem.copy(fontWeight = FontWeight(600))
@@ -433,7 +433,7 @@ internal fun CardFormContent(
                         context.getString(R.string.form_repair_changed_from, it.before)
                     }.orEmpty(),
                     error = cardErrorText(form.errors[Field.NUMBER]),
-                    keyboardOptions = ScannableKeyboard,
+                    keyboardOptions = DigitsKeyboard,
                     trailing = if (network != null) {
                         {
                             // The trailing slot does not pad arbitrary content,
@@ -530,7 +530,7 @@ internal fun CardFormContent(
                             context.getString(R.string.form_repair_changed_from, it.before)
                         } ?: stringResource(R.string.form_helper_expiry),
                         error = cardErrorText(form.errors[Field.EXPIRY]),
-                        keyboardOptions = ScannableKeyboard,
+                        keyboardOptions = DigitsKeyboard,
                         fieldTag = "form_expiry",
                         helperAction = if (repairs.containsKey(CardField.EXPIRY)) {
                             { RepairUndo(onUndo = { viewModel.undoRepair(CardField.EXPIRY) }) }
