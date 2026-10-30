@@ -10,9 +10,8 @@ These rules apply to human contributors and AI coding agents alike.
 ## Non-negotiable rules
 
 1. **Offline only.** Never add `android.permission.INTERNET`, a network client, analytics,
-   telemetry or a remote font/icon. Everything is bundled. The one exception is Google Play
-   in-app updates (`core/update`), which talks to the Play Store app over IPC and adds no
-   permission. Keep `minSdk 26`; do not raise it.
+   telemetry or a remote font/icon. Everything is bundled. Keep `minSdk 26`; do not raise
+   it.
 2. **Encryption is mandatory.** Card number, expiry, CVV use
    `EncryptionHelper.encrypt/decrypt`; holder/bank/note metadata uses
    `encryptMetadata/decryptMetadata`. Never log or persist plaintext card data. Duplicate
