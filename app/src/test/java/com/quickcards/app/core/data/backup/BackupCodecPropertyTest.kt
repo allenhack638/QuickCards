@@ -64,10 +64,10 @@ class BackupCodecPropertyTest {
 
     /**
      * DESIGN.md "Card colour": slate left the grid but stored slate cards still render, so an
-     * export must keep it. The import normaliser maps it to navy.
+     * export must keep it.
      */
     @Test
-    fun `bug_stored_slate_colour_is_restored_as_navy`() = runBlocking<Unit> {
+    fun `every stored colour survives a restore, slate included`() = runBlocking<Unit> {
         val storedColours = BandColor.ALL + BandColor.SLATE
         checkAll(1_000, config, seeds) { seed ->
             val random = Random(seed)
