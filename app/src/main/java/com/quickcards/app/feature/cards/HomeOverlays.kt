@@ -479,7 +479,11 @@ private const val DisabledAlpha = 0.38f
 
 /** Asks whether the CVV goes along before the system share sheet opens; the CVV is off by default. */
 @Composable
-internal fun ShareCardDialog(onDismiss: () -> Unit, onShare: (includeCvv: Boolean) -> Unit) {
+internal fun ShareCardDialog(
+    hasCvv: Boolean,
+    onDismiss: () -> Unit,
+    onShare: (includeCvv: Boolean) -> Unit
+) {
     var includeCvv by remember { mutableStateOf(false) }
     QcDialog(onDismissRequest = onDismiss) {
         Text(
@@ -493,21 +497,24 @@ internal fun ShareCardDialog(onDismiss: () -> Unit, onShare: (includeCvv: Boolea
             style = QcType.Body,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(QcDimens.Gutter))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = QcDimens.Touch)
-                .toggleable(value = includeCvv, role = Role.Switch) { includeCvv = it },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.cards_share_include_cvv),
-                style = QcType.BodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
-            Switch(checked = includeCvv, onCheckedChange = null, colors = qcSwitchColors())
+        // A card saved without a CVV (some Maestro cards) has nothing to include.
+        if (hasCvv) {
+            Spacer(modifier = Modifier.height(QcDimens.Gutter))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = QcDimens.Touch)
+                    .toggleable(value = includeCvv, role = Role.Switch) { includeCvv = it },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.cards_share_include_cvv),
+                    style = QcType.BodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(checked = includeCvv, onCheckedChange = null, colors = qcSwitchColors())
+            }
         }
         Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
         Row(
@@ -522,7 +529,7 @@ internal fun ShareCardDialog(onDismiss: () -> Unit, onShare: (includeCvv: Boolea
                 Text(stringResource(R.string.cards_share_cancel))
             }
             TextButton(
-                onClick = { onShare(includeCvv) },
+                onClick = { onShare(hasCvv && includeCvv) },
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text(stringResource(R.string.cards_share_confirm))

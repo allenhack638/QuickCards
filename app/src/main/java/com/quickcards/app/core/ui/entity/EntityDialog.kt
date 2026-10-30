@@ -62,6 +62,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.error as semanticsError
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -78,6 +79,9 @@ import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 import com.quickcards.app.core.ui.theme.qcPrimaryButtonColors
+import com.quickcards.domain.CardNetwork as RuleNetwork
+import com.quickcards.domain.CardNumberRules
+import com.quickcards.domain.DefaultNetworks
 import com.quickcards.domain.EntityBefore
 import com.quickcards.domain.EntityDraft
 import com.quickcards.domain.EntityField
@@ -86,6 +90,7 @@ import com.quickcards.domain.EntityUsage
 import com.quickcards.domain.EntityValidationError
 import com.quickcards.domain.EntityValidator
 import com.quickcards.domain.NetworkLabelMax
+import com.quickcards.domain.NetworkRule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -163,6 +168,7 @@ private fun EntityDialogContent(
         mutableStateOf<Map<EntityField, EntityValidationError>>(emptyMap())
     }
     var pending by remember { mutableStateOf<PendingUpdate?>(null) }
+    var rulesWarning by remember { mutableStateOf<EntityDraft?>(null) }
     var saving by remember { mutableStateOf(false) }
 
     val one = stringResource(kind.oneRes)
@@ -178,6 +184,17 @@ private fun EntityDialogContent(
         lengths.text != initialLengths ||
         cvvLength != (before?.cvvLength ?: 3) ||
         luhn != (before?.luhn ?: true)
+
+    // Built-in networks only: compare the form and the saved rules with the standard ones.
+    val standard = if (kind == EntityKind.NETWORK) DefaultNetworks.standard(editingId) else null
+    fun rulesOf(p: String, l: String, cvv: Int, check: Boolean): Set<NetworkRule> =
+        standard?.let {
+            DefaultNetworks.changedRules(it.copy(prefixes = p, lengths = l, cvvLength = cvv, luhn = check))
+        }.orEmpty()
+    val changedNow = rulesOf(prefixes.text, lengths.text, cvvLength, luhn)
+    val changedBefore = before?.let {
+        rulesOf(it.prefixes, it.lengths, it.cvvLength, it.luhn)
+    }.orEmpty()
 
     val nameFocus = remember { FocusRequester() }
     val codeFocus = remember { FocusRequester() }
@@ -218,6 +235,19 @@ private fun EntityDialogContent(
         }
     }
 
+    fun confirmUsageThenSave(draft: EntityDraft) {
+        val used = data.usedCards(kind, editingId)
+        if (EntityUsage.requiresUpdateConfirmation(kind, before, draft, used.size)) {
+            pending = PendingUpdate(
+                draft = draft,
+                nextName = EntityValidator.normalizeName(kind, draft.name),
+                usedCards = used.map { it.toManageCardItem() }
+            )
+            return
+        }
+        saveNow(draft)
+    }
+
     fun attemptSave() {
         val draft = normalizedDraft()
         val found = EntityValidator.validate(draft, data.refs(kind), editingId)
@@ -256,16 +286,44 @@ private fun EntityDialogContent(
             }
             return
         }
-        val used = data.usedCards(kind, editingId)
-        if (EntityUsage.requiresUpdateConfirmation(kind, before, draft, used.size)) {
-            pending = PendingUpdate(
-                draft = draft,
-                nextName = EntityValidator.normalizeName(kind, draft.name),
-                usedCards = used.map { it.toManageCardItem() }
-            )
+        if ((changedNow - changedBefore).isNotEmpty()) {
+            rulesWarning = draft
             return
         }
-        saveNow(draft)
+        confirmUsageThenSave(draft)
+    }
+
+    val rulesDraft = rulesWarning
+    if (rulesDraft != null && standard != null) {
+        val networkName = initialName.ifBlank { standard.name }
+        ManageDialogFrame(onDismissRequest = onDismiss) {
+            Text(
+                text = stringResource(R.string.manage_rules_title, networkName),
+                style = QcType.DialogTitle,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(QcDimens.Gutter))
+            WarningPanel(
+                text = AnnotatedString(
+                    stringResource(
+                        R.string.manage_rules_body,
+                        networkName,
+                        standardRulesText(standard, changedNow - changedBefore)
+                    )
+                )
+            )
+            DialogActions(
+                onCancel = { rulesWarning = null },
+                confirmLabel = stringResource(R.string.manage_rules_confirm),
+                onConfirm = {
+                    rulesWarning = null
+                    confirmUsageThenSave(rulesDraft)
+                },
+                confirmEnabled = !saving,
+                confirmPrimary = true
+            )
+        }
+        return
     }
 
     val update = pending
@@ -462,6 +520,21 @@ private fun EntityDialogContent(
                 onToggle = { luhn = !luhn },
                 label = stringResource(R.string.manage_luhn)
             )
+            if (standard != null && changedNow.isNotEmpty()) {
+                StandardRulesRow(
+                    text = stringResource(
+                        R.string.manage_rules_changed,
+                        initialName.ifBlank { standard.name }
+                    ),
+                    onReset = {
+                        prefixes = TextFieldValue(standard.prefixes, TextRange(standard.prefixes.length))
+                        lengths = TextFieldValue(standard.lengths, TextRange(standard.lengths.length))
+                        cvvLength = standard.cvvLength
+                        luhn = standard.luhn
+                        errors = errors - EntityField.PREFIXES - EntityField.LENGTHS
+                    }
+                )
+            }
         }
 
 
@@ -554,6 +627,57 @@ private fun EntityTextField(
             FormSupportingLine(helper = helper, error = error, counter = counter)
         }
     }
+}
+
+/** One quiet line under the rules with the way back to the standard ones. */
+@Composable
+private fun StandardRulesRow(text: String, onReset: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = QcDimens.Half),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = QcType.Body,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        TextButton(
+            onClick = onReset,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Text(stringResource(R.string.manage_rules_reset))
+        }
+    }
+}
+
+@Composable
+private fun standardRulesText(standard: RuleNetwork, rules: Set<NetworkRule>): String {
+    val parts = NetworkRule.entries.filter { it in rules }.map { rule ->
+        when (rule) {
+            NetworkRule.CVV -> pluralStringResource(
+                R.plurals.manage_rule_cvv,
+                standard.cvvLength,
+                standard.cvvLength
+            )
+            NetworkRule.PREFIXES -> stringResource(
+                R.string.manage_rule_prefixes,
+                standard.prefixes.replace(",", ", ")
+            )
+            NetworkRule.LENGTHS -> stringResource(
+                R.string.manage_rule_lengths,
+                CardNumberRules.lengthsText(standard.lengths)
+            )
+            NetworkRule.LUHN -> stringResource(
+                if (standard.luhn) R.string.manage_rule_luhn_on else R.string.manage_rule_luhn_off
+            )
+        }
+    }
+    return parts.joinToString(stringResource(R.string.manage_rule_join))
 }
 
 @Composable

@@ -92,6 +92,20 @@
     <string name="manage_helper_lengths" tools:ignore="TypographyDashes">For example 16 or 16-19</string>
     <string name="manage_group_cvv">CVV digits</string>
     <string name="manage_luhn">Check the last digit (Luhn)</string>
+    <string name="manage_rules_changed">Not the standard %1$s rules</string>
+    <string name="manage_rules_reset">Reset to standard</string>
+    <string name="manage_rules_title">Change %1$s rules?</string>
+    <string name="manage_rules_body">%1$s cards use %2$s. A card that does not fit your rule cannot be saved, and saved cards that do not fit are marked Review.</string>
+    <string name="manage_rules_confirm">Change anyway</string>
+    <plurals name="manage_rule_cvv">
+        <item quantity="one">a %1$d-digit CVV</item>
+        <item quantity="other">a %1$d-digit CVV</item>
+    </plurals>
+    <string name="manage_rule_prefixes">numbers starting %1$s</string>
+    <string name="manage_rule_lengths">%1$s digits</string>
+    <string name="manage_rule_luhn_on">the last-digit check</string>
+    <string name="manage_rule_luhn_off">no last-digit check</string>
+    <string name="manage_rule_join">, </string>
 
     <string name="manage_entity_added">%1$s added</string>
     <string name="manage_entity_updated">%1$s updated</string>

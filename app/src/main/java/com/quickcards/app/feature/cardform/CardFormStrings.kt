@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import com.quickcards.app.R
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardNetwork
+import com.quickcards.domain.DefaultNetworks
 
 @Composable
 internal fun cardErrorText(error: CardError?): String? {
@@ -42,6 +43,8 @@ internal fun cardErrorText(error: CardError?): String? {
 internal fun cvvHelperText(network: CardNetwork?): String =
     if (network == null) {
         stringResource(R.string.form_cvv_digits_unknown)
+    } else if (DefaultNetworks.cvvOptional(network)) {
+        stringResource(R.string.form_cvv_digits_optional)
     } else {
         pluralStringResource(R.plurals.form_cvv_digits, network.cvvLength, network.cvvLength)
     }

@@ -20,6 +20,7 @@ import com.quickcards.app.core.data.repository.DuplicateCardException
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
+import com.quickcards.domain.DefaultNetworks
 import com.quickcards.domain.EntityKind
 import com.quickcards.domain.ExistingCardRef
 import com.quickcards.domain.Field
@@ -200,6 +201,22 @@ class CardFormViewModel(
     fun cvvBlur() = update { it.cvvBlur() }
     fun updateNote(text: String) = update { it.updateNote(text) }
     fun updateDueDay(text: String) = update { it.updateDueDay(text) }
+
+    /** Puts a built-in network back on its standard rules; the form revalidates when lists refresh. */
+    fun resetNetworkRules(networkId: String) {
+        val standard = DefaultNetworks.standard(networkId) ?: return
+        viewModelScope.launch {
+            val stored = repository.getNetwork(networkId) ?: return@launch
+            repository.updateNetwork(
+                stored.copy(
+                    prefixes = standard.prefixes,
+                    lengths = standard.lengths,
+                    cvvLength = standard.cvvLength,
+                    luhn = standard.luhn
+                )
+            )
+        }
+    }
 
     /** Reverts the latest repair in vault and form; the restored legacy value is validated at once. */
     fun undoRepair(field: CardField) {

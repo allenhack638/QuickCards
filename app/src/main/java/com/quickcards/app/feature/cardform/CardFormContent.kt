@@ -48,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -583,6 +584,13 @@ internal fun CardFormContent(
                     )
                 }
 
+                session.changedRulesBlocking()?.let { changed ->
+                    ChangedRulesNotice(
+                        networkName = changed.name,
+                        onReset = { viewModel.resetNetworkRules(changed.id) }
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(QcDimens.FormFieldGap))
 
                 QcLookupField(
@@ -841,4 +849,30 @@ private fun CardFormSession.previewCard(bankFallback: String): HomeCard {
         networkId = resolvedNetwork?.id,
         tagNames = form.tagIds.mapNotNull { lists.tagName(it) }
     )
+}
+
+/** Shown only when a changed built-in rule is what blocks the number or CVV. */
+@Composable
+private fun ChangedRulesNotice(networkName: String, onReset: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = QcDimens.Half),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.form_rules_changed, networkName),
+            style = QcType.Body,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        TextButton(
+            onClick = onReset,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Text(stringResource(R.string.form_rules_reset))
+        }
+    }
 }

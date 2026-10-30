@@ -436,6 +436,27 @@ class VaultRepository(
 
     suspend fun updateNetwork(network: CardNetwork) {
         networkDao.updateNetwork(network)
+        refreshReviewFlags()
+    }
+
+    /**
+     * A rule change can make saved cards fit or stop fitting their network. Only the Review
+     * flag follows; card values are never rewritten. Unreadable cards are skipped.
+     */
+    private suspend fun refreshReviewFlags() {
+        val networks = networkDao.getAllNetworksSync().map { it.toDomain() }
+        cardDao.getAllCardsSync().forEach { card ->
+            val mask = runCatching {
+                val normalized = LegacyCardNormalizer.normalize(
+                    number = encryption.decrypt(card.cardNumber),
+                    expiry = encryption.decrypt(card.expiryDate),
+                    cvv = encryption.decrypt(card.cvv),
+                    networks = networks
+                )
+                CardFieldMask.encode(normalized.needsReview)
+            }.getOrNull() ?: return@forEach
+            if (mask != card.needsReview) cardDao.setNeedsReview(card.id, mask)
+        }
     }
 
     suspend fun deleteNetwork(id: String): Boolean {

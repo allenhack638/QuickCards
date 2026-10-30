@@ -9,6 +9,7 @@ import com.quickcards.domain.CardField
 import com.quickcards.domain.CardNetwork
 import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.CardValidator
+import com.quickcards.domain.DefaultNetworks
 import com.quickcards.domain.ExistingCardRef
 import com.quickcards.domain.Field
 import com.quickcards.domain.NamedRef
@@ -369,7 +370,18 @@ data class CardFormSession(
                 initialForm = next.initialForm?.copy(holderId = holderId)
             )
         }
+        // A network rule changed elsewhere (for example Reset to standard): refresh shown errors.
+        if (lists.networks != this.lists.networks) {
+            next = next.revalidate(Field.NUMBER).revalidate(Field.CVV)
+        }
         return next
+    }
+
+    /** The detected network has non-standard rules and they are why the number or CVV fails. */
+    fun changedRulesBlocking(): CardNetwork? {
+        val network = form.network(lists.networks) ?: return null
+        val failing = Field.NUMBER in form.errors || Field.CVV in form.errors
+        return network.takeIf { failing && DefaultNetworks.changedRules(it).isNotEmpty() }
     }
 
     companion object {
