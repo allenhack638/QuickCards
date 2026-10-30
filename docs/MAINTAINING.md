@@ -908,6 +908,10 @@ number, Amex, a phone-number line), `OfflineManifestGuardTest`.
   change.
 - `VaultRepository.updateNetwork` recomputes every card's Check details flag; values are never
   rewritten (`NetworkRuleReviewTest`).
+- Import and its review screen check cards against the phone's networks plus the backup's
+  networks the phone does not have yet (`BackupNormalizer`, matched by name, phone rules win),
+  so a blank CVV on a backup-only "Cards may have no CVV" network is not flagged
+  (`BackupNormalizerTest`, `BackupFlowTest`).
 - `core/update/AppUpdates.kt` + `AppUpdatePrompts.kt` — flexible Play update, prompted once per
   version (`UpdatePolicy`, prefs `app_updates`); no lock grace, so a Play sheet that backgrounds the app locks it as usual.
 
