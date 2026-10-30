@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.quickcards.app.core.data.repository.DemoSeeder
 import com.quickcards.app.core.ui.base.BaseActivity
 import com.quickcards.app.core.security.AppLockController
+import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.InteractionTrackingWindowCallback
 import com.quickcards.app.navigation.QcApp
@@ -27,6 +28,7 @@ class MainActivity : BaseActivity() {
 
     override fun onSecureCreate(savedInstanceState: Bundle?) {
         AppLockController.attach(this)
+        AppUpdates.attach(this)
         installInteractionTracking()
         seedDemoDataIfRequested(intent)
 

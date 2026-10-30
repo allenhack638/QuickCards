@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Payments
@@ -46,6 +47,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.Settings as SettingsOutlined
 import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Unarchive
@@ -98,6 +100,8 @@ object QcIcons {
     val clipboard: ImageVector = Icons.Outlined.ContentPaste
     val info: ImageVector = Icons.Outlined.Info
     val offline: ImageVector = Icons.Outlined.WifiOff
+    val feedback: ImageVector = Icons.Outlined.MailOutline
+    val update: ImageVector = Icons.Outlined.SystemUpdate
     val file: ImageVector = Icons.Outlined.Description
     val upload: ImageVector = Icons.Outlined.Upload
     val download: ImageVector = Icons.Outlined.Download

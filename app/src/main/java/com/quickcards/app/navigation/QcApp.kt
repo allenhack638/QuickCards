@@ -86,6 +86,8 @@ import com.quickcards.app.feature.backup.BackupHost
 import com.quickcards.app.feature.backup.rememberBackupHostState
 import com.quickcards.app.feature.cardform.CardFormScreen
 import com.quickcards.app.core.ui.components.LocalSnackbar
+import com.quickcards.app.core.update.AppUpdatePrompts
+import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.app.core.ui.components.SnackbarController
 import com.quickcards.app.feature.cards.HomeScreen
 import com.quickcards.app.feature.cards.HomeViewModel
@@ -157,6 +159,11 @@ fun QcApp() {
     androidx.compose.runtime.LaunchedEffect(locked) {
         if (locked) focusManager.clearFocus(force = true)
     }
+
+    val updateLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+    ) { }
+    AppUpdatePrompts(locked = locked, launcher = updateLauncher, snackbar = snackbarController)
 
     CompositionLocalProvider(
         LocalSnackbar provides snackbarController,
@@ -333,7 +340,8 @@ fun QcApp() {
                                 onExport = backupHostState::requestExport,
                                 onImport = backupHostState::requestImport,
                                 onErase = backupHostState::requestErase,
-                                onPrivacy = { navController.navigate(ROUTE_PRIVACY) }
+                                onPrivacy = { navController.navigate(ROUTE_PRIVACY) },
+                                onUpdate = { AppUpdates.startFromSettings(updateLauncher) }
                             )
                         }
                     }
