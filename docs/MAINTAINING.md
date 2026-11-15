@@ -502,10 +502,18 @@ digits + Luhn.
   (the generator's output and the public Google Sheet's own .xlsx/.csv exports) and asserts the
   headings, every list (networks, banks, types, months, years, days) and the version stamps
   equal the schema, `DefaultNetworks`, `BankCatalog` and `SeedData`. After changing any of
-  those, regenerate the sheet (`docs/agents/tools/make_import_sheet.py`, see BACKLOG), republish
-  it and re-export the fixtures, or the test fails.
+  those, regenerate the sheet (`SheetTemplateTest` writes it to `domain/build/sheet/`),
+  republish it and re-export the fixtures, or the test fails.
 - End to end: `SheetImporterTest` (androidTest, API 26 emulator) imports the fixture files
   into an in-memory vault and re-imports them to prove the duplicate rule.
+- UI: `BackupHostState` owns the flow (`importChoiceOpen`, `sheetOpen`, `SheetStep`
+  GET/CHECK/DONE, `SheetDownload` for the three CreateDocument targets);
+  `ImportCardsDialogs.kt` draws it with the Qc wrappers. `SheetTemplate` (domain) generates the
+  .xlsx/.csv on the phone from the phone's lists; `SheetTemplateTest` also writes the publishable
+  sheet to `domain/build/sheet/` (upload it to the public Google Sheet via File > Import >
+  Upload > Replace spreadsheet whenever the schema, catalog, networks or types change, then
+  re-export the fixtures). `ImportCardsFlowTest` drives Settings to the vault with the system
+  picker stubbed by Espresso Intents.
 
 ### Managed lists and validation
 
@@ -738,8 +746,10 @@ This is the widest change in the app. Do it in this order so no layer is forgott
 1. Append a `CatalogBank(name, aliases)` to `BankCatalog.all` (name <= 40 chars, unique keys;
    `BankCatalogTest` checks both). Aliases are the short names people type ("Amex").
 2. Bump `BankCatalog.VERSION` (format `YYYY.MM`), or existing installs never receive it.
-3. Regenerate the public import sheet (`docs/agents/tools/make_import_sheet.py`, see
-   `docs/BACKLOG.md`), since its Bank dropdown must list the same names.
+3. Regenerate the public import sheet: run `:domain:test` (`SheetTemplateTest` writes
+   `domain/build/sheet/QuickCards - Add your cards.xlsx`), upload it to the public Google Sheet
+   (File > Import > Upload > Replace spreadsheet) and re-export the fixtures in
+   `domain/src/test/resources/sheet/`; `SheetSyncTest` fails until the three agree.
 4. Add a CHANGELOG line under Added.
 
 ### 5.6 Add a dialog, bottom sheet, menu or popup

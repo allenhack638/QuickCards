@@ -8,7 +8,9 @@ import androidx.compose.runtime.getValue
 import com.quickcards.app.core.reminders.Reminders
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,6 +37,14 @@ import com.quickcards.app.core.data.backup.BackupSnapshot
 import com.quickcards.app.core.data.database.QuickCardsDatabase
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.data.repository.VaultRepository
+import com.quickcards.app.core.data.sheet.SheetImporter
+import com.quickcards.app.core.data.sheet.SheetMessages
+import com.quickcards.app.core.data.sheet.SheetOpenResult
+import com.quickcards.domain.sheet.CsvWriter
+import com.quickcards.domain.sheet.ImportSchema
+import com.quickcards.domain.sheet.SheetReport
+import com.quickcards.domain.sheet.SheetTemplate
+import java.time.YearMonth
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.notifications.CopyCompanionNotifier
 import com.quickcards.app.core.security.AppLockController
@@ -67,6 +77,20 @@ internal enum class ImportStep {
     REVIEW
 }
 
+internal enum class SheetStep {
+    GET,
+    CHECK,
+    DONE
+}
+
+/** What a CreateDocument result should receive. */
+internal enum class SheetDownload {
+    XLSX,
+    CSV,
+    VALUES,
+    FIX
+}
+
 internal data class ImportFile(
     val name: String,
     val text: String,
@@ -96,7 +120,10 @@ class BackupHostState internal constructor(
     private val snackbar: SnackbarController,
     private val scope: CoroutineScope,
     private val launchCreateDocument: (String) -> Unit,
-    private val launchOpenDocument: () -> Unit
+    private val launchOpenDocument: () -> Unit,
+    private val launchCreateXlsx: (String) -> Unit = {},
+    private val launchCreateCsv: (String) -> Unit = {},
+    private val launchOpenSheet: () -> Unit = {}
 ) {
 
     private val version: String = BuildConfig.VERSION_NAME
@@ -120,6 +147,17 @@ class BackupHostState internal constructor(
     internal var importMode by mutableStateOf(MergeMode.UPDATE)
     internal var importRestore by mutableStateOf(true)
     internal var importReview by mutableStateOf<ImportReview?>(null)
+
+    internal var importChoiceOpen by mutableStateOf(false)
+    internal var sheetOpen by mutableStateOf(false)
+    internal var sheetStep by mutableStateOf(SheetStep.GET)
+    internal var sheetBusy by mutableStateOf(false)
+    internal var sheetError by mutableStateOf<String?>(null)
+    internal var sheetFileName by mutableStateOf<String?>(null)
+    internal var sheetReport by mutableStateOf<SheetReport?>(null)
+    internal var sheetAdded by mutableIntStateOf(0)
+    private var sheetUri: Uri? = null
+    private var pendingSheetDownload: SheetDownload? = null
 
     internal var eraseOpen by mutableStateOf(false)
     internal var eraseAcknowledged by mutableStateOf(false)
@@ -149,11 +187,176 @@ class BackupHostState internal constructor(
         }
     }
 
+    /** Import cards: one dialog, two sources. Both re-ask for the fingerprint first. */
     fun requestImport() {
         requireUnlocked(text(R.string.backup_reason_import)) {
             resetImport()
-            importOpen = true
+            resetSheet()
+            importChoiceOpen = true
         }
+    }
+
+    internal fun closeImportChoice() {
+        importChoiceOpen = false
+    }
+
+    internal fun chooseBackupImport() {
+        importChoiceOpen = false
+        resetImport()
+        importOpen = true
+    }
+
+    internal fun chooseSheetImport() {
+        importChoiceOpen = false
+        resetSheet()
+        sheetOpen = true
+    }
+
+    // ---- Cards from a spreadsheet ----
+
+    internal fun downloadSheet(kind: SheetDownload) {
+        if (sheetBusy) return
+        pendingSheetDownload = kind
+        when (kind) {
+            SheetDownload.XLSX -> launchCreateXlsx(SheetTemplate.FILE_NAME)
+            SheetDownload.CSV -> launchCreateCsv(SheetTemplate.CSV_FILE_NAME)
+            SheetDownload.VALUES -> launchCreateCsv(SheetTemplate.VALUES_FILE_NAME)
+            SheetDownload.FIX -> launchCreateCsv(text(R.string.import_fix_file_name))
+        }
+    }
+
+    internal fun onSheetFileCreated(uri: Uri?) {
+        val kind = pendingSheetDownload ?: return
+        pendingSheetDownload = null
+        if (uri == null) return
+        scope.launch {
+            try {
+                val bytes = withContext(Dispatchers.IO) {
+                    when (kind) {
+                        SheetDownload.XLSX -> SheetTemplate.xlsx(currentLists())
+                        SheetDownload.CSV -> SheetTemplate.csv().toByteArray(Charsets.UTF_8)
+                        SheetDownload.VALUES -> SheetTemplate.valuesCsv(currentLists()).toByteArray(Charsets.UTF_8)
+                        SheetDownload.FIX -> {
+                            val report = sheetReport ?: return@withContext ByteArray(0)
+                            CsvWriter.write(report.fixRows { SheetMessages.row(appContext.resources, it) })
+                                .toByteArray(Charsets.UTF_8)
+                        }
+                    }
+                }
+                withContext(Dispatchers.IO) { writeBytes(uri, bytes) }
+                when (kind) {
+                    SheetDownload.XLSX -> snackbar.show(text(R.string.import_snack_sheet_saved))
+                    SheetDownload.CSV -> {
+                        snackbar.show(text(R.string.import_snack_sheet_saved))
+                        downloadSheet(SheetDownload.VALUES)
+                    }
+                    SheetDownload.VALUES -> snackbar.show(text(R.string.import_snack_values_saved))
+                    SheetDownload.FIX -> snackbar.show(text(R.string.import_snack_fix_saved))
+                }
+            } catch (_: Exception) {
+                snackbar.show(text(R.string.import_snack_save_failed))
+            }
+        }
+    }
+
+    /** The sheet's dropdown lists come from this phone's lists, so a new bank or type shows up. */
+    private suspend fun currentLists(): SheetTemplate.Lists = SheetTemplate.lists(
+        networks = repository.networks.first().map { it.toDomain() },
+        userBanks = repository.banks.first().map { it.name },
+        types = repository.cardTypes.first().map { it.name },
+        today = YearMonth.now()
+    )
+
+    internal fun openGoogleSheet() {
+        val host = activity ?: return
+        runCatching {
+            host.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(text(R.string.import_google_sheet_url))))
+        }
+    }
+
+    internal fun chooseSheetFile() {
+        if (sheetBusy) return
+        launchOpenSheet()
+    }
+
+    internal fun onSheetPicked(uri: Uri?) {
+        if (uri == null) return
+        sheetBusy = true
+        sheetError = null
+        scope.launch {
+            try {
+                val bytes = withContext(Dispatchers.IO) { readBytes(uri, ImportSchema.MAX_FILE_BYTES.toInt() + 1) }
+                sheetFileName = withContext(Dispatchers.IO) { displayName(uri) }
+                when (val opened = SheetImporter.open(bytes)) {
+                    is SheetOpenResult.Refused -> sheetError = SheetMessages.open(appContext.resources, opened.problem)
+                    is SheetOpenResult.Opened -> {
+                        val report = withContext(Dispatchers.IO) { SheetImporter.check(database, opened.grid) }
+                        val problem = report.fileProblem
+                        if (problem != null) {
+                            sheetError = SheetMessages.file(appContext.resources, problem)
+                        } else {
+                            sheetReport = report
+                            sheetUri = uri
+                            sheetStep = SheetStep.CHECK
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                sheetError = text(R.string.import_file_unreadable)
+            } finally {
+                sheetBusy = false
+            }
+        }
+    }
+
+    internal fun importSheet() {
+        val report = sheetReport ?: return
+        if (sheetBusy || report.ready.isEmpty()) return
+        sheetBusy = true
+        scope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) { SheetImporter.import(database, report) }
+                sheetAdded = result.added
+                sheetStep = SheetStep.DONE
+            } catch (_: Exception) {
+                snackbar.show(text(R.string.import_snack_import_failed))
+            } finally {
+                sheetBusy = false
+            }
+        }
+    }
+
+    internal fun saveRowsToFix() {
+        if (sheetReport?.needsFixing.isNullOrEmpty()) return
+        downloadSheet(SheetDownload.FIX)
+    }
+
+    internal fun deleteSheetFile() {
+        val uri = sheetUri ?: return
+        scope.launch {
+            val deleted = withContext(Dispatchers.IO) {
+                runCatching { DocumentsContract.deleteDocument(appContext.contentResolver, uri) }.getOrDefault(false)
+            }
+            snackbar.show(text(if (deleted) R.string.import_snack_deleted else R.string.import_snack_delete_failed))
+            if (deleted) closeSheet()
+        }
+    }
+
+    internal fun closeSheet() {
+        if (sheetBusy) return
+        sheetOpen = false
+        resetSheet()
+    }
+
+    private fun resetSheet() {
+        sheetStep = SheetStep.GET
+        sheetBusy = false
+        sheetError = null
+        sheetFileName = null
+        sheetReport = null
+        sheetAdded = 0
+        sheetUri = null
+        pendingSheetDownload = null
     }
 
     fun requestErase() {
@@ -376,7 +579,10 @@ class BackupHostState internal constructor(
     internal fun dismissForLock() {
         exportOpen = false
         importOpen = false
+        importChoiceOpen = false
+        sheetOpen = false
         eraseOpen = false
+        resetSheet()
         pendingExport = null
         pendingExportWithSettings = false
         resetExport()
@@ -489,6 +695,27 @@ class BackupHostState internal constructor(
         return name ?: uri.lastPathSegment ?: "quickcards-backup.qcb"
     }
 
+    private fun readBytes(uri: Uri, limit: Int): ByteArray {
+        val stream = appContext.contentResolver.openInputStream(uri) ?: throw IOException("Could not read the selected file")
+        return stream.use { input ->
+            val out = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                out.write(buffer, 0, count)
+                if (out.size() > limit) break
+            }
+            out.toByteArray()
+        }
+    }
+
+    private fun writeBytes(uri: Uri, bytes: ByteArray) {
+        appContext.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+            stream.write(bytes)
+        } ?: throw IOException("Could not open the selected file")
+    }
+
     private fun writeText(uri: Uri, text: String) {
         appContext.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
             stream.write(text.toByteArray(Charsets.UTF_8))
@@ -526,6 +753,18 @@ fun rememberBackupHostState(): BackupHostState {
         contract = ActivityResultContracts.OpenDocument()
     ) { uri -> hostState?.onImportFilePicked(uri) }
 
+    val createXlsx = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    ) { uri -> hostState?.onSheetFileCreated(uri) }
+
+    val createCsv = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri -> hostState?.onSheetFileCreated(uri) }
+
+    val openSheet = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri -> hostState?.onSheetPicked(uri) }
+
     val state = remember(app, snackbar) {
         BackupHostState(
             appContext = context.applicationContext,
@@ -542,6 +781,18 @@ fun rememberBackupHostState(): BackupHostState {
             launchOpenDocument = {
                 AppLockController.beginSystemPicker()
                 openDocument.launch(arrayOf("*/*"))
+            },
+            launchCreateXlsx = { name ->
+                AppLockController.beginSystemPicker()
+                createXlsx.launch(name)
+            },
+            launchCreateCsv = { name ->
+                AppLockController.beginSystemPicker()
+                createCsv.launch(name)
+            },
+            launchOpenSheet = {
+                AppLockController.beginSystemPicker()
+                openSheet.launch(arrayOf("*/*"))
             }
         )
     }
@@ -561,8 +812,14 @@ fun BackupHost(state: BackupHostState) {
     if (!locked && state.exportOpen) {
         ExportBackupDialog(state)
     }
+    if (!locked && state.importChoiceOpen) {
+        ImportChoiceDialog(state)
+    }
     if (!locked && state.importOpen) {
         ImportBackupDialog(state)
+    }
+    if (!locked && state.sheetOpen) {
+        SheetImportDialog(state)
     }
     if (!locked && state.eraseOpen) {
         EraseAllDataDialog(state)

@@ -65,8 +65,8 @@
 
     <string name="settings_backup_export_title">Export backup</string>
     <string name="settings_backup_export_subtitle">Protected by a password you choose</string>
-    <string name="settings_backup_import_title">Import backup</string>
-    <string name="settings_backup_import_subtitle">Restore from a QuickCards backup</string>
+    <string name="settings_backup_import_title">Import cards</string>
+    <string name="settings_backup_import_subtitle">A QuickCards backup or a spreadsheet</string>
     <string name="settings_backup_erase_title">Erase all data</string>
     <string name="settings_backup_erase_subtitle">Cards, holders, banks, types and tags</string>
 
