@@ -475,6 +475,38 @@ digits + Luhn.
   or deleted. A bank the user deletes afterwards stays deleted until the next version bump.
 - The import sheet's Bank list and the sheet importer's bank matching read the same object.
 
+### Sheet import (cards from a spreadsheet)
+
+- `domain/sheet/ImportSchema` is the single description of the sheet: columns and headings
+  (`ImportColumn`), `VERSION` (bump on any column change), month/year/day labels, the network
+  and bank list labels, and how typed values are read (`parseMonth`, `parseYear`,
+  `parseDueDay`, `columnFor`). Nothing else may spell a heading or a list value.
+- Readers: `CsvReader` (comma/semicolon/tab, quotes, BOM, CRLF) and `XlsxReader` (zip + SAX,
+  no library; "Cards" tab or the first; numbers arrive as stored, so `4.11111E+15` can be
+  named). `SheetImporter.open` decides the kind from the bytes, never the file name, and
+  refuses anything else.
+- `SheetChecker.check(grid, SheetContext)` is pure: finds the heading row (a banner above is
+  fine), refuses a file with missing or unknown columns, then checks every row with the card
+  form's rules (`CardValidator`, picked network as `assigned`) plus the sheet rules: all
+  columns but due day and note required; number digits only (spaces/dashes forgiven, nothing
+  else); picked network must be the number's network; month/year lists; CVV required and the
+  network's length; bank = phone bank or catalog name/alias; type = phone type; due day 1-31;
+  note <= 80; repeats in the file and cards already on the phone (same number+expiry+CVV =
+  `ALREADY_IN_APP`, else "different details"). Every reason is a `RowProblem`;
+  `SheetMessages` turns them into the user's sentences (`strings_import.xml`).
+- `SheetImporter` (app) builds the context from Room (holders decrypted, existing cards by PAN
+  hash) and saves READY rows through `BackupImporter` with synthetic ids, so encryption, name
+  matching and PAN uniqueness are the backup code path. `SheetReport.fixRows` + `CsvWriter`
+  give the "rows to fix" file.
+- Sync guard: `SheetSyncTest` reads the committed fixtures in `domain/src/test/resources/sheet/`
+  (the generator's output and the public Google Sheet's own .xlsx/.csv exports) and asserts the
+  headings, every list (networks, banks, types, months, years, days) and the version stamps
+  equal the schema, `DefaultNetworks`, `BankCatalog` and `SeedData`. After changing any of
+  those, regenerate the sheet (`docs/agents/tools/make_import_sheet.py`, see BACKLOG), republish
+  it and re-export the fixtures, or the test fails.
+- End to end: `SheetImporterTest` (androidTest, API 26 emulator) imports the fixture files
+  into an in-memory vault and re-imports them to prove the duplicate rule.
+
 ### Managed lists and validation
 
 - Five lists: holders, banks, networks, types, tags. Names trimmed, spaces collapsed,
