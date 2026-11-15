@@ -213,7 +213,7 @@
           <tr><td>Expiry and CVV in a notification</td><td class="m">If enabled, after copying a number a silent notification shows expiry and CVV for 30s. Time is set in Settings; off by default.</td></tr>
           <tr><td>Manage banks, companies and more</td><td class="m">Manage tab: holders, banks, networks, types, tags. Renaming one that cards use lists those cards and asks to confirm. Deleting one in use is blocked until its cards are deleted.</td></tr>
           <tr><td>Better navigation and cards</td><td class="m">Three tabs with an animated indicator. Cards get a tinted body, a framed network label, a type pill and tags.</td></tr>
-          <tr><td>Card type dropdown, tags, notes</td><td class="m">Optional type from a dropdown, blank on the card if unset. Tags with a per-card limit, length limit, search and visibility settings. Notes on every card.</td></tr>
+          <tr><td>Card type dropdown, tags, notes</td><td class="m">Card type from a dropdown, required since 2.6. Tags with a per-card limit, length limit, search and visibility settings. Notes on every card.</td></tr>
           <tr><td>Card edges hard to see</td><td class="m">Every pass now has a 1px edge tinted with its own colour, and a slightly stronger body tint in dark.</td></tr>
           <tr><td>Navigating shouldn’t reload</td><td class="m">The navigation bar stays in place and only the content changes. Toggling a setting keeps your scroll position.</td></tr>
           <tr><td>Check every input and rule</td><td class="m">Every field validates on leave and on save, names the problem and the fix, turns its label red, and keeps its helper line so nothing shifts. See Rules below.</td></tr>
@@ -306,7 +306,7 @@
       </ul></div>
       <div class="box"><h4>Settings and inputs</h4><ul>
         <li><b>Theme is a row.</b> Appearance shows a normal two-line <b>Theme</b> row whose supporting text is System default, Light or Dark; tapping it opens the shared radio dialog with those three options. The segmented control is gone.</li>
-        <li><b>One picker.</b> Card holder, Bank and Card type open the same bottom sheet, “Choose card holder”, “Choose bank” and “Choose card type”, with the item’s lead, a check on the current choice, search above seven items and a final <b>Add …</b> row. Card type starts with None.</li>
+        <li><b>One picker.</b> Card holder, Bank and Card type open the same bottom sheet, “Choose card holder”, “Choose bank” and “Choose card type”, with the item’s lead, a check on the current choice, search above seven items and a final <b>Add …</b> row.</li>
         <li><b>Limits while typing.</b> Number, expiry, CVV, note, tag and every Manage name keep only the filtered value at the field’s limit, with the caret at the end; pasting is trimmed the same way.</li>
         <li><b>Red actions, dirty Save.</b> Filled actions stay brand red. In Edit, <b>Save changes</b> stays disabled until something changes, as does Save in every Manage edit dialog.</li>
         <li><b>Tag row.</b> The Add button is 56dp tall and centred on the field box, with the 0/16 counter flush under the field.</li>
@@ -616,7 +616,7 @@
   <tr><td>CVV</td><td class="m">Exactly the network’s length (3, or 4 for Amex); 3 or 4 if unknown. On a network with “Cards may have no CVV” (built-in Maestro) it may be left blank (helper “3 digits or none”, following the network’s length); a saved card without one shows <b>CVV None</b> with nothing to copy or share. When a changed built-in rule is what fails, one line below names it (“Visa is set to a 4-digit CVV.” or “Visa number rules were changed.”) with <b>Reset to standard</b>; a typo or duplicate never shows it.</td><td>Enter 4 digits</td></tr>
   <tr><td>Name</td><td class="m">The selected holder’s name, in capitals on the stub. It is not typed on the card.</td><td>—</td></tr>
   <tr><td>Bank</td><td class="m">Required. Searchable list, or a new bank created in place.</td><td>Choose the bank</td></tr>
-  <tr><td>Card type</td><td class="m">Optional. None leaves the card without a type pill.</td><td>—</td></tr>
+  <tr><td>Card type</td><td class="m">Required. Pick one; cards saved before 2.6 without a type ask for one when edited.</td><td>Choose the card type</td></tr>
   <tr><td>Tags</td><td class="m">Up to the per-card limit; Add tag disappears at the limit.</td><td>Up to 3 tags per card</td></tr>
   <tr><td>Note</td><td class="m">Optional, up to 80 characters, with counter.</td><td>—</td></tr>
 </tbody></table></div>

@@ -12,7 +12,7 @@ Captured from `prototype/v2.html` at a 390×844 phone frame (images are ~1.78× 
 | 06-card-actions-sheet.png | Card actions sheet (header swatch aligned to icon slot) |
 | 07-add-card.png | Add card form top (live preview pass) |
 | 08-add-card-errors-amex.png | Validation errors after Save; Amex detection (4-6-5, 4-digit CVV) |
-| 09-type-dropdown.png | Exposed dropdown menu; group label "Tags" and counter on field edges |
+| 09-type-dropdown.png | Historical (pre-2.6): the type list had a "None" row and the field read "Card type (optional)". Card type is required since 2.6: no None row, label "Card type", error "Choose the card type". Menu layout, group label "Tags" and counter still apply |
 | 10-bank-sheet.png | Bank picker sheet with search |
 | 11-tag-sheet.png | Tag sheet: new tag + counter, limit note, checkboxes |
 | 12-manage.png | Manage tab |

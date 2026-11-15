@@ -17,7 +17,7 @@ class CardValidatorTest {
         expiry: String = "12/29",
         cvv: String = "123",
         bankId: String? = "b1",
-        typeId: String? = null,
+        typeId: String? = "t1",
         tagIds: List<String> = emptyList(),
         note: String = ""
     ): CardDraft = CardDraft(
@@ -247,5 +247,12 @@ class CardValidatorTest {
     @Test
     fun documentedFieldLimitsAreExposed() {
         assertEquals(80, CardValidator.NOTE_MAX_LENGTH)
+    }
+
+    @Test
+    fun `a missing card type is required`() {
+        assertEquals(CardError.TypeRequired, errors(draft(typeId = null))[Field.TYPE])
+        assertEquals(CardError.TypeRequired, errors(draft(typeId = ""))[Field.TYPE])
+        assertNull(errors(draft(typeId = "t1"))[Field.TYPE])
     }
 }

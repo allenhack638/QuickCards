@@ -923,7 +923,7 @@ function formHTML() {
       ${tf('cvv', 'CVV', F.cvv, { help: cvvHelp(net), attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
     <div class="stdrow" id="f-std" style="display:none;align-items:center;justify-content:space-between;margin-top:4px"><span class="t-body t-muted" id="f-std-t"></span><button class="btn text sl" data-act="f-std" style="margin-right:-8px">Reset to standard</button></div>
     ${tf('bank', 'Bank', byId('banks', F.bankId)?.name, { ro: 'banks', trail: caret })}
-    ${tf('type', 'Card type (optional)', byId('types', F.typeId)?.name, { ro: 'types', trail: caret, help: 'Leave empty to show nothing on the card' })}
+    ${tf('type', 'Card type', byId('types', F.typeId)?.name, { ro: 'types', trail: caret })}
     <div class="grp"><div class="glab">Tags<span class="counter" id="tagCount">${F.tagIds.length} of ${TAGS_MAX}</span></div><div class="tagbox" id="tagBox">${tagChips()}</div></div>
     <div class="grp"><div class="glab">Card colour</div><div class="swatches" role="radiogroup" aria-label="Card colour">
       ${COLORS.map(c => `<button type="button" class="swatch" role="radio" aria-label="${BAND_NAMES[c]} colour" aria-checked="${F.color === c}" data-act="fcolor" data-v="${c}" style="--sw:var(--band-${c})">${I('check')}</button>`).join('')}
@@ -959,6 +959,7 @@ function validate(key) {
   if (key === 'exp') { const mm = +F.exp.slice(0, 2), yy = +F.exp.slice(3, 5); if (!/^\d{2}\/\d{2}$/.test(F.exp) || mm < 1 || mm > 12) m = 'Use MM/YY'; else if (2000 + yy > TODAY.y + 20) m = 'Check the year'; }
   if (key === 'cvv' && !(F.cvv === '' && net?.cvvOptional)) { const want = net?.cvv; if (want ? F.cvv.length !== want : (F.cvv.length < 3 || F.cvv.length > 4)) m = `Enter ${want || '3 or 4'} digits`; }
   if (key === 'bank' && !F.bankId) m = 'Choose the bank';
+  if (key === 'type' && !F.typeId) m = 'Choose the card type';
   if (key === 'holder' && !F.holderId) m = 'Choose who this card belongs to';
   setErr(key, m); syncFormStd(); return !m;
 }
@@ -1017,7 +1018,7 @@ function mountForm() {
 }
 function saveForm() {
   S.form.tried = true;
-  const bad = ['holder', 'number', 'exp', 'cvv', 'bank'].filter(k => !validate(k));
+  const bad = ['holder', 'number', 'exp', 'cvv', 'bank', 'type'].filter(k => !validate(k));
   if (bad.length) { const el = $('#f-' + bad[0]); scrollToEl(el, 'smooth'); if (!el.readOnly) el.focus({ preventScroll: true }); return; }
   const F = S.form, net = fNet();
   const still = (F.review || []).filter(k => { validate(k); return !!S.form.errors[k]; });
@@ -1049,10 +1050,9 @@ function pickerSheet(kind) {
   };
   const M = META[kind]; if (!M) return;
   const showSearch = S[kind].length > 7;
-  const none = kind === 'types' ? `<button class="li sl" data-p="__none"><span class="lead slot" aria-hidden="true"></span><span class="txt"><span class="h">None</span></span>${!F.typeId ? `<span class="trail">${I('check')}</span>` : ''}</button>` : '';
   const draw = q => {
     const s = q.trim().toLowerCase();
-    return none + S[kind].filter(x => !s || x.name.toLowerCase().includes(s)).map(x => `<button class="li sl" data-p="${x.id}">${M.lead(x)}<span class="txt"><span class="h">${esc(x.name)}</span></span>${M.current() === x.id ? `<span class="trail">${I('check')}</span>` : ''}</button>`).join('')
+    return S[kind].filter(x => !s || x.name.toLowerCase().includes(s)).map(x => `<button class="li sl" data-p="${x.id}">${M.lead(x)}<span class="txt"><span class="h">${esc(x.name)}</span></span>${M.current() === x.id ? `<span class="trail">${I('check')}</span>` : ''}</button>`).join('')
       + `<button class="li sl" data-p="__new"><span class="lead slot">${I('plus')}</span><span class="txt"><span class="h">${M.add}</span></span></button>`;
   };
   const search = showSearch ? `<div class="tf"><input id="pq" placeholder=" " autocomplete="off" aria-label="${M.search}"><label for="pq">${M.search}</label></div>` : '';
@@ -1060,14 +1060,14 @@ function pickerSheet(kind) {
     const pick = id => {
       if (kind === 'holders') { F.holderId = id; const el = $('#f-holder'); if (el) el.value = byId('holders', id)?.name || ''; validate('holder'); }
       else if (kind === 'banks') { F.bankId = id; const el = $('#f-bank'); if (el) el.value = byId('banks', id)?.name || ''; validate('bank'); }
-      else { F.typeId = id; const el = $('#f-type'); if (el) el.value = id ? (byId('types', id)?.name || '') : ''; }
+      else { F.typeId = id; const el = $('#f-type'); if (el) el.value = byId('types', id)?.name || ''; validate('type'); }
       updatePreview(); closeSheet();
     };
     if (showSearch) $('#pq').addEventListener('input', e => { $('#pl').innerHTML = draw(e.target.value); });
     sheet.onclick = e => {
       const b = e.target.closest('[data-p]'); if (!b) return;
       if (b.dataset.p === '__new') return entityDialog(kind, null, nx => { render(); pick(nx.id); });
-      pick(b.dataset.p === '__none' ? null : b.dataset.p);
+      pick(b.dataset.p);
     };
   });
 }

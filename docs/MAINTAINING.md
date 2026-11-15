@@ -465,6 +465,16 @@ Default grouping by length when the network has no custom grouping: 12 `4-4-4`,
 grouping on blur. A number with no matching network shows no badge and is checked as 12-19
 digits + Luhn.
 
+### Default banks (catalog)
+
+- `domain/.../BankCatalog.kt` is the single list of bundled banks (26: 16 Indian issuers,
+  10 international) with aliases and `BankCatalog.VERSION`. `Bank.getDefaultBanks()` seeds a
+  fresh install from it; `BankCatalogBackfill` (run by `DataMaintenance` at start) adds the
+  missing ones to an older install once per version, matching existing banks by name or alias
+  (`BankCatalog.find`, case/punctuation/bracket-insensitive) so nothing is duplicated, renamed
+  or deleted. A bank the user deletes afterwards stays deleted until the next version bump.
+- The import sheet's Bank list and the sheet importer's bank matching read the same object.
+
 ### Managed lists and validation
 
 - Five lists: holders, banks, networks, types, tags. Names trimmed, spaces collapsed,
@@ -475,8 +485,8 @@ digits + Luhn.
 - Renaming an item that cards use, or changing a network's rules, opens “Update N cards?”
   with the affected cards. Deleting an item in use is blocked until those cards are gone;
   “Show cards” opens the list filtered to exactly those cards.
-- Card rules: holder, number, expiry, CVV and bank required; type, tags and note optional
-  (note max 80). Number length must match the detected network; Luhn unless the network
+- Card rules: holder, number, expiry, CVV, bank and card type required; tags and note
+  optional (note max 80). Number length must match the detected network; Luhn unless the network
   disables it; duplicate check across all holders. Expiry MM/YY or MM/YYYY, stored MM/YY,
   not past, at most 20 years ahead. CVV exactly the network's length (3 or 4 when
   unknown). Exact messages live in `#rules` and the feature string resources.
@@ -690,6 +700,15 @@ This is the widest change in the app. Do it in this order so no layer is forgott
   affected.
 - `:domain:test` and a manual add-card check (the badge and CVV helper must follow the
   new network).
+
+### 5.5a Add a bank to the catalog
+
+1. Append a `CatalogBank(name, aliases)` to `BankCatalog.all` (name <= 40 chars, unique keys;
+   `BankCatalogTest` checks both). Aliases are the short names people type ("Amex").
+2. Bump `BankCatalog.VERSION` (format `YYYY.MM`), or existing installs never receive it.
+3. Regenerate the public import sheet (`docs/agents/tools/make_import_sheet.py`, see
+   `docs/BACKLOG.md`), since its Bank dropdown must list the same names.
+4. Add a CHANGELOG line under Added.
 
 ### 5.6 Add a dialog, bottom sheet, menu or popup
 

@@ -153,9 +153,10 @@ class CardFormViewModelTest {
 
         assertTrue(state.form.tried)
         assertEquals(
-            setOf(Field.NUMBER, Field.EXPIRY, Field.CVV, Field.BANK),
+            setOf(Field.NUMBER, Field.EXPIRY, Field.CVV, Field.BANK, Field.TYPE),
             state.form.errors.keys
         )
+        assertEquals(CardError.TypeRequired, state.form.errors[Field.TYPE])
         assertEquals(CardError.NumberRequired, state.form.errors[Field.NUMBER])
         assertEquals(CardError.ExpiryFormat, state.form.errors[Field.EXPIRY])
         assertEquals(CardError.CvvUnknown, state.form.errors[Field.CVV])
@@ -166,10 +167,11 @@ class CardFormViewModelTest {
         state = state.updateNumber(visa).numberBlur()
         assertNull(state.form.errors[Field.NUMBER])
 
-        state = state.updateExpiry("1229").updateCvv("381").selectBank("b1")
+        state = state.updateExpiry("1229").updateCvv("381").selectBank("b1").selectType("t1")
         assertNull(state.form.errors[Field.EXPIRY])
         assertNull(state.form.errors[Field.CVV])
         assertNull(state.form.errors[Field.BANK])
+        assertNull(state.form.errors[Field.TYPE])
         assertNull(state.firstInvalid())
     }
 

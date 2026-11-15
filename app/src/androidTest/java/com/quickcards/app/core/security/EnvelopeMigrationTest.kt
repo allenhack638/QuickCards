@@ -53,7 +53,7 @@ class EnvelopeMigrationTest {
         holderDao.updateHolder(holder.copy(name = "md1:" + encryption.encryptLegacy("Aarav Mehta")))
         assertFalse(EncryptionHelper.isEnvelope(cardDao.getCardById(card.id)!!.cardNumber))
 
-        DataMaintenance.run(app.database, app.repairSummaryStore)
+        DataMaintenance.run(app.database, app.repairSummaryStore, app.catalogVersionStore)
 
         val migrated = cardDao.getCardById(card.id)!!
         assertTrue(EncryptionHelper.isEnvelope(migrated.cardNumber))

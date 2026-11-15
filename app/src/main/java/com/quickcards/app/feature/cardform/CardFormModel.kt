@@ -140,7 +140,8 @@ data class CardFormModel(
             Field.NUMBER,
             Field.EXPIRY,
             Field.CVV,
-            Field.BANK
+            Field.BANK,
+            Field.TYPE
         )
 
         fun fromCard(card: VaultCard): CardFormModel = CardFormModel(
@@ -330,7 +331,7 @@ data class CardFormSession(
             Field.NUMBER -> form.copy(number = value.filter { it in '0'..'9' })
             Field.EXPIRY -> form.copy(expiry = value)
             Field.CVV -> form.copy(cvv = value)
-            Field.HOLDER, Field.BANK -> form
+            Field.HOLDER, Field.BANK, Field.TYPE -> form
         }
         return withForm(next).validate(field)
     }
@@ -345,7 +346,7 @@ data class CardFormSession(
         withForm(form.copy(bankId = id)).validate(Field.BANK)
 
     fun selectType(id: String?): CardFormSession =
-        withForm(form.copy(typeId = id))
+        withForm(form.copy(typeId = id)).validate(Field.TYPE)
 
     fun selectBand(key: String): CardFormSession =
         withForm(form.copy(bandColor = key))

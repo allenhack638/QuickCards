@@ -10,14 +10,13 @@
     <string name="form_field_expiry">Expiry</string>
     <string name="form_field_cvv">CVV</string>
     <string name="form_field_bank">Bank</string>
-    <string name="form_field_type">Card type (optional)</string>
+    <string name="form_field_type">Card type</string>
     <string name="form_field_note">Note (optional)</string>
     <string name="form_field_new_tag">New tag</string>
 
     <string name="form_helper_expiry">MM/YY</string>
     <string name="form_repair_changed_from">Changed from %1$s</string>
     <string name="form_repair_undo">Undo</string>
-    <string name="form_helper_type">Leave empty to show nothing on the card</string>
     <string name="form_helper_note">For example Everyday spending</string>
     <string name="form_cvv_digits_unknown">3 or 4 digits</string>
     <plurals name="form_cvv_digits_optional">
@@ -119,6 +118,7 @@
     </plurals>
     <string name="form_error_cvv_unknown">Enter 3 or 4 digits</string>
     <string name="form_error_bank_required">Choose the bank</string>
+    <string name="form_error_type_required">Choose the card type</string>
     <string name="form_nfc_button">Tap your card</string>
     <string name="form_nfc_title">Hold your card to the phone</string>
     <string name="form_nfc_body">Keep the card against the back of the phone until it is read. The number and expiry fill in; you still type the CVV.</string>

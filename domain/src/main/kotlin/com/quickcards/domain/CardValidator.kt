@@ -7,7 +7,8 @@ enum class Field {
     NUMBER,
     EXPIRY,
     CVV,
-    BANK
+    BANK,
+    TYPE
 }
 
 sealed interface CardError {
@@ -23,6 +24,7 @@ sealed interface CardError {
     data class CvvLength(val digits: Int) : CardError
     data object CvvUnknown : CardError
     data object BankRequired : CardError
+    data object TypeRequired : CardError
 }
 
 data class CardDraft(
@@ -112,6 +114,10 @@ object CardValidator {
 
         if (draft.bankId.isNullOrEmpty()) {
             errors[Field.BANK] = CardError.BankRequired
+        }
+
+        if (draft.typeId.isNullOrEmpty()) {
+            errors[Field.TYPE] = CardError.TypeRequired
         }
 
         return errors

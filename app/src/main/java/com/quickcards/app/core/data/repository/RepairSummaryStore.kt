@@ -109,3 +109,10 @@ class InMemoryRepairSummaryStore : RepairSummaryStore {
         _summary.value = null
     }
 }
+
+/** Test double: the catalog version lives in memory, so every test starts before the backfill. */
+class InMemoryCatalogVersionStore : CatalogVersionStore {
+    private var applied: String? = null
+    override fun appliedBankCatalog(): String? = applied
+    override fun markBankCatalog(version: String) { applied = version }
+}
