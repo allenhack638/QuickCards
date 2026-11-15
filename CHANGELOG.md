@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.6.0] - 2026-11-15
+
+- Added: Settings › Import cards can add many cards at once from a spreadsheet. Download the Excel sheet or simple CSV from the app, or use the public Google Sheet at surety.money/quickcards/sheet; every row is checked (number, expiry, CVV, network match, bank, card type) and the app lists what is ready, what needs fixing and what is already in QuickCards before anything is saved. Duplicates are skipped and you are reminded to delete the file afterwards.
+- Changed: the card form requires a card type (Credit, Debit or Prepaid); the None option is gone and existing cards without a type are asked for one on their next edit.
+- Added: a built-in list of 26 Indian and international credit-card banks is available in the Bank picker and the spreadsheet; missing banks are added on upgrade without touching your own banks.
+
 ## [2.5.1] - 2026-11-15
 
 - Fixed: cards on a custom network are checked against that network (network edits, imports, and the CVV field).
