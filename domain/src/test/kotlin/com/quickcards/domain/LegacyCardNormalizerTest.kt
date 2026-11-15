@@ -270,4 +270,24 @@ class LegacyCardNormalizerTest {
         assertFalse(result.fixed.containsKey(CardField.CVV))
         assertEquals(setOf(CardField.CVV), result.needsReview)
     }
+
+    @Test
+    fun `an assigned network overrides prefix detection for the CVV`() {
+        val store = customNetwork.copy(id = "store", prefixes = "4", cvvLength = 4, cvvOptional = false)
+
+        val detected = LegacyCardNormalizer.normalize(visa, "12/29", "1234", networks)
+        val assigned = LegacyCardNormalizer.normalize(visa, "12/29", "1234", networks, assigned = store)
+
+        assertEquals(setOf(CardField.CVV), detected.needsReview)
+        assertTrue(assigned.needsReview.isEmpty())
+    }
+
+    @Test
+    fun `an assigned network overrides prefix detection for the number length`() {
+        val short = customNetwork.copy(id = "short", prefixes = "4", lengths = "15")
+
+        val result = LegacyCardNormalizer.normalize(visa, "12/29", "381", networks, assigned = short)
+
+        assertEquals(setOf(CardField.NUMBER), result.needsReview)
+    }
 }

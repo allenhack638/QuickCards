@@ -29,15 +29,29 @@ object BackupNormalizer {
      * [phoneNetworks] are the networks already on the phone. Cards are checked against them
      * plus the backup's networks the phone does not have yet (matched by name, phone rules win,
      * the same way the import merges them), so a card on a backup-only network is not flagged.
+     * A card saved on an explicit network is checked against the network the import will put
+     * it on, not whichever network's prefix matches first.
      */
     fun normalize(content: BackupContent, phoneNetworks: List<CardNetwork>): NormalizedBackup {
         val networks = phoneNetworks + incomingNetworks(content, phoneNetworks)
+        val byKey = linkedMapOf<String, CardNetwork>()
+        networks.forEach { byKey.putIfAbsent(key(it.name), it) }
+        val byBackupId = content.networks.mapNotNull { item ->
+            byKey[key(item.name)]?.let { item.id to it }
+        }.toMap()
         val cards = content.cards.map { card ->
+            val issuer = card.legacyIssuer
+            val assigned = when {
+                issuer != null -> phoneNetworks.firstOrNull { key(it.name) == key(issuer) }
+                card.networkAuto -> null
+                else -> card.networkId?.let(byBackupId::get)
+            }
             val result = LegacyCardNormalizer.normalize(
                 number = card.number,
                 expiry = card.exp,
                 cvv = card.cvv,
-                networks = networks
+                networks = networks,
+                assigned = assigned
             )
             NormalizedBackupCard(
                 card = card.copy(
@@ -54,6 +68,8 @@ object BackupNormalizer {
             cards = cards
         )
     }
+
+    private fun key(name: String): String = NetworkRuleSanitizer.entityKey(EntityKind.NETWORK, name)
 
     /** The backup's networks the import would add, with the importer's sanitised rules. */
     private fun incomingNetworks(content: BackupContent, phoneNetworks: List<CardNetwork>): List<CardNetwork> {

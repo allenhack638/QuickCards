@@ -42,6 +42,8 @@ data class NormalizedCard(
 /**
  * Repairs only pre-v2 values it can prove valid; the rest is unchanged and listed in
  * [NormalizedCard.needsReview]. Idempotent. Past expiries are valid; numbers are digits only.
+ * A card saved on an explicit network (`networkAuto = false`) passes it as `assigned`, so its
+ * length, Luhn and CVV rules come from that network instead of prefix detection.
  */
 object LegacyCardNormalizer {
 
@@ -53,12 +55,13 @@ object LegacyCardNormalizer {
         number: String,
         expiry: String,
         cvv: String,
-        networks: List<CardNetwork>
+        networks: List<CardNetwork>,
+        assigned: CardNetwork? = null
     ): NormalizedCard {
         val fixed = linkedMapOf<CardField, Pair<String, String>>()
         val needsReview = linkedSetOf<CardField>()
 
-        val normalizedNumber = normalizeNumber(number, networks)
+        val normalizedNumber = normalizeNumber(number, networks, assigned)
         if (normalizedNumber == null) {
             needsReview += CardField.NUMBER
         } else if (normalizedNumber != number) {
@@ -72,7 +75,7 @@ object LegacyCardNormalizer {
             fixed[CardField.EXPIRY] = expiry to normalizedExpiry
         }
 
-        val network = normalizedNumber
+        val network = assigned ?: normalizedNumber
             ?.let { CardNumberRules.detect(it, networks) }
             ?: CardNumberRules.detect(number.filter { char -> char in '0'..'9' }, networks)
         val normalizedCvv = normalizeCvv(cvv, network)
@@ -91,11 +94,15 @@ object LegacyCardNormalizer {
         )
     }
 
-    private fun normalizeNumber(raw: String, networks: List<CardNetwork>): String? {
+    private fun normalizeNumber(
+        raw: String,
+        networks: List<CardNetwork>,
+        assigned: CardNetwork?
+    ): String? {
         val digits = CardTextParser.numberDigits(raw) ?: return null
         if (digits.length !in 12..19) return null
 
-        val network = CardNumberRules.detect(digits, networks)
+        val network = assigned ?: CardNumberRules.detect(digits, networks)
         val lengthOk = network == null ||
             digits.length in CardNumberRules.parseLengths(network.lengths)
         if (!lengthOk) return null

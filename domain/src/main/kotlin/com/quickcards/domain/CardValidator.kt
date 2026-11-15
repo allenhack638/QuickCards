@@ -52,10 +52,12 @@ object CardValidator {
         draft: CardDraft,
         networks: List<CardNetwork> = DefaultNetworks.all,
         today: YearMonth = YearMonth.now(),
-        existing: (String) -> ExistingCardRef? = { null }
+        existing: (String) -> ExistingCardRef? = { null },
+        /** A saved card's explicit network; its rules apply instead of prefix detection. */
+        assigned: CardNetwork? = null
     ): Map<Field, CardError> {
         val errors = linkedMapOf<Field, CardError>()
-        val network = CardNumberRules.detect(draft.number, networks)
+        val network = assigned ?: CardNumberRules.detect(draft.number, networks)
 
         if (draft.holderId.isNullOrEmpty()) {
             errors[Field.HOLDER] = CardError.HolderRequired

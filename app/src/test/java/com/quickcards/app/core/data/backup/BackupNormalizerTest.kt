@@ -48,4 +48,39 @@ class BackupNormalizerTest {
         ).cards.single().result
         assertEquals(setOf(CardField.CVV), result.needsReview)
     }
+
+    /** R1 #2: a backup-only network sharing Mastercard's 51 prefix; the card is explicitly on it. */
+    private val store = localDebit.copy(id = "store", name = "Store", code = "STORE", prefixes = "51")
+    private val storeNumber = ("51" + "1".repeat(13)).let { it + CardNumberRules.luhnCheckDigit(it) }
+
+    private fun storeCard(cvv: String, networkAuto: Boolean) = BackupNormalizer.normalize(
+        BackupContent(
+            networks = listOf(store),
+            cards = listOf(
+                BackupCard(
+                    number = storeNumber,
+                    exp = "12/29",
+                    cvv = cvv,
+                    networkAuto = networkAuto,
+                    networkId = if (networkAuto) null else store.id
+                )
+            )
+        ),
+        DefaultNetworks.all
+    ).cards.single().result
+
+    @Test
+    fun aCardExplicitlyOnABackupNetworkIsCheckedAgainstItOnAPrefixTie() {
+        assertTrue(storeCard(cvv = "", networkAuto = false).needsReview.isEmpty())
+    }
+
+    @Test
+    fun anAutoCardOnThePrefixTieStillFollowsDetection() {
+        assertEquals(setOf(CardField.CVV), storeCard(cvv = "", networkAuto = true).needsReview)
+    }
+
+    @Test
+    fun aBadCvvOnTheExplicitNetworkIsStillFlagged() {
+        assertEquals(setOf(CardField.CVV), storeCard(cvv = "12", networkAuto = false).needsReview)
+    }
 }
