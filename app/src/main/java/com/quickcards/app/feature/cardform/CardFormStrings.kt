@@ -36,6 +36,7 @@ internal fun cardErrorText(error: CardError?): String? {
         )
         CardError.CvvUnknown -> stringResource(R.string.form_error_cvv_unknown)
         CardError.BankRequired -> stringResource(R.string.form_error_bank_required)
+        CardError.TypeRequired -> stringResource(R.string.form_error_type_required)
     }
 }
 

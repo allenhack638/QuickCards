@@ -12,7 +12,8 @@ object DataMaintenance {
 
     suspend fun run(
         database: QuickCardsDatabase,
-        repairSummaries: RepairSummaryStore
+        repairSummaries: RepairSummaryStore,
+        catalogVersions: CatalogVersionStore
     ): Int {
         encryptLegacyMetadata(database)
         wrapUnderDataKey(database)
@@ -21,6 +22,7 @@ object DataMaintenance {
         val backfilled = LegacyBackfill.run(database)
         LegacyRepair.prune(database)
         LegacyRepair.run(database, repairSummaries)
+        BankCatalogBackfill.run(database, catalogVersions)
         return backfilled
     }
 

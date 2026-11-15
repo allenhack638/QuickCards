@@ -43,7 +43,7 @@ class DuplicateCleanupTest {
         cards.insertCard(legacy("other", "5555555555554444", "", updatedAt = 5))
         app.database.cardTagDao().insertLinks(listOf(CardTag("old", travel.id), CardTag("new", fuel.id)))
 
-        DataMaintenance.run(app.database, app.repairSummaryStore)
+        DataMaintenance.run(app.database, app.repairSummaryStore, app.catalogVersionStore)
 
         val left = cards.getAllCardsSync().map { it.id }.sorted()
         assertEquals(listOf("new", "other"), left)

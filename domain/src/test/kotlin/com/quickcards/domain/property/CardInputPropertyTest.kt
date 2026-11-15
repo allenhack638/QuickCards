@@ -49,7 +49,7 @@ class CardInputPropertyTest {
         number: String = "4111111111111111",
         expiry: String = "12/29",
         cvv: String = "123"
-    ) = CardDraft(holderId = "h1", number = number, expiry = expiry, cvv = cvv, bankId = "b1")
+    ) = CardDraft(holderId = "h1", number = number, expiry = expiry, cvv = cvv, bankId = "b1", typeId = "t1")
 
     private fun errors(draft: CardDraft): Map<Field, CardError> = CardValidator.validate(
         draft = draft,

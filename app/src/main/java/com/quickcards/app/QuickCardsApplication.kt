@@ -3,6 +3,8 @@ package com.quickcards.app
 import android.app.Application
 import android.os.StrictMode
 import com.quickcards.app.core.data.database.QuickCardsDatabase
+import com.quickcards.app.core.data.repository.CatalogVersionPrefs
+import com.quickcards.app.core.data.repository.CatalogVersionStore
 import com.quickcards.app.core.data.repository.DataMaintenance
 import com.quickcards.app.core.data.repository.RepairSummaryPrefs
 import com.quickcards.app.core.data.repository.RepairSummaryStore
@@ -26,6 +28,8 @@ class QuickCardsApplication : Application() {
     }
 
     val repairSummaryStore: RepairSummaryStore by lazy { RepairSummaryPrefs(this) }
+
+    val catalogVersionStore: CatalogVersionStore by lazy { CatalogVersionPrefs(this) }
 
     val repository: VaultRepository by lazy {
         VaultRepository(database, repairSummaries = repairSummaryStore)
@@ -63,7 +67,7 @@ class QuickCardsApplication : Application() {
             // screen draws on the first frame.
             runCatching { EncryptionHelper.getInstance() }
             runCatching { settings }
-            runCatching { DataMaintenance.run(database, repairSummaryStore) }
+            runCatching { DataMaintenance.run(database, repairSummaryStore, catalogVersionStore) }
             runCatching { Reminders.ensureScheduled(this@QuickCardsApplication) }
             runCatching { Reminders.check(this@QuickCardsApplication) }
         }

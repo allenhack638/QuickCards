@@ -82,7 +82,7 @@ class VaultDedupTest {
         assertNotNull(stored.panHash)
         database.cardDao().updateCard(stored.copy(panHash = null))
 
-        DataMaintenance.run(database, InMemoryRepairSummaryStore())
+        DataMaintenance.run(database, InMemoryRepairSummaryStore(), InMemoryCatalogVersionStore())
 
         assertEquals(PanHasher.hash(VISA), database.cardDao().getAllCardsSync().single().panHash)
     }

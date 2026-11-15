@@ -47,7 +47,7 @@ enum class QcPickerKind { HOLDER, BANK, TYPE }
 
 data class QcPickerEntry(val id: String, val name: String)
 
-/** Picker for holder, bank and type. Type lists start with "None"; search shows above seven items. */
+/** Picker for holder, bank and type. Search shows above seven items. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QcPickerSheet(
@@ -98,17 +98,6 @@ fun QcPickerSheet(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
                 LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
-                    if (kind == QcPickerKind.TYPE) {
-                        item(key = "__none") {
-                            PickerRow(
-                                kind = kind,
-                                name = "None",
-                                selected = selectedId == null,
-                                isNone = true,
-                                onClick = { onPick(null) }
-                            )
-                        }
-                    }
                     items(filtered, key = { it.id }) { entry ->
                         PickerRow(
                             kind = kind,
@@ -143,8 +132,7 @@ private fun PickerRow(
     kind: QcPickerKind,
     name: String,
     selected: Boolean,
-    onClick: () -> Unit,
-    isNone: Boolean = false
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -154,7 +142,7 @@ private fun PickerRow(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        PickerLead(kind = kind, name = name, isNone = isNone)
+        PickerLead(kind = kind, name = name)
         Spacer(modifier = Modifier.size(width = 16.dp, height = 1.dp))
         Text(
             text = name,
@@ -176,7 +164,7 @@ private fun PickerRow(
 }
 
 @Composable
-private fun PickerLead(kind: QcPickerKind, name: String, isNone: Boolean = false) {
+private fun PickerLead(kind: QcPickerKind, name: String) {
     val background = MaterialTheme.colorScheme.surfaceContainerHighest
     Box(
         modifier = Modifier.size(56.dp),
@@ -210,9 +198,7 @@ private fun PickerLead(kind: QcPickerKind, name: String, isNone: Boolean = false
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isNone) "–" else {
-                        name.trim().firstOrNull()?.uppercase(Locale.ROOT) ?: "–"
-                    },
+                    text = name.trim().firstOrNull()?.uppercase(Locale.ROOT) ?: "–",
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(700),

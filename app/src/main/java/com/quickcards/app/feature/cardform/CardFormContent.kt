@@ -219,7 +219,7 @@ internal fun CardFormContent(
                 cvvValue = cvvValue.withCaretAtEnd()
                 runCatching { cvvFocus.requestFocus() }
             }
-            Field.HOLDER, Field.BANK -> Unit
+            Field.HOLDER, Field.BANK, Field.TYPE -> Unit
         }
     }
 
@@ -621,9 +621,12 @@ internal fun CardFormContent(
                 QcLookupField(
                     label = stringResource(R.string.form_field_type),
                     value = lists.typeName(form.typeId).orEmpty(),
-                    helper = stringResource(R.string.form_helper_type),
-                    error = null,
-                    onClick = { typeSheetOpen = true }
+                    helper = "",
+                    error = cardErrorText(form.errors[Field.TYPE]),
+                    onClick = { typeSheetOpen = true },
+                    modifier = Modifier.onGloballyPositioned {
+                        positions[Field.TYPE] = it.positionInParent().y.roundToInt()
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(QcDimens.FormFieldGap))
