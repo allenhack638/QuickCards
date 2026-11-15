@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.Settings as SettingsOutlined
 import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Tune
@@ -101,6 +102,7 @@ object QcIcons {
     val offline: ImageVector = Icons.Outlined.WifiOff
     val update: ImageVector = Icons.Outlined.SystemUpdate
     val file: ImageVector = Icons.Outlined.Description
+    val table: ImageVector = Icons.Outlined.TableChart
     val upload: ImageVector = Icons.Outlined.Upload
     val download: ImageVector = Icons.Outlined.Download
     val password: ImageVector = Icons.Outlined.Password

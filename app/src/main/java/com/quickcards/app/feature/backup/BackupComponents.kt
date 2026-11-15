@@ -62,6 +62,7 @@ import com.quickcards.app.core.ui.components.FormInputText
 import com.quickcards.app.core.ui.components.FormSupportingLine
 import com.quickcards.app.core.ui.components.formFieldColors
 import com.quickcards.app.core.ui.theme.QcDimens
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcType
 import kotlinx.coroutines.delay
@@ -382,7 +383,8 @@ internal fun BackupOutlinedButton(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    icon: ImageVector = QcIcons.file
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -399,7 +401,7 @@ internal fun BackupOutlinedButton(
         )
     ) {
         Icon(
-            imageVector = QcIcons.file,
+            imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(QcDimens.IconSmall)
         )
