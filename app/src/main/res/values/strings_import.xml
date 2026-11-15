@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Import cards from a spreadsheet: every message a person can see, in plain words. -->
+    <string name="import_file_too_large">This file is bigger than 5 MB. A card sheet is much smaller; check you picked the right file.</string>
+    <string name="import_file_not_sheet">QuickCards imports .xlsx or .csv sheets only. In your spreadsheet app choose Download or Export as Excel (.xlsx) or CSV.</string>
+    <string name="import_file_unreadable">This file could not be read. Download it again from your spreadsheet app and try once more.</string>
+    <string name="import_file_missing_columns">The sheet is missing these columns: %1$s. Download a fresh sheet and copy your rows across.</string>
+    <string name="import_file_unknown_columns">The sheet has columns QuickCards does not know: %1$s. Download a fresh sheet and copy your rows across.</string>
+    <string name="import_file_no_header">This does not look like the QuickCards sheet: the headings row is missing. Download a fresh sheet.</string>
+    <string name="import_file_no_rows">The sheet has no cards in it. Fill in the Cards tab, starting on row 3.</string>
+    <string name="import_file_too_many_rows">This sheet has %1$d cards. QuickCards imports up to %2$d at a time; split it into smaller sheets.</string>
+
+    <string name="import_problem_missing">%1$s is empty.</string>
+    <string name="import_problem_number_not_digits">Card number: digits only, no spaces. 12 to 19 digits.</string>
+    <string name="import_problem_number_changed">Your spreadsheet changed this card number (it shows as %1$s). Format the column as plain text and type the number again.</string>
+    <string name="import_problem_number_length">%1$s numbers have %2$s digits.</string>
+    <string name="import_problem_number_luhn">This card number does not look right. Check the digits.</string>
+    <string name="import_problem_number_unknown_network">This number does not belong to any network in the list.</string>
+    <string name="import_problem_network_unknown">Network \"%1$s\" is not in the list. Pick one from the list.</string>
+    <string name="import_problem_network_mismatch">This number looks like %1$s, but Network says %2$s.</string>
+    <string name="import_problem_month_invalid">Expiry month must be 1 to 12.</string>
+    <string name="import_problem_year_invalid">Expiry year must be a year, like 2029.</string>
+    <string name="import_problem_expired">This card has expired.</string>
+    <string name="import_problem_expiry_too_far">Check the expiry year: it is more than 20 years away.</string>
+    <plurals name="import_problem_cvv_length">
+        <item quantity="one">CVV must be %1$d digit. If it starts with 0, type the 0 too.</item>
+        <item quantity="other">CVV must be %1$d digits. If it starts with 0, type the 0 too.</item>
+    </plurals>
+    <string name="import_problem_bank_unknown">Bank \"%1$s\" is not in the list. Pick one from the list, or add this card in the app.</string>
+    <string name="import_problem_type_unknown">Card type \"%1$s\" is not in the list. Pick one from the list.</string>
+    <string name="import_problem_holder_too_long">Card holder can be up to %1$d characters.</string>
+    <string name="import_problem_due_day_invalid">Payment due day must be 1 to 31.</string>
+    <string name="import_problem_note_too_long">Notes can be up to %1$d characters.</string>
+    <string name="import_problem_repeated_in_file">The same card number is already on row %1$d of this sheet.</string>
+    <string name="import_problem_already_different">Already in QuickCards with a different expiry or CVV. Update it in the app instead.</string>
+
+    <string name="import_summary">%1$s · %2$s · %3$s</string>
+    <plurals name="import_summary_ready">
+        <item quantity="one">%1$d ready</item>
+        <item quantity="other">%1$d ready</item>
+    </plurals>
+    <plurals name="import_summary_fixing">
+        <item quantity="one">%1$d needs fixing</item>
+        <item quantity="other">%1$d need fixing</item>
+    </plurals>
+    <plurals name="import_summary_already">
+        <item quantity="one">%1$d already in QuickCards</item>
+        <item quantity="other">%1$d already in QuickCards</item>
+    </plurals>
+    <string name="import_row_label">Row %1$d</string>
+    <string name="import_fix_row_column">Row</string>
+    <string name="import_fix_problem_column">Problem</string>
+</resources>
