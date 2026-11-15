@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.6.1] - 2026-11-15
+
+- Changed: the Import cards dialogs are easier to read. The two import choices and the three ways to get the sheet are proper list rows with icons; the check screen shows the file, a count list (ready, need fixing, already in QuickCards, new holders) and one line per problem beside each row number; Proceed and Import stay visible on large font sizes; a sheet whose cards are all already saved says so.
+
 ## [2.6.0] - 2026-11-15
 
 - Added: Settings › Import cards can add many cards at once from a spreadsheet. Download the Excel sheet or simple CSV from the app, or use the public Google Sheet at surety.money/quickcards/sheet; every row is checked (number, expiry, CVV, network match, bank, card type) and the app lists what is ready, what needs fixing and what is already in QuickCards before anything is saved. Duplicates are skipped and you are reminded to delete the file afterwards.
