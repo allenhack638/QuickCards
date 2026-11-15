@@ -871,7 +871,7 @@ function settingsHTML() {
     <button class="li two sl" data-act="locknow"><span class="lead">${I('lock')}</span><span class="txt"><span class="h">Lock now</span><span class="s">Lock QuickCards right away</span></span></button>
     <div class="subhead">Backup</div>
     ${row('export', 'upload', 'Export backup', 'Protected by a password you choose', !S.cards.length, false)}
-    ${row('import', 'download', 'Import backup', 'Restore from a QuickCards backup', false, false)}
+    ${row('import', 'download', 'Import cards', 'A QuickCards backup or a spreadsheet', false, false)}
     <button class="li two sl danger" data-act="clearall"><span class="lead">${I('trash')}</span><span class="txt"><span class="h">Erase all data</span><span class="s">Cards, holders, banks, types and tags</span></span></button>
     <div class="subhead">About</div>
     <div class="li"><span class="lead">${I('info')}</span><span class="txt"><span class="h">Version</span><span class="s tnum">2.5.0</span></span></div>
@@ -1361,6 +1361,46 @@ function planImport(D) {
     differs ? upd++ : same++; });
   return { add, upd, same, newLists, formats: scanFormats(D.cards) };
 }
+/* Import cards: one dialog, two sources. The spreadsheet flow is a three-step dialog
+   (get the sheet / check / done); the app checks every row with the card form's rules. */
+function importChoiceDialog() {
+  openDialog(`<h2>Import cards</h2>
+    <button class="li sl" data-d="backup" style="width:100%;text-align:left"><span class="txt"><span class="h">QuickCards backup</span><span class="s">Choose the backup file you exported from QuickCards.</span></span></button>
+    <button class="li sl" data-d="sheet" style="width:100%;text-align:left"><span class="txt"><span class="h">Cards from a spreadsheet</span><span class="s">Add many cards at once from a sheet you fill in.</span></span></button>
+    <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button></div>`, () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog();
+      if (d === 'backup') importDialog(); else if (d === 'sheet') sheetImportDialog(); };
+  });
+}
+function sheetImportDialog() {
+  let step = 'get', report = null;
+  const draw = () => {
+    if (step === 'check') return `<h2>Check your cards</h2><div class="body">QuickCards - Add your cards.xlsx</div>
+      <div class="body">${report.ready} ready · ${report.fixing.length} need fixing · ${report.already} already in QuickCards</div>
+      ${report.fixing.length ? `<div class="glab" style="margin:12px 0 4px;font-size:14px;font-weight:600;color:var(--on-surface-variant)">Needs fixing</div>${report.fixing.map(f => `<div class="body">Row ${f.row} · ${esc(f.why)}</div>`).join('')}<button class="btn outlined" data-d="fix" style="width:100%;margin-top:8px">Save rows to fix</button>` : ''}
+      <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="import" ${report.ready ? '' : 'disabled'}>Import ${report.ready} cards</button></div>`;
+    if (step === 'done') return `<h2>Cards added</h2><div class="body">${report.ready} cards added.</div><div class="body">Delete the sheet now: it holds your card numbers.</div>
+      <button class="btn outlined" data-d="delete" style="width:100%;margin:8px 0">Delete file</button>
+      <div class="acts"><button class="btn text sl" data-d="cancel">Done</button></div>`;
+    return `<h2>Cards from a spreadsheet</h2><div class="body">Get the sheet, fill in one card per row, then come back and choose the file. Every row is checked before anything is saved.</div>
+      <div class="body">Do not change the column names. Network, Bank and Card type must come from their lists; a card whose bank, network or type is not listed is added in the app by hand.</div>
+      <button class="li sl" data-d="xlsx" style="width:100%;text-align:left"><span class="txt"><span class="h">Download the Excel sheet</span><span class="s">Dropdowns for every list. Opens in Excel, Google Sheets and WPS.</span></span></button>
+      <button class="li sl" data-d="google" style="width:100%;text-align:left"><span class="txt"><span class="h">Open in Google Sheets</span><span class="s">Make a copy, fill it in, then download it as .xlsx.</span></span></button>
+      <button class="li sl" data-d="csv" style="width:100%;text-align:left"><span class="txt"><span class="h">Download the simple CSV</span><span class="s">Headings only, plus a second file with every allowed value.</span></span></button>
+      <div class="body">Already filled in? Tap Proceed and choose the file (.xlsx or .csv).</div>
+      <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="proceed">Proceed</button></div>`;
+  };
+  openDialog(draw(), () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
+      if (d === 'cancel') return closeDialog();
+      if (d === 'xlsx' || d === 'csv') return snackbar('Sheet saved. Fill it in, then come back here.');
+      if (d === 'google') return snackbar('Opens surety.money/quickcards/sheet');
+      if (d === 'fix') return snackbar('Rows to fix saved. Fix them, then choose that file.');
+      if (d === 'delete') { closeDialog(); return snackbar('File deleted'); }
+      if (d === 'proceed') { report = { ready: 3, already: 0, fixing: [{ row: 6, why: 'This card number does not look right. Check the digits.' }, { row: 7, why: 'This number looks like Visa, but Network says RuPay.' }] }; step = 'check'; dialog.innerHTML = draw(); return; }
+      if (d === 'import') { step = 'done'; dialog.innerHTML = draw(); } };
+  });
+}
 function importDialog() {
   let file = null, step = 'pick', mode = 'update', restore = true;
   const draw = () => {
@@ -1534,7 +1574,7 @@ app.addEventListener('click', e => {
     case 'f-std': { const n = fNet(), st = n && NET_STD(n.id); if (st) { Object.assign(n, { prefixes: st.prefixes, lengths: st.lengths, cvv: st.cvv, luhn: st.luhn, cvvOptional: !!st.cvvOptional }); ['number', 'cvv'].forEach(k => { if (S.form.errors[k]) validate(k); }); const cv = $('[data-tf="cvv"]'); if (cv) { cv.dataset.help = cvvHelp(n); if (!cv.classList.contains('err')) help(cv).textContent = cv.dataset.help; } updatePreview(); } return; }
     case 'ent-del': return entityDelete(t.dataset.k, t.dataset.id);
     case 'export': return requireUnlock(exportDialog, 'Confirm it’s you to export your cards');
-    case 'import': return requireUnlock(importDialog, 'Confirm it’s you to import cards');
+    case 'import': return requireUnlock(importChoiceDialog, 'Confirm it’s you to import cards');
     case 'clearall': return requireUnlock(clearAllDialog, 'Confirm it’s you to erase all data');
     case 'picker': return pickerSheet(t.dataset.kind);
     case 'tagsheet': return tagSheet();
