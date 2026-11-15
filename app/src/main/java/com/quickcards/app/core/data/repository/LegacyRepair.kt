@@ -56,8 +56,14 @@ internal data class RepairCardSnapshot(
     val number: String,
     val expiry: String,
     val cvv: String,
-    val needsReview: Int
-)
+    val needsReview: Int,
+    /** The explicit network when `networkAuto` is false; checks use it instead of detection. */
+    val networkId: String? = null,
+    val networkAuto: Boolean = true
+) {
+    fun assignedNetwork(networks: List<CardNetwork>): CardNetwork? =
+        if (networkAuto) null else networks.firstOrNull { it.id == networkId }
+}
 
 internal data class RepairRecord(
     val id: Long,
@@ -118,7 +124,8 @@ internal class LegacyRepairEngine(
                 card.number,
                 card.expiry,
                 card.cvv,
-                networks
+                networks,
+                card.assignedNetwork(networks)
             )
             val mask = CardFieldMask.encode(normalized.needsReview)
             val updated = card.copy(
@@ -163,6 +170,7 @@ internal class LegacyRepairEngine(
         val card = backend.cards().firstOrNull { it.id == cardId } ?: return false
         val before = runCatching { crypto.decrypt(repair.before) }.getOrNull() ?: return false
 
+        val networks = backend.networks()
         val restored = when (field) {
             CardField.NUMBER -> card.copy(number = before)
             CardField.EXPIRY -> card.copy(expiry = before)
@@ -172,7 +180,8 @@ internal class LegacyRepairEngine(
             restored.number,
             restored.expiry,
             restored.cvv,
-            backend.networks()
+            networks,
+            restored.assignedNetwork(networks)
         )
         // The restored pre-fix value always needs a check, even if it is repairable.
         val reviewFields = normalized.needsReview + field
@@ -208,7 +217,9 @@ internal class RoomLegacyRepairBackend(
                 number = number,
                 expiry = expiry,
                 cvv = cvv,
-                needsReview = card.needsReview
+                needsReview = card.needsReview,
+                networkId = card.networkId,
+                networkAuto = card.networkAuto
             )
         }
 

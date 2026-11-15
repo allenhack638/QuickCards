@@ -24,7 +24,9 @@ class LegacyRepairTest {
 
         override suspend fun cards(): List<RepairCardSnapshot> = cards.values.toList()
 
-        override suspend fun networks(): List<CardNetwork> = DefaultNetworks.all
+        var networks: List<CardNetwork> = DefaultNetworks.all
+
+        override suspend fun networks(): List<CardNetwork> = networks
 
         override suspend fun saveCard(card: RepairCardSnapshot, at: Long): Boolean {
             cards[card.id] = card
@@ -204,6 +206,27 @@ class LegacyRepairTest {
         assertTrue(backend.completed())
         assertNull(backend.summary)
         assertTrue(backend.repairs.isEmpty())
+    }
+
+    @Test
+    fun `a card on an explicit network is checked against that network`() = runBlockingTest {
+        val backend = FakeBackend()
+        backend.networks = DefaultNetworks.all + CardNetwork("store4", "Store", "STORE", "", "16", 4, true)
+        backend.cards["explicit"] = RepairCardSnapshot(
+            id = "explicit",
+            number = "4111111111111111",
+            expiry = "12/29",
+            cvv = "1234",
+            needsReview = 0,
+            networkId = "store4",
+            networkAuto = false
+        )
+        backend.cards["auto"] = backend.cards.getValue("explicit").copy(id = "auto", networkAuto = true)
+
+        LegacyRepairEngine(backend, FakeCrypto()).run(now)
+
+        assertEquals(0, backend.cards.getValue("explicit").needsReview)
+        assertEquals(4, backend.cards.getValue("auto").needsReview)
     }
 }
 

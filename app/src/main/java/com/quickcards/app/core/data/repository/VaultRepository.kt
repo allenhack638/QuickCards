@@ -441,19 +441,23 @@ class VaultRepository(
 
     /**
      * A rule change can make saved cards fit or stop fitting their network. Only the Review
-     * flag follows; card values are never rewritten. Unreadable cards are skipped.
+     * flag follows; card values are never rewritten. A card on an explicit network is checked
+     * against that network, not prefix detection. A stored value that is not in its canonical
+     * form (a repair the user undid) stays flagged. Unreadable cards are skipped.
      */
     private suspend fun refreshReviewFlags() = database.withTransaction {
         val networks = networkDao.getAllNetworksSync().map { it.toDomain() }
+        val networksById = networks.associateBy { it.id }
         cardDao.getAllCardsSync().forEach { card ->
             val mask = runCatching {
                 val normalized = LegacyCardNormalizer.normalize(
                     number = encryption.decrypt(card.cardNumber),
                     expiry = encryption.decrypt(card.expiryDate),
                     cvv = encryption.decrypt(card.cvv),
-                    networks = networks
+                    networks = networks,
+                    assigned = if (card.networkAuto) null else card.networkId?.let(networksById::get)
                 )
-                CardFieldMask.encode(normalized.needsReview)
+                CardFieldMask.encode(normalized.needsReview + normalized.fixed.keys)
             }.getOrNull() ?: return@forEach
             if (mask != card.needsReview) cardDao.setNeedsReview(card.id, mask)
         }
@@ -579,7 +583,8 @@ class VaultRepository(
             number = card.number,
             expiry = card.expiry,
             cvv = card.cvv,
-            networks = networks
+            networks = networks,
+            assigned = if (card.networkAuto) null else networks.firstOrNull { it.id == card.networkId }
         )
         return CardFieldMask.encode(normalized.needsReview)
     }

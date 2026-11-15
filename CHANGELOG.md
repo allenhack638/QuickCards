@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.5.1] - 2026-11-15
+
+- Fixed: cards on a custom network are checked against that network (network edits, imports, and the CVV field).
+
 ## [2.5.0] - 2026-10-31
 
 - Fixed: card number and expiry open the number pad and stay on it; the keyboard no longer switches to letters after four digits.

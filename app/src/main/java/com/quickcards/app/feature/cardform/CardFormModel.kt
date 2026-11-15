@@ -220,12 +220,16 @@ data class CardFormSession(
      * The network shown and reported by the form. An unchanged number keeps an imported
      * network override; editing the number falls back to detection.
      */
-    fun network(networks: List<CardNetwork>): CardNetwork? {
+    fun network(networks: List<CardNetwork>): CardNetwork? =
+        assignedNetwork(networks) ?: form.network(networks)
+
+    /** The stored explicit network while the number is unchanged; display, cap and checks share it. */
+    private fun assignedNetwork(networks: List<CardNetwork>): CardNetwork? =
         if (form.number == baseNumber && !baseNetworkAuto) {
-            networks.firstOrNull { it.id == baseNetworkId }?.let { return it }
+            networks.firstOrNull { it.id == baseNetworkId }
+        } else {
+            null
         }
-        return form.network(networks)
-    }
 
     private fun withForm(form: CardFormModel): CardFormSession = copy(form = form)
 
@@ -240,7 +244,8 @@ data class CardFormSession(
             draft = form.toDraft(),
             networks = lists.networks,
             today = today,
-            existing = { number -> lists.duplicates[number] }
+            existing = { number -> lists.duplicates[number] },
+            assigned = assignedNetwork(lists.networks)
         )[field]
         return withForm(form.withError(field, message))
     }
@@ -250,7 +255,8 @@ data class CardFormSession(
             draft = form.toDraft(),
             networks = lists.networks,
             today = today,
-            existing = { number -> lists.duplicates[number] }
+            existing = { number -> lists.duplicates[number] },
+            assigned = assignedNetwork(lists.networks)
         )
         return withForm(form.copy(errors = errors, tried = true))
     }
@@ -292,7 +298,7 @@ data class CardFormSession(
         if (form.expiry.isNotBlank() || form.tried) validate(Field.EXPIRY) else this
 
     fun updateCvv(raw: String): CardFormSession {
-        val max = form.network(lists.networks)?.cvvLength ?: 4
+        val max = network(lists.networks)?.cvvLength ?: 4
         val next = form.copy(cvv = raw.filter { it in '0'..'9' }.take(max))
         return withForm(next).revalidate(Field.CVV)
     }
@@ -388,7 +394,7 @@ data class CardFormSession(
      * counts), so the form can name it and offer Reset to standard.
      */
     fun changedRulesBlocking(): BlockingRule? {
-        val network = form.network(lists.networks) ?: return null
+        val network = network(lists.networks) ?: return null
         val changed = DefaultNetworks.changedRules(network)
         if (changed.isEmpty()) return null
         val cvvBlocked = form.errors[Field.CVV] is CardError.CvvLength && NetworkRule.CVV in changed
