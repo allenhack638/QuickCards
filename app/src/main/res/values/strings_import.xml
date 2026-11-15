@@ -34,22 +34,7 @@
     <string name="import_problem_repeated_in_file">The same card number is already on row %1$d of this sheet.</string>
     <string name="import_problem_already_different">Already in QuickCards with a different expiry or CVV. Update it in the app instead.</string>
 
-    <string name="import_summary">%1$s · %2$s · %3$s</string>
-    <plurals name="import_summary_ready">
-        <item quantity="one">%1$d ready</item>
-        <item quantity="other">%1$d ready</item>
-    </plurals>
-    <plurals name="import_summary_fixing">
-        <item quantity="one">%1$d needs fixing</item>
-        <item quantity="other">%1$d need fixing</item>
-    </plurals>
-    <plurals name="import_summary_already">
-        <item quantity="one">%1$d already in QuickCards</item>
-        <item quantity="other">%1$d already in QuickCards</item>
-    </plurals>
     <string name="import_row_label">Row %1$d</string>
-    <string name="import_fix_row_column">Row</string>
-    <string name="import_fix_problem_column">Problem</string>
 
     <!-- Import cards dialog -->
     <string name="import_cards_title">Import cards</string>
@@ -71,11 +56,21 @@
     <string name="import_action_proceed">Proceed</string>
 
     <string name="import_check_title">Check your cards</string>
-    <string name="import_check_file">%1$s</string>
     <string name="import_check_nothing_ready">No row is ready to import yet. Fix the rows below and choose the file again.</string>
-    <string name="import_new_holders">New card holders: %1$s</string>
-    <string name="import_fixing_heading">Needs fixing</string>
-    <string name="import_row_reason">Row %1$d · %2$s</string>
+    <string name="import_check_all_already">Every card in this sheet is already in QuickCards. Nothing to import.</string>
+    <plurals name="import_check_rows">
+        <item quantity="one">%1$d row checked</item>
+        <item quantity="other">%1$d rows checked</item>
+    </plurals>
+    <string name="import_check_ready">Ready to import</string>
+    <string name="import_check_fixing">Need fixing</string>
+    <string name="import_check_already">Already in QuickCards</string>
+    <string name="import_check_holders">New card holders</string>
+    <plurals name="import_fixing_more">
+        <item quantity="one">%1$d more row. Save rows to fix lists every one.</item>
+        <item quantity="other">%1$d more rows. Save rows to fix lists every one.</item>
+    </plurals>
+    <string name="import_fixing_heading">What to fix</string>
     <string name="import_save_fix">Save rows to fix</string>
     <plurals name="import_action_import">
         <item quantity="one">Import %1$d card</item>

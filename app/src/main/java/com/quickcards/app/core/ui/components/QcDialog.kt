@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -111,5 +112,25 @@ fun QcDialog(
                 }
             }
         }
+    }
+}
+
+/** The dialog's own content inset (title, body and actions all sit inside it). */
+val QcDialogPadding = 24.dp
+
+/**
+ * Lets a row inside a dialog run from edge to edge of the dialog surface, so a tappable
+ * list row and its ripple span the full width while its content keeps the 24dp inset.
+ */
+fun Modifier.dialogEdgeToEdge(): Modifier = layout { measurable, constraints ->
+    val bleed = (QcDialogPadding * 2).roundToPx()
+    val placeable = measurable.measure(
+        constraints.copy(
+            minWidth = (constraints.minWidth + bleed).coerceAtMost(constraints.maxWidth + bleed),
+            maxWidth = constraints.maxWidth + bleed
+        )
+    )
+    layout(placeable.width - bleed, placeable.height) {
+        placeable.placeRelative(-bleed / 2, 0)
     }
 }

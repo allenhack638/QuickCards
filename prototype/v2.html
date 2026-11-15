@@ -198,7 +198,7 @@ const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 /* ---------- Icons ---------- */
 // Built-in networks ship an acceptance mark on the standard 56x28 plate; custom ones keep the text badge.
 const NET_MARKS = new Set(['visa', 'mc', 'amex', 'rupay', 'diners', 'discover', 'jcb', 'maestro', 'unionpay', 'mir']);
-const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', payments: 'payments', update: 'system_update', };
+const G = {search: 'search', tune: 'tune', back: 'arrow_back', close: 'close', more: 'more_vert', plus: 'add', lock: 'lock', unlock: 'lock_open_right', check: 'check', copy: 'content_copy', edit: 'edit', trash: 'delete', pin: 'push_pin', card: 'credit_card', stack: 'category', gear: 'settings', bank: 'account_balance', person: 'person', network: 'contactless', type: 'style', tag: 'sell', bell: 'notifications', eye: 'visibility', eyeoff: 'visibility_off', chev: 'chevron_right', caret: 'arrow_drop_down', shield: 'verified_user', palette: 'palette', contrast: 'contrast', timer: 'timer', clip: 'content_paste', info: 'info', offline: 'wifi_off', file: 'description', upload: 'upload', download: 'download', mask: 'password', ruler: 'straighten', listnum: 'format_list_numbered', warn: 'warning', fp: 'fingerprint', expired: 'event_busy', soon: 'hourglass_bottom', archive: 'inventory_2', unarchive: 'unarchive', notes: 'notes', autofix: 'auto_fix_high', share: 'share', nfc: 'nfc', keyboard: 'keyboard', payments: 'payments', update: 'system_update', table: 'table_chart', open: 'open_in_new', };
 const I = (n, cls = '') => `<span class="ic ${cls}" aria-hidden="true">${G[n] || n}</span>`;
 
 const LOGO = (vb = '0 0 108 108') => `<svg class="logo-glyph" viewBox="${vb}" aria-hidden="true"><g transform="translate(54 54) scale(0.9) translate(-54 -54)"><path fill="currentColor" fill-rule="evenodd" d="M35 37H62V73H35A10 10 0 0 1 25 63V47A10 10 0 0 1 35 37Z M33.8 47H47.2A2.3 2.3 0 0 1 47.2 51.6H33.8A2.3 2.3 0 0 1 33.8 47Z M33.8 55.4H40.2A2.3 2.3 0 0 1 40.2 60H33.8A2.3 2.3 0 0 1 33.8 55.4Z M65.5 37H73A10 10 0 0 1 83 47V63A10 10 0 0 1 73 73H65.5Z M69.906 53.689H69.989V51.285A4.261 4.261 0 0 1 78.511 51.285V53.689H78.594A0.9 0.9 0 0 1 79.494 54.589V60.025A1.967 1.967 0 0 1 77.528 61.992H70.972A1.967 1.967 0 0 1 69.006 60.025V54.589A0.9 0.9 0 0 1 69.906 53.689Z M72.174 53.689V51.285A2.076 2.076 0 0 1 76.326 51.285V53.689Z"/></g></svg>`;
@@ -1364,30 +1364,38 @@ function planImport(D) {
 /* Import cards: one dialog, two sources. The spreadsheet flow is a three-step dialog
    (get the sheet / check / done); the app checks every row with the card form's rules. */
 function importChoiceDialog() {
-  openDialog(`<h2>Import cards</h2>
-    <button class="li sl" data-d="backup" style="width:100%;text-align:left"><span class="txt"><span class="h">QuickCards backup</span><span class="s">Choose the backup file you exported from QuickCards.</span></span></button>
-    <button class="li sl" data-d="sheet" style="width:100%;text-align:left"><span class="txt"><span class="h">Cards from a spreadsheet</span><span class="s">Add many cards at once from a sheet you fill in.</span></span></button>
+  openDialog(`<h2>Import cards</h2><div style="height:4px"></div>
+    <button class="li two sl" data-d="backup" style="width:calc(100% + 48px);margin:0 -24px;padding:12px 24px;text-align:left"><span class="lead">${I('file')}</span><span class="txt"><span class="h">QuickCards backup</span><span class="s">Choose the backup file you exported from QuickCards.</span></span><span class="trail">${I('chev')}</span></button>
+    <button class="li two sl" data-d="sheet" style="width:calc(100% + 48px);margin:0 -24px;padding:12px 24px;text-align:left"><span class="lead">${I('table')}</span><span class="txt"><span class="h">Cards from a spreadsheet</span><span class="s">Add many cards at once from a sheet you fill in.</span></span><span class="trail">${I('chev')}</span></button>
     <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button></div>`, () => {
     dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog();
       if (d === 'backup') importDialog(); else if (d === 'sheet') sheetImportDialog(); };
   });
 }
 function sheetImportDialog() {
-  let step = 'get', report = null;
+  let step = 'get', report = null, error = null;
+  const fixRow = f => `<div style="display:flex;gap:8px;align-items:flex-start"><span style="flex:none;min-width:56px;font-size:14px;line-height:20px;font-weight:600;color:var(--on-surface)">Row ${f.row}</span><span style="font-size:14px;line-height:20px;color:var(--on-surface-variant)">${f.why.map(esc).join('<br>')}</span></div>`;
   const draw = () => {
-    if (step === 'check') return `<h2>Check your cards</h2><div class="body">QuickCards - Add your cards.xlsx</div>
-      <div class="body">${report.ready} ready · ${report.fixing.length} need fixing · ${report.already} already in QuickCards</div>
-      ${report.fixing.length ? `<div class="glab" style="margin:12px 0 4px;font-size:14px;font-weight:600;color:var(--on-surface-variant)">Needs fixing</div>${report.fixing.map(f => `<div class="body">Row ${f.row} · ${esc(f.why)}</div>`).join('')}<button class="btn outlined" data-d="fix" style="width:100%;margin-top:8px">Save rows to fix</button>` : ''}
-      <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="import" ${report.ready ? '' : 'disabled'}>Import ${report.ready} cards</button></div>`;
-    if (step === 'done') return `<h2>Cards added</h2><div class="body">${report.ready} cards added.</div><div class="body">Delete the sheet now: it holds your card numbers.</div>
-      <button class="btn outlined" data-d="delete" style="width:100%;margin:8px 0">Delete file</button>
+    if (step === 'check') {
+      const nothing = !report.ready ? `<div class="body" style="margin-top:12px">${report.fixing.length ? 'No row is ready to import yet. Fix the rows below and choose the file again.' : 'Every card in this sheet is already in QuickCards. Nothing to import.'}</div>` : '';
+      return `<h2>Check your cards</h2>
+      <div class="file"><span style="color:var(--on-surface-variant)">${I('file')}</span><div><div class="n">QuickCards - Add your cards.xlsx</div><div class="m">${plural(report.rows, 'row')} checked</div></div><button class="btn text sl" data-d="proceed">Change</button></div>
+      <ul class="list" style="margin-top:16px"><li><span>Ready to import</span><span class="t-muted" style="margin-left:auto">${report.ready}</span></li><li><span>Need fixing</span><span class="t-muted" style="margin-left:auto">${report.fixing.length}</span></li><li><span>Already in QuickCards</span><span class="t-muted" style="margin-left:auto">${report.already}</span></li>${report.holders.length ? `<li><span>New card holders</span><span class="t-muted" style="margin-left:auto">${esc(report.holders.join(', '))}</span></li>` : ''}</ul>${nothing}
+      ${report.fixing.length ? `<div class="glab" style="margin:12px 0 8px;font-size:14px;font-weight:600;color:var(--on-surface-variant)">What to fix</div><div style="display:grid;gap:8px">${report.fixing.map(fixRow).join('')}</div><button class="btn outlined" data-d="fix" style="width:100%;margin-top:16px">${I('download')}Save rows to fix</button>` : ''}
+      <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn filled sl" data-d="import" ${report.ready ? '' : 'disabled'}>Import ${report.ready} cards</button></div>`;
+    }
+    if (step === 'done') return `<h2>Cards added</h2><div class="body" style="color:var(--on-surface)">${report.ready} cards added.</div>
+      <div class="warn" style="margin:16px 0 0">${I('warn')}<span>Delete the sheet now: it holds your card numbers.</span></div>
+      <button class="btn outlined" data-d="delete" style="width:100%;margin-top:16px">${I('trash')}Delete file</button>
       <div class="acts"><button class="btn text sl" data-d="cancel">Done</button></div>`;
+    const opt = (d, icon, h, sub) => `<button class="li two sl" data-d="${d}" style="width:calc(100% + 48px);margin:0 -24px;padding:12px 24px;text-align:left"><span class="lead">${I(icon)}</span><span class="txt"><span class="h">${h}</span><span class="s">${sub}</span></span><span class="trail">${I('chev')}</span></button>`;
     return `<h2>Cards from a spreadsheet</h2><div class="body">Get the sheet, fill in one card per row, then come back and choose the file. Every row is checked before anything is saved.</div>
-      <div class="body">Do not change the column names. Network, Bank and Card type must come from their lists; a card whose bank, network or type is not listed is added in the app by hand.</div>
-      <button class="li sl" data-d="xlsx" style="width:100%;text-align:left"><span class="txt"><span class="h">Download the Excel sheet</span><span class="s">Dropdowns for every list. Opens in Excel, Google Sheets and WPS.</span></span></button>
-      <button class="li sl" data-d="google" style="width:100%;text-align:left"><span class="txt"><span class="h">Open in Google Sheets</span><span class="s">Make a copy, fill it in, then download it as .xlsx.</span></span></button>
-      <button class="li sl" data-d="csv" style="width:100%;text-align:left"><span class="txt"><span class="h">Download the simple CSV</span><span class="s">Headings only, plus a second file with every allowed value.</span></span></button>
-      <div class="body">Already filled in? Tap Proceed and choose the file (.xlsx or .csv).</div>
+      <div class="body" style="margin-top:8px">Do not change the column names. Network, Bank and Card type must come from their lists; a card whose bank, network or type is not listed is added in the app by hand.</div><div style="height:4px"></div>
+      ${opt('xlsx', 'download', 'Download the Excel sheet', 'Dropdowns for every list. Opens in Excel, Google Sheets and WPS.')}
+      ${opt('google', 'open', 'Open in Google Sheets', 'Make a copy, fill it in, then download it as .xlsx. The copy stays in your Google Drive until you delete it.')}
+      ${opt('csv', 'download', 'Download the simple CSV', 'Headings only, plus a second file with every allowed value.')}
+      <div class="body" style="margin-top:4px">Already filled in? Tap Proceed and choose the file (.xlsx or .csv).</div>
+      ${error ? `<div class="warn" style="margin:16px 0 0">${I('warn', 'danger')}<span><b style="display:block;font-weight:600">${esc(error.file)}</b>${esc(error.why)}</span></div>` : ''}
       <div class="acts"><button class="btn text sl" data-d="cancel">Cancel</button><button class="btn text sl" data-d="proceed">Proceed</button></div>`;
   };
   openDialog(draw(), () => {
@@ -1397,7 +1405,7 @@ function sheetImportDialog() {
       if (d === 'google') return snackbar('Opens surety.money/quickcards/sheet');
       if (d === 'fix') return snackbar('Rows to fix saved. Fix them, then choose that file.');
       if (d === 'delete') { closeDialog(); return snackbar('File deleted'); }
-      if (d === 'proceed') { report = { ready: 3, already: 0, fixing: [{ row: 6, why: 'This card number does not look right. Check the digits.' }, { row: 7, why: 'This number looks like Visa, but Network says RuPay.' }] }; step = 'check'; dialog.innerHTML = draw(); return; }
+      if (d === 'proceed') { report = { rows: 6, ready: 3, already: 0, holders: ['Priya S', 'Arjun'], fixing: [{ row: 6, why: ['This card number does not look right. Check the digits.'] }, { row: 7, why: ['This number looks like Visa, but Network says RuPay.'] }, { row: 8, why: ['Card holder is empty.', 'Network "Foo" is not in the list. Pick one from the list.'] }] }; step = 'check'; dialog.innerHTML = draw(); return; }
       if (d === 'import') { step = 'done'; dialog.innerHTML = draw(); } };
   });
 }

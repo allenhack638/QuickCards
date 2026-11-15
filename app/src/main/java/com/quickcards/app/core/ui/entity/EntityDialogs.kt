@@ -149,6 +149,33 @@ internal fun DialogActions(
         horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        DialogActionButtons(
+            onCancel = onCancel,
+            cancelLabel = cancelLabel,
+            confirmLabel = confirmLabel,
+            onConfirm = onConfirm,
+            confirmDanger = confirmDanger,
+            confirmEnabled = confirmEnabled,
+            confirmPrimary = confirmPrimary
+        )
+    }
+}
+
+/**
+ * The buttons of [DialogActions] on their own, for a dialog whose action row is pinned
+ * below scrolling content (`ManageDialogFrame(actions = { DialogActionButtons(...) })`).
+ */
+@Composable
+internal fun RowScope.DialogActionButtons(
+    onCancel: (() -> Unit)? = null,
+    cancelLabel: String? = null,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    confirmDanger: Boolean = false,
+    confirmEnabled: Boolean = true,
+    confirmPrimary: Boolean = false
+) {
+    run {
         if (onCancel != null) {
             TextButton(
                 onClick = onCancel,

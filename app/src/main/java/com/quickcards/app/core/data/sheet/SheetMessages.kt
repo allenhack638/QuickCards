@@ -44,11 +44,4 @@ object SheetMessages {
         is RowProblem.RepeatedInFile -> resources.getString(R.string.import_problem_repeated_in_file, problem.firstRow)
         RowProblem.AlreadyInAppWithDifferentDetails -> resources.getString(R.string.import_problem_already_different)
     }
-
-    fun summary(resources: Resources, ready: Int, fixing: Int, already: Int): String = resources.getString(
-        R.string.import_summary,
-        resources.getQuantityString(R.plurals.import_summary_ready, ready, ready),
-        resources.getQuantityString(R.plurals.import_summary_fixing, fixing, fixing),
-        resources.getQuantityString(R.plurals.import_summary_already, already, already)
-    )
 }

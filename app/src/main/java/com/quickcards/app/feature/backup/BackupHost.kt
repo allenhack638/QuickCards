@@ -157,6 +157,7 @@ class BackupHostState internal constructor(
     internal var sheetReport by mutableStateOf<SheetReport?>(null)
     internal var sheetAdded by mutableIntStateOf(0)
     private var sheetUri: Uri? = null
+    internal val sheetHasFile: Boolean get() = sheetUri != null
     private var pendingSheetDownload: SheetDownload? = null
 
     internal var eraseOpen by mutableStateOf(false)
