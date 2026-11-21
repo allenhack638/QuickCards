@@ -29,10 +29,10 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -74,7 +73,6 @@ import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTheme
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.compose.ui.semantics.error as semanticsError
 
 val FormHelperText: TextStyle = QcText.F1Regular
@@ -220,20 +218,28 @@ private fun FieldBox(
     )
 }
 
-/** Brings a focused field above the keyboard once the IME has settled. */
+/**
+ * Keeps a focused field, its supporting line included, in view: once the IME has settled on
+ * focus, then again whenever the line changes (an error appearing under the last visible field).
+ */
 @Composable
-private fun Modifier.bringIntoViewOnFocus(): Modifier {
-    val scope = rememberCoroutineScope()
+private fun Modifier.keepInViewWhileFocused(focused: Boolean, supporting: String?): Modifier {
     val requester = remember { BringIntoViewRequester() }
-    return bringIntoViewRequester(requester).onFocusChanged { state ->
-        if (state.isFocused) {
-            scope.launch {
-                delay(350)
-                runCatching { requester.bringIntoView() }
-            }
+    var settled by remember { mutableStateOf(false) }
+    LaunchedEffect(focused, supporting) {
+        if (!focused) {
+            settled = false
+            return@LaunchedEffect
         }
+        delay(if (settled) SUPPORTING_SETTLE_MS else IME_SETTLE_MS)
+        settled = true
+        runCatching { requester.bringIntoView() }
     }
+    return bringIntoViewRequester(requester)
 }
+
+private const val IME_SETTLE_MS = 350L
+private const val SUPPORTING_SETTLE_MS = 32L
 
 /**
  * Outlined text field with its label above (DESIGN.md › Inputs). [placeholder] shows in
@@ -273,7 +279,7 @@ fun FormTextField(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .bringIntoViewOnFocus(),
+            .keepInViewWhileFocused(focused, error ?: warn ?: helper),
         verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)
     ) {
         if (labelAction == null) {

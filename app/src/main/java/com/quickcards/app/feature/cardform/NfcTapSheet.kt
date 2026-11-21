@@ -274,7 +274,7 @@ private fun NfcOffDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.semantics { contentDescription = turnOnA11y }
             )
         }
-    ) {}
+    )
 }
 
 private fun Context.findActivity(): Activity? {

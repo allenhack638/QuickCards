@@ -59,7 +59,7 @@ class LegacyUpgradeFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("Review").performClick()
 
-        waitForText("Needs check (1)")
+        waitForContentDescription("Needs check (1)", substring = true)
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasContentDescription("HDFC Bank, ending", substring = true) and hasClickAction())
                 .fetchSemanticsNodes().size == 1

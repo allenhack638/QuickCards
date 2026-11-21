@@ -337,8 +337,9 @@ body.shot-mode .topbar{display:none}
 
 /* =====================================================================
    NETWORK MARKS. <span class="net" data-net="visa"></span>
-   Tone rule (token "mark tone"): WHITE on dark grounds (card art, dark theme
-   surfaces), COLOUR on light grounds. Mastercard and Maestro are always COLOUR.
+   Tone rule (token "mark tone"): WHITE on card art and, for wordmarks, on dark
+   theme surfaces; COLOUR on light grounds. Box marks (Amex, JCB, UnionPay) stay
+   COLOUR on every surface. Mastercard and Maestro are always COLOUR.
    Force with data-tone="colour|white".
    ===================================================================== */
 .net{position:relative;flex:none;display:inline-block;width:var(--mark-w);height:var(--mark-h)}
@@ -353,6 +354,11 @@ body.shot-mode .topbar{display:none}
 .net .tw{display:none}
 .art .net .tc,[data-theme="dark"] .net .tc{display:none}
 .art .net .tw,[data-theme="dark"] .net .tw{display:block}
+/* box marks carry their own ground: full colour on dark-theme surfaces (white only on card art) */
+[data-theme="dark"] .net:is([data-net="amex"],[data-net="jcb"],[data-net="unionpay"]) .tc{display:block}
+[data-theme="dark"] .net:is([data-net="amex"],[data-net="jcb"],[data-net="unionpay"]) .tw{display:none}
+.art .net:is([data-net="amex"],[data-net="jcb"],[data-net="unionpay"]) .tc{display:none}
+.art .net:is([data-net="amex"],[data-net="jcb"],[data-net="unionpay"]) .tw{display:block}
 .net[data-tone="colour"] .tc,.net[data-net="mc"] .tc,.net[data-net="maestro"] .tc{display:block!important}
 .net[data-tone="colour"] .tw,.net[data-net="mc"] .tw,.net[data-net="maestro"] .tw{display:none!important}
 .net[data-tone="white"] .tw{display:block!important}
@@ -3057,7 +3063,9 @@ QC.hydrate = function(root=document){
      chip right edge): the 56x28 canvas is shifted so the logo's own right bound lands at x 52 (the canvas overhangs the edge by 4) */
   $$('.net[data-net]:empty', root).forEach(n => { const k = n.dataset.net, nb = QC.NETBOX[k] && QC.NETBOX[k].split(' ').map(Number);
     const head = !n.classList.contains('slot') && n.closest('.tile-head') && nb;
-    const vb = n.classList.contains('slot') && nb ? QC.NETBOX[k] : head ? `${+(nb[0] + nb[2] - 52).toFixed(2)} 0 56 28` : '0 0 56 28';
+    /* the logo grows (never shrinks) to fill the 48x20 logo box, centred on the canvas mid-line */
+    const hs = head ? Math.max(1, Math.min(48 / nb[2], 20 / nb[3])) : 1;
+    const vb = n.classList.contains('slot') && nb ? QC.NETBOX[k] : head ? `${+(nb[0] + nb[2] - 52 / hs).toFixed(2)} ${+(nb[1] + nb[3] / 2 - 14 / hs).toFixed(2)} ${+(56 / hs).toFixed(2)} ${+(28 / hs).toFixed(2)}` : '0 0 56 28';
     n.innerHTML = `<svg class="tc" viewBox="${vb}" aria-hidden="true"><use href="#n-${k}" width="56" height="28"/></svg><svg class="tw" viewBox="${vb}" aria-hidden="true"><rect width="56" height="28" fill="#fff" mask="url(#nw-${k})"/></svg>`; });
   $$('.art', root).forEach(a => {
     if (a.querySelector(':scope > .art-bg')) return;

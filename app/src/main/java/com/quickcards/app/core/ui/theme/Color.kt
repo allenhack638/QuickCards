@@ -162,11 +162,6 @@ object PassColors {
     val EmvLine = Color(0x735A3E0A)
     val EmvShadow = Color(0x40000000)
 
-    /** The conic outline of the Custom swatch, drawn from the palette itself. */
-    val CustomRing: List<Color> = listOf(
-        "crimson", "burnt-orange", "olive", "teal", "ocean", "indigo", "violet", "magenta", "crimson"
-    ).map { hue(it).c2 }
-
     /** The art for a stored key or custom `#RRGGBB` (its light stop); expired cards are graphite. */
     fun hue(stored: String, expired: Boolean = false): ArtHue {
         val key = if (expired) ArtRules.GRAPHITE else stored.trim().lowercase(Locale.ROOT)

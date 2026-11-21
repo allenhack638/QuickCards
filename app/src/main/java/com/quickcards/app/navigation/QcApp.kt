@@ -140,6 +140,10 @@ private fun isRoot(route: String?): Boolean = route in RootRoutes
 @Composable
 fun QcApp() {
     val navController = rememberNavController()
+    val openDuplicate: (String) -> Unit = { cardId ->
+        navController.popBackStack()
+        navController.navigate("card/details/$cardId")
+    }
     val homeViewModel: HomeViewModel = viewModel()
     val homeState by homeViewModel.uiState.collectAsState()
     val openableCards = remember(homeState) { (homeState.cards + homeState.visibleCards).distinctBy { it.id } }
@@ -402,14 +406,14 @@ fun QcApp() {
                         )
                     }
                     composable(ROUTE_CARD_ADD) {
-                        CardFormScreen(navController = navController)
+                        CardFormScreen(navController = navController, onOpenCard = openDuplicate)
                     }
                     composable(
                         route = ROUTE_CARD_EDIT,
                         arguments = listOf(navArgument("cardId") { type = NavType.StringType })
                     ) {
                         CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                            CardFormScreen(navController = navController)
+                            CardFormScreen(navController = navController, onOpenCard = openDuplicate)
                         }
                     }
                     }

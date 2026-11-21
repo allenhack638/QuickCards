@@ -104,6 +104,7 @@ fun PassCard(
                 stringResource(R.string.cards_a11y_tile_status, card.bankName, last4, spokenStatus(status, archiveReason))
             }
         )
+        if (card.card.pinned && !card.card.archived) append(", ").append(stringResource(R.string.cards_pass_pinned))
         if (dueText != null) append(", ").append(dueText)
         if (onActions != null) append(". ").append(stringResource(R.string.cards_a11y_hold_hint))
     }
@@ -208,7 +209,7 @@ private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?
                 if (card.card.pinned && !card.card.archived) {
                     Icon(
                         imageVector = QcIcons.pinFilled,
-                        contentDescription = stringResource(R.string.cards_pass_pinned),
+                        contentDescription = null,
                         tint = PassColors.OnArt,
                         modifier = Modifier
                             .size(QcSize.iconXs)

@@ -41,16 +41,11 @@ class RepairBannerFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("Review").performClick()
 
-        waitForText("Needs check (1)")
+        waitForContentDescription("Needs check (1)", substring = true)
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasText(bannerText)).fetchSemanticsNodes().isEmpty()
         }
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(
-                hasText("Check"),
-                useUnmergedTree = true
-            ).fetchSemanticsNodes().isNotEmpty()
-        }
+        waitForContentDescription("Kotak Mahindra Bank, ending 7441, Check details", substring = true)
     }
 
     @Test

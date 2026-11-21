@@ -48,6 +48,7 @@ import com.quickcards.app.core.ui.theme.QcTheme
 @Composable
 fun CardFormScreen(
     navController: NavController,
+    onOpenCard: (cardId: String) -> Unit,
     viewModel: CardFormViewModel = viewModel()
 ) {
     val session by viewModel.session.collectAsState()
@@ -106,7 +107,8 @@ fun CardFormScreen(
                 session = current,
                 saving = saving,
                 navController = navController,
-                scrollState = scrollState
+                scrollState = scrollState,
+                onOpenCard = onOpenCard
             )
         } else {
             Spacer(modifier = Modifier.weight(1f))
@@ -133,7 +135,7 @@ fun CardFormScreen(
                     tone = QcTextTone.Danger
                 )
             }
-        ) {}
+        )
     }
 }
 

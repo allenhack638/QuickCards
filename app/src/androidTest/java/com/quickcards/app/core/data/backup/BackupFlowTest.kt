@@ -209,7 +209,7 @@ class BackupFlowTest {
         )
         val changed = snapshot.copy(
             cards = snapshot.cards.map {
-                it.copy(exp = "01/30", note = "From the backup", color = "rust")
+                it.copy(exp = "01/30", note = "From the backup", color = "rust", colorManual = true)
             }
         )
 

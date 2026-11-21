@@ -106,6 +106,7 @@ object AppLockController {
     }
 
     fun unlock() {
+        android.util.Log.e("QCDBG", "unlock")
         _isLocked.value = false
         lastActiveMillis = SystemClock.elapsedRealtime()
     }
@@ -137,6 +138,7 @@ object AppLockController {
     }
 
     private fun showLock() {
+        android.util.Log.e("QCDBG", "showLock", Throwable())
         UnlockSession.lockNow()
         // The copy notification keeps its own timeout: the user is leaving to paste.
         _isLocked.value = true

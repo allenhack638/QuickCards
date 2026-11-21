@@ -46,6 +46,7 @@ class PassCardTest {
     }
 
     private fun show(
+        shown: HomeCard = card,
         status: CardStatus? = null,
         copied: Boolean = false,
         copyEnabled: Boolean = true,
@@ -55,7 +56,7 @@ class PassCardTest {
             QuickCardsTheme(darkTheme = false) {
                 Box(modifier = Modifier.width(328.dp)) {
                     PassCard(
-                        card = card,
+                        card = shown,
                         status = status,
                         note = NOTE,
                         copied = copied,
@@ -112,6 +113,12 @@ class PassCardTest {
     fun statusChipJoinsTheTileName() {
         show(status = CardStatus.CHECK)
         compose.onNodeWithContentDescription("HDFC Bank, ending 0366, Check details. Hold for card actions").assertExists()
+    }
+
+    @Test
+    fun pinnedJoinsTheTileName() {
+        show(shown = card.copy(card = card.card.copy(pinned = true)))
+        compose.onNodeWithContentDescription("HDFC Bank, ending 0366, Pinned. Hold for card actions").assertExists()
     }
 
     @Test

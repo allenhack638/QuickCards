@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import com.quickcards.app.R
 import com.quickcards.app.core.ui.art.ArtDimens
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -66,6 +67,8 @@ object NetworkMarks {
 
 private const val CANVAS_WIDTH = 56f
 private const val CANVAS_HEIGHT = 28f
+private const val LOGO_BOX_WIDTH = 48f
+private const val LOGO_BOX_HEIGHT = 20f
 
 enum class MarkTone { COLOUR, WHITE }
 
@@ -94,7 +97,10 @@ fun networkLeadWidth(badgeWidths: List<Dp>, min: Dp, max: Dp): Dp =
 
 /** Where the mark sits, which fixes its box and how the logo is fitted into it. */
 enum class MarkFit(val width: Dp, val height: Dp) {
-    /** Card header: the 56x28 canvas, shifted so the logo's right edge is the box's right edge. */
+    /**
+     * Card header: the 56x28 canvas with the logo grown to fill its centred 48x20 box (never
+     * shrunk), shifted so the logo's right edge is the box's right edge.
+     */
     HEAD(ArtDimens.MarkWidth, ArtDimens.MarkHeight),
     /** Lists, fields and autofill: the logo's own bounds fitted into 40x24. */
     SLOT(ArtDimens.SlotWidth, ArtDimens.SlotHeight),
@@ -140,17 +146,19 @@ fun NetworkMark(
                 }
             )
             .drawBehind {
-                val unit = if (fit == MarkFit.HEAD) {
-                    size.height / CANVAS_HEIGHT
+                val unit: Float
+                val dx: Float
+                val dy: Float
+                if (fit == MarkFit.HEAD) {
+                    val base = size.height / CANVAS_HEIGHT
+                    unit = base * max(1f, min(LOGO_BOX_WIDTH / bounds.width, LOGO_BOX_HEIGHT / bounds.height))
+                    dx = size.width - bounds.right * unit
+                    dy = base * CANVAS_HEIGHT / 2f - (bounds.top + bounds.height / 2f) * unit
                 } else {
-                    min(size.width / bounds.width, size.height / bounds.height)
+                    unit = min(size.width / bounds.width, size.height / bounds.height)
+                    dx = (size.width - bounds.width * unit) / 2f - bounds.left * unit
+                    dy = (size.height - bounds.height * unit) / 2f - bounds.top * unit
                 }
-                val dx = if (fit == MarkFit.HEAD) {
-                    size.width - bounds.right * unit
-                } else {
-                    (size.width - bounds.width * unit) / 2f - bounds.left * unit
-                }
-                val dy = if (fit == MarkFit.HEAD) 0f else (size.height - bounds.height * unit) / 2f - bounds.top * unit
                 translate(dx, dy) {
                     with(painter) { draw(Size(CANVAS_WIDTH * unit, CANVAS_HEIGHT * unit), colorFilter = filter) }
                 }

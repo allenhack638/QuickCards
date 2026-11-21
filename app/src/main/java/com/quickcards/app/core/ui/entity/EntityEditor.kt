@@ -325,7 +325,7 @@ private fun EntityEditorContent(
                     onBack()
                 }, tone = QcTextTone.Danger)
             }
-        ) {}
+        )
     }
 }
 

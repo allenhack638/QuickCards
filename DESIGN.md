@@ -386,7 +386,7 @@ Aliases (hdfc, sbi, state bank of india, amex, citi …) resolve to the same ban
 
 | Rule | Value |
 |---|---|
-| Tone | Full colour on light grounds; white on card art and on dark-theme surfaces (white fills knock out). Mastercard and Maestro are always full colour. |
+| Tone | White on card art (white fills knock out). On surfaces full colour in both themes, except wordmarks unreadable on dark (Visa, RuPay, Diners, Discover, Mir), which go white there. Box marks (Amex, JCB, UnionPay) stay full colour on every surface; Mastercard and Maestro are always full colour, on art too. |
 | On the card | 56 × 28 canvas, logo in 48 × 20; the artwork's right edge sits on the content edge. No plate. |
 | Lists, fields, autofill | Fixed 40 × 24 slot, the logo's own bounds fitted (24 tall, wide marks up to 40 wide), same for all ten |
 | Mini card | 20 × 12 |

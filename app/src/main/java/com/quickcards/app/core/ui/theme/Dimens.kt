@@ -85,12 +85,10 @@ object QcDimens {
 
     // App chrome
     val AppBar = QcSize.bar
-    val FooterAction = QcSize.ctlLg
     val Divider = QcSize.hairline
 
     // Rows, fields and icons
     val LeadSlot = 56.dp
-    val FieldHeight = QcSize.field
     val HelperLine = QcSize.icon
     val ListRowOneLine = QcSize.row
     val ListRowTwoLine = QcSize.row2
@@ -99,13 +97,7 @@ object QcDimens {
     val IconTiny = QcSize.iconXs
     val Monogram = QcSpacing.s10
     val NetworkBadgeMinWidth = 56.dp
-    val NetworkBadgeMaxWidth = 128.dp
     val NetworkBadgeHeight = 28.dp
-
-    // Form
-    /** Editor rhythm: one gap between every block (DESIGN.md › Alignment rules). */
-    val FormFieldGap = QcSpacing.s3
-    val FormGroupGap = QcSpacing.s3
 
     // Dialogs and sheets
     val DialogHeaderGap = QcSpacing.s4
@@ -134,7 +126,6 @@ object QcDimens {
     // Lock screen
     val LockMark = 96.dp
     val LockMarkCompact = 72.dp
-    val NfcSheetIcon = 72.dp
     val LockGlow = 176.dp
     val LockGlowCompact = 132.dp
     val LockButtonHeight = 56.dp

@@ -30,8 +30,7 @@ class CardsEmptyFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("Show expired").performClick()
 
-        awaitTile("HDFC Bank")
-        waitForText("Expired")
+        waitForContentDescription("HDFC Bank, ending 2211, Expired", substring = true)
     }
 
     @Test

@@ -116,7 +116,8 @@ internal fun CardFormContent(
     session: CardFormSession,
     saving: Boolean,
     navController: NavController,
-    scrollState: androidx.compose.foundation.ScrollState
+    scrollState: androidx.compose.foundation.ScrollState,
+    onOpenCard: (cardId: String) -> Unit
 ) {
     val form = session.form
     val lists = session.lists
@@ -246,8 +247,7 @@ internal fun CardFormContent(
 
     fun openDuplicate(cardId: String) {
         focusManager.clearFocus(force = true)
-        navController.previousBackStackEntry?.savedStateHandle?.set(OPEN_CARD_KEY, cardId)
-        navController.popBackStack()
+        onOpenCard(cardId)
     }
 
     fun changedFrom(field: CardField, current: String): String? =
@@ -606,9 +606,6 @@ internal fun CardFormContent(
         )
     }
 }
-
-/** Where [CardFormScreen]'s caller opens a duplicate's Card details. */
-const val OPEN_CARD_KEY = "openCardId"
 
 private fun Modifier.recordY(positions: MutableMap<Field, Int>, field: Field): Modifier =
     onGloballyPositioned { positions[field] = it.positionInParent().y.roundToInt() }

@@ -1,5 +1,6 @@
 package com.quickcards.app.flow
 
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -31,7 +32,7 @@ class ArchiveFlowTest : FlowTestBase() {
         compose.onNodeWithText("Archive").performClick()
 
         waitForText("Archive card?")
-        field("Reason (optional)").performTextInput("Card closed")
+        compose.onNode(hasSetTextAction()).performTextInput("Card closed")
         compose.onNodeWithText("Archive").performClick()
 
         waitForText("Card archived")

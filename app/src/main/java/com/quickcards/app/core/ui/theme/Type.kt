@@ -77,12 +77,9 @@ object QcType {
     val NestedTitle = QcText.F4
     val Title = QcText.F3Semibold
     val BodyLarge = QcText.F3
-    val MenuItem = QcText.F3
     val Body = QcText.F2
     val Label = QcText.F1Semibold
     val FieldLabel = QcText.F1Semibold
-    val BandNetwork = QcText.F1Semibold
-    val BandBank = QcText.F3Semibold
 }
 
 val Typography = Typography(

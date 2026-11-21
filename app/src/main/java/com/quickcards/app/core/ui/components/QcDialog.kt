@@ -66,7 +66,7 @@ fun QcDialog(
     scrollState: ScrollState = rememberScrollState(),
     title: String? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit
+    content: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     if (LocalAppLocked.current) return
     val colors = QcTheme.colors
@@ -115,14 +115,14 @@ private fun DialogLayout(
     scrollState: ScrollState,
     title: String?,
     actions: (@Composable RowScope.() -> Unit)?,
-    content: @Composable ColumnScope.() -> Unit
+    content: (@Composable ColumnScope.() -> Unit)?
 ) {
     if (actions == null && title == null) {
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
                 .padding(QcDialogPadding),
-            content = content
+            content = content ?: {}
         )
         return
     }
@@ -135,12 +135,12 @@ private fun DialogLayout(
                 color = QcTheme.colors.ink,
                 modifier = Modifier
                     .padding(horizontal = QcDialogPadding)
-                    .padding(bottom = QcSpacing.s4)
+                    .padding(bottom = if (content != null) QcSpacing.s4 else 0.dp)
                     .semantics { heading() }
             )
         }
         // The body scrolls between a fixed title and fixed actions so Save stays reachable.
-        Column(
+        if (content != null) Column(
             modifier = Modifier
                 .weight(1f, fill = false)
                 .drawWithContent {

@@ -41,7 +41,7 @@ class PinFlowTest : FlowTestBase() {
             listOf(cards[0].id, cards[1].id, cards[2].id),
             cardsNow().map { it.id }
         )
-        compose.onAllNodesWithContentDescription("Pinned").assertCountEquals(2)
+        compose.onAllNodesWithContentDescription(", Pinned", substring = true).assertCountEquals(2)
 
         unpin("HDFC Bank")
         awaitCardsWhere("HDFC Bank unpinned") { list ->
@@ -55,7 +55,7 @@ class PinFlowTest : FlowTestBase() {
         )
         assertTrue(afterUnpin.first { it.id == cards[1].id }.pinned)
         assertFalse(afterUnpin.first { it.id == cards[0].id }.pinned)
-        compose.onAllNodesWithContentDescription("Pinned").assertCountEquals(1)
+        compose.onAllNodesWithContentDescription(", Pinned", substring = true).assertCountEquals(1)
     }
 
     @Test
