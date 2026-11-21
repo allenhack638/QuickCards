@@ -173,7 +173,7 @@ docs/              # MAINTAINING.md and the Stub Lock brand masters (docs/brand/
 QuickCards is released under the [MIT licence](LICENSE), © 2025-2026 allenhack638.
 
 The Stub Lock logo and QuickCards brand assets are © allenhack638 and are **not** covered
-by the MIT licence unless stated otherwise. Visa, Mastercard, American Express, RuPay, Diners Club, Discover, JCB, Maestro, UnionPay and Mir, and their marks, are trademarks of their respective owners; QuickCards shows them only to identify a card's network and is not affiliated with or endorsed by them. The bundled Roboto Flex font is licensed under
+by the MIT licence unless stated otherwise. Visa, Mastercard, American Express, RuPay, Diners Club, Discover, JCB, Maestro, UnionPay and Mir, and their marks, are trademarks of their respective owners; QuickCards shows them only to identify a card's network and is not affiliated with or endorsed by them. The bundled Geist and Geist Mono fonts are licensed under
 the SIL Open Font License 1.1. Other third-party components are listed in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
