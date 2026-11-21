@@ -266,7 +266,16 @@ private fun EntityEditorContent(
                 ),
                 trailing = form.editingId
                     ?.takeIf { kind == EntityKind.NETWORK && NetworkMarks.drawable(it) != null }
-                    ?.let { id -> { NetworkMark(id, null, tone = markTone(id, onArt = false, dark = QcTheme.colors.dark)) } }
+                    ?.let { id ->
+                        {
+                            NetworkMark(
+                                id,
+                                null,
+                                tone = markTone(id, onArt = false, dark = QcTheme.colors.dark),
+                                modifier = Modifier.padding(end = QcSpacing.s2)
+                            )
+                        }
+                    }
             )
             if (kind == EntityKind.NETWORK) NetworkRuleFields(form, shown)
             if (bankColour != null) {

@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -72,6 +71,7 @@ internal fun DetailsRow(
 ) {
     val colors = QcTheme.colors
     val lineColor = colors.ink
+    val wordAlpha by animateFloatAsState(if (copied) 1f else 0f, tween(QcMotion.STATE_MS))
     val latestReveal by rememberUpdatedState(spec.onReveal)
     val reveal = { latestReveal?.invoke() }
     Box(
@@ -124,69 +124,92 @@ internal fun DetailsRow(
                 )
             },
             act = {
-                if (spec.onCopy != null) CopyDisc(spec, copied, hueInk, hueFill, copiedWord)
+                if (spec.onCopy != null) CopyDisc(spec, copied, hueFill)
+            },
+            word = {
+                if (spec.onCopy != null && wordAlpha > 0f) {
+                    Text(
+                        text = copiedWord,
+                        style = QcText.F1,
+                        color = hueInk,
+                        modifier = Modifier
+                            .alpha(wordAlpha)
+                            .clearAndSetSemantics { }
+                    )
+                }
             }
         )
     }
 }
 
 @Composable
-private fun CopyDisc(spec: DetailsRowSpec, copied: Boolean, hueInk: Color, hueFill: Color, copiedWord: String) {
+private fun CopyDisc(spec: DetailsRowSpec, copied: Boolean, hueFill: Color) {
     val colors = QcTheme.colors
-    val wordAlpha by animateFloatAsState(if (copied) 1f else 0f, tween(QcMotion.STATE_MS))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = copiedWord,
-            style = QcText.F1,
-            color = hueInk,
-            modifier = Modifier
-                .padding(end = QcSpacing.s1)
-                .alpha(wordAlpha)
-                .clearAndSetSemantics { }
-        )
+    Box(
+        modifier = Modifier
+            .size(QcSize.hit)
+            .clickable(role = Role.Button, onClick = { spec.onCopy?.invoke() })
+            .semantics { contentDescription = if (copied) spec.copiedLabel else spec.copyLabel },
+        contentAlignment = Alignment.Center
+    ) {
         Box(
             modifier = Modifier
-                .size(QcSize.hit)
-                .clickable(role = Role.Button, onClick = { spec.onCopy?.invoke() })
-                .semantics { contentDescription = if (copied) spec.copiedLabel else spec.copyLabel },
+                .size(QcSize.ctlMd)
+                .background(if (copied) hueFill else colors.tonal, QcShapes.full),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(QcSize.ctlMd)
-                    .background(if (copied) hueFill else colors.tonal, QcShapes.full),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (copied) QcIcons.check else QcIcons.copy,
-                    contentDescription = null,
-                    tint = if (copied) PassColors.OnArt else colors.ink,
-                    modifier = Modifier.size(QcSize.iconSm)
-                )
-            }
+            Icon(
+                imageVector = if (copied) QcIcons.check else QcIcons.copy,
+                contentDescription = null,
+                tint = if (copied) PassColors.OnArt else colors.ink,
+                modifier = Modifier.size(QcSize.iconSm)
+            )
         }
     }
 }
 
+/**
+ * Key and value beside a right-aligned action. [word] ("Copied") sits left of the action only
+ * while shown and only when it costs the value no line; values otherwise use the full row.
+ */
 @Composable
 private fun KeyValueAct(
     key: @Composable () -> Unit,
     value: @Composable () -> Unit,
-    act: @Composable () -> Unit
+    act: @Composable () -> Unit,
+    word: @Composable () -> Unit
 ) {
-    Layout(contents = listOf(key, value, act)) { (keys, values, acts), constraints ->
+    Layout(contents = listOf(key, value, act, word)) { (keys, values, acts, words), constraints ->
         val gap = QcSpacing.s3.roundToPx()
+        val wordGap = QcSpacing.s1.roundToPx()
         val width = constraints.maxWidth
         val actPlaceable = acts.firstOrNull()?.measure(Constraints())
-        val actWidth = actPlaceable?.width ?: 0
-        val textMax = (width - actWidth - if (actPlaceable != null) gap else 0).coerceAtLeast(0)
-        val keyPlaceable = keys.first().measure(
-            Constraints(minWidth = KeyMinWidth.roundToPx().coerceAtMost(textMax), maxWidth = textMax)
-        )
+        val discWidth = actPlaceable?.width ?: 0
+        val key = keys.first()
         val value = values.first()
-        val besideMax = textMax - keyPlaceable.width - gap
-        val inline = besideMax > 0 && value.minIntrinsicWidth(Constraints.Infinity) <= besideMax
-        val valuePlaceable = value.measure(Constraints(maxWidth = if (inline) besideMax else textMax))
+        val keyMin = KeyMinWidth.roundToPx()
+
+        fun fit(reserved: Int): ValueFit {
+            val textMax = (width - discWidth - reserved - if (actPlaceable != null) gap else 0).coerceAtLeast(0)
+            val keyWidth = key.maxIntrinsicWidth(Constraints.Infinity).coerceIn(keyMin.coerceAtMost(textMax), textMax)
+            val besideMax = textMax - keyWidth - gap
+            val inline = besideMax > 0 && value.minIntrinsicWidth(Constraints.Infinity) <= besideMax
+            val valueMax = if (inline) besideMax else textMax
+            return ValueFit(textMax, inline, valueMax, value.minIntrinsicHeight(valueMax))
+        }
+
+        val full = fit(0)
+        val wordMeasurable = words.firstOrNull()
+        val wordReserve = wordMeasurable?.let { it.maxIntrinsicWidth(Constraints.Infinity) + wordGap } ?: 0
+        val narrow = wordMeasurable?.let { fit(wordReserve) }
+        // The word only shows where it costs the value no line, so copying never moves the row.
+        val chosen = narrow?.takeIf { it.inline == full.inline && it.height == full.height } ?: full
+        val wordPlaceable = if (chosen !== full) wordMeasurable?.measure(Constraints()) else null
+        val keyPlaceable = key.measure(
+            Constraints(minWidth = keyMin.coerceAtMost(chosen.textMax), maxWidth = chosen.textMax)
+        )
+        val inline = chosen.inline
+        val valuePlaceable = value.measure(Constraints(maxWidth = chosen.valueMax))
         val textHeight = if (inline) {
             maxOf(keyPlaceable.height, valuePlaceable.height)
         } else {
@@ -202,10 +225,14 @@ private fun KeyValueAct(
                 keyPlaceable.placeRelative(0, top)
                 valuePlaceable.placeRelative(0, top + keyPlaceable.height)
             }
-            actPlaceable?.placeRelative(width - actWidth, (height - actPlaceable.height) / 2)
+            val actX = width - (actPlaceable?.width ?: 0)
+            actPlaceable?.placeRelative(actX, (height - actPlaceable.height) / 2)
+            wordPlaceable?.placeRelative(actX - wordGap - wordPlaceable.width, (height - wordPlaceable.height) / 2)
         }
     }
 }
+
+private class ValueFit(val textMax: Int, val inline: Boolean, val valueMax: Int, val height: Int)
 
 private val KeyMinWidth = QcSpacing.s16 + QcSpacing.s2
 private val RevealLine = QcSize.focus

@@ -36,6 +36,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
@@ -219,27 +228,35 @@ private fun FieldBox(
 }
 
 /**
- * Keeps a focused field, its supporting line included, in view: once the IME has settled on
- * focus, then again whenever the line changes (an error appearing under the last visible field).
+ * Keeps a focused field, its supporting line included, in view: again each time the keyboard
+ * settles or the line changes (an error appearing under the last visible field). The request
+ * reaches one field row further down, so the next field clears the sticky footer; a viewport too
+ * short for both keeps the focused field's top in view.
  */
 @Composable
 private fun Modifier.keepInViewWhileFocused(focused: Boolean, supporting: String?): Modifier {
     val requester = remember { BringIntoViewRequester() }
-    var settled by remember { mutableStateOf(false) }
-    LaunchedEffect(focused, supporting) {
-        if (!focused) {
-            settled = false
-            return@LaunchedEffect
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    val density = LocalDensity.current
+    val ime = WindowInsets.ime
+    val latestSupporting by rememberUpdatedState(supporting)
+    val lookaheadPx = with(density) { NextRowLookahead.toPx() }
+    LaunchedEffect(focused) {
+        if (!focused) return@LaunchedEffect
+        snapshotFlow { Triple(ime.getBottom(density), latestSupporting, size) }.collectLatest {
+            delay(SETTLE_MS)
+            runCatching {
+                requester.bringIntoView(Rect(0f, 0f, size.width.toFloat(), size.height + lookaheadPx))
+            }
         }
-        delay(if (settled) SUPPORTING_SETTLE_MS else IME_SETTLE_MS)
-        settled = true
-        runCatching { requester.bringIntoView() }
     }
-    return bringIntoViewRequester(requester)
+    return onSizeChanged { size = it }.bringIntoViewRequester(requester)
 }
 
-private const val IME_SETTLE_MS = 350L
-private const val SUPPORTING_SETTLE_MS = 32L
+private const val SETTLE_MS = 48L
+
+private val NextRowLookahead = QcSize.field + QcSpacing.s12
+
 
 /**
  * Outlined text field with its label above (DESIGN.md › Inputs). [placeholder] shows in

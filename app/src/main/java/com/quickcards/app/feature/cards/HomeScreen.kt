@@ -5,7 +5,6 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.SnackbarDuration
@@ -177,7 +176,7 @@ fun HomeScreen(
             )
         } else {
             HomeTopBar(
-                showSearch = state.hasAnyCards,
+                showSearch = state.hasAnyCards || state.loading,
                 onSearch = { viewModel.setSearchActive(true) },
                 onAdd = { navController.navigate("card/add") }
             )
@@ -198,7 +197,7 @@ fun HomeScreen(
             .weight(1f)
 
         when {
-            state.loading -> Spacer(modifier = contentModifier)
+            state.loading -> CardListSkeleton(modifier = contentModifier)
             !state.hasAnyCards -> EmptyState(
                 modifier = contentModifier,
                 bottomInset = bottomInset,

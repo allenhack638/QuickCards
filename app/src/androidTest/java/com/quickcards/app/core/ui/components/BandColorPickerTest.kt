@@ -18,6 +18,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
 import org.junit.Rule
@@ -73,6 +74,18 @@ class BandColorPickerTest {
         compose.onNodeWithTag("band_hex").performTextInput("0F5E5A")
         compose.onNodeWithText("Use colour").performClick()
         compose.onNodeWithTag("selected").assertTextEquals("#0F5E5A")
+    }
+
+    @Test
+    fun backFromCustomReturnsToTheSwatchGrid() {
+        showSheet()
+        compose.onNodeWithContentDescription("Custom colour").performScrollTo().performClick()
+        compose.onNodeWithText("Use colour").assertExists()
+
+        Espresso.pressBack()
+
+        compose.onNodeWithText("Use colour").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Plum").assertExists()
     }
 
     @Test

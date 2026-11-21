@@ -1,6 +1,10 @@
 package com.quickcards.app.flow
 
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -126,6 +130,27 @@ class AddCardFlowTest : FlowTestBase() {
         assertEquals("482", saved.cvv)
         assertEquals(holder.id, saved.holderId)
         assertEquals(bank.id, saved.bankId)
+    }
+
+    @Test
+    fun keyboardNextWalksTheTextFieldsAndTheNoteEndsWithDone() {
+        runBlockingSeed { app.repository.createHolder("Aarav Mehta") }
+
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithText("Add your first card").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Add card").performClick()
+        waitForText("Save card")
+
+        val chain = listOf("Card number", "Expiry", "CVV", "Due day (optional)", "Note (optional)")
+        chain.zipWithNext().forEach { (from, to) ->
+            assertEquals(ImeAction.Next, field(from).fetchSemanticsNode().config[SemanticsProperties.ImeAction])
+            field(from).performClick().performImeAction()
+            field(to).assertIsFocused()
+        }
+        assertEquals(ImeAction.Done, field("Note (optional)").fetchSemanticsNode().config[SemanticsProperties.ImeAction])
+        field("Note (optional)").performImeAction()
+        field("Note (optional)").assertIsNotFocused()
     }
 
     /** One character per event so the field sees typing, not a paste. */

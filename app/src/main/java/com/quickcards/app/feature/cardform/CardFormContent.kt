@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -46,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -96,7 +98,8 @@ import kotlin.math.roundToInt
 private val DigitsKeyboard = KeyboardOptions(
     capitalization = KeyboardCapitalization.None,
     autoCorrectEnabled = false,
-    keyboardType = KeyboardType.Number
+    keyboardType = KeyboardType.Number,
+    imeAction = ImeAction.Next
 )
 
 private const val CVV_REVEAL_MS = 5_000L
@@ -143,6 +146,9 @@ internal fun CardFormContent(
     val numberFocus = remember { FocusRequester() }
     val expiryFocus = remember { FocusRequester() }
     val cvvFocus = remember { FocusRequester() }
+    val dueDayFocus = remember { FocusRequester() }
+    val noteFocus = remember { FocusRequester() }
+    fun nextTo(target: FocusRequester) = KeyboardActions(onNext = { runCatching { target.requestFocus() } })
 
     var numberValue by remember { mutableStateOf(TextFieldValue("")) }
     var expiryValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -315,6 +321,7 @@ internal fun CardFormContent(
                 helper = numberRepair?.let { stringResource(R.string.form_repair_changed_from, it) }.orEmpty(),
                 error = numberError,
                 keyboardOptions = DigitsKeyboard,
+                keyboardActions = nextTo(expiryFocus),
                 fieldTag = "form_number",
                 focusRequester = numberFocus,
                 labelAction = if (form.mode == CardFormMode.ADD && nfcAvailable && nfcAddEnabled) {
@@ -388,6 +395,7 @@ internal fun CardFormContent(
                     error = if (session.expiryWarning) null else cardErrorText(form.errors[Field.EXPIRY]),
                     warn = if (session.expiryWarning) stringResource(R.string.form_error_expiry_past) else null,
                     keyboardOptions = DigitsKeyboard,
+                    keyboardActions = nextTo(cvvFocus),
                     fieldTag = "form_expiry",
                     focusRequester = expiryFocus,
                     helperAction = expiryRepair?.let { { RepairUndo { viewModel.undoRepair(CardField.EXPIRY) } } },
@@ -415,7 +423,8 @@ internal fun CardFormContent(
                     mono = true,
                     helper = cvvRepair?.let { stringResource(R.string.form_repair_changed_from, it) }.orEmpty(),
                     error = cardErrorText(form.errors[Field.CVV]),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
+                    keyboardActions = nextTo(dueDayFocus),
                     visualTransformation = if (cvvShown) VisualTransformation.None else QcMask,
                     fieldTag = "form_cvv",
                     focusRequester = cvvFocus,
@@ -513,7 +522,9 @@ internal fun CardFormContent(
                 label = stringResource(R.string.form_due_day_label),
                 placeholder = stringResource(R.string.form_due_day_helper),
                 error = if (form.dueDayValid) null else stringResource(R.string.form_due_day_error),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                keyboardActions = nextTo(noteFocus),
+                focusRequester = dueDayFocus
             )
 
             FormTextField(
@@ -525,7 +536,9 @@ internal fun CardFormContent(
                 },
                 label = stringResource(R.string.form_field_note),
                 placeholder = stringResource(R.string.form_helper_note),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                focusRequester = noteFocus
             )
         }
 
@@ -636,7 +649,7 @@ private fun NumberMark(id: String, name: String, code: String) {
  * button. It rides on the keyboard (imePadding).
  */
 @Composable
-private fun FormFooter(label: String, enabled: Boolean, note: String?, noteIsError: Boolean, onClick: () -> Unit) {
+internal fun FormFooter(label: String, enabled: Boolean, note: String?, noteIsError: Boolean, onClick: () -> Unit) {
     val colors = QcTheme.colors
     Column(
         modifier = Modifier

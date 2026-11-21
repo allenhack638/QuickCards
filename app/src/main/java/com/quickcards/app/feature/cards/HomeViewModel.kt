@@ -4,6 +4,8 @@ import android.app.Application
 import java.time.Duration
 import java.time.LocalDateTime
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import java.time.temporal.ChronoUnit
 import com.quickcards.domain.ReminderRules
@@ -97,10 +99,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val searchOn = MutableStateFlow(false)
     private val query = MutableStateFlow("")
 
-    private val usage = MutableStateFlow(CardUsage.lastUsed(application))
-    private val tipsSeen = MutableStateFlow(FirstRunTips.seen(application))
+    /** Null until read from disk; Home stays loading until both are known. */
+    private val usage = MutableStateFlow<Map<String, Long>?>(null)
+    private val tipsSeen = MutableStateFlow<Boolean?>(null)
 
-    private val keySentinel = app.keySentinel
     private val _keyUnavailable = MutableStateFlow(false)
 
     /** True when the Keystore key can no longer open the vault. */
@@ -108,8 +110,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         retryKeyCheck()
-        if (!tipsSeen.value) {
-            viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            usage.value = CardUsage.lastUsed(application)
+            val seen = FirstRunTips.seen(application)
+            tipsSeen.value = seen
+            if (!seen) {
                 repository.cards.first { it.isNotEmpty() }
                 finishTips()
             }
@@ -118,7 +123,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun retryKeyCheck() {
         viewModelScope.launch(Dispatchers.IO) {
-            _keyUnavailable.value = !keySentinel.isKeyAvailable()
+            _keyUnavailable.value = !app.keySentinel.isKeyAvailable()
         }
     }
 
@@ -187,7 +192,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private data class Extras(val usage: Map<String, Long>, val tipsSeen: Boolean)
 
-    private val extras = combine(usage, tipsSeen) { used, seen -> Extras(used, seen) }
+    private val extras = combine(usage.filterNotNull(), tipsSeen.filterNotNull()) { used, seen -> Extras(used, seen) }
 
     private data class UiFilters(
         val cardFilters: CardFilters,
@@ -222,7 +227,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dueInputs = combine(
         settings.paymentReminders,
-        PaidStore.paid(application),
+        flow { emitAll(PaidStore.paid(application)) }.flowOn(Dispatchers.IO),
         today
     ) { enabled, paid, day -> DueInputs(enabled, paid, day) }
 
@@ -250,12 +255,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Card details records its own copies; Home re-reads them when it shows again. */
     fun refreshUsage() {
-        usage.value = CardUsage.lastUsed(getApplication())
+        viewModelScope.launch(Dispatchers.IO) {
+            usage.value = CardUsage.lastUsed(getApplication())
+        }
     }
 
     fun finishTips() {
-        FirstRunTips.markSeen(getApplication())
         tipsSeen.value = true
+        viewModelScope.launch(Dispatchers.IO) { FirstRunTips.markSeen(getApplication()) }
     }
 
     fun setSearchActive(active: Boolean) {

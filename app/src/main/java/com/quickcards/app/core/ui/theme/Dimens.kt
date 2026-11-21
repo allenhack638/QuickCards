@@ -120,6 +120,8 @@ object QcDimens {
     // Adaptive layout
     val CardMinPane = 240.dp
     val CardMaxWidth = 360.dp
+    /** A loading tile: the height of a tile with a meta line and no note. */
+    val SkeletonTile = 148.dp
     val GridBreakpoint = 600.dp
     val GridBreakpointWide = 840.dp
 

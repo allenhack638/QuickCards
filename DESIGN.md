@@ -410,7 +410,7 @@ One component for Check, Expires soon, Expired, Last used, Archived (and "Archiv
 
 ### Card details
 
-Hero card (4 dots, status chip, pin) then a group of rows: Number, Expiry, CVV, Holder, Note, each with a Copy disc. Copied row: value tinted in the hue, filled check disc, "Copied". Holding Number or CVV reveals it for 5 s with a 2dp draining line under the row (the only timed line). Bar: back, Edit, ⋮ (card actions). Invisible level-1 heading "HDFC Bank card ending 0366".
+Hero card (4 dots, status chip, pin) then a group of rows: Number, Expiry, CVV, Holder, Note, each with a Copy disc. Copied row: value tinted in the hue, filled check disc, "Copied" left of the disc (shown only where it costs the value no line; values otherwise run to the disc). Holding Number or CVV reveals it for 5 s with a 2dp draining line under the row (the only timed line). Bar: back, Edit, ⋮ (card actions). Invisible level-1 heading "HDFC Bank card ending 0366".
 
 ### Buttons
 
@@ -427,7 +427,7 @@ Min height 36 (large 44), `r-full`, pressed = currentColor 12% layer. Full-width
 
 ### Inputs
 
-Outlined field, min 48, `r-md`, 1dp `outline`; focus 2dp accent; error = `danger` outline + help line tied to the field; warning = help in `warn` only (never blocks). Placeholders in `ink-ph`, mono for number, expiry and CVV. Password, CVV and PIN fields mask with real bullets (Geist Mono, same size as masked digits). Picker fields (Holder, Bank, Type, Colour) are buttons that open the picker sheet ("Holder, Diya Mehta, double-tap to choose"). Search field: only the outer pill shows state; no inner border or ring.
+Outlined field, min 48, `r-md`, 1dp `outline`; focus 2dp accent; error = `danger` outline + help line tied to the field; warning = help in `warn` only (never blocks). Placeholders in `ink-ph`, mono for number, expiry and CVV. Password, CVV and PIN fields mask with real bullets (Geist Mono, same size as masked digits). Picker fields (Holder, Bank, Type, Colour) are buttons that open the picker sheet ("Holder, Diya Mehta, double-tap to choose"). Search field: only the outer pill shows state; no inner border or ring. Keyboard: number, expiry, CVV and due day show Next (number → expiry → CVV → due day → note); the note shows Done.
 
 ### Lists and groups
 
@@ -495,11 +495,11 @@ Switch, checkbox, radio in `select` / `on-select`; the whole row toggles; 48 hit
 
 ### Colour picker
 
-Bottom sheet "Colour": live preview card on top, "Bank colour" chip in the header (on while the card follows its bank), 4-column grid of 64 × 40 card swatches (`r-sm`, pattern hint, name `f1` `ink-2` below), selected = 2dp gap + 2dp ink ring + check; the bank's default swatch carries a white bank glyph; last tile "Custom" opens hue and lightness strips (a tick marks the 7:1 limit), Hex and Recent, with "Use colour". Footer "Done".
+Bottom sheet "Colour": live preview card on top, "Bank colour" chip in the header (on while the card follows its bank), 4-column grid of 64 × 40 card swatches (`r-sm`, pattern hint, name `f1` `ink-2` below), selected = 2dp gap + 2dp ink ring + check; the bank's default swatch carries a white bank glyph; last tile "Custom" opens hue and lightness strips (a tick marks the 7:1 limit), Hex and Recent, with "Use colour"; its ← and system Back return to the grid. Footer "Done".
 
 ### Empty states and tips
 
-Empty vault: faded sample card, "Add your first card", one line, full-width filled "Add card" at the content bottom, "Import" and "Tap a card" (NFC phones) as equal tonal buttons in one row; search hidden, + kept, nav kept. First-run tips: 3 pages with Skip and page dots, last page filled "Add card". No matches: title, "Try a bank, holder, tag or digits", "Clear search".
+Empty vault: faded sample card, "Add your first card", one line, full-width filled "Add card" at the content bottom, "Import" and "Tap a card" (NFC phones) as equal tonal buttons in one row; search hidden, + kept, nav kept. First-run tips: 3 pages with Skip and page dots, last page filled "Add card". No matches: title, "Try a bank, holder, tag or digits", "Clear search". Loading: Home keeps its chrome (title, search, +, nav) over three static `tonal` blocks in the tile shape (`r-lg`, no shimmer); Add/Edit shows the form labels over `tonal` field blocks and the Save footer, off, until the form is ready. Never an empty-vault look while loading.
 
 ### Motion
 
@@ -532,7 +532,7 @@ Nothing moves on its own: no tilt, particles, rolling digits or flips. Reduced m
 - Staggered grids keep list order in reading and focus order; each tile goes to the shorter lane.
 - Foldables: book posture = list | detail, each pane ends at the hinge; tabletop = card on the top half, rows and actions below; hinge zone 24, nothing crosses it. Read the hinge from the window, never the device model; a separating hinge forces two panes even at medium width.
 - Max widths (Dimens): rail 80 · list 360 · list (medium, fold) 328 · page 600 · dialog 560 · detail 840.
-- With the keyboard open, Save rides on the IME and the focused field scrolls into view above it.
+- With the keyboard open, Save rides on the IME and the focused field, its help line and the next field row scroll into view above it (re-checked as the keyboard settles; a short viewport keeps the focused field's top).
 
 ## Compose mapping
 

@@ -245,6 +245,7 @@ fun CardColourSheet(
 ) {
     var custom by remember { mutableStateOf(false) }
     QcModalBottomSheet(onDismissRequest = onDismiss) {
+        QcSheetBackHandler(enabled = custom) { custom = false }
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val maxBody = maxHeight
             Column(modifier = Modifier.fillMaxWidth().heightIn(max = maxBody)) {

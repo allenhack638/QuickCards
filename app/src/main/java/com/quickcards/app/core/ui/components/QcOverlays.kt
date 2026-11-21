@@ -1,5 +1,13 @@
 package com.quickcards.app.core.ui.components
 
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.runtime.DisposableEffect
+import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.compose.BackHandler
+import android.window.OnBackInvokedDispatcher
+import android.window.OnBackInvokedCallback
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.getValue
@@ -96,6 +104,32 @@ fun QcModalBottomSheet(
         properties = ModalBottomSheetProperties(),
         content = stableContent
     )
+}
+
+/**
+ * Back inside a [QcModalBottomSheet] (a page within the sheet going back to the first): the
+ * sheet lives in its own window, so the activity's BackHandler never sees it. Registered on the
+ * sheet window after the sheet's own dismiss callback, so it wins while [enabled]; the keyboard,
+ * registered later still, keeps closing first.
+ */
+@Composable
+fun QcSheetBackHandler(enabled: Boolean, onBack: () -> Unit) {
+    val view = LocalView.current
+    val latest by rememberUpdatedState(onBack)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        DisposableEffect(view, enabled) {
+            val dispatcher = view.findOnBackInvokedDispatcher()
+            if (!enabled || dispatcher == null) return@DisposableEffect onDispose { }
+            val callback = OnBackInvokedCallback { latest() }
+            dispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback)
+            onDispose { dispatcher.unregisterOnBackInvokedCallback(callback) }
+        }
+    } else {
+        val owner = remember(view) { view.findViewTreeOnBackPressedDispatcherOwner() } ?: return
+        CompositionLocalProvider(LocalOnBackPressedDispatcherOwner provides owner) {
+            BackHandler(enabled = enabled) { latest() }
+        }
+    }
 }
 
 /** Handle zone: 12 above, 32 × 4 bar, 8 below. */

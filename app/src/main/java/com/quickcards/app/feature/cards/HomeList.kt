@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -68,6 +69,7 @@ import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.PassCard
 import com.quickcards.app.core.ui.components.QcGroup
 import com.quickcards.app.core.ui.components.QcGroupLabel
+import com.quickcards.app.core.ui.components.QcSkeleton
 import com.quickcards.app.core.ui.components.markTone
 import com.quickcards.app.core.ui.rememberSeparatingFold
 import com.quickcards.app.core.ui.sharedPass
@@ -374,3 +376,25 @@ private fun CopyDisc(card: HomeCard, last4: String, copied: Boolean, enabled: Bo
         }
     }
 }
+
+/** Cold start: three static tonal tiles in the tile shape until the vault has loaded. */
+@Composable
+internal fun CardListSkeleton(modifier: Modifier) {
+    Column(
+        modifier = modifier
+            .padding(start = QcSpacing.s4, end = QcSpacing.s4, top = QcSpacing.s2)
+            .clearAndSetSemantics { },
+        verticalArrangement = Arrangement.spacedBy(QcSpacing.s3)
+    ) {
+        repeat(SKELETON_TILES) {
+            QcSkeleton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(QcDimens.SkeletonTile),
+                shape = QcShapes.lg
+            )
+        }
+    }
+}
+
+private const val SKELETON_TILES = 3
