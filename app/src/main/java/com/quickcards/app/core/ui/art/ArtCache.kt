@@ -4,6 +4,9 @@ import android.graphics.BlurMaskFilter
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.util.LruCache
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -17,6 +20,10 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import com.quickcards.domain.ArtPattern
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -32,6 +39,9 @@ internal enum class PatternFade(val stops: Array<Pair<Float, Float>>) {
 /**
  * Every art layer that costs more than a gradient is rendered once into a bitmap and reused:
  * patterns per (pattern, fade, size), the grain tile per density, and blurred glow masks per size.
+ * A cached bitmap is returned at once; a missing one returns null and is built on
+ * [Dispatchers.Default], so the main thread never renders art. Callers read [landed] through a
+ * miss, so a draw that skipped a layer is invalidated when that layer lands.
  */
 internal object ArtCache {
 
@@ -44,12 +54,29 @@ internal object ArtCache {
     private data class GrainKey(val density: Float)
     private data class GlowKey(val w: Int, val h: Int, val radius: Int, val sigma: Int, val scale: Int)
 
-    private fun get(key: Any, build: () -> ImageBitmap): ImageBitmap = synchronized(cache) {
-        cache.get(key) ?: build().also { cache.put(key, it) }
+    private val pending = HashSet<Any>()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var landed by mutableIntStateOf(0)
+
+    private fun get(key: Any, build: () -> ImageBitmap): ImageBitmap? {
+        synchronized(cache) { cache.get(key) }?.let { return it }
+        landed
+        val first = synchronized(cache) { pending.add(key) }
+        if (first) {
+            scope.launch {
+                val image = build()
+                synchronized(cache) {
+                    cache.put(key, image)
+                    pending.remove(key)
+                }
+                landed++
+            }
+        }
+        return null
     }
 
     /** White pattern alpha, already faded; small art draws the 328x207 frame scaled to cover. */
-    fun pattern(pattern: ArtPattern, fade: PatternFade, small: Boolean, w: Int, h: Int, density: Float): ImageBitmap =
+    fun pattern(pattern: ArtPattern, fade: PatternFade, small: Boolean, w: Int, h: Int, density: Float): ImageBitmap? =
         get(PatternKey(pattern, fade, small, w, h)) {
             val image = ImageBitmap(w, h, ImageBitmapConfig.Alpha8)
             CanvasDrawScope().draw(Density(density), LayoutDirection.Ltr, Canvas(image), Size(w.toFloat(), h.toFloat())) {
@@ -70,7 +97,7 @@ internal object ArtCache {
         }
 
     /** A tileable, deterministic grey value-noise tile (feTurbulence-like, 0.9 per dp, 2 octaves). */
-    fun grain(density: Float): ImageBitmap = get(GrainKey(density)) {
+    fun grain(density: Float): ImageBitmap? = get(GrainKey(density)) {
         val tileDp = ArtDimens.GrainTile.value
         val target = (tileDp * density).roundToInt()
         val size = minOf(target, GRAIN_SOURCE_PX)
@@ -94,7 +121,7 @@ internal object ArtCache {
      * A blurred rounded-rect alpha mask of [w] x [h] px with [sigma] px of blur, padded by 3 sigma on
      * each side and rendered at 1/[scale] resolution (the blur hides it).
      */
-    fun glow(w: Int, h: Int, radius: Float, sigma: Float, scale: Int): ImageBitmap =
+    fun glow(w: Int, h: Int, radius: Float, sigma: Float, scale: Int): ImageBitmap? =
         get(GlowKey(w, h, radius.roundToInt(), sigma.roundToInt(), scale)) {
             val pad = 3f * sigma
             val bw = ceil((w + 2 * pad) / scale).toInt().coerceAtLeast(1)

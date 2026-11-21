@@ -84,6 +84,7 @@ fun Modifier.cardArt(hue: ArtHue, kind: ArtKind, expired: Boolean, dark: Boolean
         .drawBehind { drawGlow(hue, kind, dark) }
         .clip(shape)
         .drawWithCache {
+            val grain = ArtCache.grain(density)?.let { ShaderBrush(ImageShader(it, TileMode.Repeated, TileMode.Repeated)) }
             val corner = kind.corner.toPx()
             val small = kind == ArtKind.SWATCH || kind == ArtKind.MINI || size.width < SMALL_ART.toPx()
             val fade = when {
@@ -94,7 +95,6 @@ fun Modifier.cardArt(hue: ArtHue, kind: ArtKind, expired: Boolean, dark: Boolean
             val w = size.width.roundToInt().coerceAtLeast(1)
             val h = size.height.roundToInt().coerceAtLeast(1)
             val pattern = ArtCache.pattern(hue.pattern, fade, small, w, h, density)
-            val grain = ShaderBrush(ImageShader(ArtCache.grain(density), TileMode.Repeated, TileMode.Repeated))
             val gradient = linearGradient135(size, hue.c1, hue.c2)
             val edge = ArtDimens.Hairline.toPx()
             val outline = Path().apply { addRoundRect(RoundRect(0f, 0f, size.width, size.height, CornerRadius(corner))) }
@@ -109,8 +109,8 @@ fun Modifier.cardArt(hue: ArtHue, kind: ArtKind, expired: Boolean, dark: Boolean
                 if (expired) {
                     drawRect(Brush.verticalGradient(0f to Color.Transparent, .40f to Color.Transparent, .75f to PassColors.ExpiredShade, 1f to PassColors.ExpiredShade))
                 }
-                drawImage(pattern, dstSize = IntSize(w, h), colorFilter = ColorFilter.tint(PassColors.OnArt))
-                drawRect(grain, alpha = GRAIN_ALPHA, blendMode = BlendMode.Overlay)
+                if (pattern != null) drawImage(pattern, dstSize = IntSize(w, h), colorFilter = ColorFilter.tint(PassColors.OnArt))
+                if (grain != null) drawRect(grain, alpha = GRAIN_ALPHA, blendMode = BlendMode.Overlay)
                 drawPath(topEdge, PassColors.EdgeLight)
                 if (kind == ArtKind.TILE || kind == ArtKind.HERO) drawPath(bottomEdge, PassColors.EdgeDark)
                 drawContent()
@@ -162,7 +162,7 @@ private fun DrawScope.drawShadow(shadow: Shadow, color: Color, corner: Float, sc
     val h = (size.height + 2 * spread).roundToInt()
     if (w <= 0 || h <= 0) return
     val sigma = shadow.blur.toPx() / 2f
-    val mask = ArtCache.glow(w, h, (corner + spread).coerceAtLeast(0f), sigma, scale)
+    val mask = ArtCache.glow(w, h, (corner + spread).coerceAtLeast(0f), sigma, scale) ?: return
     val pad = 3f * sigma
     drawImage(
         mask,
