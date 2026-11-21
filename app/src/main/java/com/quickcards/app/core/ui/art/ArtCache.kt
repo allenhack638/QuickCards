@@ -72,7 +72,8 @@ internal object ArtCache {
     /** A tileable, deterministic grey value-noise tile (feTurbulence-like, 0.9 per dp, 2 octaves). */
     fun grain(density: Float): ImageBitmap = get(GrainKey(density)) {
         val tileDp = ArtDimens.GrainTile.value
-        val size = (tileDp * density).roundToInt()
+        val target = (tileDp * density).roundToInt()
+        val size = minOf(target, GRAIN_SOURCE_PX)
         val cells = (tileDp * GRAIN_FREQUENCY).roundToInt()
         val pixels = IntArray(size * size)
         for (y in 0 until size) {
@@ -84,7 +85,9 @@ internal object ArtCache {
                 pixels[y * size + x] = (0xFF shl 24) or (g shl 16) or (g shl 8) or g
             }
         }
-        Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888).asImageBitmap()
+        val source = Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
+        val tile = if (size == target) source else Bitmap.createScaledBitmap(source, target, target, true)
+        tile.asImageBitmap()
     }
 
     /**
@@ -134,5 +137,6 @@ internal object ArtCache {
     private const val GRAIN_FREQUENCY = .9f
     private const val GRAIN_CONTRAST = 1f
     private const val GRAIN_SEED = 0x51C0DE
+    private const val GRAIN_SOURCE_PX = 128
     private const val MAX_BYTES = 16 * 1024 * 1024
 }

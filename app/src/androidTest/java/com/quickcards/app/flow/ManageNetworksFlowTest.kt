@@ -56,7 +56,8 @@ class ManageNetworksFlowTest : FlowTestBase() {
     fun networkNamesStartAfterTheLogoWidth() {
         openCardNetworks()
 
-        val visa = compose.onNodeWithText("Visa").getUnclippedBoundsInRoot()
+        // Screen 16 + row 16 + the 40 mark slot + 16 gap (DESIGN.md "Network marks").
+        val visa = compose.onNodeWithText("Visa", useUnmergedTree = true).getUnclippedBoundsInRoot()
         assertEquals(88f, visa.left.value, 1f)
     }
 
@@ -75,9 +76,9 @@ class ManageNetworksFlowTest : FlowTestBase() {
         compose.onNodeWithText("Save").performClick()
         waitForText("Network added")
 
-        val builtIn = compose.onNodeWithText("Visa").getUnclippedBoundsInRoot()
+        val builtIn = compose.onNodeWithText("Visa", useUnmergedTree = true).getUnclippedBoundsInRoot()
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("My Bank"))
-        val custom = compose.onNodeWithText("My Bank").getUnclippedBoundsInRoot()
+        val custom = compose.onNodeWithText("My Bank", useUnmergedTree = true).getUnclippedBoundsInRoot()
 
         assertEquals(builtIn.left.value, custom.left.value, 1f)
         assertTrue(builtIn.left.value > 88f)

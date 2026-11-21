@@ -78,7 +78,9 @@ import com.quickcards.domain.EntityUsage
 import com.quickcards.domain.EntityValidationError
 import com.quickcards.domain.EntityValidator
 import com.quickcards.domain.NetworkLabelMax
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Full-screen editor for one list item: back + title (+ Delete when editing), the fields in one
@@ -157,14 +159,18 @@ private fun EntityEditorContent(
         if (saving) return
         saving = true
         scope.launch {
-            save(form.draft())
-                .onSuccess { id ->
-                    snackbar.show(if (form.before == null) addedMessage else updatedMessage)
-                    onSaved(id)
-                    onBack()
-                }
-                .onFailure { snackbar.show(failedMessage) }
-            saving = false
+            val result = save(form.draft())
+            // A Room transaction can resume on its own executor; navigation must run on main.
+            withContext(Dispatchers.Main.immediate) {
+                result
+                    .onSuccess { id ->
+                        snackbar.show(if (form.before == null) addedMessage else updatedMessage)
+                        onSaved(id)
+                        onBack()
+                    }
+                    .onFailure { snackbar.show(failedMessage) }
+                saving = false
+            }
         }
     }
 

@@ -2,6 +2,8 @@ package com.quickcards.app.flow
 
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -147,8 +149,30 @@ abstract class FlowTestBase {
         waitForText("Delete")
     }
 
-    protected fun field(label: String): SemanticsNodeInteraction =
-        compose.onNode(hasSetTextAction() and hasText(label))
+    /**
+     * A text field by its accessible name: the Qc form field's label (its content description,
+     * "<label>, edit box" in TalkBack) or a Material label slot (merged text).
+     */
+    protected fun field(label: String): SemanticsNodeInteraction = compose.onNode(fieldNamed(label))
+
+    protected fun awaitField(label: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(fieldNamed(label)).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun fieldNamed(label: String): SemanticsMatcher =
+        hasSetTextAction() and (hasContentDescription(label) or hasText(label))
+
+    /** A picker field (Holder, Bank, Type): spoken as its label, the chosen value as its state. */
+    protected fun awaitLookup(label: String, value: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(
+                hasContentDescription(label) and
+                    SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
 
     protected fun cardsNow(): List<VaultCard> = runBlocking { app.repository.cards.first() }
 

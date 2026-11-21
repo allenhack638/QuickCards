@@ -3,11 +3,11 @@ package com.quickcards.app.flow
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
@@ -18,7 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** The Card list section writes its three settings. */
+/** The Settings › Cards group writes its list settings; each choice is a sheet that applies on tap. */
 @RunWith(AndroidJUnit4::class)
 class SettingsCardListFlowTest : FlowTestBase() {
 
@@ -31,7 +31,7 @@ class SettingsCardListFlowTest : FlowTestBase() {
 
     @Test
     fun appearanceNoLongerOffersSystemColours() {
-        openCardListSection()
+        openCardsGroup()
 
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("Theme"))
         waitForText("Theme")
@@ -39,14 +39,14 @@ class SettingsCardListFlowTest : FlowTestBase() {
     }
 
     @Test
-    fun cardListSectionPersistsEveryChoice() {
-        openCardListSection()
+    fun cardsGroupPersistsEveryChoice() {
+        openCardsGroup()
 
-        compose.onNodeWithText("Expired cards").performClick()
+        compose.onNodeWithText("Expired cards").performScrollTo().performClick()
         waitForText("Keep in place")
         waitForText("At the end")
         compose.onNodeWithText("Hide from the list").performClick()
-        awaitDialogClosed()
+        awaitSheetClosed("At the end")
         compose.waitUntil(10_000) {
             app.settings.expiredCards.value == ExpiredPlacement.HIDE
         }
@@ -56,7 +56,7 @@ class SettingsCardListFlowTest : FlowTestBase() {
         compose.onNodeWithText("Expires soon").performClick()
         waitForText("Within 3 months")
         compose.onNodeWithText("Within 3 months").performClick()
-        awaitDialogClosed()
+        awaitSheetClosed("Within 2 months")
         compose.waitUntil(10_000) { app.settings.expiresSoonMonths.value == 3 }
 
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("Notes on cards"))
@@ -66,19 +66,18 @@ class SettingsCardListFlowTest : FlowTestBase() {
         assertEquals(3, app.settings.expiresSoonMonths.value)
     }
 
-    private fun openCardListSection() {
+    private fun openCardsGroup() {
         compose.onNode(hasText("Settings") and isSelectable()).performClick()
         compose.waitForIdle()
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Card list"))
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Cards"))
         waitForText("Expired cards")
     }
 
-    private fun awaitDialogClosed() {
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty()
-        }
+    /** The sheet is gone once an option that is not the chosen value has left the screen. */
+    private fun awaitSheetClosed(otherOption: String) {
+        waitForTextGone(otherOption)
     }
 }

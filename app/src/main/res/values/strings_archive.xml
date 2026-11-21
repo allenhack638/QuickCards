@@ -8,6 +8,6 @@
 
     <!-- Empty and no-result states -->
     <string name="archive_empty_title">No archived cards</string>
-    <string name="archive_empty_body">Archive a card from its ⋮ menu to keep it out of your list.</string>
+    <string name="archive_empty_body">Hold a card to archive it</string>
     <string name="archive_no_result_query">No archived cards match “%1$s”</string>
 </resources>

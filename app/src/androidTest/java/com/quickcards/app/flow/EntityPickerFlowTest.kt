@@ -31,11 +31,11 @@ class EntityPickerFlowTest : FlowTestBase() {
         waitForContentDescription("Search holders")
         compose.onNodeWithText("New holder").performClick()
 
-        waitForContentDescription("Name")
+        awaitField("Name")
         field("Name").performTextInput("Priya Mehta")
         compose.onNodeWithText("Add").performClick()
 
-        waitForText("Priya Mehta")
+        awaitLookup("Holder", "Priya Mehta")
         val holders = runBlocking { app.repository.holders.first() }
         assertTrue(holders.any { it.name == "Priya Mehta" })
     }
@@ -50,11 +50,11 @@ class EntityPickerFlowTest : FlowTestBase() {
         waitForContentDescription("Search banks")
         compose.onNodeWithText("New bank").performClick()
 
-        waitForContentDescription("Name")
+        awaitField("Name")
         field("Name").performTextInput("Axis Bank")
         compose.onNodeWithText("Add").performClick()
 
-        waitForText("Axis Bank")
+        awaitLookup("Bank", "Axis Bank")
         val banks = runBlocking { app.repository.banks.first() }
         assertTrue(banks.any { it.name == "Axis Bank" })
     }
@@ -69,7 +69,7 @@ class EntityPickerFlowTest : FlowTestBase() {
         waitForContentDescription("Search types")
         compose.onNodeWithText("Credit").performClick()
 
-        waitForText("Credit")
+        awaitLookup("Type", "Credit")
     }
 
     private fun openAddCardForm() {
