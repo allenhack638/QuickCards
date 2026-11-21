@@ -85,7 +85,9 @@ set, never a personal phone with real card data.
 
 - `docs/MAINTAINING.md` — architecture, security model, craft rules, current
   DB/backup/settings/network facts, and step-by-step recipes.
-- `prototype/v2.html` — the behaviour source of truth.
+- `prototype/v2.html` — the behaviour source of truth (until the app ships Daylight).
+- `prototype/inspo/10-daylight.html` — the Daylight visual source of truth
+  (`?shot=<id>&theme=light|dark`); `DESIGN.md` summarises it.
 - `prototype/reference/` — target screenshots (layout, spacing, type, colour).
 
 ## Before finishing
