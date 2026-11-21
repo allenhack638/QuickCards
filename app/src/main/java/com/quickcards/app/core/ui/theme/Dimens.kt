@@ -79,12 +79,9 @@ object QcDimens {
 
     // Rounded
     val CornerXs = QcRadius.xs
-    val CornerBandFrame = 5.dp
     val CornerBadge = 6.dp
-    val CornerSm = QcRadius.sm
     val CornerMd = QcRadius.md
     val PassCorner = QcRadius.lg
-    val DialogCorner = QcRadius.xl
 
     // App chrome
     val AppBar = QcSize.bar
@@ -103,30 +100,12 @@ object QcDimens {
     val Monogram = QcSpacing.s10
     val NetworkBadgeMinWidth = 56.dp
     val NetworkBadgeMaxWidth = 128.dp
-    val NetworkBadgeSlot = 96.dp
     val NetworkBadgeHeight = 28.dp
-    val NetworkMarkBandHeight = 22.dp
-    val ChipHeight = QcSize.ctl
-    val TagHeight = QcSize.ctlSm
-    val TypePillHeight = QcSize.statusChip
 
-    // Pass
-    val PassBand = 48.dp
-    val PassFieldCopyTarget = 10.dp
-    val PassStubTarget = 56.dp
-    val PassFieldInset = 8.dp
-    val PassFieldInsetDense = 6.dp
-    val PassFieldTop = 7.dp
-    val PassLabelGap = 2.dp
-    val PassSectionTop = 12.dp
-    val PassSectionBottomNumber = 6.dp
-    val PassDetailsBottom = 12.dp
-    val PassStatusMax = 200.dp
+    // Form
     /** Editor rhythm: one gap between every block (DESIGN.md › Alignment rules). */
     val FormFieldGap = QcSpacing.s3
     val FormGroupGap = QcSpacing.s3
-    val PassFieldBottom = 6.dp
-    val PassRevealLine = 2.dp
 
     // Dialogs and sheets
     val DialogHeaderGap = QcSpacing.s4
@@ -164,6 +143,4 @@ object QcDimens {
     // Interaction
     val DisabledAlpha = 0.38f
     val RevealDurationMillis = 5_000f
-    val LongPressMillis = 500L
-    val CopyFlashMillis = QcMotion.STATE_MS.toLong()
 }

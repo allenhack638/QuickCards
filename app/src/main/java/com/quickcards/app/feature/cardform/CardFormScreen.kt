@@ -1,35 +1,35 @@
 package com.quickcards.app.feature.cardform
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -37,9 +37,13 @@ import com.quickcards.app.R
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.components.QcDialog
-import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
-import com.quickcards.app.core.ui.theme.QcType
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTextButton
+import com.quickcards.app.core.ui.theme.QcTextTone
+import com.quickcards.app.core.ui.theme.QcTheme
 
 @Composable
 fun CardFormScreen(
@@ -50,6 +54,7 @@ fun CardFormScreen(
     val saving by viewModel.saving.collectAsState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
     val cardId = viewModel.cardId
     var editReady by remember { mutableStateOf(cardId == null) }
@@ -57,9 +62,7 @@ fun CardFormScreen(
     val locked = LocalAppLocked.current
 
     LaunchedEffect(locked) {
-        if (locked) {
-            showDiscard = false
-        }
+        if (locked) showDiscard = false
     }
 
     fun requestBack() {
@@ -78,10 +81,7 @@ fun CardFormScreen(
             if (!UnlockSession.isUnlocked.value) {
                 val activity = context as? androidx.fragment.app.FragmentActivity
                 val granted = activity?.let {
-                    UnlockSession.requireUnlock(
-                        it,
-                        context.getString(R.string.form_unlock_edit_reason)
-                    )
+                    UnlockSession.requireUnlock(it, context.getString(R.string.cards_unlock_edit))
                 } ?: false
                 if (!granted) {
                     navController.popBackStack()
@@ -93,23 +93,20 @@ fun CardFormScreen(
     }
 
     val mode = session?.form?.mode ?: if (cardId == null) CardFormMode.ADD else CardFormMode.EDIT
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().background(QcTheme.colors.bg)) {
         FormTopBar(
-            title = stringResource(
-                if (mode == CardFormMode.EDIT) R.string.form_title_edit else R.string.form_title_add
-            ),
+            title = stringResource(if (mode == CardFormMode.EDIT) R.string.form_title_edit else R.string.form_title_add),
+            scrolled = scrollState.value > 0,
             onBack = ::requestBack
         )
-        if (editReady && session != null) {
+        val current = session
+        if (editReady && current != null) {
             CardFormContent(
                 viewModel = viewModel,
-                session = session!!,
+                session = current,
                 saving = saving,
-                navController = navController
+                navController = navController,
+                scrollState = scrollState
             )
         } else {
             Spacer(modifier = Modifier.weight(1f))
@@ -117,80 +114,66 @@ fun CardFormScreen(
     }
 
     if (showDiscard) {
-        DiscardDialog(
-            onKeepEditing = { showDiscard = false },
-            onDiscard = {
-                showDiscard = false
-                focusManager.clearFocus(force = true)
-                navController.popBackStack()
+        QcDialog(
+            onDismissRequest = { showDiscard = false },
+            title = stringResource(R.string.form_discard_title),
+            actions = {
+                QcTextButton(
+                    text = stringResource(R.string.form_discard_keep),
+                    onClick = { showDiscard = false },
+                    tone = QcTextTone.Neutral
+                )
+                QcTextButton(
+                    text = stringResource(R.string.form_discard_confirm),
+                    onClick = {
+                        showDiscard = false
+                        focusManager.clearFocus(force = true)
+                        navController.popBackStack()
+                    },
+                    tone = QcTextTone.Danger
+                )
             }
-        )
+        ) {}
     }
 }
 
+/** Nested bar (64): back and the `f4` title; a hairline shows once the form scrolls under it. */
 @Composable
-private fun DiscardDialog(onKeepEditing: () -> Unit, onDiscard: () -> Unit) {
-    QcDialog(onDismissRequest = onKeepEditing) {
-        Text(
-            text = stringResource(R.string.form_discard_title),
-            style = QcType.DialogTitle,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(QcDimens.Gutter))
-        Text(
-            text = stringResource(R.string.form_discard_body),
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
+private fun FormTopBar(title: String, scrolled: Boolean, onBack: () -> Unit) {
+    val colors = QcTheme.colors
+    Column {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = QcSize.bar)
+                .padding(horizontal = QcSpacing.s1),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(
-                onClick = onKeepEditing,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface
+            IconButton(onClick = onBack, modifier = Modifier.size(QcSize.hit)) {
+                Icon(
+                    imageVector = QcIcons.back,
+                    contentDescription = stringResource(R.string.form_back),
+                    tint = colors.ink,
+                    modifier = Modifier.size(QcSize.iconLg)
                 )
-            ) {
-                Text(stringResource(R.string.form_discard_keep))
             }
-            TextButton(
-                onClick = onDiscard,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text(stringResource(R.string.form_discard_confirm))
-            }
-        }
-    }
-}
-
-@Composable
-private fun FormTopBar(title: String, onBack: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(QcDimens.AppBar)
-            .padding(start = QcDimens.Half, end = QcDimens.Half),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack, modifier = Modifier.size(QcDimens.Touch)) {
-            Icon(
-                imageVector = QcIcons.back,
-                contentDescription = stringResource(R.string.form_back),
-                tint = MaterialTheme.colorScheme.onSurface
+            Text(
+                text = title,
+                style = QcText.F4,
+                color = colors.ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = QcSpacing.s3)
+                    .semantics { heading() }
             )
         }
-        Spacer(modifier = Modifier.width(QcDimens.Half))
-        Text(
-            text = title,
-            style = QcType.NestedTitle,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(QcSize.hairline)
+                .background(if (scrolled) colors.line else colors.bg)
         )
     }
 }

@@ -22,7 +22,6 @@ class CardsEmptyFlowTest : FlowTestBase() {
         seedCard("4532778103492211", holder.id, bank.id, expiry = "01/20")
 
         waitForText("Expired cards are hidden")
-        waitForText("Search, or turn on the Expired filter to see them.")
         waitForText("Show expired")
         compose.onNodeWithText("Add your first card").assertDoesNotExist()
         compose.onNodeWithContentDescription("Search").assertExists()
@@ -31,7 +30,7 @@ class CardsEmptyFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("Show expired").performClick()
 
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
         waitForText("Expired")
     }
 
@@ -42,14 +41,13 @@ class CardsEmptyFlowTest : FlowTestBase() {
         val card = seedCard("4532778103492211", holder.id, bank.id)
         runBlocking { app.repository.archive(card.id, "Card closed") }
 
-        waitForText("All your cards are archived")
-        waitForText("Find them in Manage › Archived cards.")
+        waitForText("All cards archived")
         compose.onNodeWithText("Add your first card").assertDoesNotExist()
 
-        compose.onNodeWithText("Open Archived cards").performClick()
+        compose.onNodeWithText("View archived").performClick()
 
         waitForText("Archived cards")
-        waitForText("ARCHIVED · CARD CLOSED", unmerged = true)
+        waitForText("Archived · Card closed", unmerged = true)
         assertEquals(1, cardsNow().count { it.archived })
     }
 }

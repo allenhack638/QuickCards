@@ -1,71 +1,67 @@
 package com.quickcards.app.feature.cards
 
-import androidx.compose.foundation.Canvas
+import android.content.pm.PackageManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.quickcards.app.R
-import com.quickcards.app.core.ui.theme.QcDimens
+import com.quickcards.app.core.data.model.VaultCard
+import com.quickcards.app.core.ui.HomeCard
+import com.quickcards.app.core.ui.components.CardHero
+import com.quickcards.app.core.ui.theme.QcFilledButton
 import com.quickcards.app.core.ui.theme.QcIcons
-import com.quickcards.app.core.ui.theme.QcType
-import com.quickcards.app.core.ui.theme.qcPrimaryButtonColors
+import com.quickcards.app.core.ui.theme.QcShapes
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTextButton
+import com.quickcards.app.core.ui.theme.QcTheme
+import com.quickcards.app.core.ui.theme.QcTonalButton
 
+/** Search or filters matched nothing: the search disc, "No matches" and, for a search, Clear search. */
 @Composable
-internal fun NoResult(
-    modifier: Modifier,
-    searchOn: Boolean,
-    query: String
-) {
-    val hasQuery = searchOn && query.isNotBlank()
+internal fun NoResult(modifier: Modifier, onClearSearch: (() -> Unit)?) {
     CardsMessage(
         modifier = modifier,
-        title = if (hasQuery) {
-            stringResource(R.string.cards_no_result_query_title, query)
-        } else {
-            stringResource(R.string.cards_no_result_filter_title)
-        },
-        body = stringResource(
-            if (hasQuery) {
-                R.string.cards_no_result_query_body
-            } else {
-                R.string.cards_no_result_filter_body
-            }
-        )
+        icon = QcIcons.search,
+        title = stringResource(R.string.cards_no_result_title),
+        body = stringResource(R.string.cards_no_result_body),
+        actionLabel = onClearSearch?.let { stringResource(R.string.cards_no_result_clear) },
+        onAction = onClearSearch
     )
 }
 
-/** Everything archived or hidden-expired: same frame as [NoResult], plus the way back. */
+/** Everything archived or hidden-expired: the same frame as [NoResult], plus the way back. */
 @Composable
 internal fun EmptyNote(
     modifier: Modifier,
@@ -76,212 +72,184 @@ internal fun EmptyNote(
     when (note) {
         CardsEmptyNote.HIDDEN_EXPIRED -> CardsMessage(
             modifier = modifier,
+            icon = QcIcons.eventBusy,
             title = stringResource(R.string.cards_empty_hidden_expired_title),
-            body = stringResource(R.string.cards_empty_hidden_expired_body),
             actionLabel = stringResource(R.string.cards_empty_hidden_expired_action),
             onAction = onShowExpired
         )
         CardsEmptyNote.ONLY_ARCHIVED -> CardsMessage(
             modifier = modifier,
+            icon = QcIcons.inventory2,
             title = stringResource(R.string.cards_empty_archived_title),
-            body = stringResource(R.string.cards_empty_archived_body),
             actionLabel = stringResource(R.string.cards_empty_archived_action),
             onAction = onOpenArchived
         )
-        CardsEmptyNote.NONE -> NoResult(
-            modifier = modifier,
-            searchOn = false,
-            query = ""
-        )
+        CardsEmptyNote.NONE -> NoResult(modifier = modifier, onClearSearch = null)
     }
 }
 
 @Composable
 private fun CardsMessage(
     modifier: Modifier,
+    icon: ImageVector,
     title: String,
-    body: String,
+    body: String? = null,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null
 ) {
+    val colors = QcTheme.colors
     Column(
-        modifier = modifier.padding(horizontal = QcDimens.Xl, vertical = 64.dp),
+        modifier = modifier.padding(start = QcSpacing.s6, end = QcSpacing.s6, top = QcSpacing.s10),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Box(
+            modifier = Modifier
+                .size(QcSpacing.s16)
+                .background(colors.tonal, QcShapes.full),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = colors.ink2, modifier = Modifier.size(QcSize.iconLg))
+        }
         Text(
             text = title,
-            style = QcType.Title,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            style = QcText.F3Semibold,
+            color = colors.ink,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(top = QcSpacing.s4)
+                .semantics { heading() }
         )
-        Spacer(modifier = Modifier.height(QcDimens.Half))
-        Text(
-            text = body,
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
+        if (body != null) {
+            Text(
+                text = body,
+                style = QcText.F2,
+                color = colors.ink2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = QcSpacing.s2)
+            )
+        }
         if (actionLabel != null && onAction != null) {
-            Spacer(modifier = Modifier.height(QcDimens.Base))
-            TextButton(
-                onClick = onAction,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
-            ) {
-                Text(
-                    text = actionLabel,
-                    style = QcType.Body.copy(fontWeight = FontWeight(600))
-                )
-            }
+            QcTextButton(text = actionLabel, onClick = onAction, modifier = Modifier.padding(top = QcSpacing.s6))
         }
     }
 }
 
+/**
+ * The empty vault: a faded sample card, "Add your first card" and the trust line, then the one
+ * filled Add card and equal Import and Tap a card (NFC phones only) at the bottom.
+ */
 @Composable
 internal fun EmptyState(
     modifier: Modifier,
     bottomInset: Dp,
     onAdd: () -> Unit,
-    onImport: () -> Unit
+    onImport: () -> Unit,
+    onTapCard: () -> Unit
 ) {
+    val colors = QcTheme.colors
+    val context = LocalContext.current
+    val hasNfc = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC) }
     BoxWithConstraints(modifier = modifier) {
-        val compact = maxHeight < 500.dp
         Column(
             modifier = Modifier
-                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .heightIn(min = maxHeight)
-                .padding(
-                    start = 40.dp,
-                    end = 40.dp,
-                    top = if (compact) QcDimens.Base else QcDimens.Gutter,
-                    bottom = (if (compact) QcDimens.PassGap else QcDimens.Section) + bottomInset
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(start = QcSpacing.s4, end = QcSpacing.s4, top = QcSpacing.s2, bottom = bottomInset)
         ) {
-            EmptyIllustration(
-                modifier = Modifier.size(
-                    width = if (compact) 120.dp else 168.dp,
-                    height = if (compact) 86.dp else 120.dp
-                )
-            )
-            Spacer(modifier = Modifier.height(if (compact) 10.dp else 28.dp))
+            SampleCard()
             Text(
                 text = stringResource(R.string.cards_empty_title),
-                style = QcType.Headline,
-                color = MaterialTheme.colorScheme.onSurface
+                style = QcText.F4,
+                color = colors.ink,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = QcSpacing.s8)
+                    .semantics { heading() }
             )
-            Spacer(modifier = Modifier.height(if (compact) QcDimens.Half else QcDimens.Base))
             Text(
                 text = stringResource(R.string.cards_empty_body),
-                style = QcType.Body,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = QcText.F2,
+                color = colors.ink2,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = 210.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = QcSpacing.s2)
             )
-            Spacer(modifier = Modifier.height(if (compact) QcDimens.Gutter else 28.dp))
+            Spacer(Modifier.weight(1f).heightIn(min = QcSpacing.s4))
             Column(
-                modifier = Modifier.width(200.dp),
-                verticalArrangement = Arrangement.spacedBy(QcDimens.PassGap)
+                modifier = Modifier.padding(vertical = QcSpacing.s4),
+                verticalArrangement = Arrangement.spacedBy(QcSpacing.s3)
             ) {
-                Button(
+                QcFilledButton(
+                    text = stringResource(R.string.cards_add),
                     onClick = onAdd,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(horizontal = QcDimens.Section),
-                    colors = qcPrimaryButtonColors()
-                ) {
-                    Icon(
-                        imageVector = QcIcons.add,
-                        contentDescription = null,
-                        modifier = Modifier.size(QcDimens.IconSmall)
-                    )
-                    Spacer(modifier = Modifier.width(QcDimens.Base))
-                    Text(
-                        text = stringResource(R.string.cards_add),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-                Button(
-                    onClick = onImport,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(horizontal = QcDimens.Section),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) {
-                    Icon(
-                        imageVector = QcIcons.download,
-                        contentDescription = null,
-                        modifier = Modifier.size(QcDimens.IconSmall)
-                    )
-                    Spacer(modifier = Modifier.width(QcDimens.Base))
-                    Text(
+                    large = true,
+                    icon = QcIcons.add,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
+                    QcTonalButton(
                         text = stringResource(R.string.cards_import),
-                        style = MaterialTheme.typography.labelLarge
+                        onClick = onImport,
+                        large = true,
+                        icon = QcIcons.download,
+                        modifier = Modifier.weight(1f)
                     )
+                    if (hasNfc) {
+                        QcTonalButton(
+                            text = stringResource(R.string.cards_empty_tap),
+                            onClick = onTapCard,
+                            large = true,
+                            icon = QcIcons.contactless,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+/** A real jewel card, desaturated to 60% and faded to 72%: decoration only. */
 @Composable
-private fun EmptyIllustration(modifier: Modifier = Modifier) {
-    val color = MaterialTheme.colorScheme.outline
-    val background = MaterialTheme.colorScheme.background
-    Canvas(modifier = modifier) {
-        val sx = size.width / 168f
-        val sy = size.height / 120f
-        val stroke = 2.dp.toPx()
-
-        drawRoundRect(
-            color = color.copy(alpha = 0.5f),
-            topLeft = Offset(30f * sx, 8f * sy),
-            size = Size(128f * sx, 80f * sy),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(12f * sx),
-            style = Stroke(width = stroke)
+private fun SampleCard() {
+    val bank = stringResource(R.string.cards_empty_sample_bank)
+    val expiry = stringResource(R.string.cards_empty_sample_expiry)
+    val sample = remember(bank, expiry) {
+        HomeCard(
+            card = VaultCard(number = SAMPLE_NUMBER, expiry = expiry),
+            bankName = bank,
+            holderName = "",
+            typeName = null,
+            network = null,
+            networkId = null,
+            tagNames = emptyList()
         )
-        drawRoundRect(
-            color = background,
-            topLeft = Offset(10f * sx, 30f * sy),
-            size = Size(128f * sx, 82f * sy),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(12f * sx)
-        )
-        drawRoundRect(
-            color = color,
-            topLeft = Offset(10f * sx, 30f * sy),
-            size = Size(128f * sx, 82f * sy),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(12f * sx),
-            style = Stroke(width = stroke)
-        )
-        drawLine(
-            color = color,
-            start = Offset(10f * sx, 52f * sy),
-            end = Offset(138f * sx, 52f * sy),
-            strokeWidth = stroke
-        )
-        drawLine(
-            color = color,
-            start = Offset(24f * sx, 74f * sy),
-            end = Offset(124f * sx, 74f * sy),
-            strokeWidth = stroke,
-            pathEffect = PathEffect.dashPathEffect(
-                floatArrayOf(5f * sx, 5f * sx)
-            )
-        )
-        listOf(24f to 52f, 64f to 86f, 98f to 124f).forEach { (start, end) ->
-            drawLine(
-                color = color,
-                start = Offset(start * sx, 92f * sy),
-                end = Offset(end * sx, 92f * sy),
-                strokeWidth = 3.dp.toPx(),
-                cap = StrokeCap.Round
-            )
+    }
+    val paint = remember {
+        Paint().apply {
+            alpha = SAMPLE_ALPHA
+            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(SAMPLE_SATURATION) })
         }
     }
+    CardHero(
+        card = sample,
+        status = null,
+        mask = SAMPLE_MASK,
+        modifier = Modifier
+            .clearAndSetSemantics { }
+            .drawWithContent {
+                drawIntoCanvas { canvas ->
+                    canvas.saveLayer(Rect(0f, 0f, size.width, size.height), paint)
+                    drawContent()
+                    canvas.restore()
+                }
+            }
+    )
 }
+
+private const val SAMPLE_NUMBER = "0000"
+private const val SAMPLE_MASK = "••"
+private const val SAMPLE_ALPHA = 0.72f
+private const val SAMPLE_SATURATION = 0.6f

@@ -5,11 +5,10 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.quickcards.app.R
 import com.quickcards.domain.CardError
-import com.quickcards.domain.CardNetwork
-import com.quickcards.domain.DefaultNetworks
 
+/** [number] supplies the last four for a duplicate ("Already saved as HDFC Bank ••0366"). */
 @Composable
-internal fun cardErrorText(error: CardError?): String? {
+internal fun cardErrorText(error: CardError?, number: String = ""): String? {
     if (error == null) return null
     return when (error) {
         CardError.HolderRequired -> stringResource(R.string.form_error_holder_required)
@@ -24,9 +23,10 @@ internal fun cardErrorText(error: CardError?): String? {
         is CardError.Duplicate -> stringResource(
             R.string.form_error_number_duplicate,
             error.title,
-            error.holderName ?: stringResource(R.string.form_a_holder)
+            number.takeLast(4)
         )
         CardError.ExpiryFormat -> stringResource(R.string.form_error_expiry_format)
+        CardError.ExpiryMonth -> stringResource(R.string.form_error_expiry_month)
         CardError.Expired -> stringResource(R.string.form_error_expiry_past)
         CardError.ExpiryYear -> stringResource(R.string.form_error_expiry_future)
         is CardError.CvvLength -> pluralStringResource(
@@ -41,11 +41,16 @@ internal fun cardErrorText(error: CardError?): String? {
 }
 
 @Composable
-internal fun cvvHelperText(network: CardNetwork?): String =
-    if (network == null) {
-        stringResource(R.string.form_cvv_digits_unknown)
-    } else if (DefaultNetworks.cvvOptional(network)) {
-        pluralStringResource(R.plurals.form_cvv_digits_optional, network.cvvLength, network.cvvLength)
-    } else {
-        pluralStringResource(R.plurals.form_cvv_digits, network.cvvLength, network.cvvLength)
+internal fun saveIssueText(issue: SaveIssue): String = stringResource(
+    when (issue) {
+        SaveIssue.HOLDER -> R.string.form_save_missing_holder
+        SaveIssue.NUMBER_MISSING -> R.string.form_save_missing_number
+        SaveIssue.NUMBER_BAD -> R.string.form_save_bad_number
+        SaveIssue.EXPIRY_MISSING -> R.string.form_save_missing_expiry
+        SaveIssue.EXPIRY_BAD -> R.string.form_save_bad_expiry
+        SaveIssue.CVV_MISSING -> R.string.form_save_missing_cvv
+        SaveIssue.CVV_BAD -> R.string.form_save_bad_cvv
+        SaveIssue.BANK -> R.string.form_save_missing_bank
+        SaveIssue.TYPE -> R.string.form_save_missing_type
     }
+)

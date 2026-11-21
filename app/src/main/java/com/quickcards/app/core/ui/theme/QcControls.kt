@@ -9,11 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CheckboxColors
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.RadioButtonColors
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
@@ -37,29 +33,6 @@ fun qcSwitchColors(): SwitchColors {
         uncheckedTrackColor = colors.tonal2,
         uncheckedBorderColor = colors.outline,
         uncheckedIconColor = Color.Transparent
-    )
-}
-
-@Composable
-fun qcCheckboxColors(): CheckboxColors {
-    val colors = QcTheme.colors
-    return CheckboxDefaults.colors(
-        checkedColor = colors.select,
-        uncheckedColor = colors.ink2,
-        checkmarkColor = colors.onSelect,
-        disabledCheckedColor = colors.select.copy(alpha = 0.38f),
-        disabledUncheckedColor = colors.ink2.copy(alpha = 0.38f)
-    )
-}
-
-@Composable
-fun qcRadioColors(): RadioButtonColors {
-    val colors = QcTheme.colors
-    return RadioButtonDefaults.colors(
-        selectedColor = colors.select,
-        unselectedColor = colors.ink2,
-        disabledSelectedColor = colors.select.copy(alpha = 0.38f),
-        disabledUnselectedColor = colors.ink2.copy(alpha = 0.38f)
     )
 }
 

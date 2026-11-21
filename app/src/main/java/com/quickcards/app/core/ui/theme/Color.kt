@@ -156,6 +156,11 @@ object PassColors {
     val ExpiredShade = Color(0x3D000000)
     val ContactShadowLight = Color(0x1A0D1117)
     val ContactShadowDark = Color(0x66000000)
+    val EmvLight = Color(0xFFF3DFA6)
+    val EmvDeep = Color(0xFFC9A24E)
+    val EmvEnd = Color(0xFFE8CF8A)
+    val EmvLine = Color(0x735A3E0A)
+    val EmvShadow = Color(0x40000000)
 
     /** The conic outline of the Custom swatch, drawn from the palette itself. */
     val CustomRing: List<Color> = listOf(

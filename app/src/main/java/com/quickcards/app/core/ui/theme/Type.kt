@@ -50,7 +50,6 @@ private fun style(
 object QcText {
     val F5 = style(24, 32, FontWeight.SemiBold, trackingEm = -0.02f)
     val F4 = style(20, 28, FontWeight.SemiBold)
-    val F4Medium = style(20, 28, FontWeight.Medium)
     val F3 = style(15, 20, FontWeight.Normal)
     val F3Medium = style(15, 20, FontWeight.Medium)
     val F3Semibold = style(15, 20, FontWeight.SemiBold)
@@ -73,19 +72,14 @@ object QcText {
 /** Legacy names kept so features compile; each maps onto the Daylight scale. */
 object QcType {
     val ScreenTitle = QcText.F5
-    val PassNumber = QcText.MonoF5
-    val PassNumberMasked = QcText.MonoDotsF5
     val Headline = QcText.F4
     val DialogTitle = QcText.F4
     val NestedTitle = QcText.F4
-    val StubValue = QcText.MonoF3
     val Title = QcText.F3Semibold
     val BodyLarge = QcText.F3
     val MenuItem = QcText.F3
     val Body = QcText.F2
-    val BodySmall = QcText.F1Regular
     val Label = QcText.F1Semibold
-    val Chip = QcText.F2Medium
     val FieldLabel = QcText.F1Semibold
     val BandNetwork = QcText.F1Semibold
     val BandBank = QcText.F3Semibold

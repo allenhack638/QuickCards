@@ -1,10 +1,8 @@
 package com.quickcards.app.flow
 
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.runBlocking
@@ -14,7 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Archive from the card menu, Undo, and search + Restore. */
+/** Archive from the card actions sheet (hold a tile), Undo, and search + Restore. */
 @RunWith(AndroidJUnit4::class)
 class ArchiveFlowTest : FlowTestBase() {
 
@@ -29,15 +27,10 @@ class ArchiveFlowTest : FlowTestBase() {
             pinned = true,
             pinnedAt = 1_700_000_000_000L
         )
-        awaitCardVisible("HDFC Bank")
-
-        compose.onNodeWithContentDescription("More for HDFC Bank")
-            .performScrollTo()
-            .performClick()
-        waitForText("Copy details")
+        openCardActions("HDFC Bank")
         compose.onNodeWithText("Archive").performClick()
 
-        waitForText("Archive this card?")
+        waitForText("Archive card?")
         field("Reason (optional)").performTextInput("Card closed")
         compose.onNodeWithText("Archive").performClick()
 
@@ -47,10 +40,7 @@ class ArchiveFlowTest : FlowTestBase() {
         }
         assertEquals("Card closed", cardsNow().single().archiveReason)
         assertFalse(cardsNow().single().pinned)
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(hasContentDescription("More for HDFC Bank"))
-                .fetchSemanticsNodes().isEmpty()
-        }
+        awaitTileGone("HDFC Bank")
 
         compose.onNodeWithText("Undo").performClick()
 
@@ -71,12 +61,7 @@ class ArchiveFlowTest : FlowTestBase() {
 
         compose.onNodeWithContentDescription("Search").performClick()
         compose.onNodeWithContentDescription("Search cards").performTextInput("HDFC")
-        awaitCardVisible("HDFC Bank")
-
-        compose.onNodeWithContentDescription("More for HDFC Bank")
-            .performScrollTo()
-            .performClick()
-        waitForText("Restore")
+        openCardActions("HDFC Bank")
         compose.onNodeWithText("Restore").performClick()
 
         waitForText("Card restored")
@@ -88,12 +73,5 @@ class ArchiveFlowTest : FlowTestBase() {
 
         compose.onNodeWithContentDescription("Close search").performClick()
         waitForText("Cards")
-    }
-
-    private fun awaitCardVisible(title: String) {
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(hasContentDescription("More for $title"))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
     }
 }

@@ -27,29 +27,25 @@ class LockFlowTest : FlowTestBase() {
         runBlockingSeed { app.repository.pin(hdfcCard.id) }
 
         app.settings.setAppLockEnabled(true)
-        waitForContentDescription("More for HDFC Bank")
-
-        compose.onNodeWithContentDescription("More for HDFC Bank").performClick()
+        openCardActions("HDFC Bank")
         waitForText("Unpin")
 
         compose.runOnUiThread { AppLockController.lock() }
         waitForText("QuickCards is locked")
         compose.onAllNodesWithText("Unpin").assertCountEquals(0)
-        compose.onAllNodesWithText("Delete card").assertCountEquals(0)
+        compose.onAllNodesWithText("Delete").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
         waitForTextGone("QuickCards is locked")
 
-        waitForContentDescription("More for Axis Bank")
-        compose.onNodeWithContentDescription("More for Axis Bank").performClick()
+        openCardActions("Axis Bank")
         UnlockSession.unlockFor(60)
-        waitForText("Delete card")
-        compose.onNodeWithText("Delete card").performClick()
-        waitForText("Delete this card?")
+        compose.onNodeWithText("Delete").performClick()
+        waitForText("Delete Axis Bank ••4444?")
 
         compose.runOnUiThread { AppLockController.lock() }
         waitForText("QuickCards is locked")
-        compose.onAllNodesWithText("Delete this card?").assertCountEquals(0)
+        compose.onAllNodesWithText("Delete Axis Bank ••4444?").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
         waitForTextGone("QuickCards is locked")
@@ -62,35 +58,32 @@ class LockFlowTest : FlowTestBase() {
         val card = seedCard("4532778103492211", holder.id, bank.id)
 
         app.settings.setAppLockEnabled(true)
-        waitForContentDescription("More for HDFC Bank")
-
-        compose.onNodeWithContentDescription("More for HDFC Bank").performClick()
-        waitForText("Archive")
+        openCardActions("HDFC Bank")
         compose.onNodeWithText("Archive").performClick()
-        waitForText("Archive this card?")
+        waitForText("Archive card?")
 
         compose.runOnUiThread { AppLockController.lock() }
         waitForText("QuickCards is locked")
-        compose.onAllNodesWithText("Archive this card?").assertCountEquals(0)
+        compose.onAllNodesWithText("Archive card?").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
         waitForTextGone("QuickCards is locked")
 
         runBlockingSeed { app.repository.archive(card.id, "Card closed") }
         compose.onNode(hasText("Manage") and isSelectable()).performClick()
-        waitForText("Archived cards")
-        compose.onNodeWithText("Archived cards").performClick()
+        waitForText("Archived")
+        compose.onNodeWithText("Archived").performClick()
         waitForContentDescription("Search archived cards")
-        waitForText("ARCHIVED · CARD CLOSED", unmerged = true)
+        waitForText("Archived · Card closed", unmerged = true)
 
         compose.runOnUiThread { AppLockController.lock() }
         waitForText("QuickCards is locked")
         compose.onAllNodesWithText("Archived cards").assertCountEquals(0)
-        compose.onAllNodesWithText("ARCHIVED · CARD CLOSED").assertCountEquals(0)
+        compose.onAllNodesWithText("Archived · Card closed").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
         waitForTextGone("QuickCards is locked")
-        waitForText("ARCHIVED · CARD CLOSED", unmerged = true)
+        waitForText("Archived · Card closed", unmerged = true)
     }
 
     private fun <T> runBlockingSeed(block: suspend () -> T): T =

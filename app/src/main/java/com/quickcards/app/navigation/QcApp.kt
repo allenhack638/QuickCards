@@ -87,15 +87,20 @@ import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.app.core.ui.components.QcSnackbarHost
 import com.quickcards.app.core.ui.components.SnackbarController
 import com.quickcards.app.feature.cards.HomeScreen
+import com.quickcards.app.feature.details.CardActionsHost
+import com.quickcards.app.feature.details.CardDetailsScreen
+import com.quickcards.app.feature.details.rememberCardActionsState
 import com.quickcards.app.feature.cards.HomeViewModel
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.feature.lock.LockScreen
+import com.quickcards.app.feature.manage.ManageEditorScreen
 import com.quickcards.app.feature.manage.ManageListScreen
 import com.quickcards.app.feature.manage.ManageScreen
 import com.quickcards.app.feature.manage.ManageViewModel
 import com.quickcards.app.feature.manage.entityKindFromRoute
 import com.quickcards.app.feature.manage.routeKey
 import com.quickcards.app.feature.settings.PrivacyScreen
+import com.quickcards.app.feature.settings.AppLockScreen
 import com.quickcards.app.feature.settings.SettingsScreen
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
@@ -107,8 +112,11 @@ private const val ROUTE_MANAGE = "manage"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_CARD_ADD = "card/add"
 private const val ROUTE_CARD_EDIT = "card/edit/{cardId}"
+private const val ROUTE_CARD_DETAILS = "card/details/{cardId}"
 private const val ROUTE_ARCHIVED = "archived"
 private const val ROUTE_PRIVACY = "privacy"
+private const val ROUTE_APP_LOCK = "settings/lock"
+private const val ROUTE_MANAGE_EDIT = "manage/{kind}/edit?id={id}"
 
 private val RootRoutes = setOf(ROUTE_CARDS, ROUTE_MANAGE, ROUTE_SETTINGS)
 private val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
@@ -133,11 +141,14 @@ private fun isRoot(route: String?): Boolean = route in RootRoutes
 fun QcApp() {
     val navController = rememberNavController()
     val homeViewModel: HomeViewModel = viewModel()
+    val homeState by homeViewModel.uiState.collectAsState()
+    val openableCards = remember(homeState) { (homeState.cards + homeState.visibleCards).distinctBy { it.id } }
+    val cardActions = rememberCardActionsState()
     val manageViewModel: ManageViewModel = viewModel()
-    val searchActive by homeViewModel.searchActive.collectAsState()
+    val homeFullWindow by homeViewModel.hidesNavBar.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
-    val showBar = isRoot(route) && !searchActive
+    val showBar = isRoot(route) && !homeFullWindow
 
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
@@ -221,12 +232,12 @@ fun QcApp() {
             ) { padding ->
                 // Tabs reserve the bar height themselves so centred content does not jump
                 // when a pushed screen hides the bar.
-                val tabBarSpace = if (useRail || searchActive) {
+                val tabBarSpace = if (useRail || homeFullWindow) {
                     0.dp
                 } else {
                     QcDimens.NavBarHeight + QcDimens.Divider + systemBarBottom
                 }
-                val tabBottomInset = if (useRail || searchActive) systemBarBottom else 0.dp
+                val tabBottomInset = if (useRail || homeFullWindow) systemBarBottom else 0.dp
                 val tabModifier = Modifier.padding(bottom = tabBarSpace)
                 Box(modifier = Modifier.fillMaxSize()) {
                     SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
@@ -270,7 +281,9 @@ fun QcApp() {
                                     viewModel = homeViewModel,
                                     bottomInset = tabBottomInset,
                                     onImport = { backupHostState.requestImport() },
-                                    onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) }
+                                    onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) },
+                                    onOpenCard = { cardId -> navController.navigate("card/details/$cardId") },
+                                    onCardActions = cardActions::open
                                 )
                             }
                         }
@@ -295,6 +308,27 @@ fun QcApp() {
                             ?: EntityKind.HOLDER
                         ManageListScreen(
                             kind = kind,
+                            viewModel = manageViewModel,
+                            onBack = { navController.popBackStack() },
+                            onAdd = { navController.navigate("manage/${kind.routeKey}/edit") },
+                            onEdit = { id -> navController.navigate("manage/${kind.routeKey}/edit?id=$id") }
+                        )
+                    }
+                    composable(
+                        route = ROUTE_MANAGE_EDIT,
+                        arguments = listOf(
+                            navArgument("kind") { type = NavType.StringType },
+                            navArgument("id") {
+                                type = NavType.StringType
+                                nullable = true
+                            }
+                        )
+                    ) { entry ->
+                        val kind = entityKindFromRoute(entry.arguments?.getString("kind"))
+                            ?: EntityKind.HOLDER
+                        ManageEditorScreen(
+                            kind = kind,
+                            editingId = entry.arguments?.getString("id"),
                             viewModel = manageViewModel,
                             onBack = { navController.popBackStack() },
                             onShowCards = { listKind, id ->
@@ -323,6 +357,9 @@ fun QcApp() {
                             bottomInset = contentBottomInset
                         )
                     }
+                    composable(ROUTE_APP_LOCK) {
+                        AppLockScreen(onBack = { navController.popBackStack() })
+                    }
                     composable(ROUTE_PRIVACY) {
                         PrivacyScreen(onBack = { navController.popBackStack() })
                     }
@@ -334,11 +371,35 @@ fun QcApp() {
                                 onImport = backupHostState::requestImport,
                                 onErase = backupHostState::requestErase,
                                 onPrivacy = { navController.navigate(ROUTE_PRIVACY) },
+                                onAppLock = { navController.navigate(ROUTE_APP_LOCK) },
+                                onHelpSpreadsheet = backupHostState::requestImport,
+                                onHelpCheck = {
+                                    homeViewModel.showNeedsCheck()
+                                    navController.navigate(ROUTE_CARDS) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                },
                                 updateState = updateState,
                                 onUpdate = { AppUpdates.startFromSettings(updateLauncher) },
                                 onCompleteUpdate = AppUpdates::completeUpdate
                             )
                         }
+                    }
+                    composable(
+                        route = ROUTE_CARD_DETAILS,
+                        arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+                    ) { entry ->
+                        val cardId = entry.arguments?.getString("cardId")
+                        CardDetailsScreen(
+                            card = openableCards.firstOrNull { it.id == cardId },
+                            bottomInset = contentBottomInset,
+                            onBack = { navController.popBackStack() },
+                            onEdit = { id -> navController.navigate("card/edit/$id") },
+                            onActions = cardActions::open
+                        )
                     }
                     composable(ROUTE_CARD_ADD) {
                         CardFormScreen(navController = navController)
@@ -396,6 +457,11 @@ fun QcApp() {
         }
         }
         BackupHost(state = backupHostState)
+        CardActionsHost(
+            state = cardActions,
+            cards = openableCards,
+            onEdit = { id -> navController.navigate("card/edit/$id") }
+        )
         fun promptUnlock() {
             val host = context as? FragmentActivity ?: return
             unlockScope.launch {

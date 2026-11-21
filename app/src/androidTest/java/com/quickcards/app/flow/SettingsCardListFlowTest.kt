@@ -44,9 +44,8 @@ class SettingsCardListFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("Expired cards").performClick()
         waitForText("Keep in place")
-        waitForText("Move to the end")
+        waitForText("At the end")
         compose.onNodeWithText("Hide from the list").performClick()
-        compose.onNodeWithText("OK").performClick()
         awaitDialogClosed()
         compose.waitUntil(10_000) {
             app.settings.expiredCards.value == ExpiredPlacement.HIDE
@@ -57,12 +56,11 @@ class SettingsCardListFlowTest : FlowTestBase() {
         compose.onNodeWithText("Expires soon").performClick()
         waitForText("Within 3 months")
         compose.onNodeWithText("Within 3 months").performClick()
-        compose.onNodeWithText("OK").performClick()
         awaitDialogClosed()
         compose.waitUntil(10_000) { app.settings.expiresSoonMonths.value == 3 }
 
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Show notes on cards"))
-        compose.onNode(hasText("Show notes on cards") and isToggleable()).performClick()
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Notes on cards"))
+        compose.onNode(hasText("Notes on cards") and isToggleable()).performClick()
         compose.waitUntil(10_000) { !app.settings.showNotes.value }
         assertFalse(app.settings.showNotes.value)
         assertEquals(3, app.settings.expiresSoonMonths.value)

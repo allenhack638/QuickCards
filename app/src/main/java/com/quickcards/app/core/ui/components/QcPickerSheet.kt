@@ -37,7 +37,8 @@ import com.quickcards.domain.Monogram
 
 enum class QcPickerKind { HOLDER, BANK, TYPE }
 
-data class QcPickerEntry(val id: String, val name: String)
+/** [colour] leads a bank row with that bank's card colour instead of its monogram. */
+data class QcPickerEntry(val id: String, val name: String, val colour: String? = null)
 
 /**
  * The one picker for holder, bank and type: title, an always-visible search field, radio rows
@@ -49,6 +50,7 @@ fun QcPickerSheet(
     kind: QcPickerKind,
     title: String,
     searchLabel: String,
+    searchDescription: String,
     entries: List<QcPickerEntry>,
     selectedId: String?,
     addLabel: String,
@@ -89,6 +91,7 @@ fun QcPickerSheet(
                     value = query,
                     onValueChange = { query = it },
                     placeholder = searchLabel,
+                    description = searchDescription,
                     modifier = Modifier.padding(start = QcSpacing.s6, end = QcSpacing.s6, bottom = QcSpacing.s2)
                 )
                 LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
@@ -96,6 +99,7 @@ fun QcPickerSheet(
                         PickerRow(
                             kind = kind,
                             name = entry.name,
+                            colour = entry.colour,
                             selected = entry.id == selectedId,
                             onClick = { onPick(entry.id) }
                         )
@@ -134,6 +138,7 @@ private fun RowIcon() {
 private fun PickerRow(
     kind: QcPickerKind,
     name: String,
+    colour: String?,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -144,7 +149,11 @@ private fun PickerRow(
             title = name,
             lead = when (kind) {
                 QcPickerKind.HOLDER -> { { PickerLeadSlot { HolderAvatar(name) } } }
-                QcPickerKind.BANK -> { { PickerLeadSlot { MonogramTile(Monogram.monoFor(name)) } } }
+                QcPickerKind.BANK -> if (colour != null) {
+                    { PickerLeadSlot { ColourChip(colour) } }
+                } else {
+                    { PickerLeadSlot { MonogramTile(Monogram.monoFor(name)) } }
+                }
                 QcPickerKind.TYPE -> null
             },
             trailing = if (selected) {

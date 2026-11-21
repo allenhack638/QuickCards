@@ -18,40 +18,27 @@ class SettingsCopyTest {
     // Longest value each row can insert, from AppSettingsDefaults options and TimeText.seconds.
     private val longestValues = mapOf(
         "settings_clipboard_after" to "30 seconds",
-        "settings_notification_time_subtitle" to "30 seconds",
         "settings_inactivity_subtitle" to "30 minutes",
         "settings_copy_window_subtitle" to "30 seconds",
         "settings_expires_soon_value" to "3"
     )
 
     private val descriptionNames = listOf(
-        "settings_mask_subtitle",
-        "settings_notes_subtitle",
         "settings_clipboard_after",
         "settings_notification_subtitle",
-        "settings_notification_time_subtitle",
-        "settings_tags_show_subtitle",
-        "settings_app_lock_subtitle",
         "settings_inactivity_subtitle",
-        "settings_inactivity_never",
-        "settings_lock_on_leave_subtitle",
+        "settings_option_never",
+        "settings_app_lock_off",
         "settings_copy_window_subtitle",
-        "settings_lock_now_subtitle",
-        "settings_backup_export_subtitle",
+        "settings_copy_window_body",
         "settings_backup_import_subtitle",
-        "settings_backup_erase_subtitle",
-        "settings_privacy_subtitle",
-        "settings_offline_subtitle",
-        "settings_autofill_subtitle_off",
         "settings_autofill_subtitle_choose",
-        "settings_autofill_subtitle_on",
-        "settings_autofill_choose_subtitle",
-        "settings_nfc_subtitle",
         "settings_expiry_reminders_subtitle",
         "settings_payment_reminders_subtitle",
         "settings_expired_keep",
         "settings_expired_end",
-        "settings_expired_hide"
+        "settings_expired_hide",
+        "settings_theme_system"
     )
 
     @Test

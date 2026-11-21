@@ -1,7 +1,7 @@
 package com.quickcards.app.flow
 
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -26,22 +26,22 @@ class ManageNetworksFlowTest : FlowTestBase() {
     @Test
     fun aLongNetworkLabelShowsOnThePass() {
         compose.onNodeWithText("Manage").performClick()
-        waitForText("Card networks")
-        compose.onNodeWithText("Card networks").performClick()
+        waitForText("Networks")
+        compose.onNodeWithText("Networks").performClick()
 
-        waitForContentDescription("Add card network")
-        compose.onNodeWithContentDescription("Add card network").performClick()
-        waitForText("New card network")
+        waitForContentDescription("Add network")
+        compose.onNodeWithContentDescription("Add network").performClick()
+        waitForText("New network")
 
         field("Name").performTextInput("Mastercard Plus")
-        field("Label on card").performScrollTo().performTextInput("MASTERCARD")
+        field("Card label").performScrollTo().performTextInput("MASTERCARD")
         field("Starting digits").performScrollTo().performTextInput("4111")
         field("Number lengths").performScrollTo().performTextReplacement("16")
         Espresso.closeSoftKeyboard()
         compose.waitForIdle()
-        compose.onNodeWithText("Add").performClick()
+        compose.onNodeWithText("Save").performClick()
 
-        waitForText("Card network added")
+        waitForText("Network added")
         val networks = runBlocking { app.repository.networks.first() }
         assertTrue(networks.any { it.code == "MASTERCARD" })
 
@@ -64,19 +64,19 @@ class ManageNetworksFlowTest : FlowTestBase() {
     fun aCustomBadgeWidensEveryRowToTheSameColumn() {
         openCardNetworks()
 
-        compose.onNodeWithContentDescription("Add card network").performClick()
-        waitForText("New card network")
+        compose.onNodeWithContentDescription("Add network").performClick()
+        waitForText("New network")
         field("Name").performTextInput("My Bank")
-        field("Label on card").performScrollTo().performTextInput("MYBANKNETWORK")
+        field("Card label").performScrollTo().performTextInput("MYBANKNETWORK")
         field("Starting digits").performScrollTo().performTextInput("4111")
         field("Number lengths").performScrollTo().performTextReplacement("16")
         Espresso.closeSoftKeyboard()
         compose.waitForIdle()
-        compose.onNodeWithText("Add").performClick()
-        waitForText("Card network added")
+        compose.onNodeWithText("Save").performClick()
+        waitForText("Network added")
 
         val builtIn = compose.onNodeWithText("Visa").getUnclippedBoundsInRoot()
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("My Bank"))
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("My Bank"))
         val custom = compose.onNodeWithText("My Bank").getUnclippedBoundsInRoot()
 
         assertEquals(builtIn.left.value, custom.left.value, 1f)
@@ -86,8 +86,8 @@ class ManageNetworksFlowTest : FlowTestBase() {
 
     private fun openCardNetworks() {
         compose.onNodeWithText("Manage").performClick()
-        waitForText("Card networks")
-        compose.onNodeWithText("Card networks").performClick()
+        waitForText("Networks")
+        compose.onNodeWithText("Networks").performClick()
         waitForText("Visa")
     }
 }

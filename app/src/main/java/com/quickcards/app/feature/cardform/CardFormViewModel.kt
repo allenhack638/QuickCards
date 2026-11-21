@@ -17,14 +17,15 @@ import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.model.toDomain
 import com.quickcards.app.core.data.model.withRules
+import com.quickcards.app.core.data.repository.BankColourRules
 import com.quickcards.app.core.data.repository.DuplicateCardException
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
+import com.quickcards.app.core.ui.components.CustomColour
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
 import com.quickcards.domain.DefaultNetworks
 import com.quickcards.domain.rules
 import com.quickcards.domain.EntityKind
-import com.quickcards.domain.ExistingCardRef
 import com.quickcards.domain.Field
 import com.quickcards.domain.NamedRef
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -148,17 +149,10 @@ class CardFormViewModel(
 
     private fun buildLists(lists: Lists, options: Options): BuiltLists {
         val domainNetworks = lists.networks.map { it.toDomain() }
-        val holdersById = lists.holders.associateBy { it.id }
-        val banksById = lists.banks.associateBy { it.id }
 
         val duplicates = lists.cards
             .filterNot { it.id == cardId }
-            .associate { card ->
-                card.number to ExistingCardRef(
-                    title = cardTitle(card, lists.banks),
-                    holderName = card.holderId?.let { holdersById[it]?.name }
-                )
-            }
+            .associate { card -> card.number to DuplicateRef(card.id, bankName(card.bankId, lists.banks)) }
 
         val tagRefs = lists.tags
             .sortedWith(compareBy({ it.createdAt }, { it.name.lowercase(Locale.ROOT) }))
@@ -170,6 +164,9 @@ class CardFormViewModel(
                 banks = lists.banks
                     .map { NamedRef(it.id, it.name) }
                     .sortedBy { it.name.lowercase(Locale.ROOT) },
+                bankColours = lists.banks.mapNotNull { bank ->
+                    BankColourRules.colourOf(bank)?.let { bank.id to it }
+                }.toMap(),
                 networks = domainNetworks,
                 types = lists.types
                     .sortedWith(compareBy({ it.sortOrder }, { it.name.lowercase(Locale.ROOT) }))
@@ -177,7 +174,13 @@ class CardFormViewModel(
                 tags = tagRefs,
                 tagLimit = AppSettingsDefaults.TAGS_MAX,
                 tagMaxLen = AppSettingsDefaults.TAGS_MAX_LEN,
-                duplicates = duplicates
+                duplicates = duplicates,
+                recentColours = lists.cards
+                    .filter { CustomColour.parse(it.bandColor) != null }
+                    .sortedByDescending { it.updatedAt }
+                    .map { it.bandColor.uppercase(Locale.ROOT) }
+                    .distinct()
+                    .take(RECENT_COLOURS)
             ),
             options = CardFormOptions(
                 tagsShow = options.tagsShow,
@@ -187,8 +190,8 @@ class CardFormViewModel(
         )
     }
 
-    private fun cardTitle(card: VaultCard, banks: List<Bank>): String =
-        card.bankId?.let { id -> banks.firstOrNull { it.id == id }?.name }
+    private fun bankName(bankId: String?, banks: List<Bank>): String =
+        bankId?.let { id -> banks.firstOrNull { it.id == id }?.name }
             ?: getApplication<Application>().getString(R.string.form_field_bank)
 
     private fun update(block: (CardFormSession) -> CardFormSession) {
@@ -229,6 +232,7 @@ class CardFormViewModel(
     fun selectBank(id: String) = update { it.selectBank(id) }
     fun selectType(id: String?) = update { it.selectType(id) }
     fun selectBand(key: String) = update { it.selectBand(key) }
+    fun followBankColour() = update { it.followBankColour() }
     fun toggleTag(id: String) = update { it.toggleTag(id) }
     fun removeTag(id: String) = update { it.removeTag(id) }
 
@@ -269,6 +273,7 @@ class CardFormViewModel(
             note = form.note.trim(),
             dueDay = form.dueDay.toIntOrNull()?.takeIf { it in 1..31 },
             bandColor = form.bandColor,
+            bandColorManual = form.bandColorManual,
             sortOrder = base?.sortOrder ?: 0,
             createdAt = base?.createdAt ?: System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis(),
@@ -308,21 +313,22 @@ class CardFormViewModel(
             else -> null
         }
         if (duplicate != null) {
-            val bank = duplicate.bankId
-                ?.let { id -> session.lists.banks.firstOrNull { it.id == id }?.name }
+            val bank = session.lists.banks.firstOrNull { it.id == duplicate.bankId }?.name
                 ?: getApplication<Application>().getString(R.string.form_field_bank)
-            val holder = session.lists.holderName(duplicate.holderId)
-            update { it.withError(Field.NUMBER, CardError.Duplicate(bank, holder)) }
+            update {
+                it.copy(lists = it.lists.copy(duplicates = it.lists.duplicates + (it.form.number to DuplicateRef(duplicate.id, bank))))
+                    .withError(Field.NUMBER, CardError.Duplicate(bank, null))
+            }
             _events.tryEmit(CardFormEvent.FocusField(Field.NUMBER))
             return
         }
         _events.tryEmit(CardFormEvent.SaveFailed)
     }
 
-    suspend fun createTag(name: String): Tag? =
-        runCatching { repository.createTag(name) }.getOrNull()
+    suspend fun createTag(name: String): NamedRef? =
+        runCatching { repository.createTag(name) }.getOrNull()?.let { NamedRef(it.id, it.name) }
 
-    fun onTagCreated(tag: Tag) = update { it.copy(lists = it.lists.withTag(tag.id, tag.name)).addTag(tag.id) }
+    fun onTagCreated(tag: NamedRef) = update { it.copy(lists = it.lists.withTag(tag.id, tag.name)).addTag(tag.id) }
 
     /** The dialog already persisted the item; wait for the flow to expose it before selecting. */
     fun onEntitySaved(kind: EntityKind, id: String) {
@@ -343,7 +349,7 @@ class CardFormViewModel(
                         .first { list -> list.any { it.id == id } }
                         .first { it.id == id }
                     update {
-                        it.copy(lists = it.lists.withBank(bank.id, bank.name))
+                        it.copy(lists = it.lists.withBank(bank.id, bank.name, BankColourRules.colourOf(bank)))
                             .selectBank(bank.id)
                     }
                 }
@@ -371,3 +377,5 @@ class CardFormViewModel(
         }
     }
 }
+
+private const val RECENT_COLOURS = 3

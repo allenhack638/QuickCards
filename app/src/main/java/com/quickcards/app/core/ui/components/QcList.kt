@@ -27,7 +27,6 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcShapes
@@ -161,12 +160,6 @@ fun QcChevron() {
         tint = QcTheme.colors.ink2,
         modifier = Modifier.size(QcSize.iconLg)
     )
-}
-
-/** Trailing value text (`f2`, `ink-2`). */
-@Composable
-fun QcRowValue(text: String) {
-    Text(text = text, style = QcText.F2, color = QcTheme.colors.ink2, textAlign = TextAlign.End)
 }
 
 /** The whole row is the switch: one target with switch role and checked state. */

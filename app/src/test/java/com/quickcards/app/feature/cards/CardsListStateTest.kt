@@ -4,6 +4,7 @@ import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.domain.CardField
 import com.quickcards.domain.CardFilters
+import com.quickcards.domain.CardStatus
 import com.quickcards.domain.ExpiredPlacement
 import com.quickcards.domain.ExpiryState
 import org.junit.Assert.assertEquals
@@ -294,5 +295,30 @@ class CardsListStateTest {
         assertTrue(CardsStatusFilter.matches(ExpiryState.EXPIRED, setOf("expired")))
         assertFalse(CardsStatusFilter.matches(ExpiryState.VALID, setOf("expired")))
         assertTrue(CardsStatusFilter.matches(null, emptySet()))
+    }
+
+    @Test
+    fun recentIsTheLastThreeCopiedListCardsNewestFirst() {
+        val cards = listOf(card("a"), card("b"), card("c"), card("d"), card("gone", archived = true))
+        val copied = mapOf("a" to 10L, "b" to 40L, "c" to 30L, "d" to 20L, "gone" to 50L, "deleted" to 60L)
+
+        assertEquals(listOf("b", "c", "d"), ids(CardsListState.recentCards(cards, copied)))
+    }
+
+    @Test
+    fun tileShowsOneStatusByPriority() {
+        assertEquals(CardStatus.ARCHIVED, CardsListState.status(card("x", archived = true, state = ExpiryState.EXPIRED), "x"))
+        assertEquals(CardStatus.EXPIRED, CardsListState.status(card("x", state = ExpiryState.EXPIRED, needsReview = true), "x"))
+        assertEquals(CardStatus.CHECK, CardsListState.status(card("x", state = ExpiryState.EXPIRES_SOON, needsReview = true), "x"))
+        assertEquals(CardStatus.EXPIRES_SOON, CardsListState.status(card("x", state = ExpiryState.EXPIRES_SOON), "x"))
+        assertEquals(CardStatus.LAST_USED, CardsListState.status(card("x"), "x"))
+        assertEquals(null, CardsListState.status(card("x"), "y"))
+    }
+
+    @Test
+    fun lastUsedNeverSitsBesideADueBill() {
+        val due = card("x").copy(dueInDays = 2)
+
+        assertEquals(null, CardsListState.status(due, "x"))
     }
 }

@@ -71,10 +71,17 @@ enum class MarkTone { COLOUR, WHITE }
 
 private val alwaysColour = setOf("mc", "maestro")
 
-/** White on card art and dark surfaces, full colour on light ones; Mastercard and Maestro never go white. */
+// Box and badge marks carry their own ground, so they stay readable on any surface.
+private val boxedMarks = setOf("amex", "jcb", "unionpay")
+
+/**
+ * Full colour on surfaces in both themes, except wordmarks that vanish on dark (those go white).
+ * On card art every mark goes white with its white fills cut out; Mastercard and Maestro never go white.
+ */
 fun markTone(networkId: String, onArt: Boolean, dark: Boolean): MarkTone = when {
     networkId in alwaysColour -> MarkTone.COLOUR
-    onArt || dark -> MarkTone.WHITE
+    onArt -> MarkTone.WHITE
+    dark && networkId !in boxedMarks -> MarkTone.WHITE
     else -> MarkTone.COLOUR
 }
 

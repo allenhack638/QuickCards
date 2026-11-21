@@ -116,10 +116,12 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), EntityEditorData())
 
+    /** [colour] is a bank colour picked by hand; null keeps the stored or automatic one. */
     suspend fun save(
         kind: EntityKind,
         editingId: String?,
-        draft: EntityDraft
+        draft: EntityDraft,
+        colour: String? = null
     ): Result<String> = runCatching {
         val name = EntityValidator.normalizeName(kind, draft.name)
         when (kind) {
@@ -131,9 +133,10 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
             }
 
             EntityKind.BANK -> if (editingId == null) {
-                repository.createBank(name).id
+                repository.createBank(name, colour).id
             } else {
                 repository.renameBank(editingId, name)
+                if (colour != null) repository.setBankColour(editingId, colour)
                 editingId
             }
 

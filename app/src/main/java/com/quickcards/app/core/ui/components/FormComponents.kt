@@ -21,6 +21,7 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -255,7 +257,9 @@ fun FormTextField(
     helperAction: (@Composable () -> Unit)? = null,
     placeholder: String? = null,
     warn: String? = null,
-    mono: Boolean = false
+    mono: Boolean = false,
+    labelAction: (@Composable () -> Unit)? = null,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     val colors = QcTheme.colors
     val interaction = remember { MutableInteractionSource() }
@@ -272,7 +276,14 @@ fun FormTextField(
             .bringIntoViewOnFocus(),
         verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)
     ) {
-        FieldLabel(label, focused, error != null)
+        if (labelAction == null) {
+            FieldLabel(label, focused, error != null)
+        } else {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.weight(1f)) { FieldLabel(label, focused, error != null) }
+                labelAction()
+            }
+        }
         BasicTextField(
             value = value,
             onValueChange = {
@@ -291,6 +302,7 @@ fun FormTextField(
             textStyle = textStyle.copy(color = colors.ink),
             cursorBrush = SolidColor(if (error != null) colors.danger else colors.accent),
             keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             interactionSource = interaction,
             decorationBox = { inner ->
@@ -365,7 +377,8 @@ fun QcSearchField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    description: String = placeholder
 ) {
     val colors = QcTheme.colors
     val interaction = remember { MutableInteractionSource() }
@@ -378,7 +391,7 @@ fun QcSearchField(
         },
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = placeholder },
+            .semantics { contentDescription = description },
         singleLine = true,
         // Searches can hold card digits; keep them out of the keyboard's suggestions.
         keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
@@ -650,14 +663,16 @@ fun MonogramTile(text: String) {
     }
 }
 
-/** A checkbox line: the whole row toggles; box 20 on the content edge, 12 to its label. */
+/** A checkbox line: the whole row toggles; box 20 on the content edge ([inset]), 12 to its label. */
 @Composable
 fun CheckRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    inset: Dp = QcSpacing.s6,
+    spokenLabel: String? = null
 ) {
     val colors = QcTheme.colors
     Row(
@@ -670,7 +685,7 @@ fun CheckRow(
                 role = Role.Checkbox,
                 onValueChange = onCheckedChange
             )
-            .padding(horizontal = QcSpacing.s6),
+            .padding(horizontal = inset),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)
     ) {
@@ -679,7 +694,9 @@ fun CheckRow(
             text = label,
             style = FormInputText,
             color = if (enabled) colors.ink else colors.ink3,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .then(if (spokenLabel != null) Modifier.clearAndSetSemantics { contentDescription = spokenLabel } else Modifier)
         )
     }
 }

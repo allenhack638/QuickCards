@@ -1,6 +1,7 @@
 package com.quickcards.app.feature.archive
 
 import androidx.compose.runtime.setValue
+import com.quickcards.domain.CardStatus
 import androidx.compose.runtime.getValue
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -520,33 +521,21 @@ private fun ArchivedList(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopCenter
             ) {
+                val scope = rememberCoroutineScope()
                 PassCard(
                     card = item.card,
-                    maskNumbers = state.options.maskNumbers,
-                    tagsShow = state.options.tagsShow,
                     modifier = Modifier.fillMaxWidth(),
-                    expiryState = item.card.expiryState,
-                    needsReview = item.card.card.needsReview.isNotEmpty(),
-                    archivedLabel = archivedLabel(item),
-                    note = item.card.card.note,
-                    showNote = state.options.showNotes,
-                    onCopy = { field -> onCopy(item.card, field) },
-                    onReveal = onReveal,
-                    onCopyNote = { onCopyNote(item) },
-                    onActions = { onActions(item) }
+                    status = CardStatus.ARCHIVED,
+                    archiveReason = item.reason,
+                    note = item.card.card.note.takeIf { state.options.showNotes && it.isNotBlank() },
+                    tags = if (state.options.tagsShow) item.card.tagNames else emptyList(),
+                    onOpen = { onActions(item) },
+                    onActions = { onActions(item) },
+                    onCopy = { scope.launch { onCopy(item.card, PassField.NUMBER) } },
+                    onCopyNote = { scope.launch { onCopyNote(item) } }
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun archivedLabel(item: ArchivedCardItem): String {
-    val reason = item.reason
-    return if (reason.isNullOrBlank()) {
-        stringResource(R.string.cards_status_archived)
-    } else {
-        stringResource(R.string.cards_status_archived_reason, reason)
     }
 }
 

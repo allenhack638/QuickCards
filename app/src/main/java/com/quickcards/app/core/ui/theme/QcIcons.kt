@@ -40,10 +40,13 @@ object QcIcons {
     val pin: ImageVector by lazy { symbol("pin", QcSymbolPaths.pushPin) }
     val offline: ImageVector by lazy { symbol("offline", QcSymbolPaths.cloudOff) }
     val warning: ImageVector by lazy { symbol("warning", QcSymbolPaths.warning) }
+    val infoOutline: ImageVector by lazy { symbol("infoOutline", QcSymbolPaths.info) }
     val help: ImageVector by lazy { symbol("help", QcSymbolPaths.help) }
     val card: ImageVector by lazy { symbol("card", QcSymbolPaths.creditCard) }
     val manage: ImageVector by lazy { symbol("manage", QcSymbolPaths.category) }
     val settings: ImageVector by lazy { symbol("settings", QcSymbolPaths.settings) }
+    val copyOutlined: ImageVector by lazy { symbol("copyOutlined", QcSymbolPaths.contentCopy) }
+    val paymentsOutlined: ImageVector by lazy { symbol("paymentsOutlined", QcSymbolPaths.payments) }
 
     val chevronRight: ImageVector by lazy { symbol("chevronRight", QcSymbolPaths.chevronRightFill) }
     val copy: ImageVector by lazy { symbol("copy", QcSymbolPaths.contentCopyFill) }
@@ -85,6 +88,8 @@ object QcIcons {
     val contactless: ImageVector by lazy { symbol("contactless", QcSymbolPaths.contactlessFill) }
     val hideNumbers: ImageVector by lazy { symbol("hideNumbers", QcSymbolPaths.visibilityOffFill) }
     val error: ImageVector by lazy { symbol("error", QcSymbolPaths.errorFill) }
+    val palette: ImageVector by lazy { symbol("palette", QcSymbolPaths.palette) }
+    val checkCircle: ImageVector by lazy { symbol("checkCircle", QcSymbolPaths.checkCircleFill) }
 
     /** Navigation items when selected. */
     object Selected {

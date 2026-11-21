@@ -36,7 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Locking closes an open sheet and dialog; drives [LocalAppLocked] directly for determinism. */
+/** Locking closes Home's filter sheet; drives [LocalAppLocked] directly for determinism. */
 @RunWith(AndroidJUnit4::class)
 class LockCoversOverlaysTest {
 
@@ -108,27 +108,27 @@ class LockCoversOverlaysTest {
                         navController = nav,
                         viewModel = homeViewModel,
                         bottomInset = 0.dp,
-                        onImport = {}
+                        onImport = {},
+                        onOpenCard = {},
+                        onCardActions = {}
                     )
                 }
             }
         }
 
         compose.waitUntil(10_000) {
-            compose.onAllNodesWithContentDescription("More for HDFC Bank")
+            compose.onAllNodesWithContentDescription("Filter cards")
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        compose.onNodeWithContentDescription("More for HDFC Bank").performClick()
-        waitForText("Unpin")
-        waitForText("Delete card")
+        compose.onNodeWithContentDescription("Filter cards").performClick()
+        waitForText("Show 2 cards")
 
         compose.runOnUiThread { locked = true }
         compose.waitForIdle()
-        compose.onAllNodesWithText("Unpin").assertCountEquals(0)
-        compose.onAllNodesWithText("Delete card").assertCountEquals(0)
+        compose.onAllNodesWithText("Show 2 cards").assertCountEquals(0)
 
-        // Delete needs the real activity for auth; LockFlowTest covers it end to end.
+        // The card actions sheet lives in QcApp; LockFlowTest covers it with the real activity.
     }
 
     private fun waitForText(text: String) {

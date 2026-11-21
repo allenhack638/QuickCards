@@ -3,38 +3,39 @@
     <string name="form_back">Back</string>
     <string name="form_title_add">Add card</string>
     <string name="form_title_edit">Edit card</string>
-    <string name="form_unlock_edit_reason">Confirm it’s you to edit this card</string>
 
-    <string name="form_field_holder">Card holder</string>
+    <string name="form_field_holder">Holder</string>
     <string name="form_field_number">Card number</string>
     <string name="form_field_expiry">Expiry</string>
     <string name="form_field_cvv">CVV</string>
     <string name="form_field_bank">Bank</string>
-    <string name="form_field_type">Card type</string>
+    <string name="form_field_type">Type</string>
     <string name="form_field_note">Note (optional)</string>
     <string name="form_field_new_tag">New tag</string>
 
+    <string name="form_placeholder_holder">Choose holder</string>
+    <string name="form_placeholder_number">0000 0000 0000 0000</string>
     <string name="form_helper_expiry">MM/YY</string>
+    <string name="form_placeholder_cvv">123</string>
+    <string name="form_placeholder_bank">Choose bank</string>
+    <string name="form_placeholder_type">Credit or debit</string>
+    <string name="form_placeholder_colour">Bank colour</string>
+    <string name="form_helper_note">Everyday spending</string>
+    <string name="form_preview_new">New card</string>
+    <string name="form_preview_digits">0000</string>
+    <string name="form_cvv_show">Show CVV</string>
+    <string name="form_cvv_hide">Hide CVV</string>
+
     <string name="form_repair_changed_from">Changed from %1$s</string>
     <string name="form_repair_undo">Undo</string>
-    <string name="form_helper_note">For example Everyday spending</string>
-    <string name="form_cvv_digits_unknown">3 or 4 digits</string>
-    <plurals name="form_cvv_digits_optional">
-        <item quantity="one">%1$d digit or none</item>
-        <item quantity="other">%1$d digits or none</item>
-    </plurals>
     <plurals name="form_rules_cvv">
-        <item quantity="one">%1$s is set to a %2$d-digit CVV.</item>
-        <item quantity="other">%1$s is set to a %2$d-digit CVV.</item>
+        <item quantity="one">%1$s: custom %2$d-digit CVV</item>
+        <item quantity="other">%1$s: custom %2$d-digit CVV</item>
     </plurals>
-    <string name="form_rules_number">%1$s number rules were changed.</string>
-    <plurals name="form_cvv_digits">
-        <item quantity="one">%1$d digit</item>
-        <item quantity="other">%1$d digits</item>
-    </plurals>
+    <string name="form_rules_number">%1$s: custom number rules</string>
 
     <string name="form_group_tags">Tags</string>
-    <string name="form_group_band">Card colour</string>
+    <string name="form_group_band">Colour</string>
     <string name="form_band_navy">Navy</string>
     <string name="form_band_rust">Rust</string>
     <string name="form_band_forest">Forest</string>
@@ -54,80 +55,96 @@
     <string name="form_band_custom">Custom</string>
     <string name="form_band_custom_title">Custom colour</string>
     <string name="form_band_hex">Hex</string>
-    <string name="form_band_preview">Preview</string>
+    <string name="form_band_hash">#</string>
     <string name="form_band_use">Use colour</string>
     <string name="form_band_recent">Recent</string>
-    <string name="form_band_too_light">Too light for white card text. Choose a darker shade.</string>
-    <string name="form_band_color_desc">%1$s colour</string>
-    <string name="form_band_custom_desc">Custom colour, %1$s</string>
+    <string name="form_band_too_light">Too light. Pick a darker shade.</string>
+    <string name="form_band_custom_desc">Custom colour %1$s</string>
+    <string name="form_band_bank_chip">Bank colour</string>
+    <string name="form_band_bank_a11y">%1$s, bank colour</string>
+    <string name="form_band_back">Back to colours</string>
+    <string name="form_band_hue">Hue</string>
+    <string name="form_band_lightness">Lightness</string>
     <string name="form_tags_count">%1$d of %2$d</string>
-    <plurals name="form_tags_selected">
-        <item quantity="one">%1$d of %2$d selected.</item>
-        <item quantity="other">%1$d of %2$d selected.</item>
-    </plurals>
 
     <string name="form_action_add">Add</string>
     <string name="form_action_done">Done</string>
-    <string name="form_expand_preview">Expand preview</string>
 
     <string name="form_save_changes">Save changes</string>
     <string name="form_save_card">Save card</string>
-    <string name="form_paste_number">Card number filled from the pasted text</string>
-    <string name="form_paste_number_and_expiry">Card number and expiry filled from the pasted text</string>
-    <string name="form_saved_changes">Changes saved</string>
+    <string name="form_save_missing_holder">Choose a holder</string>
+    <string name="form_save_missing_number">Add the number</string>
+    <string name="form_save_bad_number">Check the number</string>
+    <string name="form_save_missing_expiry">Add the expiry</string>
+    <string name="form_save_bad_expiry">Check the expiry</string>
+    <string name="form_save_missing_cvv">Add the CVV</string>
+    <string name="form_save_bad_cvv">Check the CVV</string>
+    <string name="form_save_missing_bank">Choose a bank</string>
+    <string name="form_save_missing_type">Choose a type</string>
+    <string name="form_paste_number">Number pasted</string>
+    <string name="form_paste_number_and_expiry">Number and expiry pasted</string>
+    <string name="form_saved_changes">Saved</string>
     <string name="form_saved_card">%1$s saved</string>
     <string name="form_card">Card</string>
-    <string name="form_save_failed">Couldn’t save this card</string>
+    <string name="form_save_failed">Couldn’t save card</string>
 
-    <string name="form_discard_title">Discard this card?</string>
-    <string name="form_discard_body">Your changes won’t be saved.</string>
+    <string name="form_discard_title">Discard changes?</string>
     <string name="form_discard_keep">Keep editing</string>
     <string name="form_discard_confirm">Discard</string>
 
-    <string name="form_picker_holder_title">Choose card holder</string>
-    <string name="form_picker_holder_search">Search card holders</string>
-    <string name="form_picker_holder_add">Add card holder</string>
-    <string name="form_picker_bank_title">Choose bank</string>
-    <string name="form_picker_bank_search">Search banks</string>
-    <string name="form_picker_bank_add">Add a new bank</string>
-    <string name="form_picker_type_title">Choose card type</string>
-    <string name="form_picker_type_search">Search card types</string>
-    <string name="form_picker_type_add">Add card type</string>
+    <string name="form_picker_holder_title">Holder</string>
+    <string name="form_picker_holder_add">New holder</string>
+    <string name="form_picker_bank_title">Bank</string>
+    <string name="form_picker_bank_add">New bank</string>
+    <string name="form_picker_type_title">Type</string>
+    <string name="form_picker_type_add">New type</string>
+    <string name="form_picker_search">Search</string>
+    <string name="form_a11y_search_holders">Search holders</string>
+    <string name="form_a11y_search_banks">Search banks</string>
+    <string name="form_a11y_search_types">Search types</string>
 
-    <string name="form_tag_error_empty">Type a tag name</string>
-    <string name="form_tag_error_short">Use at least 2 characters</string>
+    <string name="form_tag_error_empty">Enter a name</string>
+    <string name="form_tag_error_short">At least 2 characters</string>
     <plurals name="form_tag_error_limit">
-        <item quantity="one">Up to %1$d tag per card</item>
-        <item quantity="other">Up to %1$d tags per card</item>
+        <item quantity="one">%1$d tag max</item>
+        <item quantity="other">%1$d tags max</item>
     </plurals>
-    <string name="form_tag_error_duplicate">Already on this card</string>
+    <string name="form_tag_error_duplicate">Already added</string>
 
-    <string name="form_a_holder">a holder</string>
-    <string name="form_error_holder_required">Choose who this card belongs to</string>
-    <string name="form_error_number_required">Enter the card number</string>
+    <string name="form_error_holder_required">Choose a holder</string>
+    <string name="form_error_number_required">Enter the number</string>
     <string name="form_error_number_length_network">%1$s numbers have %2$s digits</string>
-    <string name="form_error_number_length_generic">Card numbers have 12 to 19 digits</string>
-    <string name="form_error_number_luhn">This number doesn’t look right. Check the digits.</string>
-    <string name="form_error_number_duplicate">Already saved as %1$s for %2$s</string>
+    <string name="form_error_number_length_generic">Use 12 to 19 digits</string>
+    <string name="form_error_number_luhn">Check the digits</string>
+    <string name="form_error_number_duplicate">Already saved as %1$s ••%2$s</string>
+    <string name="form_duplicate_open">Open</string>
+    <string name="form_duplicate_open_a11y">Open %1$s card ending %2$s</string>
     <string name="form_error_expiry_format">Use MM/YY</string>
-    <string name="form_error_expiry_past">This card has expired</string>
+    <string name="form_error_expiry_month">Month: 1 to 12</string>
+    <string name="form_error_expiry_past">Expired</string>
     <string name="form_error_expiry_future">Check the year</string>
     <plurals name="form_error_cvv_length">
         <item quantity="one">Enter %1$d digit</item>
         <item quantity="other">Enter %1$d digits</item>
     </plurals>
     <string name="form_error_cvv_unknown">Enter 3 or 4 digits</string>
-    <string name="form_error_bank_required">Choose the bank</string>
-    <string name="form_error_type_required">Choose the card type</string>
-    <string name="form_nfc_button">Tap your card</string>
-    <string name="form_nfc_title">Hold your card to the phone</string>
-    <string name="form_nfc_body">Keep the card against the back of the phone until it is read. The number and expiry fill in; you still type the CVV.</string>
-    <string name="form_nfc_waiting">Waiting for a card…</string>
-    <string name="form_nfc_off">Turn on NFC in your phone’s settings to tap a card.</string>
-    <string name="form_nfc_read">Card read. Enter the CVV to finish.</string>
-    <string name="form_nfc_failed">Couldn’t read this card. Hold it still and try again, or type the number.</string>
+    <string name="form_error_bank_required">Choose a bank</string>
+    <string name="form_error_type_required">Choose a type</string>
+
+    <string name="form_nfc_button">Tap card</string>
+    <string name="form_a11y_tap_card">Tap card to read it</string>
+    <string name="form_nfc_title">Hold card to phone</string>
+    <string name="form_nfc_body">Number and expiry fill in. Type the CVV.</string>
+    <string name="form_nfc_waiting_a11y">Waiting for a card</string>
+    <string name="form_nfc_off">NFC is off</string>
+    <string name="form_nfc_turn_on">Turn on</string>
+    <string name="form_nfc_turn_on_a11y">Turn on NFC in Android settings</string>
+    <string name="form_nfc_read">Card read. Add the CVV.</string>
+    <string name="form_nfc_failed">Couldn’t read. Hold still and try again.</string>
+    <string name="form_nfc_try_again">Try again</string>
     <string name="form_nfc_cancel">Cancel</string>
-    <string name="form_due_day_label">Payment due day (optional)</string>
-    <string name="form_due_day_error">Enter a day from 1 to 31</string>
-    <string name="form_due_day_helper">Day of the month your bill is due, 1 to 31</string>
+
+    <string name="form_due_day_label">Due day (optional)</string>
+    <string name="form_due_day_error">Enter 1 to 31</string>
+    <string name="form_due_day_helper">1 to 31</string>
 </resources>

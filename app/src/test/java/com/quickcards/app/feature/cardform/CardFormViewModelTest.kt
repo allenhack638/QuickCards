@@ -5,7 +5,6 @@ import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
 import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.DefaultNetworks
-import com.quickcards.domain.ExistingCardRef
 import com.quickcards.domain.Field
 import com.quickcards.domain.NamedRef
 import org.junit.Assert.assertEquals
@@ -39,7 +38,7 @@ class CardFormViewModelTest {
     )
 
     private fun lists(
-        duplicates: Map<String, ExistingCardRef> = emptyMap(),
+        duplicates: Map<String, DuplicateRef> = emptyMap(),
         holders: List<NamedRef> = this.holders,
         banks: List<NamedRef> = this.banks
     ) = CardFormLists(
@@ -53,7 +52,7 @@ class CardFormViewModelTest {
         duplicates = duplicates
     )
 
-    private fun session(duplicates: Map<String, ExistingCardRef> = emptyMap()) =
+    private fun session(duplicates: Map<String, DuplicateRef> = emptyMap()) =
         CardFormSession.forAdd(lists(duplicates), CardFormOptions(), today)
 
     private val visa = "453277810349221" + CardNumberRules.luhnCheckDigit("453277810349221")
@@ -64,7 +63,7 @@ class CardFormViewModelTest {
 
         assertEquals(CardFormMode.ADD, state.form.mode)
         assertEquals("h1", state.form.holderId)
-        assertEquals("navy", state.form.bandColor)
+        assertEquals("graphite", state.form.bandColor)
         assertTrue(state.form.number.isEmpty())
         assertTrue(state.form.tagIds.isEmpty())
         assertTrue(state.form.errors.isEmpty())
@@ -190,16 +189,13 @@ class CardFormViewModelTest {
     @Test
     fun duplicateNumberIsNamedLikeThePrototype() {
         val duplicate = mapOf(
-            visa to ExistingCardRef(title = "HDFC Bank", holderName = "Aarav Mehta")
+            visa to DuplicateRef(cardId = "c9", bankName = "HDFC Bank")
         )
-        val state = session(duplicate)
-            .updateNumber(visa)
-            .numberBlur()
+        val state = session(duplicate).updateNumber(visa)
 
-        assertEquals(
-            CardError.Duplicate("HDFC Bank", "Aarav Mehta"),
-            state.form.errors[Field.NUMBER]
-        )
+        assertEquals(CardError.Duplicate("HDFC Bank", null), state.form.errors[Field.NUMBER])
+        assertEquals("c9", state.duplicateOf()?.cardId)
+        assertEquals(SaveIssue.NUMBER_BAD, state.saveIssue())
     }
 
     @Test

@@ -1,8 +1,8 @@
 package com.quickcards.app.feature.cardform
 
-import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
+import com.quickcards.domain.ArtRules
 import com.quickcards.domain.CardDraft
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
@@ -67,6 +67,14 @@ object CardFieldInput {
     fun note(raw: String): String = raw.take(CardValidator.NOTE_MAX_LENGTH)
 }
 
+/** The one line above a disabled Save: the first missing or wrong item, in form order. */
+enum class SaveIssue {
+    HOLDER, NUMBER_MISSING, NUMBER_BAD, EXPIRY_MISSING, EXPIRY_BAD, CVV_MISSING, CVV_BAD, BANK, TYPE
+}
+
+/** A saved card with the same number: its id (for Open) and bank name. */
+data class DuplicateRef(val cardId: String, val bankName: String)
+
 /** A changed built-in network rule that is blocking the card, and which field it blocks. */
 data class BlockingRule(val network: CardNetwork, val kind: Kind) {
     enum class Kind { NUMBER, CVV }
@@ -83,7 +91,9 @@ data class CardFormModel(
     val bankId: String? = null,
     val typeId: String? = null,
     val tagIds: List<String> = emptyList(),
-    val bandColor: String = BandColor.NAVY,
+    val bandColor: String = ArtRules.GRAPHITE,
+    /** True once the colour was chosen by hand; otherwise it follows the bank. */
+    val bandColorManual: Boolean = false,
     val note: String = "",
     val dueDay: String = "",
     val errors: Map<Field, CardError> = emptyMap(),
@@ -126,6 +136,7 @@ data class CardFormModel(
         typeId,
         tagIds,
         bandColor,
+        bandColorManual,
         note,
         dueDay
     )
@@ -155,6 +166,7 @@ data class CardFormModel(
             typeId = card.typeId,
             tagIds = card.tagIds,
             bandColor = card.bandColor,
+            bandColorManual = card.bandColorManual,
             note = card.note,
             dueDay = card.dueDay?.toString().orEmpty()
         )
@@ -164,12 +176,16 @@ data class CardFormModel(
 data class CardFormLists(
     val holders: List<NamedRef> = emptyList(),
     val banks: List<NamedRef> = emptyList(),
+    /** Each bank's colour key (stored, else its built-in default). */
+    val bankColours: Map<String, String> = emptyMap(),
     val networks: List<CardNetwork> = emptyList(),
     val types: List<NamedRef> = emptyList(),
     val tags: List<NamedRef> = emptyList(),
     val tagLimit: Int = AppSettingsDefaults.TAGS_MAX,
     val tagMaxLen: Int = AppSettingsDefaults.TAGS_MAX_LEN,
-    val duplicates: Map<String, ExistingCardRef> = emptyMap()
+    val duplicates: Map<String, DuplicateRef> = emptyMap(),
+    /** Custom colours on other cards, most recently saved first, for the Custom view. */
+    val recentColours: List<String> = emptyList()
 ) {
     fun holderName(id: String?): String? = holders.firstOrNull { it.id == id }?.name
     fun bankName(id: String?): String? = banks.firstOrNull { it.id == id }?.name
@@ -180,8 +196,9 @@ data class CardFormLists(
         holders = (holders.filterNot { it.id == id } + NamedRef(id, name)).sortedBy { it.name.lowercase(Locale.ROOT) }
     )
 
-    fun withBank(id: String, name: String): CardFormLists = copy(
-        banks = (banks.filterNot { it.id == id } + NamedRef(id, name)).sortedBy { it.name.lowercase(Locale.ROOT) }
+    fun withBank(id: String, name: String, colour: String?): CardFormLists = copy(
+        banks = (banks.filterNot { it.id == id } + NamedRef(id, name)).sortedBy { it.name.lowercase(Locale.ROOT) },
+        bankColours = if (colour == null) bankColours else bankColours + (id to colour)
     )
 
     fun withType(id: String, name: String): CardFormLists = copy(
@@ -240,29 +257,48 @@ data class CardFormSession(
         return form.editableValues() != initial.editableValues()
     }
 
-    fun validate(field: Field): CardFormSession {
-        val message = CardValidator.validate(
-            draft = form.toDraft(),
-            networks = lists.networks,
-            today = today,
-            existing = { number -> lists.duplicates[number] },
-            assigned = assignedNetwork(lists.networks)
-        )[field]
-        return withForm(form.withError(field, message))
+    private fun allErrors(): Map<Field, CardError> = CardValidator.validate(
+        draft = form.toDraft(),
+        networks = lists.networks,
+        today = today,
+        existing = { number -> lists.duplicates[number]?.let { ExistingCardRef(it.bankName) } },
+        assigned = assignedNetwork(lists.networks)
+    )
+
+    fun validate(field: Field): CardFormSession = withForm(form.withError(field, allErrors()[field]))
+
+    fun saveAttempt(): CardFormSession = withForm(form.copy(errors = allErrors(), tried = true))
+
+    /** A past expiry is a warning ("Expired"), never a block. */
+    fun firstInvalid(): Field? = CardFormModel.FIELD_ORDER.firstOrNull { blocks(form.errors[it]) }
+
+    val expiryWarning: Boolean get() = form.errors[Field.EXPIRY] == CardError.Expired
+
+    /** The saved card this number duplicates, for the error's Open action. */
+    fun duplicateOf(): DuplicateRef? =
+        if (form.errors[Field.NUMBER] is CardError.Duplicate) lists.duplicates[form.number] else null
+
+    /** Null when every required field is valid; else the first problem in form order. */
+    fun saveIssue(): SaveIssue? {
+        val errors = allErrors()
+        val cvvWanted = network(lists.networks)?.cvvLength ?: 3
+        val cvvOptional = DefaultNetworks.cvvOptional(network(lists.networks))
+        return when {
+            Field.HOLDER in errors -> SaveIssue.HOLDER
+            form.number.isEmpty() -> SaveIssue.NUMBER_MISSING
+            Field.NUMBER in errors -> SaveIssue.NUMBER_BAD
+            form.expiry.isEmpty() -> SaveIssue.EXPIRY_MISSING
+            blocks(errors[Field.EXPIRY]) -> SaveIssue.EXPIRY_BAD
+            !cvvOptional && form.cvv.length < cvvWanted -> SaveIssue.CVV_MISSING
+            Field.CVV in errors -> SaveIssue.CVV_BAD
+            Field.BANK in errors -> SaveIssue.BANK
+            Field.TYPE in errors -> SaveIssue.TYPE
+            else -> null
+        }
     }
 
-    fun saveAttempt(): CardFormSession {
-        val errors = CardValidator.validate(
-            draft = form.toDraft(),
-            networks = lists.networks,
-            today = today,
-            existing = { number -> lists.duplicates[number] },
-            assigned = assignedNetwork(lists.networks)
-        )
-        return withForm(form.copy(errors = errors, tried = true))
-    }
-
-    fun firstInvalid(): Field? = CardFormModel.FIELD_ORDER.firstOrNull { it in form.errors }
+    /** Save is on once the form is valid; Edit also needs a real change. */
+    fun canSave(): Boolean = saveIssue() == null && form.dueDayValid && (!form.isEdit || isDirty())
 
     fun withError(field: Field, message: CardError?): CardFormSession =
         withForm(form.withError(field, message))
@@ -278,7 +314,11 @@ data class CardFormSession(
             cvv = form.cvv.take(network?.cvvLength ?: 4)
         )
         var session = withForm(next)
-        session = session.revalidate(Field.NUMBER)
+        session = if (next.number.length >= usualLength(network)) {
+            session.validate(Field.NUMBER)
+        } else {
+            session.revalidate(Field.NUMBER)
+        }
         if (next.cvv.isNotEmpty() || form.errors.containsKey(Field.CVV)) {
             session = session.validate(Field.CVV)
         }
@@ -292,7 +332,8 @@ data class CardFormSession(
 
     fun updateExpiry(raw: String): CardFormSession {
         val next = form.copy(expiry = CardValidator.normalizeExpiry(raw))
-        return withForm(next).revalidate(Field.EXPIRY)
+        val session = withForm(next)
+        return if (next.expiry.length == EXPIRY_LENGTH) session.validate(Field.EXPIRY) else session.revalidate(Field.EXPIRY)
     }
 
     fun expiryBlur(): CardFormSession =
@@ -301,7 +342,8 @@ data class CardFormSession(
     fun updateCvv(raw: String): CardFormSession {
         val max = network(lists.networks)?.cvvLength ?: 4
         val next = form.copy(cvv = raw.filter { it in '0'..'9' }.take(max))
-        return withForm(next).revalidate(Field.CVV)
+        val session = withForm(next)
+        return if (next.cvv.length == max) session.validate(Field.CVV) else session.revalidate(Field.CVV)
     }
 
     fun cvvBlur(): CardFormSession =
@@ -342,14 +384,24 @@ data class CardFormSession(
     fun selectHolder(id: String): CardFormSession =
         withForm(form.copy(holderId = id)).validate(Field.HOLDER)
 
-    fun selectBank(id: String): CardFormSession =
-        withForm(form.copy(bankId = id)).validate(Field.BANK)
+    /** Picking a bank applies its colour unless this card's colour was chosen by hand. */
+    fun selectBank(id: String): CardFormSession {
+        val colour = if (form.bandColorManual) form.bandColor else lists.bankColours[id] ?: form.bandColor
+        return withForm(form.copy(bankId = id, bandColor = colour)).validate(Field.BANK)
+    }
+
+    fun bankColour(): String? = form.bankId?.let { lists.bankColours[it] }
 
     fun selectType(id: String?): CardFormSession =
         withForm(form.copy(typeId = id)).validate(Field.TYPE)
 
+    /** A colour picked in the sheet sticks to the card, unless it is the bank's own colour. */
     fun selectBand(key: String): CardFormSession =
-        withForm(form.copy(bandColor = key))
+        withForm(form.copy(bandColor = key, bandColorManual = key != bankColour()))
+
+    /** "Bank colour": follow the bank again. */
+    fun followBankColour(): CardFormSession =
+        withForm(form.copy(bandColor = bankColour() ?: form.bandColor, bandColorManual = false))
 
     fun toggleTag(id: String): CardFormSession {
         val ids = when {
@@ -383,6 +435,12 @@ data class CardFormSession(
                 initialForm = next.initialForm?.copy(holderId = holderId)
             )
         }
+        // The bank was recoloured elsewhere: a card that follows it follows the new colour.
+        val bankColour = form.bankId?.let { lists.bankColours[it] }
+        val before = form.bankId?.let { this.lists.bankColours[it] }
+        if (!form.bandColorManual && bankColour != null && before != null && bankColour != before) {
+            next = next.copy(form = next.form.copy(bandColor = bankColour))
+        }
         // A network rule changed elsewhere (for example Reset to standard): refresh shown errors.
         if (lists.networks != this.lists.networks) {
             next = next.revalidate(Field.NUMBER).revalidate(Field.CVV)
@@ -411,7 +469,20 @@ data class CardFormSession(
         }
     }
 
+    private fun usualLength(network: CardNetwork?): Int {
+        val lengths = network?.let { CardNumberRules.parseLengths(it.lengths) }.orEmpty()
+        return when {
+            lengths.isEmpty() || USUAL_LENGTH in lengths -> USUAL_LENGTH
+            else -> lengths.max()
+        }
+    }
+
     companion object {
+        private const val USUAL_LENGTH = 16
+        private const val EXPIRY_LENGTH = 5
+
+        private fun blocks(error: CardError?): Boolean = error != null && error != CardError.Expired
+
         fun forAdd(
             lists: CardFormLists,
             options: CardFormOptions,
@@ -420,11 +491,7 @@ data class CardFormSession(
         ): CardFormSession {
             val holder = lists.holders.firstOrNull { it.id == preferredHolderId }
                 ?: lists.holders.firstOrNull()
-            val form = CardFormModel(
-                mode = CardFormMode.ADD,
-                holderId = holder?.id,
-                bandColor = BandColor.NAVY
-            )
+            val form = CardFormModel(mode = CardFormMode.ADD, holderId = holder?.id)
             return CardFormSession(
                 form = form,
                 lists = lists,

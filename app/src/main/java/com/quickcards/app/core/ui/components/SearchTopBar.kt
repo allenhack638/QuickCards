@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import com.quickcards.app.R
 import com.quickcards.app.core.security.AppLockController
@@ -85,7 +86,7 @@ fun SearchTopBar(
             Box(modifier = Modifier.weight(1f)) {
                 if (value.text.isEmpty()) {
                     Text(
-                        text = stringResource(R.string.cards_search_placeholder_tags),
+                        text = stringResource(R.string.cards_search_placeholder),
                         style = QcText.F3,
                         color = colors.inkPh,
                         maxLines = 1
@@ -99,8 +100,9 @@ fun SearchTopBar(
                         onQueryChange(it.text)
                     },
                     singleLine = true,
-                    // Searches can hold card digits; keep them out of the keyboard's suggestions.
-                    keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
+                    // Searches can hold card digits. A password-class input is the only IME hint that turns
+                    // off suggestions and learning on every keyboard; the text itself stays visible.
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
                     textStyle = QcText.F3.copy(color = colors.ink),
                     cursorBrush = SolidColor(colors.accent),
                     modifier = Modifier

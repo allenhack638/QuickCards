@@ -1,1035 +1,515 @@
 package com.quickcards.app.core.ui.components
 
-import android.os.Build
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.Dp
-import androidx.compose.foundation.layout.width
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.res.pluralStringResource
-import android.view.HapticFeedbackConstants
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.PathOperation
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.quickcards.app.R
-import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.art.ArtKind
-import com.quickcards.app.core.ui.art.cardArt
+import com.quickcards.app.core.ui.art.CardArt
 import com.quickcards.app.core.ui.theme.PassColors
-import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
-import com.quickcards.app.core.ui.theme.QcType
-import com.quickcards.domain.CardNumberRules
+import com.quickcards.app.core.ui.theme.QcMotion
+import com.quickcards.app.core.ui.theme.QcShapes
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.domain.CardStatus
 import com.quickcards.domain.ExpiryState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.util.Locale
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 
 enum class PassField { NUMBER, EXPIRY, CVV, NAME }
 
-private val FieldShape = RoundedCornerShape(QcDimens.PassFieldCopyTarget)
-private val FieldValueSpacingMasked = 0.18.em
-
-private val TypePillStyle = TextStyle(
-    fontSize = 10.sp,
-    lineHeight = 14.sp,
-    fontWeight = FontWeight(600),
-    letterSpacing = 0.08.em
-)
-
-private val ExpiredChipStyle = QcType.Label.copy(
-    fontSize = 10.sp,
-    lineHeight = 14.sp,
-    fontWeight = FontWeight(700),
-    letterSpacing = 0.06.em
-)
-
+/**
+ * The Home tile: card art with bank (+ pin), "Type · Holder" and the one status chip, an
+ * optional two-line note and tags, then "•• last4  MM/YY" with the Copy pill on its centre line
+ * and an optional bill-due strip. The body opens the card ([onOpen]) and a hold opens its actions
+ * ([onActions]); Copy, the note and Mark paid sit above the body as their own targets.
+ * Null callbacks make a static illustration.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun PassCard(
     card: HomeCard,
-    maskNumbers: Boolean,
-    tagsShow: Boolean,
     modifier: Modifier = Modifier,
-    onCopy: suspend (PassField) -> Boolean = { false },
-    onReveal: suspend (PassField) -> Boolean = { false },
-    onActions: () -> Unit = {},
-    preview: Boolean = false,
-    compact: Boolean = false,
-    expiryState: ExpiryState? = null,
-    needsReview: Boolean = false,
-    archivedLabel: String? = null,
+    status: CardStatus? = null,
+    archiveReason: String? = null,
     note: String? = null,
-    showNote: Boolean = false,
-    onCopyNote: suspend () -> Boolean = { false },
-    dueInDays: Int? = null,
-    onMarkPaid: () -> Unit = {}
+    tags: List<String> = emptyList(),
+    dueText: String? = null,
+    copied: Boolean = false,
+    copyEnabled: Boolean = true,
+    onOpen: (() -> Unit)? = null,
+    onActions: (() -> Unit)? = null,
+    onCopy: (() -> Unit)? = null,
+    onCopyNote: (() -> Unit)? = null,
+    onMarkPaid: (() -> Unit)? = null
 ) {
-    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val expired = expiryState == ExpiryState.EXPIRED
+    val expired = card.expiryState == ExpiryState.EXPIRED
+    val last4 = card.card.number.takeLast(4)
     val hue = remember(card.card.bandColor, expired) { PassColors.hue(card.card.bandColor, expired) }
-    val noteText = note?.takeIf { showNote && it.isNotBlank() }
-    val density = LocalDensity.current
-    val envelope = LocalViewConfiguration.current
-    val isUnlocked by UnlockSession.isUnlocked.collectAsState()
-
-    val showArchived = !archivedLabel.isNullOrBlank()
-    val showExpired = !showArchived && expired
-    val showSoon = !showArchived && !showExpired &&
-        expiryState == ExpiryState.EXPIRES_SOON
-    val showReview = !showArchived && !showExpired && !showSoon && needsReview
-    // The due strip is separate from the one-at-a-time status label so a bill never hides
-    // "Expired" or "Expires soon"; previews and archived cards never show it.
-    val showDue = !preview && !showArchived && dueInDays != null
-
-    CompositionLocalProvider(
-        LocalViewConfiguration provides LongPressViewConfiguration(envelope)
-    ) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .cardArt(hue, ArtKind.TILE, expired, dark)
-        ) {
-            Band(
-                card = card,
-                dark = dark,
-                preview = preview,
-                onActions = onActions
-            )
-
-            BoxWithConstraints(
-                modifier = Modifier.padding(
-                    start = QcDimens.PassFieldInset,
-                    end = QcDimens.PassFieldInset,
-                    top = QcDimens.PassSectionTop,
-                    bottom = QcDimens.PassSectionBottomNumber
-                )
-            ) {
-                val narrowNumber = maxWidth < 252.dp
-                val masked = maskNumbers && !preview
-                val numberText = when {
-                    preview && card.card.number.isBlank() ->
-                        if (narrowNumber) {
-                            stringResource(R.string.cards_pass_placeholder_narrow)
-                        } else {
-                            stringResource(R.string.cards_pass_placeholder_full)
-                        }
-                    masked && narrowNumber ->
-                        stringResource(
-                            R.string.cards_pass_masked_narrow,
-                            card.card.number.takeLast(4)
-                        )
-                    masked -> CardNumberRules.format(card.card.number, card.network, masked = true)
-                    else -> CardNumberRules.format(card.card.number, card.network, masked = false)
-                }
-                val hiddenReveal = if (masked) {
-                    CardNumberRules.format(card.card.number, card.network, masked = false)
-                } else {
-                    null
-                }
-                PassCopyField(
-                    label = stringResource(R.string.cards_field_number),
-                    value = numberText,
-                    valueStyle = if (masked) QcType.PassNumberMasked else QcType.PassNumber,
-                    revealedValue = hiddenReveal,
-                    hidden = masked,
-                    canReveal = !preview,
-                    isUnlocked = isUnlocked,
-                    interactive = !preview,
-                    placeholder = preview && card.card.number.isBlank(),
-                    trailing = if (!card.typeName.isNullOrBlank()) {
-                        {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                TypePill(card.typeName.orEmpty())
-                            }
-                        }
-                    } else {
-                        null
-                    },
-                    copiedTint = hue.c2,
-                    onCopy = { onCopy(PassField.NUMBER) },
-                    onReveal = { onReveal(PassField.NUMBER) }
-                )
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val openLabel = buildString {
+        append(
+            if (status == null) {
+                stringResource(R.string.cards_a11y_tile, card.bankName, last4)
+            } else {
+                stringResource(R.string.cards_a11y_tile_status, card.bankName, last4, spokenStatus(status, archiveReason))
             }
+        )
+        if (dueText != null) append(", ").append(dueText)
+        if (onActions != null) append(". ").append(stringResource(R.string.cards_a11y_hold_hint))
+    }
+    val actionsLabel = stringResource(R.string.cards_a11y_card_actions)
 
-            if (!compact) {
-            BoxWithConstraints(
+    CardArt(band = card.card.bandColor, modifier = modifier.fillMaxWidth(), kind = ArtKind.TILE, expired = expired) {
+        if (onOpen != null) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .outset(ArtPad)
+                    .combinedClickable(
+                        interactionSource = interaction,
+                        indication = null,
+                        onLongClickLabel = actionsLabel,
+                        onClick = onOpen,
+                        onLongClick = onActions
+                    )
+                    .background(if (pressed) PassColors.OnArtPressed else Color.Transparent)
+                    .clearAndSetSemantics {
+                        contentDescription = openLabel
+                        role = Role.Button
+                        onClick { onOpen(); true }
+                        if (onActions != null) {
+                            onLongClick(actionsLabel) { onActions(); true }
+                            customActions = listOf(CustomAccessibilityAction(actionsLabel) { onActions(); true })
+                        }
+                    }
+            )
+        }
+        Column(modifier = Modifier.fillMaxWidth()) {
+            PassHead(card = card, status = status, archiveReason = archiveReason)
+            if (note != null) {
+                PassNote(note = note, onOpen = onOpen, onCopyNote = onCopyNote)
+            }
+            if (tags.isNotEmpty()) {
+                FlowRow(
+                    modifier = Modifier.padding(top = QcSpacing.s2),
+                    horizontalArrangement = Arrangement.spacedBy(QcSpacing.s2),
+                    verticalArrangement = Arrangement.spacedBy(QcSpacing.s2)
+                ) {
+                    tags.forEach { PassTag(it) }
+                }
+            }
+            Spacer(Modifier.size(if (note != null || tags.isNotEmpty()) QcSpacing.s4 else QcSpacing.s6))
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = QcDimens.PassFieldInset,
-                        end = QcDimens.PassFieldInset,
-                        top = QcDimens.Base,
-                        bottom = QcDimens.PassDetailsBottom
-                    )
+                    .heightIn(min = QcSize.ctl),
+                horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val adaptive = maxWidth < 340.dp
-                val dense = maxWidth < 252.dp
-                val expiryPlaceholder = stringResource(R.string.cards_pass_expiry_placeholder)
-                val namePlaceholder = stringResource(R.string.cards_pass_name_placeholder)
-                val valueStyle = when {
-                    maxWidth < 221.dp -> QcType.StubValue.copy(
-                        fontSize = 12.sp,
-                        lineHeight = 18.sp,
-                        letterSpacing = 0.em
-                    )
-                    dense -> QcType.StubValue.copy(
-                        fontSize = 13.sp,
-                        lineHeight = 20.sp,
-                        letterSpacing = 0.em
-                    )
-                    else -> QcType.StubValue
-                }
-                val holderName = card.holderName.ifBlank { card.card.nameOnCard }
-                    .uppercase(Locale.ROOT)
-                val expiryShown = card.card.expiry.ifBlank { expiryPlaceholder }
-                val expiryDescription = when (expiryState) {
-                    ExpiryState.EXPIRED -> stringResource(
-                        R.string.cards_a11y_expiry_expired,
-                        expiryShown
-                    )
-                    ExpiryState.EXPIRES_SOON -> stringResource(
-                        R.string.cards_a11y_expiry_soon,
-                        expiryShown
-                    )
-                    else -> null
-                }
-                // Expiry and CVV keep their natural width when space is short; only the name ellipsises.
-                val expiryWeight = if (dense) 1f else if (adaptive) 0.85f else 1f
-                val cvvWeight = if (dense) 0.62f else if (adaptive) 0.55f else 1f
-                val nameWeight = if (dense) 2.0f else if (adaptive) 2.2f else 1.45f
-                val measurer = rememberTextMeasurer()
-                val copiedLabel = stringResource(R.string.cards_pass_copied)
-                val expiryLabel = stringResource(R.string.cards_field_expiry).uppercase(Locale.ROOT)
-                val cvvLabel = stringResource(R.string.cards_field_cvv).uppercase(Locale.ROOT)
-                val density = LocalDensity.current
-                fun natural(value: String, valueStyleUsed: TextStyle, label: String): Dp = with(density) {
-                    val v = measurer.measure(value, valueStyleUsed).size.width
-                    val l = measurer.measure(label, QcType.FieldLabel).size.width
-                    val c = measurer.measure(copiedLabel, QcType.FieldLabel).size.width +
-                        (QcDimens.IconTiny + QcDimens.Half).roundToPx()
-                    maxOf(v, l, c).toDp() + QcDimens.PassFieldInset * 2
-                }
-                val expiryNeeded = natural("00/00", valueStyle, expiryLabel)
-                val cvvNeeded = natural(
-                    "•".repeat(4),
-                    valueStyle.copy(letterSpacing = FieldValueSpacingMasked),
-                    cvvLabel
+                PassDigits(
+                    last4 = last4,
+                    expiry = card.card.expiry,
+                    expired = expired,
+                    modifier = Modifier.weight(1f)
                 )
-                val total = expiryWeight + cvvWeight + nameWeight
-                val natural = maxWidth * (expiryWeight / total) < expiryNeeded ||
-                    maxWidth * (cvvWeight / total) < cvvNeeded
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    val expiryWidth = if (natural) Modifier.width(expiryNeeded) else Modifier.weight(expiryWeight)
-                    val cvvWidth = if (natural) Modifier.width(cvvNeeded) else Modifier.weight(cvvWeight)
-                    PassCopyField(
-                        modifier = expiryWidth,
-                        label = stringResource(R.string.cards_field_expiry),
-                        value = expiryShown,
-                        valueStyle = valueStyle,
-                        revealedValue = null,
-                        hidden = false,
-                        canReveal = false,
-                        isUnlocked = isUnlocked,
-                        interactive = !preview,
-                        placeholder = preview && card.card.expiry.isBlank(),
-                        dense = dense,
-                        valueTint = if (expired) PassColors.OnArtDanger else null,
-                        copiedTint = hue.c2,
-                        accessibilityOverride = expiryDescription,
-                        onCopy = { onCopy(PassField.EXPIRY) },
-                        onReveal = null
-                    )
-                    val cvvLength = card.network?.cvvLength ?: 3
-                    // Some Maestro cards have no CVV: show that plainly, with nothing to copy.
-                    val noCvv = !preview && card.card.cvv.isEmpty()
-                    PassCopyField(
-                        modifier = cvvWidth,
-                        label = stringResource(R.string.cards_field_cvv),
-                        value = if (noCvv) stringResource(R.string.cards_cvv_none) else "•".repeat(cvvLength),
-                        valueStyle = if (noCvv) valueStyle else valueStyle.copy(letterSpacing = FieldValueSpacingMasked),
-                        revealedValue = card.card.cvv,
-                        revealedValueStyle = valueStyle,
-                        hidden = !noCvv,
-                        canReveal = !preview && !noCvv,
-                        isUnlocked = isUnlocked,
-                        interactive = !preview && !noCvv,
-                        placeholder = noCvv,
-                        dense = dense,
-                        copiedTint = hue.c2,
-                        onCopy = { onCopy(PassField.CVV) },
-                        onReveal = { onReveal(PassField.CVV) }
-                    )
-                    PassCopyField(
-                        modifier = Modifier.weight(if (natural) 1f else nameWeight),
-                        label = stringResource(R.string.cards_field_name),
-                        value = holderName.ifBlank { namePlaceholder },
-                        valueStyle = if (adaptive) valueStyle.copy(letterSpacing = 0.em) else valueStyle,
-                        revealedValue = null,
-                        hidden = false,
-                        canReveal = false,
-                        isUnlocked = isUnlocked,
-                        interactive = !preview,
-                        placeholder = preview && holderName.isBlank(),
-                        dense = dense,
-                        copiedTint = hue.c2,
-                        onCopy = { onCopy(PassField.NAME) },
-                        onReveal = null
-                    )
-                }
-            }
-
-            val hasStatus = showArchived || showExpired || showSoon || showReview
-            val hasTags = tagsShow && card.tagNames.isNotEmpty()
-            if (preview || hasTags || hasStatus) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = QcDimens.Gutter,
-                            end = QcDimens.Gutter,
-                            bottom = if (noteText != null || showDue) QcDimens.Base else QcDimens.Gutter
-                        ),
-                    horizontalArrangement = Arrangement.spacedBy(QcDimens.Base),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    FlowRow(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        if (tagsShow) {
-                            card.tagNames.forEach { tag ->
-                                Box(
-                                    modifier = Modifier
-                                        .height(QcDimens.TagHeight)
-                                        .clip(RoundedCornerShape(QcDimens.CornerSm))
-                                        .background(PassColors.OnArtChip)
-                                        .padding(horizontal = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = tag,
-                                        style = QcType.Label,
-                                        color = PassColors.OnArt,
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (hasStatus) {
-                        Box(
-                            modifier = Modifier
-                                .height(QcDimens.TagHeight)
-                                .widthIn(max = QcDimens.PassStatusMax),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            when {
-                                showArchived -> StatusLabel(
-                                    icon = QcIcons.inventory2,
-                                    text = archivedLabel.orEmpty()
-                                )
-                                showExpired -> ExpiredChip()
-                                showReview -> StatusLabel(
-                                    icon = QcIcons.info,
-                                    text = stringResource(R.string.cards_status_check_details)
-                                )
-                                else -> StatusLabel(
-                                    icon = null,
-                                    text = stringResource(R.string.cards_status_expires_soon)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (noteText != null) {
-                PassNote(
-                    cardId = card.id,
-                    note = noteText,
-                    onCopy = onCopyNote
+                CopyPill(
+                    bank = card.bankName,
+                    last4 = last4,
+                    copied = copied,
+                    enabled = copyEnabled && onCopy != null,
+                    tint = hue.c2,
+                    onCopy = onCopy ?: {}
                 )
             }
-
-            if (showDue) {
-                PassDueStrip(
-                    days = dueInDays ?: 0,
-                    onMarkPaid = onMarkPaid
-                )
-            }
+            if (dueText != null) {
+                DueStrip(text = dueText, onMarkPaid = onMarkPaid)
             }
         }
     }
 }
 
+private val ArtPad: Dp = QcSpacing.s4
+
 @Composable
-private fun Band(
-    card: HomeCard,
-    dark: Boolean,
-    preview: Boolean,
-    onActions: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(QcDimens.PassBand)
+private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?) {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val networkId = card.network?.id
+    val hasMark = networkId != null && NetworkMarks.drawable(networkId) != null
+    val meta = listOfNotNull(card.typeName?.takeIf { it.isNotBlank() }, card.holderName.takeIf { it.isNotBlank() })
+        .joinToString(" · ")
+    Column(
+        modifier = Modifier.clearAndSetSemantics { },
+        verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(QcDimens.PassBand)
-                .padding(start = QcDimens.Gutter, end = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = card.bankName,
-                style = QcType.BandBank,
-                color = PassColors.OnArt,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-            if (card.card.pinned) {
-                Icon(
-                    imageVector = QcIcons.pinFilled,
-                    contentDescription = stringResource(R.string.cards_pass_pinned),
-                    tint = PassColors.OnArt,
-                    modifier = Modifier.size(16.dp)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(QcSpacing.s1)
+            ) {
+                Text(
+                    text = card.bankName,
+                    style = QcText.F3Semibold.copy(letterSpacing = (-0.01f).em),
+                    color = PassColors.OnArt,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
+                if (card.card.pinned && !card.card.archived) {
+                    Icon(
+                        imageVector = QcIcons.pinFilled,
+                        contentDescription = stringResource(R.string.cards_pass_pinned),
+                        tint = PassColors.OnArt,
+                        modifier = Modifier
+                            .size(QcSize.iconXs)
+                            .alpha(PIN_ALPHA)
+                    )
+                }
             }
-            val code = card.network?.code.orEmpty()
-            val networkId = card.network?.id
-            if (networkId != null && NetworkMarks.drawable(networkId) != null) {
+            if (hasMark && networkId != null) {
                 NetworkMark(
                     networkId = networkId,
                     contentDescription = card.network?.name,
                     tone = markTone(networkId, onArt = true, dark = dark),
-                    fit = MarkFit.HEAD
+                    fit = MarkFit.HEAD,
+                    modifier = Modifier.bleedVertical(QcSpacing.s1)
                 )
-            } else if (code.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .widthIn(
-                            min = QcDimens.NetworkBadgeMinWidth,
-                            max = QcDimens.NetworkBadgeMaxWidth
-                        )
-                        .height(QcDimens.NetworkMarkBandHeight)
-                        .border(
-                            QcDimens.Divider,
-                            PassColors.OnArtFillRing,
-                            RoundedCornerShape(QcDimens.CornerBandFrame)
-                        )
-                        .padding(horizontal = QcDimens.Base),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = code,
-                        style = QcType.BandNetwork,
-                        color = PassColors.OnArt,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-            if (preview) {
-                Spacer(modifier = Modifier.size(width = QcDimens.PassGap, height = QcDimens.Divider))
-            } else {
-                IconButton(
-                    onClick = onActions,
-                    modifier = Modifier.size(QcDimens.Touch)
-                ) {
-                    Icon(
-                        imageVector = QcIcons.more,
-                        contentDescription = stringResource(R.string.cards_pass_more, card.title),
-                        tint = PassColors.OnArt
-                    )
-                }
+            } else if (!card.network?.code.isNullOrBlank()) {
+                Text(
+                    text = card.network?.code.orEmpty(),
+                    style = QcText.F1Semibold,
+                    color = PassColors.OnArt,
+                    maxLines = 1,
+                    modifier = Modifier.widthIn(max = QcSize.row * 2)
+                )
             }
         }
-    }
-}
-
-@Composable
-private fun TypePill(typeName: String) {
-    Box(
-        modifier = Modifier
-            .wrapContentHeight(unbounded = true)
-            .height(QcDimens.TypePillHeight)
-            .clip(RoundedCornerShape(QcDimens.CornerBadge))
-            .background(PassColors.OnArtFill)
-            .padding(horizontal = QcDimens.Base),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = typeName.uppercase(),
-            style = TypePillStyle,
-            color = PassColors.OnArt,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
-private fun ExpiredChip(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .height(18.dp)
-                .background(PassColors.OnArtChip, RoundedCornerShape(QcDimens.CornerXs))
-                .border(
-                    QcDimens.Divider,
-                    PassColors.OnArtDanger,
-                    RoundedCornerShape(QcDimens.CornerXs)
-                )
-                .padding(start = 4.dp, end = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp)
-        ) {
-            Icon(
-                imageVector = QcIcons.eventBusy,
-                contentDescription = null,
-                tint = PassColors.OnArt,
-                modifier = Modifier.size(16.dp)
-            )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
             Text(
-                text = stringResource(R.string.cards_status_expired).uppercase(Locale.ROOT),
-                style = ExpiredChipStyle,
-                color = PassColors.OnArt,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatusLabel(
-    icon: ImageVector?,
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = PassColors.OnArtSecondary,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-        Text(
-            text = text.uppercase(Locale.ROOT),
-            style = QcType.FieldLabel,
-            color = PassColors.OnArtSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-/** "Bill due in 2 days" with Mark paid, tinted from the card's own band like the type pill. */
-@Composable
-private fun PassDueStrip(days: Int, onMarkPaid: () -> Unit) {
-    val text = when (days) {
-        0 -> stringResource(R.string.cards_due_today)
-        1 -> stringResource(R.string.cards_due_tomorrow)
-        else -> pluralStringResource(R.plurals.cards_due_in_days, days, days)
-    }
-    val markLabel = stringResource(R.string.cards_due_mark_paid_a11y)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = QcDimens.Gutter, end = QcDimens.Gutter, bottom = QcDimens.Gutter)
-            .heightIn(min = QcDimens.Touch)
-            .clip(RoundedCornerShape(QcDimens.CornerMd))
-            .background(PassColors.OnArtFill)
-            .padding(start = QcDimens.PassGap, end = QcDimens.Half),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(QcDimens.Base)
-    ) {
-        Icon(
-            imageVector = QcIcons.payments,
-            contentDescription = null,
-            tint = PassColors.OnArt,
-            modifier = Modifier.size(QcDimens.IconSmall)
-        )
-        Text(
-            text = text,
-            style = QcType.Body.copy(fontWeight = FontWeight(500)),
-            color = PassColors.OnArt,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .weight(1f)
-                .padding(vertical = QcDimens.Base)
-        )
-        TextButton(
-            onClick = onMarkPaid,
-            modifier = Modifier
-                .heightIn(min = QcDimens.Touch)
-                .semantics { contentDescription = markLabel },
-            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                contentColor = PassColors.OnArt
-            )
-        ) {
-            Text(
-                text = stringResource(R.string.cards_due_mark_paid),
-                style = QcType.Label
-            )
-        }
-    }
-}
-
-@Composable
-private fun PassNote(
-    cardId: String,
-    note: String,
-    onCopy: suspend () -> Boolean
-) {
-    val scope = rememberCoroutineScope()
-    val envelope = LocalViewConfiguration.current
-    val noteConfiguration = remember(envelope) {
-        LongPressViewConfiguration(envelope, NoteLongPressMillis)
-    }
-    var expanded by remember(cardId) { mutableStateOf(false) }
-    var overflows by remember(cardId, note) { mutableStateOf(false) }
-    val copyLabel = stringResource(R.string.cards_a11y_copy_note)
-    val moreLabel = stringResource(R.string.cards_note_more)
-    val lessLabel = stringResource(R.string.cards_note_less)
-    val showMoreLabel = stringResource(R.string.cards_a11y_note_more)
-    val showLessLabel = stringResource(R.string.cards_a11y_note_less)
-
-    CompositionLocalProvider(LocalViewConfiguration provides noteConfiguration) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = QcDimens.Gutter,
-                    end = QcDimens.Gutter,
-                    bottom = QcDimens.PassGap
-                )
-        ) {
-            Text(
-                text = note,
-                style = QcType.BodySmall,
+                text = meta,
+                style = QcText.F2,
                 color = PassColors.OnArtSecondary,
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                onTextLayout = { result ->
-                    if (!expanded) overflows = result.hasVisualOverflow
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pointerInput(note) {
-                        detectTapGestures(
-                            onLongPress = { scope.launch { onCopy() } }
-                        )
-                    }
-                    .semantics {
-                        onLongClick(label = copyLabel) {
-                            scope.launch { onCopy() }
-                            true
-                        }
-                    }
+                modifier = Modifier.weight(1f)
             )
-            if (overflows || expanded) {
-                TextButton(
-                    onClick = { expanded = !expanded },
-                    modifier = Modifier
-                        .offset(x = (-12).dp)
-                        .height(QcDimens.Touch),
-                    contentPadding = PaddingValues(horizontal = 12.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                        contentColor = PassColors.OnArt
-                    )
-                ) {
-                    Text(
-                        text = if (expanded) lessLabel else moreLabel,
-                        style = QcType.Label,
-                        modifier = Modifier.semantics {
-                            contentDescription = if (expanded) showLessLabel else showMoreLabel
-                        }
-                    )
-                }
+            if (status != null) {
+                CardStatusChip(status = status, archiveReason = archiveReason)
             }
         }
+    }
+}
+
+@Composable
+private fun spokenStatus(status: CardStatus, archiveReason: String?): String = when (status) {
+    CardStatus.ARCHIVED -> if (archiveReason.isNullOrBlank()) {
+        stringResource(R.string.cards_status_archived)
+    } else {
+        stringResource(R.string.cards_status_archived_reason, archiveReason)
+    }
+    CardStatus.EXPIRED -> stringResource(R.string.cards_status_expired)
+    CardStatus.CHECK -> stringResource(R.string.cards_a11y_status_check)
+    CardStatus.EXPIRES_SOON -> stringResource(R.string.cards_status_expires_soon)
+    CardStatus.LAST_USED -> stringResource(R.string.cards_last_used)
+}
+
+/** Lets a mark overhang its row by [inset] top and bottom, like the prototype's -4 margins. */
+private fun Modifier.bleedVertical(inset: Dp): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    val px = inset.roundToPx()
+    layout(placeable.width, (placeable.height - 2 * px).coerceAtLeast(0)) {
+        placeable.place(0, -px)
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PassCopyField(
-    label: String,
-    value: String,
-    valueStyle: TextStyle,
-    revealedValue: String?,
-    hidden: Boolean,
-    canReveal: Boolean,
-    isUnlocked: Boolean,
-    modifier: Modifier = Modifier,
-    revealedValueStyle: TextStyle = valueStyle,
-    trailing: (@Composable () -> Unit)? = null,
-    interactive: Boolean = true,
-    placeholder: Boolean = false,
-    dense: Boolean = false,
-    valueTint: Color? = null,
-    copiedTint: Color = PassColors.OnArtChip,
-    accessibilityOverride: String? = null,
-    onCopy: suspend () -> Boolean,
-    onReveal: (suspend () -> Boolean)?
-) {
-    val scope = rememberCoroutineScope()
-    val ink = PassColors.OnArt
-    val fieldName = label.lowercase()
-    val copyLabel = stringResource(R.string.cards_a11y_copy_field, fieldName)
-    val showLabel = stringResource(R.string.cards_a11y_show_field, fieldName)
-    var flashing by remember { mutableStateOf(false) }
-    var copied by remember { mutableStateOf(false) }
-    var copyEvent by remember { mutableIntStateOf(0) }
-    var revealed by remember { mutableStateOf(false) }
-    var drainFraction by remember { mutableFloatStateOf(0f) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val pressScale by animateFloatAsState(
-        targetValue = if (pressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-    )
-    val view = LocalView.current
-
-    fun requestCopy() {
-        scope.launch {
-            if (onCopy()) copyEvent++
-        }
-    }
-
-    fun requestReveal() {
-        val reveal = onReveal ?: return
-        if (!canReveal) return
-        scope.launch {
-            if (revealed) return@launch
-            if (reveal()) revealed = true
-        }
-    }
-
-    LaunchedEffect(copyEvent) {
-        if (copyEvent == 0) return@LaunchedEffect
-        view.performHapticFeedback(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                HapticFeedbackConstants.CONFIRM
-            } else {
-                HapticFeedbackConstants.KEYBOARD_TAP
-            }
-        )
-        flashing = true
-        copied = true
-        delay(QcDimens.CopyFlashMillis)
-        flashing = false
-        delay(1020)
-        copied = false
-    }
-
-    // Frame-time based so the 5 s reveal ignores the animator scale: a tween
-    // completes instantly when animations are off and would re-mask at once.
-    LaunchedEffect(revealed) {
-        if (!revealed) {
-            drainFraction = 0f
-            return@LaunchedEffect
-        }
-        drainFraction = 1f
-        val startedAt = withFrameNanos { it }
-        while (true) {
-            val frame = withFrameNanos { it }
-            val elapsedMs = (frame - startedAt) / 1_000_000f
-            drainFraction = (1f - elapsedMs / QcDimens.RevealDurationMillis).coerceIn(0f, 1f)
-            if (elapsedMs >= QcDimens.RevealDurationMillis) {
-                drainFraction = 0f
-                revealed = false
-                break
-            }
-        }
-    }
-
-    LaunchedEffect(isUnlocked) {
-        if (!isUnlocked) {
-            revealed = false
-            drainFraction = 0f
-        }
-    }
-
-    val shownValue = if (revealed && revealedValue != null) revealedValue else value
-    val shownStyle = if (revealed && revealedValue != null) revealedValueStyle else valueStyle
-    val shownHidden = hidden && !revealed
-
-    val accessibility = when {
-        interactive && accessibilityOverride != null -> accessibilityOverride
-        shownHidden && interactive && canReveal ->
-            stringResource(R.string.cards_a11y_field_hidden_reveal, label)
-        !shownHidden && interactive && canReveal ->
-            stringResource(R.string.cards_a11y_field_value_reveal, label, shownValue)
-        shownHidden && interactive ->
-            stringResource(R.string.cards_a11y_field_hidden_action, label)
-        !shownHidden && interactive ->
-            stringResource(R.string.cards_a11y_field_value_action, label, shownValue)
-        shownHidden ->
-            stringResource(R.string.cards_a11y_field_hidden, label)
-        else ->
-            stringResource(R.string.cards_a11y_field_value, label, shownValue)
-    }
-
-    val contentColor = when {
-        flashing -> copiedTint
-        placeholder && !revealed -> PassColors.OnArtSecondary
-        else -> valueTint ?: ink
-    }
-    val labelColor = when {
-        flashing -> copiedTint
-        copied -> ink
-        else -> PassColors.OnArtSecondary
-    }
-    val fieldBackground = when {
-        flashing -> ink
-        pressed -> PassColors.OnArtPressed
-        else -> Color.Transparent
-    }
-
-    Box(
-        modifier = modifier
+private fun PassNote(note: String, onOpen: (() -> Unit)?, onCopyNote: (() -> Unit)?) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val holdLabel = stringResource(R.string.cards_a11y_hold_copy_note)
+    Text(
+        text = note,
+        style = QcText.F2,
+        color = PassColors.OnArtSecondary,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .padding(top = QcSpacing.s2)
             .fillMaxWidth()
-            .defaultMinSize(minHeight = QcDimens.PassStubTarget)
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
-            .clip(FieldShape)
-            .background(fieldBackground)
+            .clip(QcShapes.xs)
+            .background(if (pressed) PassColors.OnArtPressed else Color.Transparent)
             .then(
-                if (interactive) {
-                    Modifier.combinedClickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClickLabel = copyLabel,
-                        onLongClickLabel = if (canReveal) showLabel else null,
-                        onClick = ::requestCopy,
-                        onLongClick = if (canReveal && onReveal != null) {
-                            { requestReveal() }
-                        } else {
-                            null
+                if (onCopyNote != null) {
+                    Modifier
+                        .combinedClickable(
+                            interactionSource = interaction,
+                            indication = null,
+                            onLongClickLabel = holdLabel,
+                            onClick = { onOpen?.invoke() },
+                            onLongClick = onCopyNote
+                        )
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = note
                         }
-                    )
                 } else {
                     Modifier
                 }
             )
-            .clearAndSetSemantics {
-                contentDescription = accessibility
-                if (interactive) {
-                    onClick(label = copyLabel) {
-                        requestCopy()
-                        true
-                    }
-                    if (canReveal && onReveal != null) {
-                        onLongClick(label = showLabel) {
-                            requestReveal()
-                            true
-                        }
-                    }
-                }
-            }
+    )
+}
+
+@Composable
+private fun PassTag(name: String) {
+    Box(
+        modifier = Modifier
+            .heightIn(min = QcSize.ctlSm)
+            .background(PassColors.OnArt.copy(alpha = TAG_FILL), QcShapes.sm)
+            .padding(horizontal = QcSpacing.s2),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier.padding(
-                start = if (dense) QcDimens.PassFieldInsetDense else QcDimens.PassFieldInset,
-                end = if (dense) QcDimens.PassFieldInsetDense else QcDimens.PassFieldInset,
-                top = QcDimens.PassFieldTop,
-                bottom = QcDimens.PassFieldBottom
+        Text(text = name, style = QcText.F1Semibold, color = PassColors.OnArt, maxLines = 1)
+    }
+}
+
+@Composable
+private fun PassDigits(last4: String, expiry: String, expired: Boolean, modifier: Modifier) {
+    Row(modifier = modifier.clearAndSetSemantics { }) {
+        Text(
+            text = DOTS,
+            style = QcText.MonoDotsF4,
+            color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
+            maxLines = 1,
+            modifier = Modifier.alignByBaseline()
+        )
+        Spacer(Modifier.width(QcSpacing.s2))
+        Text(text = last4, style = QcText.MonoF4, color = PassColors.OnArt, maxLines = 1, modifier = Modifier.alignByBaseline())
+        Spacer(Modifier.width(QcSpacing.s3))
+        Text(
+            text = expiry,
+            style = QcText.MonoF3.copy(fontSize = QcText.F2.fontSize),
+            color = if (expired) PassColors.OnArtDanger else PassColors.OnArt,
+            maxLines = 1,
+            modifier = Modifier.alignByBaseline()
+        )
+    }
+}
+
+/** 32 visible, 48 hit. Copied turns white with the card's light stop as ink, in 150 ms. */
+@Composable
+private fun CopyPill(
+    bank: String,
+    last4: String,
+    copied: Boolean,
+    enabled: Boolean,
+    tint: Color,
+    onCopy: () -> Unit
+) {
+    val fill by animateColorAsState(
+        when {
+            copied -> PassColors.OnArt
+            enabled -> PassColors.OnArtFill
+            else -> PassColors.OnArt.copy(alpha = DISABLED_FILL)
+        },
+        tween(QcMotion.STATE_MS)
+    )
+    val ink by animateColorAsState(
+        when {
+            copied -> tint
+            enabled -> PassColors.OnArt
+            else -> PassColors.OnArt.copy(alpha = DISABLED_INK)
+        },
+        tween(QcMotion.STATE_MS)
+    )
+    val ring = when {
+        copied -> Color.Transparent
+        enabled -> PassColors.OnArtFillRing
+        else -> PassColors.OnArt.copy(alpha = DISABLED_RING)
+    }
+    val label = if (copied) {
+        stringResource(R.string.cards_a11y_number_copied, bank)
+    } else {
+        stringResource(R.string.cards_a11y_copy_number, bank, last4)
+    }
+    Box(
+        modifier = Modifier
+            .heightIn(min = QcSize.hit)
+            .clickable(
+                enabled = enabled,
+                interactionSource = null,
+                indication = null,
+                role = Role.Button,
+                onClick = onCopy
             )
+            .clearAndSetSemantics {
+                contentDescription = label
+                role = Role.Button
+                if (enabled) onClick { onCopy(); true } else disabled()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .widthIn(min = QcSpacing.s16 + QcSpacing.s6)
+                .heightIn(min = QcSize.ctl)
+                .then(if (copied) Modifier.shadow(QcSpacing.s1, QcShapes.full) else Modifier)
+                .background(fill, QcShapes.full)
+                .border(QcSize.hairline, ring, QcShapes.full)
+                .padding(start = QcSpacing.s2, end = QcSpacing.s3, top = QcSpacing.s1, bottom = QcSpacing.s1),
+            horizontalArrangement = Arrangement.spacedBy(QcSpacing.s1, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = if (dense) 12.dp else 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (copied) {
-                    Icon(
-                        imageVector = QcIcons.check,
-                        contentDescription = null,
-                        tint = labelColor,
-                        modifier = Modifier.size(QcDimens.IconTiny)
-                    )
-                    Spacer(modifier = Modifier.size(QcDimens.Half))
-                }
-                Text(
-                    text = if (copied) {
-                        stringResource(R.string.cards_pass_copied)
-                    } else {
-                        label.uppercase(Locale.ROOT)
-                    },
-                    style = if (dense) {
-                        QcType.FieldLabel.copy(
-                            fontSize = 9.sp,
-                            lineHeight = 12.sp,
-                            letterSpacing = 0.06.em
-                        )
-                    } else {
-                        QcType.FieldLabel
-                    },
-                    color = labelColor,
-                    maxLines = 1
-                )
-                if (trailing != null) {
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        trailing()
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(QcDimens.PassLabelGap))
-            Text(
-                text = shownValue,
-                style = shownStyle,
-                color = contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth()
+            Icon(
+                imageVector = if (copied) QcIcons.check else QcIcons.copyOutlined,
+                contentDescription = null,
+                tint = ink,
+                modifier = Modifier.size(QcSize.iconSm)
             )
-        }
-        if (canReveal) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(
-                        start = QcDimens.PassFieldInset,
-                        end = QcDimens.PassFieldInset,
-                        bottom = QcDimens.Half
-                    )
-                    .fillMaxWidth()
-                    .height(QcDimens.PassRevealLine)
-                    .drawWithContent {
-                        drawContent()
-                        if (drainFraction > 0f) {
-                            drawRoundRect(
-                                color = ink,
-                                cornerRadius = CornerRadius(1.dp.toPx()),
-                                size = Size(size.width * drainFraction, size.height)
-                            )
-                        }
-                    }
+            Text(
+                text = stringResource(if (copied) R.string.cards_pass_copied else R.string.cards_copy),
+                style = QcText.F2Medium,
+                color = ink,
+                maxLines = 1
             )
         }
     }
 }
 
-private class LongPressViewConfiguration(
-    private val base: ViewConfiguration,
-    private val timeoutMillis: Long = QcDimens.LongPressMillis
-) : ViewConfiguration by base {
-    override val longPressTimeoutMillis: Long = timeoutMillis
+/** "Due in 2 days" + Mark paid, inset 8 from the card edge so Mark paid ends on the Copy pill's edge. */
+@Composable
+private fun DueStrip(text: String, onMarkPaid: (() -> Unit)?) {
+    val markLabel = stringResource(R.string.cards_due_mark_paid_a11y)
+    Row(
+        modifier = Modifier
+            .padding(top = QcSpacing.s6)
+            .bleed(QcSpacing.s2)
+            .fillMaxWidth()
+            .heightIn(min = QcSize.hit)
+            .background(PassColors.OnArt.copy(alpha = DUE_FILL), QcShapes.md)
+            .border(QcSize.hairline, PassColors.OnArt.copy(alpha = DUE_RING), QcShapes.md)
+            .padding(horizontal = QcSpacing.s2),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(QcSpacing.s2)
+    ) {
+        Icon(
+            imageVector = QcIcons.paymentsOutlined,
+            contentDescription = null,
+            tint = PassColors.OnArt,
+            modifier = Modifier.size(QcSize.iconSm)
+        )
+        Text(
+            text = text,
+            style = QcText.F2Medium,
+            color = PassColors.OnArt,
+            maxLines = 1,
+            modifier = Modifier.weight(1f)
+        )
+        if (onMarkPaid != null) {
+            Box(
+                modifier = Modifier
+                    .heightIn(min = QcSize.hit)
+                    .clickable(onClickLabel = markLabel, role = Role.Button, onClick = onMarkPaid)
+                    .semantics { contentDescription = markLabel },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.cards_due_mark_paid),
+                    style = QcText.F2Semibold,
+                    color = PassColors.OnArt,
+                    modifier = Modifier
+                        .heightIn(min = QcSize.ctl)
+                        .background(PassColors.OnArtFill, QcShapes.full)
+                        .border(QcSize.hairline, PassColors.OnArtFillRing, QcShapes.full)
+                        .padding(horizontal = QcSpacing.s3, vertical = QcSpacing.s1 + QcSpacing.s1 / 2)
+                )
+            }
+        }
+    }
 }
 
-private const val NoteLongPressMillis = 500L
+/** Grows the element by [inset] on every side without changing its reported size. */
+private fun Modifier.outset(inset: Dp): Modifier = layout { measurable, constraints ->
+    val px = inset.roundToPx()
+    val placeable = measurable.measure(
+        constraints.copy(
+            minWidth = constraints.minWidth + 2 * px,
+            maxWidth = constraints.maxWidth + 2 * px,
+            minHeight = constraints.minHeight + 2 * px,
+            maxHeight = constraints.maxHeight + 2 * px
+        )
+    )
+    layout(constraints.minWidth, constraints.minHeight) { placeable.place(-px, -px) }
+}
+
+/** Grows the element by [inset] left, right and bottom, like the strip's negative margins. */
+private fun Modifier.bleed(inset: Dp): Modifier = layout { measurable, constraints ->
+    val px = inset.roundToPx()
+    val wide = constraints.copy(
+        minWidth = constraints.minWidth + 2 * px,
+        maxWidth = if (constraints.hasBoundedWidth) constraints.maxWidth + 2 * px else constraints.maxWidth
+    )
+    val placeable = measurable.measure(wide)
+    layout(placeable.width - 2 * px, (placeable.height - px).coerceAtLeast(0)) {
+        placeable.place(-px, 0)
+    }
+}
+
+private const val DOTS = "••"
+private const val DOTS_ALPHA = 0.72f
+private const val PIN_ALPHA = 0.9f
+private const val TAG_FILL = 0.16f
+private const val DUE_FILL = 0.12f
+private const val DUE_RING = 0.20f
+private const val DISABLED_FILL = 0.06f
+private const val DISABLED_INK = 0.5f
+private const val DISABLED_RING = 0.14f

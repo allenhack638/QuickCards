@@ -69,7 +69,7 @@ class BackupEraseImportFlowTest : FlowTestBase() {
         val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
         val bank = runBlocking { app.repository.createBank("HDFC Bank") }
         seedCard(visa, holderId = holder.id, bankId = bank.id)
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
 
         val content = runBlocking {
             BackupSnapshot.capture(
@@ -127,7 +127,7 @@ class BackupEraseImportFlowTest : FlowTestBase() {
         assertEquals(1, result.added)
 
         compose.onNode(hasText("Cards") and isSelectable()).performClick()
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
         val restored = cardsNow().single()
         assertEquals(visa, restored.number)
         assertEquals("12/29", restored.expiry)

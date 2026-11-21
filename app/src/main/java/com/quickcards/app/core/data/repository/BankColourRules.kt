@@ -16,4 +16,11 @@ object BankColourRules {
         if (BankColours.defaultFor(name) != null) return null
         return BankColours.autoPick(banks.mapNotNull(::colourOf))
     }
+
+    /**
+     * The colour the bank editor shows: [current] (picked or stored) when set, else what saving
+     * would give it: the built-in default for a catalog name, otherwise the auto-pick.
+     */
+    fun editorColour(name: String, current: String?, otherBanks: List<Bank>): String =
+        current ?: BankColours.defaultFor(name) ?: BankColours.autoPick(otherBanks.mapNotNull(::colourOf))
 }

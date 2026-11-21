@@ -18,7 +18,6 @@ The full text is available at <https://www.apache.org/licenses/LICENSE-2.0>.
 | Room | `androidx.room:room-runtime`, `room-ktx` (and the `room-compiler` annotation processor at build time) | The Android Open Source Project |
 | Biometric | `androidx.biometric:biometric` | The Android Open Source Project |
 | Gson | `com.google.code.gson:gson` | Google LLC |
-| colorpicker-compose | `com.github.skydoves:colorpicker-compose` | skydoves (Jaewoong Eum) |
 | Kotlin standard library and kotlinx.coroutines | `org.jetbrains.kotlin:kotlin-stdlib`, `org.jetbrains.kotlinx:kotlinx-coroutines-android` | JetBrains s.r.o. and Kotlin contributors |
 
 ## SIL Open Font License 1.1

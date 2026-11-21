@@ -1,7 +1,12 @@
 package com.quickcards.app.flow
 
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.core.app.ApplicationProvider
@@ -115,6 +120,31 @@ abstract class FlowTestBase {
                 )
             ).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    /** A Home tile: its spoken name is "<bank>, ending <last4>…"; tap opens, hold opens actions. */
+    protected fun tile(bank: String): SemanticsNodeInteraction =
+        compose.onNode(hasContentDescription("$bank, ending", substring = true) and hasClickAction())
+
+    protected fun awaitTile(bank: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(hasContentDescription("$bank, ending", substring = true) and hasClickAction())
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    protected fun awaitTileGone(bank: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(hasContentDescription("$bank, ending", substring = true) and hasClickAction())
+                .fetchSemanticsNodes().isEmpty()
+        }
+    }
+
+    /** Hold a tile: the card actions sheet. */
+    protected fun openCardActions(bank: String) {
+        awaitTile(bank)
+        tile(bank).performScrollTo().performSemanticsAction(SemanticsActions.OnLongClick)
+        waitForText("Delete")
     }
 
     protected fun field(label: String): SemanticsNodeInteraction =

@@ -168,8 +168,11 @@ class CardValidatorTest {
 
     @Test
     fun expiredAndFarFutureExpiryUseTheRulesCopy() {
-        for (expiry in listOf("", "1/29", "13/29", "00/29", "12-29", "1229", "12/2029")) {
+        for (expiry in listOf("", "1/29", "12-29", "1229", "12/2029")) {
             assertEquals(CardError.ExpiryFormat, errors(draft(expiry = expiry))[Field.EXPIRY])
+        }
+        for (expiry in listOf("13/29", "00/29")) {
+            assertEquals(CardError.ExpiryMonth, errors(draft(expiry = expiry))[Field.EXPIRY])
         }
         assertNull(errors(draft(expiry = "10/26"))[Field.EXPIRY])
         assertNull(errors(draft(expiry = "11/26"))[Field.EXPIRY])

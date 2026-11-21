@@ -73,7 +73,7 @@ fun QcStatusChip(
 
 /**
  * The one inline banner for a fixable screen state: icon 20, one `f3`/600 line, then trailing
- * text actions or a close button. [error] tints only the icon and uses the error container.
+ * text actions or a close button. [error] tints only the icon; the container stays tonal.
  * At large text the actions drop below the line, right-aligned; the text stays by its icon.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -88,11 +88,7 @@ fun QcBanner(
     actions: (@Composable RowScope.() -> Unit)? = null
 ) {
     val colors = QcTheme.colors
-    val container = when {
-        error -> colors.dangerBg
-        LocalQcRaised.current -> colors.tonalHi
-        else -> colors.tonal
-    }
+    val container = if (LocalQcRaised.current) colors.tonalHi else colors.tonal
     FlowRow(
         modifier = modifier
             .fillMaxWidth()

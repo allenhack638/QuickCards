@@ -4,6 +4,8 @@ import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.CardListOrder
 import com.quickcards.domain.CardQuery
+import com.quickcards.domain.CardStatus
+import com.quickcards.domain.CardStatusRules
 import com.quickcards.domain.ExpiredPlacement
 import com.quickcards.domain.ExpiryState
 import com.quickcards.domain.FilterOption
@@ -127,4 +129,20 @@ object CardsListState {
             CardsEmptyNote.NONE
         }
     }
+
+    /** The last [limit] copied cards still on the list, newest first. */
+    fun recentCards(cards: List<HomeCard>, lastCopied: Map<String, Long>, limit: Int = RECENT_LIMIT): List<HomeCard> =
+        cards.filter { !it.card.archived && it.id in lastCopied }
+            .sortedByDescending { lastCopied.getValue(it.id) }
+            .take(limit)
+
+    /** The tile's one chip; Last used never sits beside a due bill. */
+    fun status(card: HomeCard, lastUsedId: String?): CardStatus? = CardStatusRules.of(
+        archived = card.card.archived,
+        expiry = card.expiryState,
+        needsCheck = card.card.needsReview.isNotEmpty(),
+        lastUsed = card.id == lastUsedId && card.dueInDays == null
+    )
+
+    private const val RECENT_LIMIT = 3
 }

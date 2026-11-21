@@ -1,20 +1,22 @@
 package com.quickcards.app.core.ui.components
 
-import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.height
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.model.VaultCard
-import com.quickcards.domain.CardNetwork
-import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
-import org.junit.After
+import com.quickcards.domain.CardNetwork
+import com.quickcards.domain.CardStatus
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -26,101 +28,104 @@ class PassCardTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private val network = CardNetwork(
-        id = "visa",
-        name = "Visa",
-        code = "VISA",
-        prefixes = "4",
-        lengths = "16",
-        cvvLength = 3,
-        luhn = true
-    )
-
     private val card = HomeCard(
-        card = VaultCard(
-            id = "test-card",
-            number = "4532778103492211",
-            expiry = "12/29",
-            cvv = "381",
-            holderId = "holder-1",
-            bankId = "bank-1",
-            networkAuto = true,
-            typeId = "type-1",
-            nameOnCard = "AARAV MEHTA",
-            cardName = "Regalia",
-            bandColor = "navy",
-            sortOrder = 0
-        ),
+        card = VaultCard(id = "hdfc", number = "4532718022990366", expiry = "12/29", cvv = "482", note = NOTE),
         bankName = "HDFC Bank",
         holderName = "Aarav Mehta",
         typeName = "Credit",
-        network = network,
+        network = CardNetwork("visa", "Visa", "VISA", "4", "16", 3, true),
         networkId = "visa",
-        tagNames = listOf("Travel")
+        tagNames = emptyList()
     )
 
-    private val maskedCvv = "CVV, hidden. Tap to copy, hold to show."
-    private val revealedCvv = "CVV, 381. Tap to copy, hold to show."
+    private class Taps {
+        var open = 0
+        var actions = 0
+        var copy = 0
+        var note = 0
+    }
 
-    @After
-    fun tearDown() {
-        UnlockSession.lockNow()
+    private fun show(
+        status: CardStatus? = null,
+        copied: Boolean = false,
+        copyEnabled: Boolean = true,
+        taps: Taps = Taps()
+    ): Taps {
+        compose.setContent {
+            QuickCardsTheme(darkTheme = false) {
+                Box(modifier = Modifier.width(328.dp)) {
+                    PassCard(
+                        card = card,
+                        status = status,
+                        note = NOTE,
+                        copied = copied,
+                        copyEnabled = copyEnabled,
+                        onOpen = { taps.open++ },
+                        onActions = { taps.actions++ },
+                        onCopy = { taps.copy++ },
+                        onCopyNote = { taps.note++ }
+                    )
+                }
+            }
+        }
+        compose.waitForIdle()
+        return taps
     }
 
     @Test
-    fun longPressRevealsCvvThenMasksAfterFiveSeconds() {
-        UnlockSession.unlockFor(60)
-        compose.mainClock.autoAdvance = false
-        compose.setContent {
-            QuickCardsTheme(darkTheme = true) {
-                PassCard(
-                    card = card,
-                    maskNumbers = true,
-                    tagsShow = true,
-                    onCopy = { false },
-                    onReveal = { true },
-                    onActions = {}
-                )
-            }
-        }
-        compose.mainClock.advanceTimeBy(100)
+    fun tapOpensAndHoldOpensActions() {
+        val taps = show()
+        val tile = compose.onNodeWithContentDescription("HDFC Bank, ending 0366. Hold for card actions")
+        tile.performClick()
+        // Hold the bank row: the tile's centre is the note, whose hold copies the note.
+        tile.performTouchInput { longClick(Offset(centerX, height * HEAD_FRACTION)) }
+        compose.waitForIdle()
 
-        compose.onNodeWithContentDescription(maskedCvv).assertExists()
-
-        compose.onNodeWithContentDescription(maskedCvv).performTouchInput {
-            longClick(durationMillis = 600)
-        }
-        compose.mainClock.advanceTimeBy(700)
-
-        compose.onNodeWithContentDescription(revealedCvv).assertExists()
-        compose.onNodeWithText("381", useUnmergedTree = true).assertExists()
-
-        compose.mainClock.advanceTimeBy(5_000)
-
-        compose.onNodeWithContentDescription(maskedCvv).assertExists()
+        assertEquals(1, taps.open)
+        assertEquals(1, taps.actions)
+        assertEquals(0, taps.copy)
     }
 
     @Test
-    fun networkMarkSitsLevelWithTheBankName() {
-        compose.setContent {
-            QuickCardsTheme(darkTheme = true) {
-                PassCard(
-                    card = card,
-                    maskNumbers = true,
-                    tagsShow = true,
-                    onCopy = { false },
-                    onReveal = { true },
-                    onActions = {}
-                )
-            }
-        }
+    fun copyPillIsItsOwnTargetAndCopiesTheNumber() {
+        val taps = show()
+        compose.onNodeWithContentDescription("Copy HDFC Bank card number ending 0366").performClick()
+        compose.waitForIdle()
 
-        val mark = compose.onNodeWithContentDescription("Visa").getUnclippedBoundsInRoot()
-        val bank = compose.onNodeWithText("HDFC Bank").getUnclippedBoundsInRoot()
+        assertEquals(1, taps.copy)
+        assertEquals(0, taps.open)
+    }
 
-        assertEquals(22.dp.value, mark.height.value, 1f)
-        val markCentre = (mark.top.value + mark.bottom.value) / 2f
-        val bankCentre = (bank.top.value + bank.bottom.value) / 2f
-        assertEquals(bankCentre, markCentre, 1f)
+    @Test
+    fun copiedPillSaysCopied() {
+        show(copied = true)
+        compose.onNodeWithContentDescription("HDFC Bank card number copied").assertExists()
+    }
+
+    @Test
+    fun copyIsDisabledWithoutAScreenLock() {
+        show(copyEnabled = false)
+        compose.onNodeWithContentDescription("Copy HDFC Bank card number ending 0366").assertIsNotEnabled()
+    }
+
+    @Test
+    fun statusChipJoinsTheTileName() {
+        show(status = CardStatus.CHECK)
+        compose.onNodeWithContentDescription("HDFC Bank, ending 0366, Check details. Hold for card actions").assertExists()
+    }
+
+    @Test
+    fun holdingTheNoteCopiesIt() {
+        val taps = show()
+        compose.onNodeWithContentDescription(NOTE).performTouchInput { longClick() }
+        compose.waitForIdle()
+
+        assertEquals(1, taps.note)
+        assertEquals(0, taps.actions)
+    }
+
+    private companion object {
+        const val HEAD_FRACTION = 0.12f
+        const val NOTE = "Travel card. 2 free lounge visits a quarter, 1% forex markup. Call the bank before a trip abroad."
     }
 }

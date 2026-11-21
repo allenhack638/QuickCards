@@ -19,6 +19,7 @@ sealed interface CardError {
     data object Luhn : CardError
     data class Duplicate(val title: String, val holderName: String?) : CardError
     data object ExpiryFormat : CardError
+    data object ExpiryMonth : CardError
     data object Expired : CardError
     data object ExpiryYear : CardError
     data class CvvLength(val digits: Int) : CardError
@@ -135,7 +136,8 @@ object CardValidator {
         val match = EXPIRY.matchEntire(expiry)
         val month = match?.groupValues?.get(1)?.toIntOrNull()
         val shortYear = match?.groupValues?.get(2)?.toIntOrNull()
-        if (month == null || shortYear == null || month !in 1..12) return CardError.ExpiryFormat
+        if (month == null || shortYear == null) return CardError.ExpiryFormat
+        if (month !in 1..12) return CardError.ExpiryMonth
 
         val year = 2000 + shortYear
         return when {
