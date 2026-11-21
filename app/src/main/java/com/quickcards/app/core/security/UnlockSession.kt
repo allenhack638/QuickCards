@@ -99,10 +99,8 @@ object UnlockSession {
         reason: String? = null,
         fresh: Boolean = false
     ): Boolean {
-        android.util.Log.e("QCDBG", "requireUnlock window=${isWindowOpen()} locked=${mutex.isLocked}")
         if (!fresh && isWindowOpen()) return true
         return mutex.withLock {
-            android.util.Log.e("QCDBG", "in mutex")
             if (!fresh && isWindowOpen()) return@withLock true
             val seconds = AppSettings.get(activity).copyWindowSec.value
             testAuthenticator?.takeIf { BuildConfig.DEBUG }?.let { stand ->
@@ -121,8 +119,8 @@ object UnlockSession {
                     if (continuation.isActive) continuation.resume(result)
                 }
                 val callback = object : BiometricAuthHelper.AuthenticationCallback {
-                    override fun onAuthenticationSuccess() { android.util.Log.e("QCDBG", "success"); finish(true) }
-                    override fun onAuthenticationError(errorCode: Int, errorMessage: String) { android.util.Log.e("QCDBG", "error $errorCode $errorMessage"); finish(false) }
+                    override fun onAuthenticationSuccess() = finish(true)
+                    override fun onAuthenticationError(errorCode: Int, errorMessage: String) = finish(false)
                     override fun onAuthenticationFailed() {
                         // The system prompt stays open for a retry.
                     }
@@ -134,7 +132,6 @@ object UnlockSession {
                 }
             }
             if (granted) unlockFor(seconds)
-            android.util.Log.e("QCDBG", "granted=$granted")
             granted
         }
     }
