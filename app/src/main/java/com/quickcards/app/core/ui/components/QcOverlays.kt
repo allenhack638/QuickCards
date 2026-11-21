@@ -1,9 +1,12 @@
 package com.quickcards.app.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,20 +25,34 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import com.quickcards.app.core.ui.LocalAppLocked
+import com.quickcards.app.core.ui.theme.LocalQcRaised
 import com.quickcards.app.core.ui.theme.QcDimens
+import com.quickcards.app.core.ui.theme.QcElevation
+import com.quickcards.app.core.ui.theme.QcFilledButton
+import com.quickcards.app.core.ui.theme.QcOutlinedButton
+import com.quickcards.app.core.ui.theme.QcShapes
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTheme
+import com.quickcards.app.core.ui.theme.QcTonalButton
 import com.quickcards.app.core.ui.trackAppLockInteraction
 
 /** The only bottom sheet; its built-in lock guard means a sheet never outlives the lock. */
@@ -44,7 +61,7 @@ import com.quickcards.app.core.ui.trackAppLockInteraction
 fun QcModalBottomSheet(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -57,9 +74,11 @@ fun QcModalBottomSheet(
     val dismiss = remember { { latestDismiss() } }
     val stableContent: @Composable ColumnScope.() -> Unit = remember {
         {
-            Column(modifier = Modifier.fillMaxWidth().trackAppLockInteraction()) {
-                SecureOverlayWindow()
-                latestContent()
+            CompositionLocalProvider(LocalQcRaised provides true) {
+                Column(modifier = Modifier.fillMaxWidth().trackAppLockInteraction()) {
+                    SecureOverlayWindow()
+                    latestContent()
+                }
             }
         }
     }
@@ -67,7 +86,11 @@ fun QcModalBottomSheet(
         onDismissRequest = dismiss,
         modifier = modifier,
         sheetState = sheetState,
+        shape = QcShapes.sheet,
         containerColor = containerColor,
+        contentColor = QcTheme.colors.ink,
+        tonalElevation = 0.dp,
+        scrimColor = QcTheme.colors.scrim,
         dragHandle = { QcSheetDragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets.union(WindowInsets.ime) },
         properties = ModalBottomSheetProperties(),
@@ -75,7 +98,7 @@ fun QcModalBottomSheet(
     )
 }
 
-/** Compact handle (16 + 4 + 8dp) so a sheet's top spacing matches its bottom. */
+/** Handle zone: 12 above, 32 × 4 bar, 8 below. */
 @Composable
 private fun QcSheetDragHandle() {
     Box(
@@ -83,8 +106,65 @@ private fun QcSheetDragHandle() {
             .padding(top = QcDimens.SheetHandleTop, bottom = QcDimens.SheetHandleBottom)
             .size(width = QcDimens.SheetHandleWidth, height = QcDimens.SheetHandleHeight)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+            .background(QcTheme.colors.outline.copy(alpha = 0.5f))
     )
+}
+
+/**
+ * Sheet footer, 24 below the content and 16 above the gesture area. A lone [primary] is a
+ * full-width tonal button (Done); with a [secondary] (Cancel, outlined) the primary is filled
+ * brand. [note] names what a disabled primary is missing, in one line above it.
+ */
+@Composable
+fun QcSheetActions(
+    primary: String?,
+    onPrimary: () -> Unit,
+    modifier: Modifier = Modifier,
+    secondary: String? = null,
+    onSecondary: () -> Unit = {},
+    primaryEnabled: Boolean = true,
+    filled: Boolean = secondary != null,
+    note: String? = null,
+    stack: Boolean = false,
+    sideInset: Dp = QcSpacing.s6
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = sideInset, end = sideInset, top = QcSpacing.s6, bottom = QcSpacing.s4),
+        verticalArrangement = Arrangement.spacedBy(QcSpacing.s2)
+    ) {
+        if (note != null) {
+            Text(
+                text = note,
+                style = QcText.F2,
+                color = QcTheme.colors.ink2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        val primaryButton: @Composable (Modifier) -> Unit = { buttonModifier ->
+            if (primary != null) {
+                if (filled) {
+                    QcFilledButton(primary, onPrimary, buttonModifier, primaryEnabled, large = true)
+                } else {
+                    QcTonalButton(primary, onPrimary, buttonModifier, primaryEnabled, large = true)
+                }
+            }
+        }
+        val secondaryButton: @Composable (Modifier) -> Unit = { buttonModifier ->
+            if (secondary != null) QcOutlinedButton(secondary, onSecondary, buttonModifier, large = true)
+        }
+        if (stack) {
+            primaryButton(Modifier.fillMaxWidth())
+            secondaryButton(Modifier.fillMaxWidth())
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
+                secondaryButton(Modifier.weight(1f))
+                primaryButton(Modifier.weight(1f))
+            }
+        }
+    }
 }
 
 /** The only dropdown menu in the app, with the same built-in lock guard. */
@@ -99,6 +179,7 @@ fun QcDropdownMenu(
     content: @Composable ColumnScope.() -> Unit
 ) {
     if (!expanded || LocalAppLocked.current) return
+    val colors = QcTheme.colors
     DropdownMenu(
         expanded = true,
         onDismissRequest = onDismissRequest,
@@ -106,9 +187,14 @@ fun QcDropdownMenu(
         offset = offset,
         scrollState = scrollState,
         properties = properties,
+        shape = QcShapes.md,
+        containerColor = colors.surfaceHi,
+        tonalElevation = 0.dp,
+        shadowElevation = if (colors.dark) 0.dp else QcElevation.e2,
+        border = if (colors.dark) BorderStroke(QcSize.hairline, Color.White.copy(alpha = 0.06f)) else null,
         content = {
             SecureOverlayWindow()
-            content()
+            CompositionLocalProvider(LocalQcRaised provides true) { content() }
         }
     )
 }

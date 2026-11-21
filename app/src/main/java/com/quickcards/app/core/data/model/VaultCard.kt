@@ -21,6 +21,8 @@ data class VaultCard(
     val note: String = "",
     val dueDay: Int? = null,
     val bandColor: String = BandColor.NAVY,
+    /** False: [bandColor] follows the bank's colour. True: chosen by hand ("Bank colour" resets it). */
+    val bandColorManual: Boolean = false,
     val sortOrder: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = createdAt,

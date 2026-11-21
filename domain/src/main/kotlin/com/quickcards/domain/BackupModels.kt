@@ -27,7 +27,9 @@ data class BackupNamed(
 data class BackupBank(
     val id: String,
     val name: String,
-    val mono: String = ""
+    val mono: String = "",
+    /** Palette key or `#RRGGBB`; null (and every older backup) means the built-in default. */
+    val color: String? = null
 )
 
 data class BackupNetwork(
@@ -58,6 +60,8 @@ data class BackupCard(
     /** Payment due day of the month; older backups omit it. */
     val dueDay: Int? = null,
     val color: String = "navy",
+    /** False when the card follows its bank's colour; older backups always kept the card's own. */
+    val colorManual: Boolean = true,
     val tagIds: List<String> = emptyList(),
     val sortOrder: Int = 0,
     val pinned: Boolean = false,

@@ -40,6 +40,9 @@ data class Card(
     val nameOnCard: String = "",
     @ColumnInfo(defaultValue = "'navy'")
     val bandColor: String = "navy",
+    /** True when [bandColor] was chosen by hand; otherwise it follows the bank's colour. */
+    @ColumnInfo(defaultValue = "0")
+    val bandColorManual: Boolean = false,
     @ColumnInfo(defaultValue = "0")
     val sortOrder: Int = 0,
     @ColumnInfo(defaultValue = "0")

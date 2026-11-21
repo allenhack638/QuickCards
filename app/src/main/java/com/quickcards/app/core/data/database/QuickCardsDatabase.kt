@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
         CardTag::class,
         CardRepairEntity::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = true
 )
 abstract class QuickCardsDatabase : RoomDatabase() {
@@ -221,6 +221,21 @@ abstract class QuickCardsDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Bank default colours. Every existing card keeps its look: its colour counts as chosen
+         * by hand. A null bank colour means the bank's built-in default.
+         */
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `banks` ADD COLUMN `color` TEXT")
+                database.execSQL("ALTER TABLE `cards` ADD COLUMN `bandColorManual` INTEGER NOT NULL DEFAULT 0")
+                database.execSQL(
+                    "UPDATE `cards` SET `bandColorManual` = 1 " +
+                        "WHERE `bandColor` IS NOT NULL OR `cardColor` IS NOT NULL"
+                )
+            }
+        }
+
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `cards` ADD COLUMN `archived` INTEGER NOT NULL DEFAULT 0")
@@ -304,7 +319,8 @@ abstract class QuickCardsDatabase : RoomDatabase() {
                         MIGRATION_10_11,
                         MIGRATION_11_12,
                         MIGRATION_12_13,
-                        MIGRATION_13_14
+                        MIGRATION_13_14,
+                        MIGRATION_14_15
                     )
                     .build()
                 INSTANCE = instance

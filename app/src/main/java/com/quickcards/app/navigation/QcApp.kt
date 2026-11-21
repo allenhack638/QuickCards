@@ -45,7 +45,6 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,10 +59,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
@@ -88,6 +84,7 @@ import com.quickcards.app.feature.cardform.CardFormScreen
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.update.AppUpdatePrompts
 import com.quickcards.app.core.update.AppUpdates
+import com.quickcards.app.core.ui.components.QcSnackbarHost
 import com.quickcards.app.core.ui.components.SnackbarController
 import com.quickcards.app.feature.cards.HomeScreen
 import com.quickcards.app.feature.cards.HomeViewModel
@@ -210,7 +207,7 @@ fun QcApp() {
                 containerColor = MaterialTheme.colorScheme.background,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 snackbarHost = {
-                    SnackbarHost(
+                    QcSnackbarHost(
                         hostState = snackbarHostState,
                         modifier = if (bottomBarVisible) {
                             Modifier.padding(
@@ -219,12 +216,7 @@ fun QcApp() {
                         } else {
                             Modifier.navigationBarsPadding()
                         }
-                    ) { data ->
-                        androidx.compose.material3.Snackbar(
-                            snackbarData = data,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
-                        )
-                    }
+                    )
                 }
             ) { padding ->
                 // Tabs reserve the bar height themselves so centred content does not jump

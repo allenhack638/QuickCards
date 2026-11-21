@@ -99,7 +99,8 @@ import androidx.compose.ui.unit.sp
 import com.quickcards.app.R
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.HomeCard
-import com.quickcards.app.core.ui.theme.ExpiredPassColors
+import com.quickcards.app.core.ui.art.ArtKind
+import com.quickcards.app.core.ui.art.cardArt
 import com.quickcards.app.core.ui.theme.PassColors
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
@@ -156,11 +157,7 @@ fun PassCard(
 ) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val expired = expiryState == ExpiryState.EXPIRED
-    val expiredColors = PassColors.expired(dark)
-    val brandBand = PassColors.band(card.card.bandColor)
-    val band = if (expired) expiredColors.band else brandBand
-    val body = if (expired) expiredColors.body else PassColors.bodyTint(brandBand, dark)
-    val edge = if (expired) expiredColors.edge else PassColors.edge(brandBand, dark)
+    val hue = remember(card.card.bandColor, expired) { PassColors.hue(card.card.bandColor, expired) }
     val noteText = note?.takeIf { showNote && it.isNotBlank() }
     val density = LocalDensity.current
     val envelope = LocalViewConfiguration.current
@@ -175,66 +172,19 @@ fun PassCard(
     // "Expired" or "Expires soon"; previews and archived cards never show it.
     val showDue = !preview && !showArchived && dueInDays != null
 
-    var notchY by remember { mutableFloatStateOf(0f) }
-    val cornerPx = with(density) { QcDimens.PassCorner.toPx() }
-    val notchRadiusPx = with(density) { QcDimens.PassNotch.toPx() }
-    val effectiveNotchY = if (notchY > 0f) notchY else with(density) { 124.dp.toPx() }
-    val roundedShape = remember { RoundedCornerShape(QcDimens.PassCorner) }
-    val shape: Shape = if (compact) {
-        roundedShape
-    } else {
-        remember(effectiveNotchY, cornerPx, notchRadiusPx) {
-            NotchedPassShape(effectiveNotchY, cornerPx, notchRadiusPx)
-        }
-    }
-    val shadowColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-
     CompositionLocalProvider(
         LocalViewConfiguration provides LongPressViewConfiguration(envelope)
     ) {
         Column(
             modifier = modifier
                 .fillMaxWidth()
-                .then(
-                    if (dark) {
-                        Modifier
-                    } else {
-                        Modifier.shadow(
-                            elevation = 3.dp,
-                            shape = shape,
-                            clip = false,
-                            ambientColor = shadowColor,
-                            spotColor = shadowColor
-                        )
-                    }
-                )
-                .clip(shape)
-                .background(body)
-                .drawWithContent {
-                    drawContent()
-                    val outline = shape.createOutline(size, layoutDirection, this)
-                    if (outline is androidx.compose.ui.graphics.Outline.Generic) {
-                        drawPath(
-                            path = outline.path,
-                            color = edge,
-                            style = Stroke(width = 1.dp.toPx())
-                        )
-                    } else {
-                        drawRoundRect(
-                            color = edge,
-                            cornerRadius = CornerRadius(cornerPx),
-                            style = Stroke(width = 1.dp.toPx())
-                        )
-                    }
-                }
+                .cardArt(hue, ArtKind.TILE, expired, dark)
         ) {
             Band(
                 card = card,
-                band = band,
                 dark = dark,
                 preview = preview,
-                onActions = onActions,
-                expiredColors = if (expired) expiredColors else null
+                onActions = onActions
             )
 
             BoxWithConstraints(
@@ -283,51 +233,19 @@ fun PassCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.CenterEnd
                             ) {
-                                TypePill(card.typeName.orEmpty(), band, dark)
+                                TypePill(card.typeName.orEmpty())
                             }
                         }
                     } else {
                         null
                     },
+                    copiedTint = hue.c2,
                     onCopy = { onCopy(PassField.NUMBER) },
                     onReveal = { onReveal(PassField.NUMBER) }
                 )
             }
 
             if (!compact) {
-            var notchMeasured by remember { mutableStateOf(false) }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = QcDimens.PassPerforationInset)
-                    .padding(top = QcDimens.Base)
-                    .height(QcDimens.PassPerforation)
-                    .drawBehind {
-                        val dash = 4.dp.toPx()
-                        drawPath(
-                            path = Path().apply {
-                                moveTo(0f, size.height / 2f)
-                                lineTo(size.width, size.height / 2f)
-                            },
-                            color = PassColors.perforation(dark),
-                            style = Stroke(
-                                width = size.height,
-                                pathEffect = PathEffect.dashPathEffect(
-                                    floatArrayOf(dash, dash),
-                                    0f
-                                )
-                            )
-                        )
-                    }
-                    .onGloballyPositioned { coordinates ->
-                        val measured = coordinates.positionInParent().y + coordinates.size.height / 2f
-                        if (!notchMeasured || kotlin.math.abs(notchY - measured) > 0.5f) {
-                            notchY = measured
-                            notchMeasured = true
-                        }
-                    }
-            )
-
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -409,6 +327,8 @@ fun PassCard(
                         interactive = !preview,
                         placeholder = preview && card.card.expiry.isBlank(),
                         dense = dense,
+                        valueTint = if (expired) PassColors.OnArtDanger else null,
+                        copiedTint = hue.c2,
                         accessibilityOverride = expiryDescription,
                         onCopy = { onCopy(PassField.EXPIRY) },
                         onReveal = null
@@ -429,6 +349,7 @@ fun PassCard(
                         interactive = !preview && !noCvv,
                         placeholder = noCvv,
                         dense = dense,
+                        copiedTint = hue.c2,
                         onCopy = { onCopy(PassField.CVV) },
                         onReveal = { onReveal(PassField.CVV) }
                     )
@@ -444,6 +365,7 @@ fun PassCard(
                         interactive = !preview,
                         placeholder = preview && holderName.isBlank(),
                         dense = dense,
+                        copiedTint = hue.c2,
                         onCopy = { onCopy(PassField.NAME) },
                         onReveal = null
                     )
@@ -475,16 +397,14 @@ fun PassCard(
                                     modifier = Modifier
                                         .height(QcDimens.TagHeight)
                                         .clip(RoundedCornerShape(QcDimens.CornerSm))
-                                        .background(
-                                            if (expired) expiredColors.tag else brandBand
-                                        )
+                                        .background(PassColors.OnArtChip)
                                         .padding(horizontal = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = tag,
                                         style = QcType.Label,
-                                        color = Color.White,
+                                        color = PassColors.OnArt,
                                         maxLines = 1
                                     )
                                 }
@@ -529,7 +449,6 @@ fun PassCard(
             if (showDue) {
                 PassDueStrip(
                     days = dueInDays ?: 0,
-                    tint = PassColors.mix(band, 0.26f, dark),
                     onMarkPaid = onMarkPaid
                 )
             }
@@ -541,57 +460,14 @@ fun PassCard(
 @Composable
 private fun Band(
     card: HomeCard,
-    band: Color,
     dark: Boolean,
     preview: Boolean,
-    onActions: () -> Unit,
-    expiredColors: ExpiredPassColors?
+    onActions: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(QcDimens.PassBand)
-            .drawBehind {
-                if (expiredColors != null) {
-                    cssLinearGradient(
-                        118f,
-                        listOf(
-                            0f to band,
-                            0.60f to band,
-                            1f to lerp(band, expiredColors.bandEnd, 0.5f)
-                        )
-                    )
-                    cssLinearGradient(
-                        105f,
-                        listOf(
-                            0f to Color.Transparent,
-                            0.38f to Color.Transparent,
-                            0.52f to expiredColors.sheen,
-                            0.66f to Color.Transparent,
-                            1f to Color.Transparent
-                        )
-                    )
-                } else {
-                    cssLinearGradient(
-                        118f,
-                        listOf(
-                            0f to band,
-                            0.45f to band,
-                            1f to lerp(band, Color.White, 0.22f)
-                        )
-                    )
-                    cssLinearGradient(
-                        105f,
-                        listOf(
-                            0f to Color.Transparent,
-                            0.38f to Color.Transparent,
-                            0.52f to Color.White.copy(alpha = 0.12f),
-                            0.66f to Color.Transparent,
-                            1f to Color.Transparent
-                        )
-                    )
-                }
-            }
     ) {
         Row(
             modifier = Modifier
@@ -604,7 +480,7 @@ private fun Band(
             Text(
                 text = card.bankName,
                 style = QcType.BandBank,
-                color = Color.White,
+                color = PassColors.OnArt,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
@@ -613,20 +489,18 @@ private fun Band(
                 Icon(
                     imageVector = QcIcons.pinFilled,
                     contentDescription = stringResource(R.string.cards_pass_pinned),
-                    tint = Color.White,
+                    tint = PassColors.OnArt,
                     modifier = Modifier.size(16.dp)
                 )
             }
             val code = card.network?.code.orEmpty()
-            val mark = NetworkMarks.drawable(card.network?.id)
-            if (mark != null) {
+            val networkId = card.network?.id
+            if (networkId != null && NetworkMarks.drawable(networkId) != null) {
                 NetworkMark(
-                    resId = mark,
+                    networkId = networkId,
                     contentDescription = card.network?.name,
-                    plate = networkMarkPlate(MarkSurface.BAND, dark),
-                    width = QcDimens.NetworkMarkBandWidth,
-                    height = QcDimens.NetworkMarkBandHeight,
-                    corner = QcDimens.CornerBandFrame
+                    tone = markTone(networkId, onArt = true, dark = dark),
+                    fit = MarkFit.HEAD
                 )
             } else if (code.isNotEmpty()) {
                 Box(
@@ -638,7 +512,7 @@ private fun Band(
                         .height(QcDimens.NetworkMarkBandHeight)
                         .border(
                             QcDimens.Divider,
-                            Color.White.copy(alpha = 0.55f),
+                            PassColors.OnArtFillRing,
                             RoundedCornerShape(QcDimens.CornerBandFrame)
                         )
                         .padding(horizontal = QcDimens.Base),
@@ -647,7 +521,7 @@ private fun Band(
                     Text(
                         text = code,
                         style = QcType.BandNetwork,
-                        color = Color.White,
+                        color = PassColors.OnArt,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -663,7 +537,7 @@ private fun Band(
                     Icon(
                         imageVector = QcIcons.more,
                         contentDescription = stringResource(R.string.cards_pass_more, card.title),
-                        tint = Color.White.copy(alpha = 0.9f)
+                        tint = PassColors.OnArt
                     )
                 }
             }
@@ -672,20 +546,20 @@ private fun Band(
 }
 
 @Composable
-private fun TypePill(typeName: String, band: Color, dark: Boolean) {
+private fun TypePill(typeName: String) {
     Box(
         modifier = Modifier
             .wrapContentHeight(unbounded = true)
             .height(QcDimens.TypePillHeight)
             .clip(RoundedCornerShape(QcDimens.CornerBadge))
-            .background(PassColors.mix(band, 0.26f, dark))
+            .background(PassColors.OnArtFill)
             .padding(horizontal = QcDimens.Base),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = typeName.uppercase(),
             style = TypePillStyle,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = PassColors.OnArt,
             maxLines = 1
         )
     }
@@ -700,10 +574,11 @@ private fun ExpiredChip(modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .height(18.dp)
+                .background(PassColors.OnArtChip, RoundedCornerShape(QcDimens.CornerXs))
                 .border(
                     QcDimens.Divider,
-                    MaterialTheme.colorScheme.outline,
-                    RoundedCornerShape(QcDimens.CornerBadge)
+                    PassColors.OnArtDanger,
+                    RoundedCornerShape(QcDimens.CornerXs)
                 )
                 .padding(start = 4.dp, end = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -712,13 +587,13 @@ private fun ExpiredChip(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = QcIcons.eventBusy,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = PassColors.OnArt,
                 modifier = Modifier.size(16.dp)
             )
             Text(
                 text = stringResource(R.string.cards_status_expired).uppercase(Locale.ROOT),
                 style = ExpiredChipStyle,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = PassColors.OnArt,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -741,14 +616,14 @@ private fun StatusLabel(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = PassColors.OnArtSecondary,
                 modifier = Modifier.size(16.dp)
             )
         }
         Text(
             text = text.uppercase(Locale.ROOT),
             style = QcType.FieldLabel,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = PassColors.OnArtSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -757,7 +632,7 @@ private fun StatusLabel(
 
 /** "Bill due in 2 days" with Mark paid, tinted from the card's own band like the type pill. */
 @Composable
-private fun PassDueStrip(days: Int, tint: Color, onMarkPaid: () -> Unit) {
+private fun PassDueStrip(days: Int, onMarkPaid: () -> Unit) {
     val text = when (days) {
         0 -> stringResource(R.string.cards_due_today)
         1 -> stringResource(R.string.cards_due_tomorrow)
@@ -770,7 +645,7 @@ private fun PassDueStrip(days: Int, tint: Color, onMarkPaid: () -> Unit) {
             .padding(start = QcDimens.Gutter, end = QcDimens.Gutter, bottom = QcDimens.Gutter)
             .heightIn(min = QcDimens.Touch)
             .clip(RoundedCornerShape(QcDimens.CornerMd))
-            .background(tint)
+            .background(PassColors.OnArtFill)
             .padding(start = QcDimens.PassGap, end = QcDimens.Half),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcDimens.Base)
@@ -778,13 +653,13 @@ private fun PassDueStrip(days: Int, tint: Color, onMarkPaid: () -> Unit) {
         Icon(
             imageVector = QcIcons.payments,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface,
+            tint = PassColors.OnArt,
             modifier = Modifier.size(QcDimens.IconSmall)
         )
         Text(
             text = text,
             style = QcType.Body.copy(fontWeight = FontWeight(500)),
-            color = MaterialTheme.colorScheme.onSurface,
+            color = PassColors.OnArt,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
@@ -797,7 +672,7 @@ private fun PassDueStrip(days: Int, tint: Color, onMarkPaid: () -> Unit) {
                 .heightIn(min = QcDimens.Touch)
                 .semantics { contentDescription = markLabel },
             colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface
+                contentColor = PassColors.OnArt
             )
         ) {
             Text(
@@ -840,7 +715,7 @@ private fun PassNote(
             Text(
                 text = note,
                 style = QcType.BodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PassColors.OnArtSecondary,
                 maxLines = if (expanded) Int.MAX_VALUE else 2,
                 overflow = TextOverflow.Ellipsis,
                 onTextLayout = { result ->
@@ -868,7 +743,7 @@ private fun PassNote(
                         .height(QcDimens.Touch),
                     contentPadding = PaddingValues(horizontal = 12.dp),
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
+                        contentColor = PassColors.OnArt
                     )
                 ) {
                     Text(
@@ -900,13 +775,14 @@ private fun PassCopyField(
     interactive: Boolean = true,
     placeholder: Boolean = false,
     dense: Boolean = false,
+    valueTint: Color? = null,
+    copiedTint: Color = PassColors.OnArtChip,
     accessibilityOverride: String? = null,
     onCopy: suspend () -> Boolean,
     onReveal: (suspend () -> Boolean)?
 ) {
     val scope = rememberCoroutineScope()
-    val onSurface = MaterialTheme.colorScheme.onSurface
-    val surface = MaterialTheme.colorScheme.background
+    val ink = PassColors.OnArt
     val fieldName = label.lowercase()
     val copyLabel = stringResource(R.string.cards_a11y_copy_field, fieldName)
     val showLabel = stringResource(R.string.cards_a11y_show_field, fieldName)
@@ -1004,18 +880,18 @@ private fun PassCopyField(
     }
 
     val contentColor = when {
-        flashing -> surface
-        placeholder && !revealed -> MaterialTheme.colorScheme.onSurfaceVariant
-        else -> onSurface
+        flashing -> copiedTint
+        placeholder && !revealed -> PassColors.OnArtSecondary
+        else -> valueTint ?: ink
     }
     val labelColor = when {
-        flashing -> surface
-        copied -> onSurface
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+        flashing -> copiedTint
+        copied -> ink
+        else -> PassColors.OnArtSecondary
     }
     val fieldBackground = when {
-        flashing -> onSurface
-        pressed -> onSurface.copy(alpha = 0.12f)
+        flashing -> ink
+        pressed -> PassColors.OnArtPressed
         else -> Color.Transparent
     }
 
@@ -1138,7 +1014,7 @@ private fun PassCopyField(
                         drawContent()
                         if (drainFraction > 0f) {
                             drawRoundRect(
-                                color = onSurface,
+                                color = ink,
                                 cornerRadius = CornerRadius(1.dp.toPx()),
                                 size = Size(size.width * drainFraction, size.height)
                             )
@@ -1157,51 +1033,3 @@ private class LongPressViewConfiguration(
 }
 
 private const val NoteLongPressMillis = 500L
-
-private class NotchedPassShape(
-    private val notchCenterY: Float,
-    private val cornerRadius: Float,
-    private val notchRadius: Float
-) : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): androidx.compose.ui.graphics.Outline {
-        val body = Path().apply {
-            addRoundRect(
-                RoundRect(
-                    left = 0f,
-                    top = 0f,
-                    right = size.width,
-                    bottom = size.height,
-                    cornerRadius = CornerRadius(cornerRadius)
-                )
-            )
-        }
-        val notches = Path().apply {
-            addOval(Rect(center = Offset(0f, notchCenterY), radius = notchRadius))
-            addOval(Rect(center = Offset(size.width, notchCenterY), radius = notchRadius))
-        }
-        return androidx.compose.ui.graphics.Outline.Generic(
-            Path.combine(PathOperation.Difference, body, notches)
-        )
-    }
-}
-
-private fun DrawScope.cssLinearGradient(angleDegrees: Float, stops: List<Pair<Float, Color>>) {
-    val radians = angleDegrees * PI / 180.0
-    val dx = sin(radians).toFloat()
-    val dy = -cos(radians).toFloat()
-    val length = abs(size.width * dx) + abs(size.height * dy)
-    val center = Offset(size.width / 2f, size.height / 2f)
-    val start = Offset(center.x - dx * length / 2f, center.y - dy * length / 2f)
-    val end = Offset(center.x + dx * length / 2f, center.y + dy * length / 2f)
-    drawRect(
-        brush = Brush.linearGradient(
-            *stops.toTypedArray(),
-            start = start,
-            end = end
-        )
-    )
-}

@@ -55,7 +55,8 @@ To see the prototype running: `cd prototype && python3 -m http.server 8765`, the
 |    security/              EncryptionHelper, PanHasher, ExportCrypto,          |
 |                           UnlockSession, BiometricAuthHelper, ClipboardHelper, |
 |                           AppLockController                                   |
-|    notifications/         CopyCompanionNotifier                               |
+|    notifications/         CardNotifications, CopyCompanionNotifier,           |
+|                           CopyTokenStore, NotificationPermission              |
 |    ui/                    theme (Color/Type/Shape/Dimens/QcIcons), QcDialog/   |
 |                           QcOverlays/QcPickerSheet, LockGate, base activity,  |
 |                           shared components                                   |
@@ -106,7 +107,8 @@ Compose field -> feature ViewModel -> :domain validator/session
 COPY
 PassField tap -> UnlockSession.requireUnlock(activity, reason)
   -> ClipboardHelper.copySensitive(...) -> snackbar
-  -> if the field was the number: CopyCompanionNotifier.notifyCardCopied(...)
+  -> if the field was the number: CardNotifications.numberCopied(card)
+     (first time on 13+: POST_NOTIFICATIONS prompt, once; then CopyCompanionNotifier)
 
 REVEAL
 Hold 450 ms -> UnlockSession.requireUnlock(...) -> show full value with a 5 s drain
@@ -164,7 +166,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals; the clipboard and the notification keep their own timers so a paste into another app works | `core/security/AppLockController.kt` |
 | Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking; `SecureOverlayWindow()` applies `filterTouchesWhenObscured` and (API 31+) `setHideOverlayWindows` to each overlay window | `core/ui/components`, `core/ui/LockGate.kt` |
 | Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+; cleared after the chosen time, by Clear, or by a new copy. The value deliberately survives switching apps so it can be pasted. The timer dies with the process, so the deadline (a keyed HMAC-SHA256 token, never the value) is persisted and an overdue copy is cleared on the first focused read (onWindowFocusChanged). It is not cleared merely because the app went to the background. | `core/security/ClipboardHelper.kt` |
-| Notification | `VISIBILITY_PRIVATE` with a public “Card details hidden” version; no actions; silent, low-importance channel (new id, the old channel is deleted on upgrade); **off by default for fresh installs**; a 2.3 upgrade with no stored key is migrated to on once; turning it on asks for a fresh unlock before the CVV is ever shown | `core/notifications/CopyCompanionNotifier.kt` |
+| Notification | `VISIBILITY_SECRET` (PRIVATE would still show the CVV on a lock screen set to show all content); silent, low-importance channel (new id, the old channel is deleted on upgrade); "Copy expiry" / "Copy CVV" actions carry only a random in-memory token (`CopyTokenStore`) that dies with the notification timeout, a new copy or the process, never a value; **on by default for fresh installs**, existing installs keep their value (a 2.4-2.6 install with no stored key is pinned off, a 2.3 upgrade on); turning it on asks for a fresh unlock; on Android 13+ the permission is asked once on the first number copy (`notif_permission_asked`), then a Settings switch that needs it opens system settings | `core/notifications/` |
 | Screen capture | `FLAG_SECURE` on every activity in release (`BuildConfig.SECURE_WINDOW`); recents screenshot disabled on API 33+; debug deliberately allows QA screenshots | `core/ui/base/BaseActivity.kt` |
 | Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest`. The EmojiCompat initializer is removed in the manifest so the default downloadable-font path cannot run. Play in-app updates (`com.google.android.play:app-update`, `core/update/AppUpdates.kt`) is the one Google library: it binds to the Play Store app over IPC, adds no permission, and fails quietly on non-Play installs. | `AndroidManifest.xml`, `app/build.gradle` |
 | Privacy policy | Bundled as text in Settings › About, so it needs no WebView or network permission; the public copy is `docs/privacy.html` | `feature/settings/PrivacyScreen.kt`, `res/values/strings_privacy.xml` |
@@ -323,7 +325,7 @@ must never be uploaded.
 | `android.permission.BIND_AUTOFILL_SERVICE` (on the service, not requested) | `core/autofill/QuickCardsAutofillService` offers "Search all cards" plus up to five cards (`AutofillChoice`: pinned, recent use from `CardUsage` ids and times, list order). Values are only decrypted after a fresh prompt, in `AutofillAuthActivity` (one card) or `AutofillPickerActivity` (search list, cancelled when the user leaves it). Type-to-narrow filters carry only the first six and last four digits. `onSaveRequest` is a no-op | Off via Settings › "Fill cards in other apps" |
 | `android.permission.NFC` (feature not required) | `core/nfc/NfcCardReader` reads PAN and expiry from a contactless chip while the Add-card "Tap your card" sheet is open; the CVV is never on the chip | Settings › "Add cards by tapping"; the row is hidden without NFC hardware |
 | `android.permission.RECEIVE_BOOT_COMPLETED` | `core/reminders/BootReceiver` re-arms the daily reminder alarm after boot, an app update, or a clock/time-zone change | Each reminder has a Settings switch |
-| `android.permission.POST_NOTIFICATIONS` | Copy companion notification (off by default; API 33+) | Text is private on the lock screen |
+| `android.permission.POST_NOTIFICATIONS` | Copy companion notification and reminders (API 33+: asked once on the first card number copy) | Hidden on the lock screen (copy) / private (reminders) |
 | `android.permission.HIDE_OVERLAY_WINDOWS` | Biometric prompt hardening (API 31+) | No runtime prompt |
 | `android.permission.INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA` | — | **Never present.** No network or camera dependency is declared; `OfflineManifestGuardTest` and `verifyOfflineManifest` parse the merged manifests |
 
@@ -333,7 +335,7 @@ NFC reader instead.
 
 ### Database
 
-- Room database `quickcards_database`, **version 14**, `exportSchema = true`.
+- Room database `quickcards_database`, **version 15**, `exportSchema = true`.
 - Schema JSON: `app/schemas/com.quickcards.app.core.data.database.QuickCardsDatabase/<version>.json`.
 - Tables: `cards`, `banks`, `holders`, `networks`, `card_types`, `tags`, `card_tags`,
   `card_repairs`.
@@ -343,7 +345,12 @@ NFC reader instead.
   `MIGRATION_10_11` (add `pinned`, `pinnedAt`), `MIGRATION_11_12` (add `archived`,
   `archivedAt`, `archiveReason`, `needsReview`; create `card_repairs`),
   `MIGRATION_12_13` (add `dueDay`), `MIGRATION_13_14` (add `networks.cvvOptional`, on for
-  built-in Maestro). No `fallbackToDestructiveMigration`.
+  built-in Maestro), `MIGRATION_14_15` (add `banks.color`, `cards.bandColorManual`; every
+  existing card is marked manual so none changes its look). No `fallbackToDestructiveMigration`.
+- Bank colours: `banks.color TEXT` (palette key or `#RRGGBB`, plaintext like the bank name;
+  null = the built-in default from `BankColours`). `cards.bandColorManual` 1 = colour chosen
+  by hand; 0 = `bandColor` follows the bank and `VaultRepository.setBankColour` repaints it.
+  Rules live in `core/data/repository/BankColourRules.kt`.
 - `cards` archive/review columns: `archived INTEGER NOT NULL DEFAULT 0`,
   `archivedAt INTEGER`, `archiveReason TEXT` (`encryptMetadata`),
   `needsReview INTEGER NOT NULL DEFAULT 0` (bitmask 1 number, 2 expiry, 4 CVV).
@@ -364,14 +371,15 @@ NFC reader instead.
   encrypted envelope has its own version **1** (`ExportCrypto.VERSION`). Do not conflate
   the two.
 - Format 2 JSON: `meta { app, format, version, exportedAt }`, then `holders`, `banks`
-  (`id,name,mono`), `types`, `tags`, `networks`
+  (`id,name,mono`, optional `color`), `types`, `tags`, `networks`
   (`id,name,code,prefixes,lengths,cvv,luhn,groups`), `cards`, and optional `cfg` (present
   when “Include settings” is ticked, which is the default).
   Card keys: `id, holderId, bankId, networkAuto, networkId, typeId, variant, number, exp,
   cvv, nameOnCard, color, note, tagIds, sortOrder, pinned, pinnedAt` and the
-  optional archive/review keys `archived, archivedAt, archiveReason, needsReview`.
-  Older files lack the optional keys and import with `archived=false`,
-  `archivedAt=null`, `archiveReason=""`, `needsReview=0`.
+  optional archive/review keys `archived, archivedAt, archiveReason, needsReview` and
+  `colorManual`. Older files lack the optional keys and import with `archived=false`,
+  `archivedAt=null`, `archiveReason=""`, `needsReview=0`, `colorManual=true` (like the
+  14→15 migration) and banks with no stored colour.
 - Every import (format 1 and 2) runs `LegacyCardNormalizer` before the review and
   inside the merge. Fixed fields write the same encrypted `card_repairs` rows as
   the upgrade job and set `needsReview`; the review exposes `formatsFixed` and
@@ -409,7 +417,7 @@ restore fills missing keys with defaults, not the phone's current values.
 | Card list | Add cards by tapping (NFC phones only) | On / Off | On | `nfcAddEnabled` |
 | Reminders | Expiry reminders | On / Off | On | `expiryReminders` |
 | Reminders | Payment reminders | On / Off | On | `paymentReminders` |
-| Copying | Show expiry and CVV after copying (turning on asks to unlock) | On / Off | Off (fresh); On for a migrated 2.3 install | `notifEnabled` |
+| Copying | Expiry and CVV notification (turning on asks to unlock) | On / Off | On (fresh); existing installs keep theirs | `notifEnabled` |
 | Copying | Notification time | 15 s / 30 s / 1 min | 30 s | `notifSec` |
 | Copying | Fill cards in other apps | On / Off (a restore can only turn it off) | On | `autofillEnabled` |
 | Tags | Show tags on cards | On / Off | On | `tagsShow` |
@@ -427,7 +435,8 @@ SharedPreferences file: `quickcards_settings`. Internal keys are `theme_mode`,
 `copy_window_sec`, `clip_clear_sec`, `mask_numbers`, `notif_enabled`,
 `notif_sec`, `tags_show`, `expired_cards`, `expires_soon_months`, `show_notes`,
 `app_lock_enabled`, `app_lock_after_sec`, `lock_on_leave`, `autofill_enabled`, `nfc_add_enabled`,
-`expiry_reminders`, `payment_reminders`. Do not rename them casually: they
+`expiry_reminders`, `payment_reminders`, plus the internal `notif_default_migrated` and
+`notif_permission_asked` (never backed up). Do not rename them casually: they
 are existing users' data. Older backups may still carry `pinnedMax`, `tagsMax`, `tagsMaxLen`,
 `showCardType`, `archivedCards`, `tagsSearch`, `notifShowExpiry` or `notifShowCvv`;
 `AppSettings.applyMap()` ignores unknown keys, so they import silently, except that a false

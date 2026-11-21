@@ -2,8 +2,7 @@ package com.quickcards.app.core.autofill
 
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.luminance
-import com.quickcards.app.core.ui.components.networkMarkPlate
-import com.quickcards.app.core.ui.components.MarkSurface
+import com.quickcards.app.core.ui.components.markTone
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -168,12 +167,11 @@ private fun PickerRow(card: PickerCard, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(QcDimens.Gutter)
     ) {
         Box(modifier = Modifier.width(QcDimens.NetworkBadgeMinWidth), contentAlignment = Alignment.CenterStart) {
-            val mark = NetworkMarks.drawable(card.networkId)
-            if (mark != null) {
+            if (NetworkMarks.drawable(card.networkId) != null) {
                 NetworkMark(
-                    resId = mark,
+                    networkId = card.networkId.orEmpty(),
                     contentDescription = card.networkName.ifBlank { null },
-                    plate = networkMarkPlate(MarkSurface.LIST, MaterialTheme.colorScheme.background.luminance() < 0.5f)
+                    tone = markTone(card.networkId.orEmpty(), onArt = false, dark = MaterialTheme.colorScheme.background.luminance() < 0.5f)
                 )
             } else if (card.networkCode.isNotBlank()) {
                 Box(

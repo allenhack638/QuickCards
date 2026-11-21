@@ -22,6 +22,9 @@ interface BankDao {
     @Query("SELECT COUNT(*) FROM cards WHERE bankId = :id")
     suspend fun countCards(id: String): Int
     
+    @Query("UPDATE banks SET color = :color WHERE id = :id")
+    suspend fun setColor(id: String, color: String?)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBank(bank: Bank)
     

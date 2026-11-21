@@ -64,6 +64,18 @@ interface CardDao {
     @Query("UPDATE cards SET needsReview = :mask WHERE id = :id")
     suspend fun setNeedsReview(id: String, mask: Int)
 
+    @Query(
+        "UPDATE cards SET bandColor = :band, cardColor = :hex " +
+            "WHERE bankId = :bankId AND bandColorManual = 0"
+    )
+    suspend fun applyBankColour(bankId: String, band: String, hex: String)
+
+    @Query(
+        "UPDATE cards SET bandColor = :band, cardColor = :hex, bandColorManual = :manual, " +
+            "updatedAt = :updatedAt WHERE id = :id"
+    )
+    suspend fun setColour(id: String, band: String, hex: String, manual: Boolean, updatedAt: Long)
+
     @Query("SELECT * FROM cards WHERE panHash = :hash LIMIT 1")
     suspend fun getCardByPanHash(hash: String): Card?
 

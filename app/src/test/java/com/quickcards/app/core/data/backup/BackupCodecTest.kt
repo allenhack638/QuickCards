@@ -32,7 +32,8 @@ class BackupCodecTest {
         ),
         banks = listOf(
             BackupBank("b1", "HDFC Bank", "HD"),
-            BackupBank("b2", "American Express", "AE")
+            BackupBank("b2", "American Express", "AE", color = "plum"),
+            BackupBank("b3", "Corner Bank", "CB", color = "#0F5E5A")
         ),
         types = listOf(BackupNamed("t1", "Credit"), BackupNamed("t2", "Debit")),
         tags = listOf(BackupNamed("g1", "Travel"), BackupNamed("g2", "Online")),
@@ -102,6 +103,7 @@ class BackupCodecTest {
                 variant = "Platinum",
                 note = "",
                 color = "plum",
+                colorManual = false,
                 tagIds = emptyList(),
                 sortOrder = 1
             )
@@ -422,6 +424,54 @@ class BackupCodecTest {
         assertEquals("123", card.cvv)
         assertEquals(0, card.needsReview)
         assertEquals("11//22", decoded.content.cards.single().exp)
+    }
+
+    @Test
+    fun `format 2 round trip keeps bank colours and the manual colour flag`() {
+        val decoded = BackupCodec.decodePayload(BackupCodec.encode(sampleContent())).content
+
+        assertEquals(listOf(null, "plum", "#0F5E5A"), decoded.banks.map { it.color })
+        assertEquals(listOf(true, false), decoded.cards.map { it.colorManual })
+    }
+
+    @Test
+    fun `backups from before bank colours keep each card's colour as chosen by hand`() {
+        val json = """
+            {"meta":{"app":"QuickCards","format":2,"version":"2.6","exportedAt":"2026-11-01"},
+             "banks":[{"id":"b1","name":"HDFC Bank","mono":"HD"}],
+             "cards":[{"number":"4111111111111111","exp":"12/29","cvv":"123","color":"teal"}]}
+        """.trimIndent()
+
+        val content = BackupCodec.decodePayload(json).content
+
+        assertNull(content.banks.single().color)
+        assertTrue(content.cards.single().colorManual)
+        assertEquals("teal", content.cards.single().color)
+    }
+
+    @Test
+    fun `an unreadable bank colour imports as the built-in default`() {
+        val json = """
+            {"meta":{"app":"QuickCards","format":2,"version":"2.7","exportedAt":"2026-11-21"},
+             "banks":[
+               {"id":"b1","name":"One","color":"teal"},
+               {"id":"b2","name":"Two","color":"#FFFFEE"},
+               {"id":"b3","name":"Three","color":"ochre"}
+             ]}
+        """.trimIndent()
+
+        val banks = BackupCodec.decodePayload(json).content.banks
+
+        assertEquals(listOf("teal", null, null), banks.map { it.color })
+    }
+
+    @Test
+    fun `format 1 cards keep their colour as chosen by hand`() {
+        val json = Gson().toJson(
+            listOf(mapOf("cardNumber" to "4111111111111111", "bankName" to "HDFC Bank", "cardColor" to "#1E3A8A"))
+        )
+
+        assertTrue(BackupCodec.decodePayload(json).content.cards.single().colorManual)
     }
 
     @Test

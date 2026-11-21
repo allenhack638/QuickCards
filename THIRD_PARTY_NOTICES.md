@@ -25,7 +25,7 @@ The full text is available at <https://www.apache.org/licenses/LICENSE-2.0>.
 
 | Component | Copyright | Licence text |
 |---|---|---|
-| Roboto Flex (bundled font) | Copyright 2017 The Roboto Flex Project Authors | [`app/src/main/assets/licenses/RobotoFlex-OFL.txt`](app/src/main/assets/licenses/RobotoFlex-OFL.txt) |
+| Geist and Geist Mono (bundled fonts) | Copyright 2026 The Geist Project Authors | [`app/src/main/assets/licenses/Geist-OFL.txt`](app/src/main/assets/licenses/Geist-OFL.txt) |
 
 ## Not covered by the MIT licence
 

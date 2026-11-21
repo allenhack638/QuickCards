@@ -3,7 +3,6 @@ package com.quickcards.app.core.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
@@ -42,8 +40,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -59,6 +55,7 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import com.quickcards.app.R
 import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.ui.LocalAppLocked
+import com.quickcards.app.core.ui.art.CardArt
 import com.quickcards.app.core.ui.theme.BrandOnRed
 import com.quickcards.app.core.ui.theme.PassColors
 import com.quickcards.app.core.ui.theme.QcDimens
@@ -152,7 +149,7 @@ private fun BandSwatch(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val band = PassColors.band(key)
+    val fill = jewel(key)
     val ring = MaterialTheme.colorScheme.onSurface
     val name = stringResource(R.string.form_band_color_desc, bandName(key))
     Box(
@@ -180,7 +177,7 @@ private fun BandSwatch(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(band),
+                    .background(fill),
                 contentAlignment = Alignment.Center
             ) {
                 if (selected) {
@@ -240,7 +237,7 @@ private fun CustomSwatch(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(PassColors.band(selectedHex)),
+                        .background(jewel(selectedHex)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -289,7 +286,6 @@ private fun CustomColorSheet(
     val initial = remember(initialHex) { PassColors.band(initialHex) }
     val controller = rememberColorPickerController()
     var hex by remember { mutableStateOf(initialHex.removePrefix("#")) }
-    var color by remember { mutableStateOf(initial) }
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -298,7 +294,6 @@ private fun CustomColorSheet(
     val contrast = BandColor.contrastWithWhite(candidate)
     val tooLight = contrast != null && contrast < BandColor.MIN_CONTRAST
     val canUse = valid && !tooLight
-    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val error = if (tooLight) stringResource(R.string.form_band_too_light) else null
 
     QcModalBottomSheet(
@@ -338,7 +333,6 @@ private fun CustomColorSheet(
                             val next = envelope.color.bandHex()
                             if (next != "#$hex") {
                                 hex = next.removePrefix("#")
-                                color = envelope.color
                             }
                         }
                     )
@@ -367,7 +361,6 @@ private fun CustomColorSheet(
                             hex = next
                             if (next.length == 6) {
                                 val parsed = PassColors.band("#$next")
-                                color = parsed
                                 controller.selectByColor(parsed, fromUser = false)
                             }
                         },
@@ -383,8 +376,7 @@ private fun CustomColorSheet(
                         modifier = Modifier.padding(horizontal = QcDimens.Section)
                     )
                     ColorPreview(
-                        band = color,
-                        dark = dark,
+                        band = candidate ?: initialHex,
                         modifier = Modifier.padding(
                             start = QcDimens.Section,
                             end = QcDimens.Section,
@@ -415,7 +407,6 @@ private fun CustomColorSheet(
                                     onClick = {
                                         hex = recentHex.removePrefix("#")
                                         val picked = PassColors.band(recentHex)
-                                        color = picked
                                         controller.selectByColor(picked, fromUser = false)
                                     }
                                 )
@@ -460,40 +451,20 @@ private fun CustomColorSheet(
 }
 
 @Composable
-private fun ColorPreview(band: Color, dark: Boolean, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(QcDimens.PassCorner))
-            .background(PassColors.bodyTint(band, dark))
-            .border(
-                width = 1.dp,
-                color = PassColors.edge(band, dark),
-                shape = RoundedCornerShape(QcDimens.PassCorner)
-            )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(QcDimens.PassBand)
-                .background(
-                    Brush.linearGradient(
-                        listOf(band, lerp(band, BrandOnRed, 0.28f))
-                    )
-                )
-                .padding(start = QcDimens.Gutter),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Text(
-                text = stringResource(R.string.form_band_preview),
-                style = QcType.BandBank,
-                color = BrandOnRed,
-                maxLines = 1
-            )
-        }
-        Spacer(modifier = Modifier.height(36.dp))
+private fun ColorPreview(band: String, modifier: Modifier = Modifier) {
+    CardArt(band = band, modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.form_band_preview),
+            style = QcType.BandBank,
+            color = PassColors.OnArt,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.height(QcDimens.Touch))
     }
 }
+
+/** The swatch fill: the hue's own 135° gradient, deep stop to light stop. */
+private fun jewel(stored: String): Brush = PassColors.hue(stored).let { Brush.linearGradient(listOf(it.c1, it.c2)) }
 
 @Composable
 private fun RecentSwatch(hex: String, selected: Boolean, onClick: () -> Unit) {
@@ -524,7 +495,7 @@ private fun RecentSwatch(hex: String, selected: Boolean, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
-                    .background(PassColors.band(hex))
+                    .background(jewel(hex))
             )
         }
     }

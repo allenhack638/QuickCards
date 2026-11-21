@@ -15,6 +15,7 @@ import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.SeedData
 import com.quickcards.app.core.data.model.toDomain
 import com.quickcards.app.core.data.model.Tag
+import com.quickcards.app.core.data.repository.BankColourRules
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.security.EncryptionHelper
 import com.quickcards.app.core.security.PanHasher
@@ -139,7 +140,8 @@ object BackupImporter {
 
         val bankNamesById = linkedMapOf<String, String>()
         val bankIdsByName = linkedMapOf<String, String>()
-        bankDao.getAllBanksSync().forEach { bank ->
+        val banks = bankDao.getAllBanksSync().toMutableList()
+        banks.forEach { bank ->
             val name = NetworkRuleSanitizer.entityKey(EntityKind.BANK, bank.name)
             bankNamesById[bank.id] = bank.name
             bankIdsByName.putIfAbsent(name, bank.id)
@@ -150,14 +152,19 @@ object BackupImporter {
             if (displayName.isEmpty()) return@forEach
             val name = NetworkRuleSanitizer.entityKey(EntityKind.BANK, displayName)
             val id = bankIdsByName[name] ?: run {
-                val created = Bank(name = displayName)
+                val created = Bank(
+                    name = displayName,
+                    color = item.color ?: BankColourRules.pickFor(displayName, banks)
+                )
                 bankDao.insertBank(created)
+                banks += created
                 bankNamesById[created.id] = displayName
                 bankIdsByName[name] = created.id
                 created.id
             }
             bankMap[item.id] = id
         }
+        val bankColoursById = banks.associate { it.id to BankColourRules.colourOf(it) }
 
         val typeNamesById = linkedMapOf<String, String>()
         val typeIdsByName = linkedMapOf<String, String>()
@@ -266,7 +273,15 @@ object BackupImporter {
                 tagMap,
                 networkMap,
                 existingNetworkIdsByName
-            )
+            ).let { card ->
+                card.copy(
+                    color = BankColourRules.cardColour(
+                        card.colorManual,
+                        card.color,
+                        card.bankId?.let(bankColoursById::get)
+                    )
+                )
+            }
             val existing = cardsByNumber[number]
             val existingPhone = existing?.toPhoneCard(encryption, linksByCard[existing.id].orEmpty())
             val changed = existingPhone != null && BackupPlanner.differs(existingPhone, resolved)
@@ -395,6 +410,7 @@ object BackupImporter {
             resolved.nameOnCard.trim().uppercase(Locale.ROOT).take(64)
         ),
         bandColor = resolved.color,
+        bandColorManual = resolved.colorManual,
         sortOrder = sortOrder,
         pinned = resolved.pinned,
         pinnedAt = if (resolved.pinned) resolved.pinnedAt else null,
@@ -423,6 +439,7 @@ object BackupImporter {
                 cvv = encryption.decrypt(cvv),
                 nameOnCard = encryption.decryptMetadata(nameOnCard),
                 color = bandColor,
+                colorManual = bandColorManual,
                 note = encryption.decryptMetadata(description),
                 dueDay = dueDay,
                 tagIds = tagIds,

@@ -44,7 +44,7 @@ object BackupSnapshot {
                 exportedAt = exportedAt
             ),
             holders = holders.map { BackupNamed(it.id, it.name) },
-            banks = banks.map { BackupBank(it.id, it.name, Monogram.monoFor(it.name)) },
+            banks = banks.map { BackupBank(it.id, it.name, Monogram.monoFor(it.name), it.color) },
             types = types.map { BackupNamed(it.id, it.name) },
             tags = tags.map { BackupNamed(it.id, it.name) },
             networks = networks.map { network ->
@@ -79,6 +79,7 @@ object BackupSnapshot {
                     note = card.note,
                     dueDay = card.dueDay,
                     color = card.bandColor,
+                    colorManual = card.bandColorManual,
                     tagIds = card.tagIds,
                     sortOrder = card.sortOrder,
                     pinned = card.pinned,
@@ -124,6 +125,7 @@ object BackupSnapshot {
                     cvv = card.cvv,
                     nameOnCard = holderName.uppercase(Locale.ROOT),
                     color = card.bandColor,
+                    colorManual = card.bandColorManual,
                     note = card.note,
                     dueDay = card.dueDay,
                     tagIds = card.tagIds,

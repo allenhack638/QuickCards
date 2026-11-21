@@ -1,14 +1,9 @@
 package com.quickcards.app.core.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -16,38 +11,38 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.quickcards.app.core.ui.components.FormTextField
-import com.quickcards.app.core.ui.components.MonogramTile
-import com.quickcards.app.core.ui.components.SheetRow
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
-import com.quickcards.app.core.ui.theme.QcType
+import com.quickcards.app.core.ui.theme.QcShapes
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.domain.Monogram
-import java.util.Locale
 
 enum class QcPickerKind { HOLDER, BANK, TYPE }
 
 data class QcPickerEntry(val id: String, val name: String)
 
-/** Picker for holder, bank and type. Search shows above seven items. */
+/**
+ * The one picker for holder, bank and type: title, an always-visible search field, radio rows
+ * with a check on the choice, then "New …". Picking applies and closes.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QcPickerSheet(
@@ -63,40 +58,39 @@ fun QcPickerSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var query by remember { mutableStateOf("") }
-    val showSearch = entries.size > 7
-    val filtered = if (!showSearch || query.isBlank()) {
+    val filtered = if (query.isBlank()) {
         entries
     } else {
         entries.filter { it.name.contains(query.trim(), ignoreCase = true) }
     }
 
-    QcModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer
-    ) {
+    QcModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = maxHeight * 0.86f)
+                    .heightIn(max = maxHeight * QcDimens.SheetMaxHeightFraction)
+                    .padding(bottom = QcSpacing.s6)
             ) {
                 Text(
                     text = title,
-                    style = QcType.Headline,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = QcDimens.SheetTitleTop, bottom = 8.dp)
+                    style = QcText.F4,
+                    color = QcTheme.colors.ink,
+                    modifier = Modifier
+                        .padding(
+                            start = QcSpacing.s6,
+                            end = QcSpacing.s6,
+                            top = QcSpacing.s2,
+                            bottom = QcSpacing.s3
+                        )
+                        .semantics { heading() }
                 )
-                if (showSearch) {
-                    FormTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        label = searchLabel,
-                        helper = "",
-                        modifier = Modifier.padding(horizontal = 24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                QcSearchField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = searchLabel,
+                    modifier = Modifier.padding(start = QcSpacing.s6, end = QcSpacing.s6, bottom = QcSpacing.s2)
+                )
                 LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
                     items(filtered, key = { it.id }) { entry ->
                         PickerRow(
@@ -107,24 +101,33 @@ fun QcPickerSheet(
                         )
                     }
                     item(key = "__add") {
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = QcSpacing.s6, vertical = QcSpacing.s2)
+                                .fillMaxWidth()
+                                .height(QcSize.hairline)
+                                .background(QcTheme.colors.line)
+                        )
                         SheetRow(
                             title = addLabel,
                             onClick = onAdd,
-                            lead = {
-                                Icon(
-                                    imageVector = QcIcons.add,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                            lead = { PickerLeadSlot { RowIcon() } }
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(QcDimens.SheetBottom))
             }
         }
     }
+}
+
+@Composable
+private fun RowIcon() {
+    Icon(
+        imageVector = QcIcons.add,
+        contentDescription = null,
+        tint = QcTheme.colors.ink2,
+        modifier = Modifier.size(QcSize.iconLg)
+    )
 }
 
 @Composable
@@ -134,78 +137,47 @@ private fun PickerRow(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
     ) {
-        PickerLead(kind = kind, name = name)
-        Spacer(modifier = Modifier.size(width = 16.dp, height = 1.dp))
-        Text(
-            text = name,
-            style = QcType.BodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
+        SheetRow(
+            title = name,
+            lead = when (kind) {
+                QcPickerKind.HOLDER -> { { PickerLeadSlot { HolderAvatar(name) } } }
+                QcPickerKind.BANK -> { { PickerLeadSlot { MonogramTile(Monogram.monoFor(name)) } } }
+                QcPickerKind.TYPE -> null
+            },
+            trailing = if (selected) {
+                {
+                    Icon(
+                        imageVector = QcIcons.check,
+                        contentDescription = null,
+                        tint = QcTheme.colors.ink,
+                        modifier = Modifier.size(QcSize.iconLg)
+                    )
+                }
+            } else {
+                null
+            }
         )
-        if (selected) {
-            Icon(
-                imageVector = QcIcons.check,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
-            )
-        }
     }
 }
 
+/** 40 wide, so text lines up across avatar, monogram and icon rows. */
 @Composable
-private fun PickerLead(kind: QcPickerKind, name: String) {
-    val background = MaterialTheme.colorScheme.surfaceContainerHighest
+private fun PickerLeadSlot(content: @Composable () -> Unit) {
+    Box(modifier = Modifier.size(QcSpacing.s10), contentAlignment = Alignment.Center) { content() }
+}
+
+@Composable
+private fun HolderAvatar(name: String) {
+    val colors = QcTheme.colors
     Box(
-        modifier = Modifier.size(56.dp),
+        modifier = Modifier
+            .size(QcSpacing.s10)
+            .background(colors.tonalHi, QcShapes.full),
         contentAlignment = Alignment.Center
     ) {
-        when (kind) {
-            QcPickerKind.HOLDER -> Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(background),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = Monogram.initials(name),
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight(700),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
-                )
-            }
-
-            QcPickerKind.BANK -> MonogramTile(Monogram.monoFor(name))
-
-            QcPickerKind.TYPE -> Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(background),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = name.trim().firstOrNull()?.uppercase(Locale.ROOT) ?: "–",
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(700),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
-        }
+        Text(text = Monogram.initials(name), style = QcText.F2Semibold, color = colors.ink, maxLines = 1)
     }
 }

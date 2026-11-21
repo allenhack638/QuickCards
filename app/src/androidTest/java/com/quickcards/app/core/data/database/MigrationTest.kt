@@ -377,6 +377,83 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate14To15_addsBankColourAndKeepsEveryExistingCardColour() {
+        helper.createDatabase(TEST_DB_14_15, 14).apply {
+            execSQL("INSERT INTO banks (id, name, createdAt) VALUES ('bank-15a', 'HDFC Bank', 15)")
+            execSQL("INSERT INTO banks (id, name, createdAt) VALUES ('bank-15b', 'Corner Bank', 16)")
+            listOf(
+                "'card-15a', 'hash-15a', 'bank-15a', '#7C2D12', 'rust'",
+                "'card-15b', 'hash-15b', 'bank-15b', '#0F5E5A', '#0F5E5A'"
+            ).forEach { row ->
+                execSQL(
+                    """
+                    INSERT INTO cards
+                    (id, panHash, bankId, cardColor, bandColor, cardNumber, expiryDate, cvv,
+                     bankName, cardType, cardIssuer, cardVariant, owner, description,
+                     createdAt, updatedAt, networkAuto, nameOnCard, sortOrder, pinned,
+                     archived, needsReview, dueDay)
+                    VALUES ($row, 'encrypted-number', 'encrypted-expiry', 'encrypted-cvv',
+                     'encrypted-bank', 'Credit', 'Visa', 'Regalia', 'encrypted-owner',
+                     'encrypted-note', 15, 15, 1, '', 3, 1, 0, 0, 12)
+                    """.trimIndent()
+                )
+            }
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB_14_15,
+            15,
+            true,
+            QuickCardsDatabase.MIGRATION_14_15
+        )
+
+        db.query("SELECT id, name, createdAt, color FROM banks ORDER BY id").use { cursor ->
+            assertEquals(2, cursor.count)
+            while (cursor.moveToNext()) assertTrue(cursor.isNull(3))
+            cursor.moveToFirst()
+            assertEquals("HDFC Bank", cursor.getString(1))
+            assertEquals(15L, cursor.getLong(2))
+        }
+        db.query(
+            """
+            SELECT id, bandColor, cardColor, bandColorManual, cardNumber, bankId, sortOrder,
+                   pinned, dueDay, panHash
+            FROM cards ORDER BY id
+            """.trimIndent()
+        ).use { cursor ->
+            assertEquals(2, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("rust", cursor.getString(1))
+            assertEquals("#7C2D12", cursor.getString(2))
+            assertEquals(1, cursor.getInt(3))
+            assertEquals("encrypted-number", cursor.getString(4))
+            assertEquals("bank-15a", cursor.getString(5))
+            assertEquals(3, cursor.getInt(6))
+            assertEquals(1, cursor.getInt(7))
+            assertEquals(12, cursor.getInt(8))
+            assertEquals("hash-15a", cursor.getString(9))
+            cursor.moveToNext()
+            assertEquals("#0F5E5A", cursor.getString(1))
+            assertEquals(1, cursor.getInt(3))
+        }
+
+        db.execSQL(
+            """
+            INSERT INTO cards
+            (id, cardNumber, expiryDate, cvv, bankName, cardType, cardIssuer, cardVariant,
+             owner, description, cardColor, createdAt, updatedAt)
+            VALUES ('card-15c', 'n', 'e', 'c', 'b', 'Credit', 'Visa', '', 'o', '', '#1E3A8A', 1, 1)
+            """.trimIndent()
+        )
+        db.query("SELECT bandColorManual FROM cards WHERE id = 'card-15c'").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(0, cursor.getInt(0))
+        }
+        db.close()
+    }
+
+    @Test
     fun migrate11To12_addsArchiveAndReviewColumnsAndCreatesRepairs() {
         helper.createDatabase(TEST_DB_11_12, 11).apply {
             execSQL(
@@ -468,5 +545,6 @@ class MigrationTest {
         const val TEST_DB_11_12 = "quickcards-migration-11-12-test"
         const val TEST_DB_12_13 = "quickcards-migration-12-13-test"
         const val TEST_DB_13_14 = "quickcards-migration-13-14-test"
+        const val TEST_DB_14_15 = "quickcards-migration-14-15-test"
     }
 }

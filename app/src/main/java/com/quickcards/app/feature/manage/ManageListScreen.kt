@@ -3,11 +3,10 @@ package com.quickcards.app.feature.manage
 import androidx.compose.foundation.background
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import com.quickcards.app.core.ui.components.MarkSurface
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
 import com.quickcards.app.core.ui.components.networkLeadWidth
-import com.quickcards.app.core.ui.components.networkMarkPlate
+import com.quickcards.app.core.ui.components.markTone
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -402,12 +401,12 @@ private fun EntityLead(kind: EntityKind, entity: ManagedEntity) {
         EntityKind.NETWORK -> {
             val fontScale = LocalDensity.current.fontScale
             val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-            val mark = NetworkMarks.drawable(entity.network?.id)
-            if (mark != null) {
+            val networkId = entity.network?.id
+            if (networkId != null && NetworkMarks.drawable(networkId) != null) {
                 NetworkMark(
-                    resId = mark,
+                    networkId = networkId,
                     contentDescription = null,
-                    plate = networkMarkPlate(MarkSurface.LIST, dark)
+                    tone = markTone(networkId, onArt = false, dark = dark)
                 )
             } else Box(
                 modifier = Modifier

@@ -12,10 +12,9 @@ import androidx.compose.material3.TextButton
 import com.quickcards.app.core.data.settings.AppSettings
 import android.content.pm.PackageManager
 import com.quickcards.app.core.ui.components.RulesResetRow
-import com.quickcards.app.core.ui.components.MarkSurface
 import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.app.core.ui.components.NetworkMark
-import com.quickcards.app.core.ui.components.networkMarkPlate
+import com.quickcards.app.core.ui.components.markTone
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -442,16 +441,12 @@ internal fun CardFormContent(
                         {
                             // The trailing slot does not pad arbitrary content,
                             // so keep the label 16dp from the outline's end edge.
-                            val mark = NetworkMarks.drawable(network.id)
-                            if (mark != null) {
+                            if (NetworkMarks.drawable(network.id) != null) {
                                 NetworkMark(
-                                    resId = mark,
+                                    networkId = network.id,
                                     contentDescription = network.name,
                                     modifier = Modifier.padding(end = QcDimens.Gutter),
-                                    plate = networkMarkPlate(MarkSurface.FIELD, dark),
-                                    width = QcDimens.NetworkMarkBandWidth,
-                                    height = QcDimens.NetworkMarkBandHeight,
-                                    corner = QcDimens.CornerBandFrame
+                                    tone = markTone(network.id, onArt = false, dark = dark)
                                 )
                             } else Text(
                                 text = network.code,
