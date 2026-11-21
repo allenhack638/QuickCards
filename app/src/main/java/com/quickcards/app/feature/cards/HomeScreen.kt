@@ -1,6 +1,5 @@
 package com.quickcards.app.feature.cards
 
-import android.Manifest
 import com.quickcards.app.core.ui.components.SearchTopBar
 import com.quickcards.app.core.autofill.CardUsage
 import androidx.compose.runtime.setValue
@@ -8,11 +7,7 @@ import androidx.compose.runtime.getValue
 import com.quickcards.app.core.reminders.Reminders
 import com.quickcards.app.core.security.AppLockController
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,11 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.quickcards.app.R
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
-import com.quickcards.app.core.notifications.CopyCompanionNotifier
+import com.quickcards.app.core.notifications.rememberCardNotifications
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.HomeCard
@@ -74,8 +68,6 @@ fun HomeScreen(
     var shareCard by remember { mutableStateOf<HomeCard?>(null) }
     var deleteCard by remember { mutableStateOf<HomeCard?>(null) }
     var archiveCard by remember { mutableStateOf<HomeCard?>(null) }
-    var permissionAsked by rememberSaveable { mutableStateOf(false) }
-    var pendingNotificationCard by remember { mutableStateOf<HomeCard?>(null) }
     val locked = LocalAppLocked.current
 
     LaunchedEffect(locked) {
@@ -92,47 +84,7 @@ fun HomeScreen(
         viewModel.setSearchActive(false)
     }
 
-    fun notificationsAllowed(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-    fun postNotification(card: HomeCard) {
-        CopyCompanionNotifier.notifyCardCopied(
-            context = context,
-            title = context.getString(
-                R.string.cards_notification_title,
-                card.title,
-                card.card.number.takeLast(4)
-            ),
-            expiry = card.card.expiry,
-            cvv = card.card.cvv,
-            seconds = state.options.notifSec
-        )
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        val card = pendingNotificationCard
-        pendingNotificationCard = null
-        if (granted && card != null) postNotification(card)
-    }
-
-    fun maybeNotify(card: HomeCard) {
-        if (!state.options.notifEnabled) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationsAllowed()) {
-            if (!permissionAsked) {
-                permissionAsked = true
-                pendingNotificationCard = card
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            return
-        }
-        postNotification(card)
-    }
+    val notifications = rememberCardNotifications()
 
     fun fieldLabel(field: PassField): String = context.getString(
         when (field) {
@@ -174,7 +126,7 @@ fun HomeScreen(
             )
             if (result == SnackbarResult.ActionPerformed) ClipboardHelper.clearNow()
         }
-        if (field == PassField.NUMBER) maybeNotify(card)
+        if (field == PassField.NUMBER) notifications.numberCopied(card)
         return true
     }
 

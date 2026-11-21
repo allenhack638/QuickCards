@@ -20,7 +20,7 @@ class AppSettingsTest {
         assertEquals(ExpiredPlacement.END, settings.expiredCards.value)
         assertEquals(1, settings.expiresSoonMonths.value)
         assertTrue(settings.showNotes.value)
-        assertFalse(settings.notifEnabled.value)
+        assertTrue(settings.notifEnabled.value)
         assertEquals(30, settings.notifSec.value)
         assertTrue(settings.tagsShow.value)
         assertTrue(settings.appLockEnabled.value)
@@ -33,19 +33,31 @@ class AppSettingsTest {
     }
 
     @Test
-    fun aFreshInstallKeepsTheNotificationOff() {
+    fun aFreshInstallStartsWithTheNotificationOnAndPinsIt() {
         val preferences = FakePreferences()
         val settings = AppSettings(preferences, isUpgrade = false)
 
-        assertFalse(settings.notifEnabled.value)
-        assertFalse(preferences.contains(AppSettings.KEY_NOTIF_ENABLED))
+        assertTrue(settings.notifEnabled.value)
+        assertTrue(preferences.getBoolean(AppSettings.KEY_NOTIF_ENABLED, false))
+        assertTrue(AppSettings(preferences, isUpgrade = true).notifEnabled.value)
     }
 
     @Test
-    fun anUpgradeWithoutTheKeyKeepsTheOldNotificationDefaultOn() {
+    fun anUpgradeFromBefore24WithoutTheKeyKeepsTheOldNotificationDefaultOn() {
         val settings = AppSettings(FakePreferences(), isUpgrade = true)
 
         assertTrue(settings.notifEnabled.value)
+    }
+
+    @Test
+    fun anUpgradeFrom24To26ThatNeverStoredTheKeyStaysOff() {
+        val preferences = FakePreferences()
+        preferences.edit().putBoolean("notif_default_migrated", true).commit()
+
+        val settings = AppSettings(preferences, isUpgrade = true)
+
+        assertFalse(settings.notifEnabled.value)
+        assertFalse(AppSettings(preferences, isUpgrade = true).notifEnabled.value)
     }
 
     @Test
@@ -56,6 +68,29 @@ class AppSettingsTest {
         val settings = AppSettings(preferences, isUpgrade = true)
 
         assertFalse(settings.notifEnabled.value)
+    }
+
+    @Test
+    fun anUpgradeWithTheKeyOnStaysOn() {
+        val preferences = FakePreferences()
+        preferences.edit()
+            .putBoolean(AppSettings.KEY_NOTIF_ENABLED, true)
+            .putBoolean("notif_default_migrated", true)
+            .commit()
+
+        assertTrue(AppSettings(preferences, isUpgrade = true).notifEnabled.value)
+    }
+
+    @Test
+    fun theNotificationPermissionIsRememberedAsAskedButNotBackedUp() {
+        val preferences = FakePreferences()
+        val settings = AppSettings(preferences)
+        assertFalse(settings.notifPermissionAsked)
+
+        settings.markNotifPermissionAsked()
+
+        assertTrue(AppSettings(preferences).notifPermissionAsked)
+        assertFalse(settings.toMap().keys.any { it.contains("ermission") })
     }
 
     @Test
@@ -272,7 +307,7 @@ class AppSettingsTest {
 
         assertEquals("end", defaults[AppSettings.KEY_EXPIRED_CARDS_NAME])
         assertEquals(1, defaults[AppSettings.KEY_EXPIRES_SOON_MONTHS_NAME])
-        assertEquals(false, defaults[AppSettings.KEY_NOTIF_ENABLED_NAME])
+        assertEquals(true, defaults[AppSettings.KEY_NOTIF_ENABLED_NAME])
         assertEquals(true, defaults[AppSettings.KEY_SHOW_NOTES_NAME])
 
         val settings = AppSettings(FakePreferences())

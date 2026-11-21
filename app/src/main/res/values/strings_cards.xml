@@ -114,7 +114,6 @@
     <string name="cards_reveal_number">Confirm it’s you to show the card number</string>
     <string name="cards_unlock_edit">Confirm it’s you to edit this card</string>
     <string name="cards_unlock_delete">Confirm it’s you to delete this card</string>
-    <string name="cards_notification_title">%1$s · %2$s</string>
 
     <!-- More sheet -->
     <string name="cards_action_copy_details">Copy details</string>

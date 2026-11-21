@@ -9,13 +9,11 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
-import android.os.Build
-import androidx.core.content.ContextCompat
 import com.quickcards.app.MainActivity
 import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
+import com.quickcards.app.core.notifications.NotificationPermission
 import com.quickcards.domain.ReminderRules
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -63,7 +61,7 @@ object Reminders {
         val expiryOn = settings.expiryReminders.value
         val dueOn = settings.paymentReminders.value
         if (!expiryOn && !dueOn) return
-        if (!notificationsAllowed(context)) return
+        if (!NotificationPermission.canPost(context)) return
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         // 2.2 builds keyed expiry reminders on the plaintext expiry; drop those entries.
         prefs.all.keys.filter { it.startsWith("exp:") }.takeIf { it.isNotEmpty() }?.let { stale ->
@@ -170,11 +168,6 @@ object Reminders {
         PaidStore.markPaid(context, key)
         context.getSystemService(NotificationManager::class.java)?.cancel(key.hashCode())
     }
-
-    private fun notificationsAllowed(context: Context): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
 
     private fun ensureChannel(context: Context, manager: NotificationManager) {
         if (manager.getNotificationChannel(CHANNEL_ID) != null) return

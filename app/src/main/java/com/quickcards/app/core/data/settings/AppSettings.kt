@@ -40,11 +40,8 @@ object AppSettingsDefaults {
 
     const val SHOW_NOTES = true
 
-    /**
-     * Off by default: the notification can show the CVV, so it is enabled only by a user action
-     * (which asks for a fresh unlock) instead of appearing on a fresh install.
-     */
-    const val NOTIF_ENABLED = false
+    /** On for new installs (Daylight); installs from before keep their stored choice. */
+    const val NOTIF_ENABLED = true
     const val NOTIF_SEC = 30
     val NOTIF_SEC_OPTIONS = listOf(15, 30, 60)
 
@@ -83,23 +80,23 @@ class AppSettings(
     }
 
     /**
-     * 2.4 turns the CVV notification off by default. Installing users never stored
-     * `notif_enabled`, so preserve the old ON behaviour once for them; a fresh install keeps the
-     * new OFF default and writes only the migration marker. The legacy hidden-CVV rule above
-     * wins because it writes `notif_enabled = false` first.
+     * Pins the copy notification choice so a default change never flips it for an upgrader:
+     * before 2.4 it was on, 2.4 to 2.6 left it off without storing a value (only the marker),
+     * and a fresh Daylight install starts on. The legacy hidden-CVV rule above wins because it
+     * writes `notif_enabled = false` first.
      */
     private fun migrateNotificationDefault() {
-        if (preferences.contains(KEY_NOTIF_ENABLED)) {
-            if (!preferences.contains(KEY_NOTIF_MIGRATED)) {
-                preferences.edit().putBoolean(KEY_NOTIF_MIGRATED, true).apply()
+        if (!preferences.contains(KEY_NOTIF_ENABLED)) {
+            val enabled = when {
+                preferences.getBoolean(KEY_NOTIF_MIGRATED, false) -> false
+                isUpgrade -> true
+                else -> AppSettingsDefaults.NOTIF_ENABLED
             }
-            return
+            preferences.edit().putBoolean(KEY_NOTIF_ENABLED, enabled).apply()
         }
-        if (preferences.getBoolean(KEY_NOTIF_MIGRATED, false)) return
-        preferences.edit().apply {
-            if (isUpgrade) putBoolean(KEY_NOTIF_ENABLED, true)
-            putBoolean(KEY_NOTIF_MIGRATED, true)
-        }.apply()
+        if (!preferences.contains(KEY_NOTIF_MIGRATED)) {
+            preferences.edit().putBoolean(KEY_NOTIF_MIGRATED, true).apply()
+        }
     }
 
     private val _theme = MutableStateFlow(readTheme())
@@ -186,6 +183,14 @@ class AppSettings(
         preferences.getBoolean(KEY_PAYMENT_REMINDERS, AppSettingsDefaults.PAYMENT_REMINDERS)
     )
     val paymentReminders: StateFlow<Boolean> = _paymentReminders.asStateFlow()
+
+    /** Android 13+ notification permission is asked once; not a user setting, so not backed up. */
+    val notifPermissionAsked: Boolean
+        get() = preferences.getBoolean(KEY_NOTIF_PERMISSION_ASKED, false)
+
+    fun markNotifPermissionAsked() {
+        preferences.edit().putBoolean(KEY_NOTIF_PERMISSION_ASKED, true).apply()
+    }
 
     fun setTheme(theme: AppTheme) {
         preferences.edit().putString(KEY_THEME, theme.name).apply()
@@ -367,6 +372,7 @@ class AppSettings(
         private const val LEGACY_NOTIF_SHOW_EXPIRY = "notif_show_expiry"
         private const val LEGACY_NOTIF_SHOW_CVV = "notif_show_cvv"
         private const val KEY_NOTIF_MIGRATED = "notif_default_migrated"
+        private const val KEY_NOTIF_PERMISSION_ASKED = "notif_permission_asked"
         private const val LEGACY_NOTIF_SHOW_EXPIRY_NAME = "notifShowExpiry"
         private const val LEGACY_NOTIF_SHOW_CVV_NAME = "notifShowCvv"
         const val KEY_NFC_ADD_ENABLED = "nfc_add_enabled"

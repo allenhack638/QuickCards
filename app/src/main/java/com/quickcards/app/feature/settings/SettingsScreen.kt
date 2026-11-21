@@ -60,6 +60,7 @@ import com.quickcards.app.R
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.data.settings.AppTheme
+import com.quickcards.app.core.notifications.rememberCardNotifications
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.LocalAppLocked
@@ -119,6 +120,7 @@ fun SettingsScreen(
     val showNotes by settings.showNotes.collectAsState()
     val notifEnabled by settings.notifEnabled.collectAsState()
     val notifSec by settings.notifSec.collectAsState()
+    val notifications = rememberCardNotifications()
     val tagsShow by settings.tagsShow.collectAsState()
     val appLockEnabled by settings.appLockEnabled.collectAsState()
     val appLockAfterSec by settings.appLockAfterSec.collectAsState()
@@ -294,7 +296,10 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_expiry_reminders_title),
                 subtitle = stringResource(R.string.settings_expiry_reminders_subtitle),
                 checked = expiryReminders,
-                onCheckedChange = settings::setExpiryReminders
+                onCheckedChange = { on ->
+                    settings.setExpiryReminders(on)
+                    if (on) notifications.settingTurnedOn()
+                }
             )
             val paymentReminders by settings.paymentReminders.collectAsState()
             SwitchRow(
@@ -302,7 +307,10 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_payment_reminders_title),
                 subtitle = stringResource(R.string.settings_payment_reminders_subtitle),
                 checked = paymentReminders,
-                onCheckedChange = settings::setPaymentReminders
+                onCheckedChange = { on ->
+                    settings.setPaymentReminders(on)
+                    if (on) notifications.settingTurnedOn()
+                }
             )
 
             SettingsSubhead(stringResource(R.string.settings_section_copying))
@@ -341,6 +349,7 @@ fun SettingsScreen(
                 onCheckedChange = { enabled ->
                     guarded(localizedReason(context, SecurityConfirmation.reasonForNotificationCvv(enabled))) {
                         settings.setNotifEnabled(enabled)
+                        if (enabled) notifications.settingTurnedOn()
                     }
                 }
             )

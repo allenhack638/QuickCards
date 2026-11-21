@@ -1,13 +1,8 @@
 package com.quickcards.app.feature.archive
 
-import android.Manifest
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,7 +36,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -63,11 +57,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.quickcards.app.R
-import com.quickcards.app.core.notifications.CopyCompanionNotifier
+import com.quickcards.app.core.notifications.rememberCardNotifications
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
@@ -109,8 +102,6 @@ fun ArchivedCardsScreen(
 
     var actionsCard by remember { mutableStateOf<ArchivedCardItem?>(null) }
     var deleteCard by remember { mutableStateOf<ArchivedCardItem?>(null) }
-    var permissionAsked by rememberSaveable { mutableStateOf(false) }
-    var pendingNotificationCard by remember { mutableStateOf<HomeCard?>(null) }
 
     LaunchedEffect(locked) {
         if (locked) {
@@ -123,47 +114,7 @@ fun ArchivedCardsScreen(
         viewModel.setSearchActive(false)
     }
 
-    fun notificationsAllowed(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-    fun postNotification(card: HomeCard) {
-        CopyCompanionNotifier.notifyCardCopied(
-            context = context,
-            title = context.getString(
-                R.string.cards_notification_title,
-                card.title,
-                card.card.number.takeLast(4)
-            ),
-            expiry = card.card.expiry,
-            cvv = card.card.cvv,
-            seconds = state.options.notifSec
-        )
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        val card = pendingNotificationCard
-        pendingNotificationCard = null
-        if (granted && card != null) postNotification(card)
-    }
-
-    fun maybeNotify(card: HomeCard) {
-        if (!state.options.notifEnabled) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationsAllowed()) {
-            if (!permissionAsked) {
-                permissionAsked = true
-                pendingNotificationCard = card
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            return
-        }
-        postNotification(card)
-    }
+    val notifications = rememberCardNotifications()
 
     fun fieldLabel(field: PassField): String = context.getString(
         when (field) {
@@ -204,7 +155,7 @@ fun ArchivedCardsScreen(
             )
             if (result == SnackbarResult.ActionPerformed) ClipboardHelper.clearNow()
         }
-        if (field == PassField.NUMBER) maybeNotify(card)
+        if (field == PassField.NUMBER) notifications.numberCopied(card)
         return true
     }
 

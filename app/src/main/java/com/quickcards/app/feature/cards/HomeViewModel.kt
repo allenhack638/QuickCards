@@ -48,8 +48,6 @@ data class HomeOptions(
     val maskNumbers: Boolean = AppSettingsDefaults.MASK_NUMBERS,
     val tagsShow: Boolean = AppSettingsDefaults.TAGS_SHOW,
     val clipClearSec: Int = AppSettingsDefaults.CLIP_CLEAR_SEC,
-    val notifEnabled: Boolean = AppSettingsDefaults.NOTIF_ENABLED,
-    val notifSec: Int = AppSettingsDefaults.NOTIF_SEC,
     val expiredCards: ExpiredPlacement = AppSettingsDefaults.EXPIRED_CARDS,
     val expiresSoonMonths: Int = AppSettingsDefaults.EXPIRES_SOON_MONTHS,
     val showNotes: Boolean = AppSettingsDefaults.SHOW_NOTES
@@ -124,12 +122,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val tagsShow: Boolean
     )
 
-    private data class CopyOptions(
-        val clipClearSec: Int,
-        val notifEnabled: Boolean,
-        val notifSec: Int
-    )
-
     private data class ListOptions(
         val expiredCards: ExpiredPlacement,
         val expiresSoonMonths: Int,
@@ -155,14 +147,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         CoreOptions(mask, tagsShow)
     }
 
-    private val copyOptions = combine(
-        settings.clipClearSec,
-        settings.notifEnabled,
-        settings.notifSec
-    ) { clipClearSec, notifEnabled, notifSec ->
-        CopyOptions(clipClearSec, notifEnabled, notifSec)
-    }
-
     private val listOptions = combine(
         settings.expiredCards,
         settings.expiresSoonMonths,
@@ -173,15 +157,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val options = combine(
         coreOptions,
-        copyOptions,
+        settings.clipClearSec,
         listOptions
-    ) { core, copy, list ->
+    ) { core, clipClearSec, list ->
         HomeOptions(
             maskNumbers = core.maskNumbers,
             tagsShow = core.tagsShow,
-            clipClearSec = copy.clipClearSec,
-            notifEnabled = copy.notifEnabled,
-            notifSec = copy.notifSec,
+            clipClearSec = clipClearSec,
             expiredCards = list.expiredCards,
             expiresSoonMonths = list.expiresSoonMonths,
             showNotes = list.showNotes

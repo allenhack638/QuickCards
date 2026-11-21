@@ -17,8 +17,6 @@ data class ArchivedCardsOptions(
     val tagsShow: Boolean = AppSettingsDefaults.TAGS_SHOW,
     val showNotes: Boolean = AppSettingsDefaults.SHOW_NOTES,
     val clipClearSec: Int = AppSettingsDefaults.CLIP_CLEAR_SEC,
-    val notifEnabled: Boolean = AppSettingsDefaults.NOTIF_ENABLED,
-    val notifSec: Int = AppSettingsDefaults.NOTIF_SEC,
     val expiresSoonMonths: Int = AppSettingsDefaults.EXPIRES_SOON_MONTHS
 )
 
