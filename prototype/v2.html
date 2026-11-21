@@ -717,7 +717,7 @@ function archivedHTML() {
     : `<header class="appbar nested"><button class="iconbtn on-surface" data-act="back" aria-label="Back">${I('back')}</button><h1>Archived cards</h1>
         ${all.length ? `<button class="iconbtn" data-act="archsearch" aria-label="Search archived cards">${I('search')}</button>` : ''}</header>`;
   const body = !all.length
-    ? `<div class="noresult"><div class="t-title">No archived cards</div><div class="t-body t-muted">Archive a card from its ⋮ menu to keep it out of your list.</div></div>`
+    ? `<div class="noresult"><div class="t-title">No archived cards</div><div class="t-body t-muted">Hold a card to archive it</div></div>`
     : (q && !list.length)
       ? `<div class="noresult"><div class="t-title">No archived cards match “${esc(S.archSearch.q.trim())}”</div></div>`
       : `<div class="list">${list.map(c => passHTML(c)).join('')}</div>`;

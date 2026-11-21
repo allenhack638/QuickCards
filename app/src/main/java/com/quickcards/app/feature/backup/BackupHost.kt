@@ -1,7 +1,6 @@
 package com.quickcards.app.feature.backup
 
 import com.quickcards.app.core.data.model.toDomain
-import android.app.NotificationManager
 import com.quickcards.app.core.autofill.CardUsage
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -556,7 +555,7 @@ class BackupHostState internal constructor(
                 }
                 UnlockSession.lockNow()
                 ClipboardHelper.clearNow()
-                cancelCopyNotification()
+                CopyCompanionNotifier.cancel(appContext)
                 Reminders.clearAll(appContext)
                 CardUsage.clear(appContext)
                 eraseOpen = false
@@ -721,13 +720,6 @@ class BackupHostState internal constructor(
         appContext.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
             stream.write(text.toByteArray(Charsets.UTF_8))
         } ?: throw IOException("Could not open the selected file")
-    }
-
-    private fun cancelCopyNotification() {
-        runCatching {
-            val manager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.cancel(CopyCompanionNotifier.NOTIFICATION_ID)
-        }
     }
 
     private fun text(resourceId: Int, vararg args: Any): String =

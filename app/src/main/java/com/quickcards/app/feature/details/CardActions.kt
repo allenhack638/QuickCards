@@ -95,9 +95,10 @@ fun CardActionsHost(
 
     fun find(id: String?): HomeCard? = id?.let { wanted -> cards.firstOrNull { it.id == wanted } }
 
-    suspend fun unlocked(reason: Int? = null): Boolean {
+    suspend fun unlocked(reason: Int? = null, fresh: Boolean = false): Boolean {
         val host = activity ?: return false
-        return UnlockSession.requireUnlock(host, reason?.let(context::getString))
+        return UnlockSession.requireUnlock(host, reason?.let(context::getString), fresh) &&
+            !AppLockController.isLocked.value
     }
 
     suspend fun undoable(message: Int): Boolean = snackbar.showAndAwait(
@@ -130,7 +131,7 @@ fun CardActionsHost(
                     if (result == SnackbarResult.ActionPerformed) ClipboardHelper.clearNow()
                 }
             },
-            onShare = { act { if (unlocked(R.string.cards_unlock_share)) state.shareId = card.id } },
+            onShare = { act { if (unlocked(R.string.cards_unlock_share, fresh = true)) state.shareId = card.id } },
             onEdit = { act { if (unlocked(R.string.cards_unlock_edit)) onEdit(card.id) } },
             onTogglePin = {
                 act {
@@ -301,8 +302,7 @@ private fun share(context: Context, card: HomeCard, includeCvv: Boolean) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, CardShareText.build(context, card, includeCvv))
     }
-    // The share sheet is another app's window; like the file picker, it must not lock us.
-    AppLockController.beginSystemPicker()
+    AppLockController.beginShareSheet()
     context.startActivity(Intent.createChooser(send, context.getString(R.string.cards_share_chooser)))
 }
 

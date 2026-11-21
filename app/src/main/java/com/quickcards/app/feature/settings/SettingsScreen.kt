@@ -38,6 +38,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.quickcards.app.BuildConfig
 import com.quickcards.app.R
 import com.quickcards.app.core.data.settings.AppSettings
+import com.quickcards.app.core.notifications.CopyCompanionNotifier
 import com.quickcards.app.core.notifications.rememberCardNotifications
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.ui.LocalAppLocked
@@ -192,7 +193,7 @@ fun SettingsScreen(
                     onCheckedChange = { on ->
                         guard(securityReason(context, SecurityConfirmation.reasonForNotificationCvv(on))) {
                             settings.setNotifEnabled(on)
-                            if (on) notifications.settingTurnedOn()
+                            if (on) notifications.settingTurnedOn() else CopyCompanionNotifier.cancel(context)
                         }
                     }
                 )

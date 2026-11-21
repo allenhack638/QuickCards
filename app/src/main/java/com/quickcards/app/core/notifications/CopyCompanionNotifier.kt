@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import com.quickcards.app.MainActivity
@@ -78,6 +79,8 @@ object CopyCompanionNotifier {
         if (cvv.isNotBlank()) {
             builder.addAction(copyAction(context, token, CopyField.CVV, R.string.notif_action_copy_cvv))
         }
+        // No system smart replies or suggested actions built from the card values.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setAllowSystemGeneratedContextualActions(false)
         manager.notify(NOTIFICATION_ID, builder.build())
     }
 
@@ -139,6 +142,10 @@ object CopyCompanionNotifier {
 class CopyActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != CopyCompanionNotifier.ACTION_COPY) return
+        if (!AppSettings.get(context).notifEnabled.value) {
+            CopyCompanionNotifier.cancel(context)
+            return
+        }
         val field = intent.getStringExtra(CopyCompanionNotifier.EXTRA_FIELD)
             ?.let { name -> CopyField.entries.firstOrNull { it.name == name } } ?: return
         val value = CopyCompanionNotifier.tokens.value(

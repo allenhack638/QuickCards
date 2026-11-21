@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -206,13 +207,15 @@ fun ColourField(
 @Composable
 fun BankColourField(colour: String, shared: Boolean, bankName: String, onPick: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
+    val locked = LocalAppLocked.current
+    LaunchedEffect(locked) { if (locked) open = false }
     ColourField(
         key = colour,
         onClick = { open = true },
         label = stringResource(R.string.manage_bank_colour),
         helper = stringResource(if (shared) R.string.manage_bank_colour_shared else R.string.manage_bank_colour_unused)
     )
-    if (open && !LocalAppLocked.current) {
+    if (open && !locked) {
         CardColourSheet(
             selected = colour,
             bankColour = null,
