@@ -37,3 +37,5 @@ Captured from the Daylight debug build (2.7.0) on a 1080×2400 phone emulator at
 | 31-archived.png | Archived list with the archive reason chip |
 | 32-holder-sheet.png | Holder picker sheet with monograms and New holder |
 | 33-tablet-list-detail.png | Tablet (1280×800 dp): navigation rail, card list and details side by side |
+| 34-add-card-rules-notice.png | Add card when a built-in rule was changed (Visa set to a 4-digit CVV): "Visa: custom 4-digit CVV" with Reset |
+| 35-maestro-no-cvv.png | Card details for a Maestro card saved without a CVV: CVV row reads "None", no copy button |
