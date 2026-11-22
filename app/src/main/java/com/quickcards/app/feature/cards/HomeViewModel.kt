@@ -1,9 +1,6 @@
 package com.quickcards.app.feature.cards
 
 import android.app.Application
-import java.time.Duration
-import java.time.LocalDateTime
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
@@ -22,16 +19,15 @@ import com.quickcards.app.core.data.model.CardType
 import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
-import com.quickcards.app.core.data.model.toDomain
 import com.quickcards.app.core.ui.CardUseStatus
 import com.quickcards.app.core.ui.HomeCard
+import com.quickcards.app.core.ui.HomeCardMapper
+import com.quickcards.app.core.ui.todayFlow
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.domain.CardFilters
-import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.CardQuery
 import com.quickcards.domain.ExpiredPlacement
-import com.quickcards.domain.ExpiryStatus
 import com.quickcards.domain.FilterGroup
 import com.quickcards.domain.FilterGroupOptions
 import com.quickcards.domain.FilterOption
@@ -216,20 +212,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private data class DueInputs(val enabled: Boolean, val paid: Set<String>, val day: LocalDate)
 
-    /** Emits today's date now and again just after each midnight, so due strips roll over. */
-    private val today = flow {
-        while (true) {
-            val now = LocalDateTime.now()
-            emit(now.toLocalDate())
-            val next = now.toLocalDate().plusDays(1).atStartOfDay()
-            delay(Duration.between(now, next).toMillis() + 1_000)
-        }
-    }
-
     private val dueInputs = combine(
         settings.paymentReminders,
         flow { emitAll(PaidStore.paid(application)) }.flowOn(Dispatchers.IO),
-        today
+        todayFlow
     ) { enabled, paid, day -> DueInputs(enabled, paid, day) }
 
     private val listsWithDue = combine(lists, dueInputs, extras) { l, d, e -> Triple(l, d, e) }
@@ -326,35 +312,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         repair: RepairSummary?,
         ui: UiFilters
     ): HomeUiState {
-        val domainNetworks = lists.networks.map { it.toDomain() }
-        val tagsById = tags.associateBy { it.id }
-        val holdersById = lists.holders.associateBy { it.id }
-        val banksById = lists.banks.associateBy { it.id }
-        val typesById = lists.types.associateBy { it.id }
-        val networksById = lists.networks.associateBy { it.id }
-
+        val mapper = HomeCardMapper(lists.networks, lists.holders, lists.banks, lists.types, tags, bankFallback)
         val today = due.day
         val allCards = lists.cards.map { card ->
-            val resolved = if (card.networkAuto) {
-                CardNumberRules.detect(card.number, domainNetworks)
-            } else {
-                card.networkId?.let { networksById[it]?.toDomain() }
-            }
             val dueDate = if (due.enabled && !card.archived) ReminderRules.dueReminderDate(card.dueDay, today) else null
             val dueKey = dueDate?.let { ReminderRules.dueKey(card.id, it) }
-            HomeCard(
-                card = card,
-                bankName = card.bankId?.let { banksById[it]?.name } ?: bankFallback,
-                holderName = card.holderId?.let { holdersById[it]?.name }.orEmpty(),
-                typeName = card.typeId?.let { typesById[it]?.name },
-                network = resolved,
-                networkId = resolved?.id,
-                tagNames = card.tagIds.mapNotNull { tagsById[it]?.name },
-                expiryState = ExpiryStatus.expiryState(
-                    expiry = card.expiry,
-                    today = today,
-                    soonMonths = options.expiresSoonMonths
-                ),
+            mapper.map(card, today, options.expiresSoonMonths).copy(
                 dueInDays = dueDate?.takeIf { dueKey !in due.paid }
                     ?.let { ChronoUnit.DAYS.between(today, it).toInt() },
                 dueKey = dueKey

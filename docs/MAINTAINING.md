@@ -603,7 +603,7 @@ or screenshot for the affected screen; `:domain:test` if a validator changed.
 - Size/spacing/radius: `core/ui/theme/Dimens.kt`. Move a repeated literal there once;
   do not create a parallel constant in a feature.
 - Shape: `core/ui/theme/Shape.kt` (`Shapes`, `QcShapes`).
-- Type: `core/ui/theme/Type.kt` (`QcType`; keep `fontFeatureSettings = "tnum"`).
+- Type: `core/ui/theme/Type.kt` (`QcText`, the five Daylight sizes; keep `fontFeatureSettings = "tnum"` on the mono styles).
 - Icons: `core/ui/theme/QcIcons.kt`; never import a `material-icons` vector directly in a
   feature.
 - `DESIGN.md` tokens/prose, `prototype/quickcards-v2.css` and `prototype/timeline.html`
@@ -623,7 +623,7 @@ pass geometry and palette exist exactly once.
 1. Check `DESIGN.md` first. The pass bands, brand red and pass geometry are defined
    exactly once; a second source is a bug.
 2. Add or change a named token, then use it through `MaterialTheme.colorScheme`,
-   `QcColors`, `PassColors`, `Dimens` or `QcType`. No ad-hoc colours, text styles or
+   `QcColors`, `PassColors`, `Dimens` or `QcText`. No ad-hoc colours, text styles or
    design dp.
 3. Keep selection controls on `secondary`/`secondaryContainer`; brand red is only the one
    filled action per screen.
@@ -693,7 +693,7 @@ This is the widest change in the app. Do it in this order so no layer is forgott
    add its copy label and the value to the copy path; the label/field must respect the
    masking rules and the unlock window.
 7. If it appears in the cards list, keep row titles aligned (56dp lead slot) and use
-   `QcType`/`Dimens`.
+   `QcText`/`Dimens`.
 
 **Backup and import**
 
@@ -819,7 +819,7 @@ Lock now (it must disappear); screenshot check in dark and light.
    and rail at 600dp+.
 3. Load data through the feature ViewModel -> `VaultRepository`. Do not use a DAO or Room
    entity in the screen.
-4. Use `QcType`, `Dimens`, `MaterialTheme` and `QcIcons`; all user text via resources.
+4. Use `QcText`, `QcTheme.colors`, `Dimens` and `QcIcons`; all user text via resources.
 5. If the screen pushes another screen, use the shared-axis 280ms transition and preserve
    scroll position on tab switches.
 6. Add a test tag/semantics for automation; do not encode state in a way that breaks

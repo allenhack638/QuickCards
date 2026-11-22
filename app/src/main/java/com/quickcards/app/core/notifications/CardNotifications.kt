@@ -7,12 +7,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.quickcards.app.R
 import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.reminders.Reminders
+import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.ui.HomeCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +34,6 @@ class CardNotifications internal constructor(
 ) {
     private val settings get() = AppSettings.get(context)
     internal var launcher: ActivityResultLauncher<String>? = null
-    private var pending: CopiedCard? = null
 
     fun numberCopied(card: HomeCard) {
         val copied = CopiedCard(
@@ -61,7 +62,10 @@ class CardNotifications internal constructor(
         )
         when (step) {
             PermissionStep.REQUEST -> request(null)
-            PermissionStep.OPEN_SETTINGS -> context.startActivity(NotificationPermission.settingsIntent(context))
+            PermissionStep.OPEN_SETTINGS -> {
+                AppLockController.beginSystemPicker()
+                runCatching { context.startActivity(NotificationPermission.settingsIntent(context)) }
+            }
             PermissionStep.POST, PermissionStep.NONE -> Unit
         }
     }
@@ -70,13 +74,12 @@ class CardNotifications internal constructor(
         val permission = launcher ?: return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         settings.markNotifPermissionAsked()
-        pending = card
+        pending.hold(card)
         permission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     internal fun onPermissionResult(granted: Boolean) {
-        val card = pending
-        pending = null
+        val card = pending.take()
         if (!granted) return
         if (card != null && settings.notifEnabled.value) post(card)
         scope.launch(Dispatchers.Default) { runCatching { Reminders.check(context) } }
@@ -92,6 +95,11 @@ class CardNotifications internal constructor(
             seconds = settings.notifSec.value
         )
     }
+
+    private companion object {
+        /** Outlives the activity, so a rotation during the permission dialog keeps the copy. */
+        val pending = PendingCopy<CopiedCard>(ttlMillis = 2 * 60_000L)
+    }
 }
 
 @Composable
@@ -99,9 +107,10 @@ fun rememberCardNotifications(): CardNotifications {
     val context = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
     val notification = remember(context, scope) { CardNotifications(context, scope) }
-    notification.launcher = rememberLauncherForActivityResult(
+    val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
         notification::onPermissionResult
     )
+    SideEffect { notification.launcher = launcher }
     return notification
 }

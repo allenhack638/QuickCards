@@ -41,7 +41,7 @@ fun qcSwitchColors(): SwitchColors {
  * toggle target (`Modifier.toggleable(role = Role.Switch)`), which also carries the 48dp hit.
  */
 @Composable
-fun QcSwitch(checked: Boolean, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun QcSwitch(checked: Boolean, modifier: Modifier = Modifier) {
     val colors = QcTheme.colors
     val track by animateColorAsState(
         if (checked) colors.select else colors.tonal2,
@@ -57,7 +57,6 @@ fun QcSwitch(checked: Boolean, modifier: Modifier = Modifier, enabled: Boolean =
     )
     Box(
         modifier = modifier
-            .alpha(if (enabled) 1f else 0.38f)
             .size(width = QcSize.switchWidth, height = QcSize.ctlSm)
             .background(track, QcShapes.full)
             .then(

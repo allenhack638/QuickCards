@@ -1,6 +1,7 @@
 package com.quickcards.app.core.data.repository
 
 import com.quickcards.app.core.data.model.Bank
+import com.quickcards.domain.ArtRules
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -105,5 +106,13 @@ class BankColourRulesTest {
         val before = Bank(name = "Corner Bank", color = "teal")
         assertEquals("plum", BankColourRules.editorColour("HDFC Bank", "plum", before, others))
         assertEquals("plum", BankColourRules.colourToStore("HDFC Bank", "plum", before, others))
+    }
+
+    @Test
+    fun `the bank editor shows the colour saving would give`() {
+        val banks = listOf(Bank(id = "1", name = "HDFC Bank"), Bank(id = "2", name = "SBI Card"))
+        assertEquals("navy", BankColourRules.editorColour("HDFC", null, null, banks))
+        assertEquals(ArtRules.PALETTE_ORDER[2], BankColourRules.editorColour("Saraswat Bank", null, null, banks))
+        assertEquals("plum", BankColourRules.editorColour("Saraswat Bank", "plum", null, banks))
     }
 }

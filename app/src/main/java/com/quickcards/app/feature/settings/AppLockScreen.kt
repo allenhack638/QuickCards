@@ -23,6 +23,7 @@ import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.QcChevron
+import com.quickcards.app.core.ui.components.QcDisabledReason
 import com.quickcards.app.core.ui.components.QcGroup
 import com.quickcards.app.core.ui.components.QcListRow
 import com.quickcards.app.core.ui.components.QcNestedTopBar
@@ -74,33 +75,36 @@ fun AppLockScreen(onBack: () -> Unit) {
                     }
                 )
             }
-            QcGroup {
-                QcListRow(
-                    title = stringResource(R.string.settings_inactivity_title),
-                    icon = QcIcons.timer,
-                    subtitle = autoLockLabel(context, afterSec),
-                    enabled = enabled,
-                    onClick = { choices.open = autoLockChoice(context, settings, afterSec, guard) },
-                    trailing = { QcChevron() }
-                )
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_lock_on_leave_title),
-                    icon = QcIcons.phonelinkLock,
-                    checked = lockOnLeave,
-                    enabled = enabled,
-                    onCheckedChange = { on ->
-                        guard(securityReason(context, SecurityConfirmation.reasonForLockOnLeave(on))) {
-                            settings.setLockOnLeave(on)
+            Column {
+                QcGroup {
+                    QcListRow(
+                        title = stringResource(R.string.settings_inactivity_title),
+                        icon = QcIcons.timer,
+                        subtitle = autoLockLabel(context, afterSec),
+                        enabled = enabled,
+                        onClick = { choices.open = autoLockChoice(context, settings, afterSec, guard) },
+                        trailing = { QcChevron() }
+                    )
+                    QcSwitchRow(
+                        title = stringResource(R.string.settings_lock_on_leave_title),
+                        icon = QcIcons.phonelinkLock,
+                        checked = lockOnLeave,
+                        enabled = enabled,
+                        onCheckedChange = { on ->
+                            guard(securityReason(context, SecurityConfirmation.reasonForLockOnLeave(on))) {
+                                settings.setLockOnLeave(on)
+                            }
                         }
-                    }
-                )
-                QcListRow(
-                    title = stringResource(R.string.settings_copy_window_title),
-                    icon = QcIcons.touchApp,
-                    subtitle = stringResource(R.string.settings_copy_window_subtitle, TimeText.seconds(copyWindowSec)),
-                    onClick = { choices.open = instantCopyChoice(context, settings, copyWindowSec) },
-                    trailing = { QcChevron() }
-                )
+                    )
+                    QcListRow(
+                        title = stringResource(R.string.settings_copy_window_title),
+                        icon = QcIcons.touchApp,
+                        subtitle = stringResource(R.string.settings_copy_window_subtitle, TimeText.seconds(copyWindowSec)),
+                        onClick = { choices.open = instantCopyChoice(context, settings, copyWindowSec) },
+                        trailing = { QcChevron() }
+                    )
+                }
+                if (!enabled) QcDisabledReason(stringResource(R.string.settings_app_lock_off_reason))
             }
             QcGroup { LockNowRow(appLockEnabled = enabled) }
         }

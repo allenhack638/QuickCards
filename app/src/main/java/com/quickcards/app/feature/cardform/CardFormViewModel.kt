@@ -20,7 +20,7 @@ import com.quickcards.app.core.data.model.withRules
 import com.quickcards.app.core.data.repository.BankColourRules
 import com.quickcards.app.core.data.repository.DuplicateCardException
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
-import com.quickcards.app.core.ui.components.CustomColour
+import com.quickcards.domain.CustomColour
 import com.quickcards.domain.CardError
 import com.quickcards.domain.CardField
 import com.quickcards.domain.DefaultNetworks

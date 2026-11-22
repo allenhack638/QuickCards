@@ -1,10 +1,12 @@
 package com.quickcards.app.core.autofill
 
+import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorMatrixColorFilter
+import android.os.Build
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.TypefaceSpan
@@ -56,8 +58,7 @@ internal object AutofillRows {
         val logo = NetworkMarks.bounds(id)
         val canvasRect = NetworkMarks.canvas
         val unit = min(width / logo.width, height / logo.height)
-        val dark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        if (markTone(id, onArt = false, dark = dark) == MarkTone.WHITE) {
+        if (markTone(id, onArt = false, dark = systemDark(context)) == MarkTone.WHITE) {
             drawable.colorFilter = ColorMatrixColorFilter(NetworkMarks.whiteTone)
         }
         drawable.setBounds(0, 0, (canvasRect.width * unit).roundToInt(), (canvasRect.height * unit).roundToInt())
@@ -69,6 +70,25 @@ internal object AutofillRows {
             )
             drawable.draw(canvas)
         }
+    }
+
+    /** The dropdown is drawn by the system in the system theme, not the in-app one. */
+    private fun systemDark(context: Context): Boolean = dropdownDark(
+        sdk = Build.VERSION.SDK_INT,
+        systemNightMode = context.getSystemService(UiModeManager::class.java)?.nightMode ?: UiModeManager.MODE_NIGHT_AUTO,
+        appNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    )
+
+    /**
+     * Android 12+ lets the in-app theme override the app's own night mode, so the app's
+     * configuration can disagree with the system. A fixed system Dark or Light wins; a scheduled or
+     * automatic system mode falls back to the app's, which matches it whenever the theme is System.
+     */
+    internal fun dropdownDark(sdk: Int, systemNightMode: Int, appNight: Boolean): Boolean = when {
+        sdk < Build.VERSION_CODES.S -> appNight
+        systemNightMode == UiModeManager.MODE_NIGHT_YES -> true
+        systemNightMode == UiModeManager.MODE_NIGHT_NO -> false
+        else -> appNight
     }
 
     private const val SLOT_WIDTH_DP = 40

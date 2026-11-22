@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -74,6 +73,7 @@ import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.QcSnackbarHost
 import com.quickcards.app.core.ui.components.SnackbarController
 import com.quickcards.app.core.ui.theme.QcDimens
+import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.app.core.update.AppUpdatePrompts
 import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.app.feature.archive.ArchivedCardsScreen
@@ -197,7 +197,7 @@ fun QcApp() {
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
-                        containerColor = MaterialTheme.colorScheme.background,
+                        containerColor = QcTheme.colors.bg,
                         contentWindowInsets = WindowInsets(0, 0, 0, 0),
                         snackbarHost = {
                             QcSnackbarHost(

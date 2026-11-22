@@ -124,13 +124,13 @@
     <string name="cards_deleted">Card deleted</string>
 
     <!-- Filter sheet -->
-    <string name="cards_filter_title">Filter cards</string>
+    <string name="cards_filter_title">Filter</string>
     <string name="cards_filter_clear_all">Clear all</string>
     <plurals name="cards_filter_show">
         <item quantity="one">Show %1$d card</item>
         <item quantity="other">Show %1$d cards</item>
     </plurals>
-    <string name="cards_filter_group_holder">Card holder</string>
+    <string name="cards_filter_group_holder">Holder</string>
     <string name="cards_filter_group_bank">Bank</string>
     <string name="cards_filter_group_network">Network</string>
     <string name="cards_filter_group_type">Type</string>

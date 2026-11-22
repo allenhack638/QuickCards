@@ -34,6 +34,7 @@ object QcSize {
     val row = 56.dp
     val row2 = 64.dp
     val nav = 80.dp
+    val navIndicator = 56.dp
     val ctlSm = 24.dp
     val ctl = 32.dp
     val ctlMd = 36.dp
@@ -102,13 +103,8 @@ object QcArtDimens {
 object QcDimens {
 
     // Spacing
-    val Half = QcSpacing.s1
-    val Base = QcSpacing.s2
-    val PassGap = QcSpacing.s3
     val NavBarHeight = QcSize.nav
     val Gutter = QcSpacing.s4
-    val Section = QcSpacing.s6
-    val Touch = QcSize.hit
 
     // Rounded
     val PassCorner = QcRadius.lg
@@ -119,7 +115,6 @@ object QcDimens {
 
     // Rows, fields and icons
     val LeadSlot = 56.dp
-    val Icon = QcSize.iconLg
     val Monogram = QcSpacing.s10
 
     // Dialogs and sheets
@@ -127,8 +122,6 @@ object QcDimens {
     val SheetHandleBottom = QcSpacing.s2
     val SheetHandleWidth = QcSize.ctl
     val SheetHandleHeight = QcSpacing.s1
-    val SheetTitleTop = QcSpacing.s2
-    val SheetBottom = QcSpacing.s6
     val SheetMaxHeightFraction = 0.86f
 
     // Search

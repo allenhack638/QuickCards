@@ -49,6 +49,7 @@
     <string name="settings_inactivity_title">Auto-lock</string>
     <string name="settings_inactivity_subtitle">After %1$s</string>
     <string name="settings_lock_on_leave_title">Lock when you leave</string>
+    <string name="settings_app_lock_off_reason">Turn on App lock to use Auto-lock and Lock when you leave</string>
     <string name="settings_copy_window_title">Instant copy</string>
     <string name="settings_copy_window_subtitle">No fingerprint for %1$s</string>
     <string name="settings_copy_window_body">Copy without a fingerprint for</string>
