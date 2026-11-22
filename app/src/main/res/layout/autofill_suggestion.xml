@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One card in the autofill dropdown: mark in the 40x24 slot, "Bank •• 1234", holder. Plain RemoteViews layout. -->
+<!-- One card in the autofill dropdown: mark in the 40x24 slot, then "Bank •• 1234". Plain RemoteViews layout. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

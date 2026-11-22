@@ -2,34 +2,27 @@ package com.quickcards.app.core.notifications
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CopyNotificationTextTest {
 
-    private val masked = { field: CopyField -> if (field == CopyField.EXPIRY) "Expiry ••/••" else "CVV •••" }
+    private fun text(expiry: String, cvv: String) =
+        CopyNotificationText.text(expiry, cvv, { "Expiry $it" }, { "CVV $it" }, " · ")
 
     @Test
-    fun bothFieldsShowMaskedPlaceholdersInOrder() {
-        val fields = CopyNotificationText.fields("12/29", "482")
-
-        assertEquals(listOf(CopyField.EXPIRY, CopyField.CVV), fields)
-        assertEquals("Expiry ••/•• · CVV •••", CopyNotificationText.text(fields, masked, " · "))
+    fun bothValuesShowInOrder() {
+        assertEquals("Expiry 12/29 · CVV 381", text("12/29", "381"))
     }
 
     @Test
-    fun theTextNeverContainsTheValues() {
-        val text = CopyNotificationText.text(CopyNotificationText.fields("12/29", "4821"), masked, " · ")
-
-        assertFalse(text.contains("12/29"))
-        assertFalse(text.contains("4821"))
-        assertFalse(text.any(Char::isDigit))
+    fun theTextIsNeverMasked() {
+        assertFalse(text("12/29", "4821").contains("•"))
     }
 
     @Test
-    fun aBlankFieldIsLeftOutAndNoFieldsMeansNoNotification() {
-        assertEquals(listOf(CopyField.CVV), CopyNotificationText.fields("", "123"))
-        assertEquals(listOf(CopyField.EXPIRY), CopyNotificationText.fields("12/29", " "))
-        assertTrue(CopyNotificationText.fields("", "").isEmpty())
+    fun aBlankValueIsLeftOutAndNoValuesMeansNoText() {
+        assertEquals("CVV 123", text("", "123"))
+        assertEquals("Expiry 12/29", text("12/29", " "))
+        assertEquals("", text("", ""))
     }
 }

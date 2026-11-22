@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -151,6 +152,7 @@ fun QcGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
 /**
  * A list row: filled leading icon 24 in `ink-2`, title and optional supporting line, then a
  * trailing slot. Min 56, or 64 with a supporting line; 16 side padding (24 in sheets via [inset]).
+ * A disabled row dims as a whole (icon, text and trailing) to 38%; say why with [QcDisabledReason].
  */
 @Composable
 fun QcListRow(
@@ -166,11 +168,7 @@ fun QcListRow(
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
     val colors = QcTheme.colors
-    val ink = when {
-        !enabled -> colors.ink3
-        danger -> colors.danger
-        else -> colors.ink
-    }
+    val ink = if (danger) colors.danger else colors.ink
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -178,6 +176,7 @@ fun QcListRow(
             .then(
                 if (onClick != null) Modifier.clickable(enabled = enabled, onClick = onClick) else Modifier
             )
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .padding(horizontal = inset, vertical = QcSpacing.s2),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s4)
@@ -186,11 +185,7 @@ fun QcListRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = when {
-                    !enabled -> colors.ink3
-                    danger -> colors.danger
-                    else -> colors.ink2
-                },
+                tint = if (danger) colors.danger else colors.ink2,
                 modifier = Modifier.size(QcSize.iconLg)
             )
         }
@@ -250,6 +245,21 @@ fun QcSwitchRow(
             role = Role.Switch,
             onValueChange = onCheckedChange
         ),
-        trailing = { QcSwitch(checked = checked, enabled = enabled) }
+        trailing = { QcSwitch(checked = checked) }
     )
 }
+
+/** The one line under a group of disabled rows that says why they are off (DESIGN › Accessibility). */
+@Composable
+fun QcDisabledReason(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = QcText.F2,
+        color = QcTheme.colors.ink2,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = QcSpacing.s4, end = QcSpacing.s4, top = QcSpacing.s2)
+    )
+}
+
+private const val DISABLED_ALPHA = 0.38f

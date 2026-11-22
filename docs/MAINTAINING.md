@@ -58,7 +58,7 @@ To see the prototype running: `cd prototype && python3 -m http.server 8765`, the
 |                           UnlockSession, BiometricAuthHelper, ClipboardHelper, |
 |                           AppLockController                                   |
 |    notifications/         CardNotifications, CopyCompanionNotifier,           |
-|                           CopyTokenStore, NotificationPermission              |
+|                           NotificationPermission                              |
 |    ui/                    theme (Color/Type/Shape/Dimens/QcIcons), QcDialog/   |
 |                           QcOverlays/QcPickerSheet, LockGate, base activity,  |
 |                           shared components                                   |
@@ -170,7 +170,7 @@ TextField value change -> SmartPaste.apply (pure, feature/cardform)
 | App lock | Launch, inactivity, leaving the app, Lock now; lock closes overlays and clears reveals (pending card-action dialogs are dropped if the lock lands while an unlock prompt is open); the clipboard and the notification keep their own timers so a paste into another app works. System picker grace: `beginSystemPicker()` (SAF import/export, autofill settings) skips lock-on-leave for 5 min, `beginShareSheet()` for 60 s, because a share leaves for another app and its result never returns to us. On return (`onStart`) `AppLockPolicy.shouldLockOnReturn` locks if the grace ran out (when Lock when you leave is on) or the inactivity time passed since the last touch, so a frozen process cannot reopen unlocked. Share always asks for a fresh unlock. | `core/security/AppLockController.kt`, `domain/AppLockPolicy` |
 | Overlay lifetime | `QcDialog`/`QcModalBottomSheet`/`QcDropdownMenu`/`QcPopup` return nothing while `LocalAppLocked` is true; `trackAppLockInteraction()` feeds idle tracking; `SecureOverlayWindow()` applies `filterTouchesWhenObscured` and (API 31+) `setHideOverlayWindows` to each overlay window | `core/ui/components`, `core/ui/LockGate.kt` |
 | Clipboard | Sensitive clip marked `EXTRA_IS_SENSITIVE` on API 33+; cleared after the chosen time, by Clear, or by a new copy. The value deliberately survives switching apps so it can be pasted. The timer dies with the process, so the deadline (a keyed HMAC-SHA256 token, never the value) is persisted and an overdue copy is cleared on the first focused read (onWindowFocusChanged). It is not cleared merely because the app went to the background. | `core/security/ClipboardHelper.kt` |
-| Notification | `VISIBILITY_SECRET` (never on the lock screen, even masked); silent, low-importance channel (new id, the old channel is deleted on upgrade); "Copy expiry" / "Copy CVV" actions carry only a random in-memory token (`CopyTokenStore`) that dies with the notification timeout, a new copy or the process, never a value; **on by default for fresh installs**, existing installs keep their value (a 2.4-2.6 install with no stored key is pinned off, a 2.3 upgrade on); turning it on asks for a fresh unlock, turning it off (or Erase all data) cancels a live notification and clears its tokens, and the copy receiver refuses when the setting is off; system-generated contextual actions are off (API 29+). Android has no per-notification opt-out of Notification history, and notifications are never in a backup; on Android 13+ the permission is asked once on the first number copy (`notif_permission_asked`), then a Settings switch that needs it opens system settings | `core/notifications/` |
+| Notification | Shows the copied card's expiry and CVV ("Expiry 12/29 · CVV 381") from the in-memory card for Notification time (`setTimeoutAfter`), with no actions; values never go into a PendingIntent, saved state or a log. `VISIBILITY_SECRET` (never on the lock screen); `setLocalOnly` (no watch bridging); silent, low-importance channel (new id, the old channel is deleted on upgrade); **on by default for fresh installs**, existing installs keep their value (a 2.4-2.6 install with no stored key is pinned off, a 2.3 upgrade on); turning it on asks for a fresh unlock ("Show expiry and CVV in notifications"), a new copy replaces it, turning it off (or Erase all data) cancels it, and a lock leaves it on its own timer; system-generated contextual actions are off (API 29+). Android has no per-notification opt-out of Notification history, and notifications are never in a backup; on Android 13+ the permission is asked once on the first number copy (`notif_permission_asked`), then a Settings switch that needs it opens system settings | `core/notifications/` |
 | Screen capture | `FLAG_SECURE` on every activity in release (`BuildConfig.SECURE_WINDOW`); recents screenshot disabled on API 33+; debug deliberately allows QA screenshots | `core/ui/base/BaseActivity.kt` |
 | Network | No `INTERNET` or `ACCESS_NETWORK_STATE` permission and no network calls; no backup of app data (`allowBackup=false`). The merged manifests are parsed by `OfflineManifestGuardTest` / `verifyOfflineManifest`. The EmojiCompat initializer is removed in the manifest so the default downloadable-font path cannot run. Play in-app updates (`com.google.android.play:app-update`, `core/update/AppUpdates.kt`) is the one Google library: it binds to the Play Store app over IPC, adds no permission, and fails quietly on non-Play installs. | `AndroidManifest.xml`, `app/build.gradle` |
 | Privacy policy | Bundled as text in Settings › About, so it needs no WebView or network permission; the public copy is `docs/privacy.html` | `feature/settings/PrivacyScreen.kt`, `res/values/strings_privacy.xml` |
@@ -603,7 +603,7 @@ or screenshot for the affected screen; `:domain:test` if a validator changed.
 - Size/spacing/radius: `core/ui/theme/Dimens.kt`. Move a repeated literal there once;
   do not create a parallel constant in a feature.
 - Shape: `core/ui/theme/Shape.kt` (`Shapes`, `QcShapes`).
-- Type: `core/ui/theme/Type.kt` (`QcType`; keep `fontFeatureSettings = "tnum"`).
+- Type: `core/ui/theme/Type.kt` (`QcText`, the five Daylight sizes; keep `fontFeatureSettings = "tnum"` on the mono styles).
 - Icons: `core/ui/theme/QcIcons.kt`; never import a `material-icons` vector directly in a
   feature.
 - `DESIGN.md` tokens/prose, `prototype/quickcards-v2.css` and `prototype/timeline.html`
@@ -623,7 +623,7 @@ pass geometry and palette exist exactly once.
 1. Check `DESIGN.md` first. The pass bands, brand red and pass geometry are defined
    exactly once; a second source is a bug.
 2. Add or change a named token, then use it through `MaterialTheme.colorScheme`,
-   `QcColors`, `PassColors`, `Dimens` or `QcType`. No ad-hoc colours, text styles or
+   `QcColors`, `PassColors`, `Dimens` or `QcText`. No ad-hoc colours, text styles or
    design dp.
 3. Keep selection controls on `secondary`/`secondaryContainer`; brand red is only the one
    filled action per screen.
@@ -693,7 +693,7 @@ This is the widest change in the app. Do it in this order so no layer is forgott
    add its copy label and the value to the copy path; the label/field must respect the
    masking rules and the unlock window.
 7. If it appears in the cards list, keep row titles aligned (56dp lead slot) and use
-   `QcType`/`Dimens`.
+   `QcText`/`Dimens`.
 
 **Backup and import**
 
@@ -819,7 +819,7 @@ Lock now (it must disappear); screenshot check in dark and light.
    and rail at 600dp+.
 3. Load data through the feature ViewModel -> `VaultRepository`. Do not use a DAO or Room
    entity in the screen.
-4. Use `QcType`, `Dimens`, `MaterialTheme` and `QcIcons`; all user text via resources.
+4. Use `QcText`, `QcTheme.colors`, `Dimens` and `QcIcons`; all user text via resources.
 5. If the screen pushes another screen, use the shared-axis 280ms transition and preserve
    scroll position on tab switches.
 6. Add a test tag/semantics for automation; do not encode state in a way that breaks

@@ -483,15 +483,15 @@ M3 snackbar on `inverse`: one line of text, left-aligned, no icon, no image, opt
 
 ### Notifications
 
-Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons. No card thumbnails. Copy notification: masked "Expiry ••/•• · CVV •••" (the values are never displayed) with "Copy expiry" and "Copy CVV" actions; it is hidden entirely on the lock screen. Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days"; on the lock screen "QuickCards" / "Card reminder"; a tap opens that card's details once the app is unlocked. Small icon tinted brand red.
+Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons where the notification has them. No card thumbnails. Copy notification: "Expiry 12/29 · CVV 381" (the card's real values, in the shade only), no action buttons; it is hidden entirely on the lock screen. Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days"; on the lock screen "QuickCards" / "Card reminder"; a tap opens that card's details once the app is unlocked. Small icon tinted brand red.
 
 ### Navigation and bars
 
-Top bar 64: screen title `f5` (level-1 heading) or back + `f4` title for nested screens; actions are 48 icon buttons. Home bar: title, search, filter, +. Bottom bar 80 with three items (Cards, Manage, Settings), 56 × 32 indicator. Settings bar has an ⓘ that opens Help.
+Top bar 64: screen title `f5` (level-1 heading) or back + `f4` title for nested screens; actions are 48 icon buttons. Home bar: title, search, filter, +. Bottom bar 80 on `bg` with a `line` hairline above, three items (Cards, Manage, Settings): 56 × 32 indicator in `tonal-2` behind the selected (filled) icon, `f1` label in `ink` (600) when selected, `ink-2` (500) otherwise. Settings bar has an ⓘ that opens Help.
 
 ### Selection controls
 
-Switch, checkbox, radio in `select` / `on-select`; the whole row toggles; 48 hit. Filter chips lead with a check 18 when selected; holder chips are single-select (no check).
+Switch, checkbox, radio in `select` / `on-select`; the whole row toggles; 48 hit. Filter chips lead with a check 18 when selected; holder chips are single-select (no check). The Filter sheet: title "Filter" with Clear all (accent text button) in its header, then each group's label (`f2` 600, `ink-2`) over wrapping 32 chips (8 apart, `surface` with a `line` outline; `select` fill when on); only Status chips show their count (72%); the lone footer action "Show N cards" is tonal. A disabled list row dims as a whole (icon, text, trailing control) to 38%, and one `f2` `ink-2` line under its group says why (App lock off: "Turn on App lock to use Auto-lock and Lock when you leave").
 
 ### Colour picker
 
@@ -571,7 +571,7 @@ Nothing moves on its own: no tilt, particles, rolling digits or flips. Reduced m
 | Launcher shortcuts | Add card, Search: static `res/xml/shortcuts.xml`; Tap to add: dynamic via `ShortcutManagerCompat`, NFC phones only |
 | Tips | `HorizontalPager(3)` + DataStore flag `tipsSeen` |
 | Window class | `core/ui/adaptive/QcWindow.of(width, height, hinge)`: 600 / 840 width, 480 height (no adaptive library; minSdk 26) |
-| Bar ↔ rail | `QcApp`: `NavigationBar` below 600, `NavigationRail` (80, on `bg`) from 600 |
+| Bar ↔ rail | `QcNavBars.kt`: `QcNavigationBar` below 600, `QcNavigationRail` (80, on `bg`, items top-aligned, 64 tall) from 600; both draw the same 56 × 32 indicator item from `QcTheme` tokens |
 | List-detail, two-pane Settings | `ListDetailPanes(listWidth, hinge)`; medium opens `card/details` beside the list, so Back pops the detail pane; `SettingsScreen(twoPane)` |
 | Hinge | `rememberHinge()`: WindowManager `FoldingFeature` (vertical, separating); panes end at a zone of max(24, hinge) |
 | Staggered grid | `LazyVerticalStaggeredGrid` |

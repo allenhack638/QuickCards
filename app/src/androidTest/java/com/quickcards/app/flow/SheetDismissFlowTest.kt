@@ -36,7 +36,7 @@ class SheetDismissFlowTest : FlowTestBase() {
     @Test
     fun tappingOutsideDismissesTheSheet() {
         openFilter()
-        val sheetTop = compose.onNodeWithText("Filter cards").fetchSemanticsNode().boundsInRoot.top
+        val sheetTop = compose.onNodeWithText("Filter").fetchSemanticsNode().boundsInRoot.top
         compose.onNodeWithContentDescription("Close sheet")
             .performTouchInput { click(Offset(centerX, sheetTop / 2f)) }
         waitForTextGone("Show 1 card")

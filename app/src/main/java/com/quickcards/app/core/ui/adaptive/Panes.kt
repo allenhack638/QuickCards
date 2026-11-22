@@ -60,7 +60,9 @@ fun ListDetailPanes(
 ) {
     val density = LocalDensity.current
     var originX by remember { mutableStateOf<Float?>(null) }
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().onGloballyPositioned { originX = it.positionInWindow().x }) {
+    // Only a hinge needs the window position; without one the panes never recompose while a transition slides them.
+    val trackOrigin = if (hinge == null) Modifier else Modifier.onGloballyPositioned { originX = it.positionInWindow().x }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().then(trackOrigin)) {
         val width = maxWidth
         val zone = with(density) {
             val origin = originX

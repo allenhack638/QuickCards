@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block" rel="stylesheet">
-<link rel="stylesheet" href="quickcards-v2.css?v=14">
+<link rel="stylesheet" href="quickcards-v2.css?v=15">
 <style>
   html, body { margin: 0; min-height: 100%; }
   body.page { background: #111113; color: #E4E4E7; font-family: "Roboto Flex", Roboto, system-ui, sans-serif; display: flex; justify-content: center; align-items: flex-start; gap: 48px; padding: 32px 16px 48px; box-sizing: border-box; }
@@ -116,7 +116,6 @@
   .checkrow { border-radius: 8px; display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 0 24px; width: 100%; text-align: left; font-size: 16px; }
   .checkrow .cb { margin: 0 1px; }
   .checkrow[disabled] { opacity: .38; pointer-events: none; }
-  .checkrow .cnt { margin-left: auto; font-size: 13px; color: var(--on-surface-variant); }
   .file { display: flex; align-items: center; gap: 12px; border: 1px solid var(--outline-variant); border-radius: 12px; padding: 10px 6px 10px 12px; margin-bottom: 16px; }
   .file .n { font-size: 14px; font-weight: 600; word-break: break-all; }
   .file .m { font-size: 12px; color: var(--on-surface-variant); }
@@ -139,7 +138,7 @@
   <h2>Try</h2>
   <ul>
     <li>Tap the masked number, expiry, CVV or name to copy it. Hold the number or CVV to see it for 5 seconds.</li>
-    <li>If enabled, after copying a number a silent notification offers Copy expiry and Copy CVV for 30 seconds; it shows both masked.</li>
+    <li>If enabled, after copying a number a silent notification shows that card’s expiry and CVV for 30 seconds, never on the lock screen.</li>
     <li>The first number copy asks for the notification permission (Android 13 and later), never at install or launch.</li>
     <li>Use the holder chips to switch between card holders.</li>
     <li>Pin a card from its More sheet to keep it at the top of the list.</li>
@@ -427,28 +426,22 @@ function renderClip() { const el = $('#clip'); if (el) el.innerHTML = S.clip ? `
 /* ---------- Heads-up notification ---------- */
 let hunT, hunI;
 /* Content preview only: the app posts this as a silent system notification in the shade
-   (on by default, hidden on the lock screen), not as an in-app heads-up. It never shows a value:
-   expiry and CVV are masked and leave only through its Copy actions. */
+   (on by default, hidden on the lock screen), not as an in-app heads-up. It shows the card's
+   expiry and CVV and has no action buttons. */
 function showHun(c) {
   const n = S.cfg.notif; if (!n.on) return;
   const last4 = c.number.slice(-4);
   hun.innerHTML = `<div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum" id="hunT">${fmtT(n.sec)}</span><button class="x" data-hun="x" aria-label="Dismiss notification">${I('close', 'sm')}</button></div>
     <div class="t">${esc(cardTitle(c))} ••<span class="tnum">${last4}</span></div>
-    <div class="vals"><div class="v">${[c.exp && 'Expiry ••/••', c.cvv && 'CVV •••'].filter(Boolean).join(' · ')}</div></div>
-    <div class="acts">${c.exp ? '<button class="btn text sl" data-hun="exp">Copy expiry</button>' : ''}${c.cvv ? '<button class="btn text sl" data-hun="cvv">Copy CVV</button>' : ''}</div>
+    <div class="vals"><div class="v">${[c.exp && `Expiry ${esc(c.exp)}`, c.cvv && `CVV ${esc(c.cvv)}`].filter(Boolean).join(' · ')}</div></div>
 <div class="bar" id="hunBar"></div>`;
-  hun._card = c; hun.classList.add('show');
+  hun.classList.add('show');
   const bar = $('#hunBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth; bar.style.transition = `transform ${n.sec}s linear`; bar.style.transform = 'scaleX(0)';
   const end = Date.now() + n.sec * 1000; clearInterval(hunI); hunI = setInterval(() => { const t = $('#hunT'); if (t) t.textContent = fmtT(Math.max(0, Math.ceil((end - Date.now()) / 1000))); }, 250);
   clearTimeout(hunT); hunT = setTimeout(hideHun, n.sec * 1000);
 }
 function hideHun() { hun.classList.remove('show'); clearInterval(hunI); clearTimeout(hunT); }
-hun.addEventListener('click', e => {
-  const b = e.target.closest('[data-hun]'); if (!b) return;
-  if (b.dataset.hun === 'x') return hideHun();
-  const c = hun._card, key = b.dataset.hun;
-  if (c) setClip(`${cardTitle(c)} · ${LABEL[key]}`, c[key]);
-});
+hun.addEventListener('click', e => { if (e.target.closest('[data-hun="x"]')) hideHun(); });
 /* Android 13+: the first number copy asks for the notification permission (never at install or
    launch), and only while the copy notification or a reminder is on. After that one ask, a denial
    changes only in system settings; copying still works. */
@@ -501,7 +494,7 @@ When you choose to send data somewhere
 - Autofill: when you tap a QuickCards suggestion in another app’s payment form, QuickCards fills the fields you selected. It reads that form’s field labels only to fill it and does not save or transmit the form.
 - Export backup: you choose a file location. The backup is encrypted with the password you enter. Where the file goes, including a cloud provider you pick, is your choice.
 - Clipboard: copying a card value places it on the Android clipboard for the time you chose, then QuickCards clears it. On Android 13 and later the clip is marked sensitive.
-- Notifications: after you copy a card number, a silent notification lets you copy that card’s expiry and CVV for a short time. It does not display them (they are masked), it is on by default for new installs, it never shows on the lock screen, and you can turn it off in Settings › Copying. Reminders show only the bank and the last four digits.
+- Notifications: after you copy a card number, a silent notification shows that card’s expiry and CVV for a short time. It is on by default for new installs, it never shows on the lock screen, and you can turn it off in Settings › Copying. Reminders show only the bank and the last four digits.
 
 Permissions and why
 - Biometric or device credential: unlock the app and sensitive actions.
@@ -968,21 +961,26 @@ function setErr(key, msg) {
   $('input', w).setAttribute('aria-invalid', msg ? 'true' : 'false'); S.form.errors[key] = msg || null;
 }
 function validate(key) {
-  const F = S.form, net = fNet(); let m = '';
+  const F = S.form, net = fNet(); let m = '', dup = null;
   if (key === 'number') {
     const n = F.number, L = net ? lens(net.lengths) : [];
     if (!n) m = 'Enter the card number';
     else if (net && !L.includes(n.length)) m = `${net.name} numbers have ${lensText(net.lengths)} digits`;
     else if (!net && (n.length < 12 || n.length > 19)) m = 'Card numbers have 12 to 19 digits';
     else if ((net ? net.luhn : true) && !luhnValid(n)) m = 'This number doesn’t look right. Check the digits.';
-    else { const d = S.cards.find(c => c.number === n && c.id !== F.id); if (d) m = `Already saved as ${cardTitle(d)} for ${byId('holders', d.holderId)?.name || 'a holder'}`; }
+    else { const d = S.cards.find(c => c.number === n && c.id !== F.id); if (d) { m = `Already saved as ${byId('banks', d.bankId)?.name || 'Bank'} •• ${d.number.slice(-4)}`; dup = d; } }
   }
   if (key === 'exp') { const mm = +F.exp.slice(0, 2), yy = +F.exp.slice(3, 5); if (!/^\d{2}\/\d{2}$/.test(F.exp) || mm < 1 || mm > 12) m = 'Use MM/YY'; else if (2000 + yy > TODAY.y + 20) m = 'Check the year'; }
   if (key === 'cvv' && !(F.cvv === '' && net?.cvvOptional)) { const want = net?.cvv; if (want ? F.cvv.length !== want : (F.cvv.length < 3 || F.cvv.length > 4)) m = `Enter ${want || '3 or 4'} digits`; }
   if (key === 'bank' && !F.bankId) m = 'Choose the bank';
   if (key === 'type' && !F.typeId) m = 'Choose the card type';
   if (key === 'holder' && !F.holderId) m = 'Choose who this card belongs to';
-  setErr(key, m); syncFormStd(); return !m;
+  setErr(key, m); if (key === 'number') syncDupOpen(dup); syncFormStd(); return !m;
+}
+/* A number already saved: the error line ends in Open, which leaves the form for that card (its actions sheet here; Card details in the app). */
+function syncDupOpen(d) {
+  const h = $('#h-number'); if (!h) return; $('[data-act="opendup"]', h)?.remove();
+  if (d) h.insertAdjacentHTML('beforeend', `<button class="btn text sl fundo" data-act="opendup" data-id="${d.id}" aria-label="Open ${esc(byId('banks', d.bankId)?.name || 'Bank')} card ending ${d.number.slice(-4)}">Open</button>`);
 }
 /* Shown only when a changed built-in rule is what blocks the number or CVV. */
 function syncFormStd() {
@@ -1289,6 +1287,8 @@ function deleteDialog(c) {
     } };
   });
 }
+// Selected chips lead with a check; only Status carries a count.
+const fchip = (g, x, on) => `<button class="chip filter sl" aria-pressed="${on}" data-g="${g}" data-v="${esc(x.id)}" data-name="${esc(x.name)}" data-n="${x.n}">${on ? I('check') : ''}${esc(x.name)}${g === 'status' ? ` <span class="n tnum">${x.n}</span>` : ''}</button>`;
 function filterSheet() {
   const T = emptyFilters();
   ['holders', 'banks', 'networks', 'types', 'tags', 'status'].forEach(g => { T[g] = new Set(S.filters[g]); });
@@ -1297,7 +1297,7 @@ function filterSheet() {
   const items = (kind, getter) => inUse(kind, getter).map(x => ({ id: x.id, name: x.name, n: KINDS[kind].used(x.id).length }));
   const statusItems = [{ id: 'expired', name: 'Expired', n: statusCount('expired') }, { id: 'soon', name: 'Expires soon', n: statusCount('soon') }].filter(x => x.n);
   const groups = [
-    ['holders', 'Card holder', items('holders', (c, id) => c.holderId === id)],
+    ['holders', 'Holder', items('holders', (c, id) => c.holderId === id)],
     ['banks', 'Bank', items('banks', (c, id) => c.bankId === id)],
     ['networks', 'Network', items('networks', (c, id) => netOf(c)?.id === id)],
     ['types', 'Type', items('types', (c, id) => c.typeId === id)],
@@ -1305,13 +1305,14 @@ function filterSheet() {
     ['status', 'Status', statusItems],
   ].filter(g => g[2].length);
   const count = () => S.cards.filter(c => !c.archived && passes(c, T) && !(isExpired(c) && S.cfg.expiredCards === 'hide' && !T.status.has('expired'))).length;
-  openSheet(`<div class="sh-title t-headline">Filter cards</div><div class="sh-body">
-    ${groups.map(([g, l, xs]) => `<div class="grp-h">${l}</div>${xs.map(x => `<button class="checkrow sl" role="checkbox" aria-checked="${T[g].has(x.id)}" data-g="${g}" data-v="${x.id}"><span class="cb">${I('check')}</span>${esc(x.name)}<span class="cnt tnum">${x.n}</span></button>`).join('')}`).join('')}</div>
-    <div class="sh-foot"><button class="btn text sl" data-f="clear">Clear all</button><button class="btn filled" data-f="apply" id="fApply">Show ${plural(count(), 'card')}</button></div>`, () => {
+  // Daylight: title and Clear all share the header; only Status shows counts; Show N cards is the lone (tonal) footer action.
+  openSheet(`<div class="sh-title t-headline" style="display:flex;align-items:center">Filter<button class="btn text sl" data-f="clear" style="margin-left:auto">Clear all</button></div><div class="sh-body">
+    ${groups.map(([g, l, xs]) => `<div class="fgroup" role="group" aria-label="${l}"><div class="grp-h">${l}</div><div class="fchips">${xs.map(x => fchip(g, x, T[g].has(x.id))).join('')}</div></div>`).join('')}</div>
+    <div class="sh-foot"><button class="btn tonal" data-f="apply" id="fApply" style="flex:1">Show ${plural(count(), 'card')}</button></div>`, () => {
     sheet.onclick = e => {
-      const r = e.target.closest('.checkrow'); if (r) { const s = T[r.dataset.g]; s.has(r.dataset.v) ? s.delete(r.dataset.v) : s.add(r.dataset.v); r.setAttribute('aria-checked', s.has(r.dataset.v)); }
+      const r = e.target.closest('.chip[data-g]'); if (r) { const s = T[r.dataset.g]; s.has(r.dataset.v) ? s.delete(r.dataset.v) : s.add(r.dataset.v); r.outerHTML = fchip(r.dataset.g, { id: r.dataset.v, name: r.dataset.name, n: r.dataset.n }, s.has(r.dataset.v)); }
       const f = e.target.closest('[data-f]');
-      if (f?.dataset.f === 'clear') { Object.values(T).forEach(s => { if (s?.clear) s.clear(); }); T.review = false; $$('.checkrow', sheet).forEach(x => x.setAttribute('aria-checked', 'false')); }
+      if (f?.dataset.f === 'clear') { Object.values(T).forEach(s => { if (s?.clear) s.clear(); }); T.review = false; $$('.chip[data-g]', sheet).forEach(x => { x.outerHTML = fchip(x.dataset.g, { id: x.dataset.v, name: x.dataset.name, n: x.dataset.n }, false); }); }
       if (f?.dataset.f === 'apply') { S.filters = T; closeSheet(); render(); return; }
       const n = count(); $('#fApply').textContent = `Show ${plural(n, 'card')}`; $('#fApply').toggleAttribute('disabled', n === 0);
     };
@@ -1554,7 +1555,7 @@ app.addEventListener('click', e => {
   const t = e.target.closest('[data-act]'); if (!t) return;
   const a = t.dataset.act, C = S.cfg;
   // Turning on the copy notification always re-asks, like turning a protection off.
-  if (a === 'notif' && !C.notif.on) return openBio(() => { C.notif.on = true; render(); }, 'Confirm it’s you to turn on the copy notification');
+  if (a === 'notif' && !C.notif.on) return openBio(() => { C.notif.on = true; render(); }, 'Show expiry and CVV in notifications');
   if (CFG_TOGGLES[a]) { CFG_TOGGLES[a](C); return render(); }
   switch (a) {
     case 'back': return back();
@@ -1597,6 +1598,7 @@ app.addEventListener('click', e => {
       if (!open) syncNotes();
       return;
     }
+    case 'opendup': { const id = t.dataset.id; S.form = null; S.stack = [{ name: ROOT[S.tab] }]; render('back'); return actionsSheet(id); }
     case 'undofix': {
       const F = S.form; if (!F) return;
       const key = t.dataset.key, before = F.repairs?.[key]?.before;

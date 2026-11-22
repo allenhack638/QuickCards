@@ -5,6 +5,8 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorMatrixColorFilter
+import android.graphics.drawable.Icon
+import android.os.Build
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.TypefaceSpan
@@ -33,8 +35,25 @@ internal object AutofillRows {
     fun card(context: Context, bank: String, lastFour: String, networkId: String?) =
         RemoteViews(context.packageName, R.layout.autofill_suggestion).apply {
             setTextViewText(R.id.autofill_title, title(context, bank, lastFour))
-            markBitmap(context, networkId)?.let { setImageViewBitmap(R.id.autofill_icon, it) }
+            networkId?.let { setMark(context, it) }
         }
+
+    /**
+     * The system draws the dropdown in its own theme. On Android 12+ the in-app theme sets a per-app
+     * night mode that also rewrites this process's view of the system configuration, so the app
+     * hands over a light and a dark mark and the system picks. Before 12 the in-app theme never
+     * touches the configuration, so the app's is the system's.
+     */
+    private fun RemoteViews.setMark(context: Context, id: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val light = markBitmap(context, id, dark = false) ?: return
+            val dark = markBitmap(context, id, dark = true) ?: return
+            setIcon(R.id.autofill_icon, "setImageIcon", Icon.createWithBitmap(light), Icon.createWithBitmap(dark))
+        } else {
+            val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            markBitmap(context, id, night)?.let { setImageViewBitmap(R.id.autofill_icon, it) }
+        }
+    }
 
     private fun title(context: Context, bank: String, lastFour: String): CharSequence {
         val text = context.getString(R.string.autofill_suggestion, bank, lastFour)
@@ -46,8 +65,7 @@ internal object AutofillRows {
     }
 
     /** The logo's own bounds fitted into 40x24, as in the app; wordmarks go white on a dark dropdown. */
-    private fun markBitmap(context: Context, networkId: String?): Bitmap? {
-        val id = networkId ?: return null
+    private fun markBitmap(context: Context, id: String, dark: Boolean): Bitmap? {
         val res = NetworkMarks.drawable(id) ?: return null
         val drawable = ContextCompat.getDrawable(context, res)?.mutate() ?: return null
         val density = context.resources.displayMetrics.density
@@ -56,7 +74,6 @@ internal object AutofillRows {
         val logo = NetworkMarks.bounds(id)
         val canvasRect = NetworkMarks.canvas
         val unit = min(width / logo.width, height / logo.height)
-        val dark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         if (markTone(id, onArt = false, dark = dark) == MarkTone.WHITE) {
             drawable.colorFilter = ColorMatrixColorFilter(NetworkMarks.whiteTone)
         }
@@ -74,3 +91,4 @@ internal object AutofillRows {
     private const val SLOT_WIDTH_DP = 40
     private const val SLOT_HEIGHT_DP = 24
 }
+

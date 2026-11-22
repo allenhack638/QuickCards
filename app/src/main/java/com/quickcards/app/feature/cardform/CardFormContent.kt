@@ -166,10 +166,10 @@ internal fun CardFormContent(
         if (cvvValue.text != form.cvv) cvvValue = TextFieldValue(form.cvv, TextRange(form.cvv.length))
     }
     LaunchedEffect(form.note) {
-        if (noteValue.text != form.note) {
-            noteValue = TextFieldValue(form.note, TextRange(form.note.length))
-            dueDayValue = TextFieldValue(form.dueDay, TextRange(form.dueDay.length))
-        }
+        if (noteValue.text != form.note) noteValue = TextFieldValue(form.note, TextRange(form.note.length))
+    }
+    LaunchedEffect(form.dueDay) {
+        if (dueDayValue.text != form.dueDay) dueDayValue = TextFieldValue(form.dueDay, TextRange(form.dueDay.length))
     }
     LaunchedEffect(cvvShown) {
         if (cvvShown) {

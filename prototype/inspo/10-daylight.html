@@ -2060,7 +2060,7 @@ QC.addScreens("#shots-settings", [
   ["settings-expired", "Expired cards", settings(sTop()), choice("Expired cards", ["Keep in place","At the end","Hide from the list"], "At the end")],
   ["settings-soon", "Expires soon", settings(sTop()), choice("Expires soon", ["Within 1 month","Within 2 months","Within 3 months"], "Within 1 month")],
   ["settings-autolock", "Auto-lock", appLock, choice("Auto-lock", ["After 10 seconds","After 30 seconds","After 1 minute","After 5 minutes","Never"], "After 1 minute")],
-  ["settings-notif-unlock", "Notification · unlock", settings(sMid), QC.sysPrompt("Turn on the copy notification")],
+  ["settings-notif-unlock", "Notification · unlock", settings(sMid), QC.sysPrompt("Show expiry and CVV in notifications")],
   ["settings-locked", "Lock now", appLock, QC.toast("Copying locked")],
   /* Play update (flexible): Version row states; the download ends in "Update ready" + Restart */
   ["settings-update", "Update available", settings(sEndV("avail"))],
@@ -2318,7 +2318,7 @@ QC.addScreens("#shots-archive", [
 /* ---------- Notifications ---------- */
 const badge = `<span class="notif-badge">${QC.MARK}</span>`;
 /* P: Android template: small app icon + app · time, title, text, then action buttons. No card thumbnail.
-   M2 (owner): the copy notification shows expiry and CVV masked; the values leave only through Copy expiry / Copy CVV.
+   M2 (owner, reversed 22 Nov): the copy notification shows the real expiry and CVV and has no action buttons.
    It is VISIBILITY_SECRET, so the lock screen shows nothing of it. */
 const notif = (when, title, text, actions="") => `<div class="notif"><div class="notif-app">${badge}QuickCards · ${when}</div>
   <div class="notif-body"><div class="notif-title">${title}</div><div class="notif-text">${text}</div></div>${actions?`<div class="notif-actions">${actions}</div>`:""}</div>`;
@@ -2327,7 +2327,7 @@ const notif = (when, title, text, actions="") => `<div class="notif"><div class=
 const today = `Fri, ${QC.fmtDay(QC.todayN)}`, H = C.hdfc, REM = QC.expiryReminders();
 const dueNotes = QC.ORDER.map(id => C[id]).filter(c => QC.dueText(c)).map(c => notif("9:00",`${c.bank} ${QC.masked(c.last)}`,`Due ${QC.fmtDay(QC.dueN(c))}`,`<button class="btn btn-tonal">Paid</button>`)).join("");
 const shade = `<div class="shade p60-shade" role="region" aria-label="Notification shade"><div class="p60-date"><span>${today}</span></div>
-  ${notif("now",`${H.bank} ${QC.masked(H.last)}`,`Expiry ••/•• · CVV •••`,`<button class="btn btn-tonal">Copy expiry</button><button class="btn btn-tonal">Copy CVV</button>`)}
+  ${notif("now",`${H.bank} ${QC.masked(H.last)}`,`Expiry ${H.exp} · CVV ${H.cvv}`)}
   ${dueNotes}${REM.map(r => notif(r.when,`${r.c.bank} ${QC.masked(r.c.last)}`,r.text)).join("")}</div>`;
 const lockscr = `<div class="shade p60-shade" role="region" aria-label="Lock screen"><div class="p60-clock"><b>9:41</b><span>${today}</span></div>
   ${notif("9:00","QuickCards","Card reminder")}</div>`;

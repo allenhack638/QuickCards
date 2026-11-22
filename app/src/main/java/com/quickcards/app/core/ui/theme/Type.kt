@@ -70,15 +70,6 @@ object QcText {
     val MonoDotsF3 = MonoF3.copy(letterSpacing = 0.12f.em)
 }
 
-/** Legacy names kept so features compile; each maps onto the Daylight scale. */
-object QcType {
-    val Headline = QcText.F4
-    val NestedTitle = QcText.F4
-    val Body = QcText.F2
-    val Label = QcText.F1Semibold
-    val FieldLabel = QcText.F1Semibold
-}
-
 val Typography = Typography(
     displayLarge = QcText.F5,
     displayMedium = QcText.F5,

@@ -13,10 +13,8 @@ import com.quickcards.app.core.data.model.CardType
 import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
-import com.quickcards.app.core.data.model.toDomain
-import com.quickcards.app.core.ui.HomeCard
-import com.quickcards.domain.CardNumberRules
-import com.quickcards.domain.ExpiryStatus
+import com.quickcards.app.core.ui.HomeCardMapper
+import com.quickcards.app.core.ui.todayFlow
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -96,13 +94,15 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
         )
     }
 
+    private val search = combine(query, searchOn) { q, on -> q to on }
+
     val uiState: StateFlow<ArchivedCardsUiState> = combine(
         lists,
         options,
-        query,
-        searchOn
-    ) { lists, options, query, on ->
-        buildState(lists, options, query, on)
+        search,
+        todayFlow
+    ) { lists, options, (query, on), today ->
+        buildState(lists, options, query, on, today)
     }.flowOn(Dispatchers.Default).stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
@@ -122,37 +122,13 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
         lists: Lists,
         options: ArchivedCardsOptions,
         query: String,
-        searchOn: Boolean
+        searchOn: Boolean,
+        today: LocalDate
     ): ArchivedCardsUiState {
-        val domainNetworks = lists.networks.map { it.toDomain() }
-        val networksById = lists.networks.associateBy { it.id }
-        val holdersById = lists.holders.associateBy { it.id }
-        val banksById = lists.banks.associateBy { it.id }
-        val typesById = lists.types.associateBy { it.id }
-        val tagsById = lists.tags.associateBy { it.id }
-        val today = LocalDate.now()
-
+        val mapper = HomeCardMapper(lists.networks, lists.holders, lists.banks, lists.types, lists.tags, bankFallback)
         val cards = lists.archived.map { card ->
-            val resolved = if (card.networkAuto) {
-                CardNumberRules.detect(card.number, domainNetworks)
-            } else {
-                card.networkId?.let { networksById[it]?.toDomain() }
-            }
             ArchivedCardItem(
-                card = HomeCard(
-                    card = card,
-                    bankName = card.bankId?.let { banksById[it]?.name } ?: bankFallback,
-                    holderName = card.holderId?.let { holdersById[it]?.name }.orEmpty(),
-                    typeName = card.typeId?.let { typesById[it]?.name },
-                    network = resolved,
-                    networkId = resolved?.id,
-                    tagNames = card.tagIds.mapNotNull { tagsById[it]?.name },
-                    expiryState = ExpiryStatus.expiryState(
-                        expiry = card.expiry,
-                        today = today,
-                        soonMonths = options.expiresSoonMonths
-                    )
-                ),
+                card = mapper.map(card, today, options.expiresSoonMonths),
                 reason = card.archiveReason?.takeIf { it.isNotBlank() }
             )
         }
