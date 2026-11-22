@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.7.1] - 2026-11-22
+
+- Changed: after you copy a card number, the notification shows that card's expiry and CVV directly (no copy buttons). It still disappears after the notification time, never appears on the lock screen, and can be turned off in Settings › Copying.
+- Changed: the Filter sheet uses chips, the bottom bar matches the new design, and App lock rows dim with a short note when App lock is off.
+- Fixed: autofill network logos stay readable when the app and system themes differ.
+
 ## [2.7.0] - 2026-11-22
 
 - Changed: a full redesign, Daylight. Cards get jewel colours with a pattern per colour, banks have a default colour, and every screen is cleaner with less text, in light and dark.
