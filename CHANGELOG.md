@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.7.0] - 2026-11-22
+
+- Changed: a full redesign, Daylight. Cards get jewel colours with a pattern per colour, banks have a default colour, and every screen is cleaner with less text, in light and dark.
+- Changed: tap a card to open its details; hold it for actions (share, archive, delete, pin). Copy on a card copies the number; expiry and CVV are one tap away in the copy notification, which is now on by default for new installs, shows masked values and never appears on the lock screen.
+- Added: tablet, foldable and landscape layouts; tapping a reminder opens that card.
+- Fixed: the app locks again when you come back from sharing after the grace time, and revealed values clear when you switch cards or the app locks.
+
 ## [2.6.1] - 2026-11-15
 
 - Changed: the Import cards dialogs are easier to read. The two import choices and the three ways to get the sheet are proper list rows with icons; the check screen shows the file, a count list (ready, need fixing, already in QuickCards, new holders) and one line per problem beside each row number; Proceed and Import stay visible on large font sizes; a sheet whose cards are all already saved says so.
