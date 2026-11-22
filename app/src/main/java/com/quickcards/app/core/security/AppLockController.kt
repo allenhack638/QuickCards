@@ -50,7 +50,7 @@ object AppLockController {
     /** How long a trip to the share sheet may last without the lock; tests shorten it. */
     @VisibleForTesting
     @Volatile
-    var shareSheetGraceMs = 60_000L
+    internal var shareSheetGraceMs = 60_000L
 
     fun attach(context: Context) {
         if (started) return
