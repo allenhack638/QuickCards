@@ -81,9 +81,6 @@
             android:name=".core.reminders.ReminderReceiver"
             android:exported="false" />
         <receiver
-            android:name=".core.notifications.CopyActionReceiver"
-            android:exported="false" />
-        <receiver
             android:name=".core.reminders.BootReceiver"
             android:exported="false">
             <intent-filter>

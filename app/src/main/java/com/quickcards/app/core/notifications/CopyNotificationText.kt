@@ -1,16 +1,16 @@
 package com.quickcards.app.core.notifications
 
-/**
- * The copy notification shows one masked placeholder per field it can copy, never a value:
- * the expiry and CVV leave only through its Copy actions.
- */
+/** The copy notification's text: the card's expiry and CVV, leaving out a blank one. */
 internal object CopyNotificationText {
 
-    fun fields(expiry: String, cvv: String): List<CopyField> = buildList {
-        if (expiry.isNotBlank()) add(CopyField.EXPIRY)
-        if (cvv.isNotBlank()) add(CopyField.CVV)
-    }
-
-    fun text(fields: List<CopyField>, masked: (CopyField) -> String, separator: String): String =
-        fields.joinToString(separator) { masked(it) }
+    fun text(
+        expiry: String,
+        cvv: String,
+        expiryText: (String) -> String,
+        cvvText: (String) -> String,
+        separator: String
+    ): String = listOfNotNull(
+        expiry.takeIf { it.isNotBlank() }?.let(expiryText),
+        cvv.takeIf { it.isNotBlank() }?.let(cvvText)
+    ).joinToString(separator)
 }

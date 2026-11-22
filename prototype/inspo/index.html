@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuickCards design directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0B0C;--s1:#141416;--s2:#1C1C1F;--line:rgba(255,255,255,.10);--ink:#F4F4F5;--ink2:#B4B4BC;--ink3:#8E8E97;--red:#C8202B}
+*{box-sizing:border-box}
+html{background:var(--bg);color:var(--ink);font:16px/1.55 "Inter Tight",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+::selection{background:#F4F4F5;color:#0B0B0C}
+body{margin:0;padding:72px 64px 96px;max-width:1280px;margin-inline:auto}
+h1{font-size:56px;line-height:1.05;letter-spacing:-.03em;font-weight:700;margin:0 0 20px}
+.lede{max-width:68ch;color:var(--ink2);font-size:18px;margin:0 0 48px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;margin-bottom:64px}
+a.dir{display:flex;flex-direction:column;gap:10px;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--s1);color:inherit;text-decoration:none;transition:background .18s cubic-bezier(.2,0,0,1),border-color .18s}
+a.dir:hover{background:var(--s2);border-color:rgba(255,255,255,.22)}
+a.dir:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.n{font:500 13px "IBM Plex Mono",monospace;color:var(--ink3);font-variant-numeric:tabular-nums}
+a.dir h2{margin:0;font-size:26px;letter-spacing:-.015em}
+a.dir p{margin:0;color:var(--ink2)}
+.meta{font:400 13px/1.5 "IBM Plex Mono",monospace;color:var(--ink3)}
+.open{margin-top:auto;font-weight:600}
+h3{font-size:22px;margin:0 0 16px;letter-spacing:-.01em}
+table{width:100%;border-collapse:collapse;margin-bottom:64px;font-size:15px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink3);font-weight:500}
+td:first-child{font-weight:600;white-space:nowrap}
+ol{padding-left:22px;max-width:80ch;color:var(--ink2)}
+ol li{margin-bottom:10px}
+ol b{color:var(--ink)}
+.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+</style>
+</head>
+<body>
+<h1>Obsidian, four ways</h1>
+<p class="lede">Round 2. Each variant keeps Obsidian and adds the same research-backed upgrades: about half the words, a custom toast instead of the stock snackbar, copy feedback on the field itself with the clipboard timer in the title bar, 12 signature moments you can play, a first card in about 7 taps, and Settings cut to 6 groups. They differ in how they make it feel premium.</p>
+
+<div class="grid g4">
+<a class="dir" href="06-obsidian-quiet.html"><span class="n">06</span><h2>Quiet</h2><p>Maximal restraint. Hairlines and one tone step, no blur, no shadows except the toast. Compact slabs, the last four as the hero, three cards and the next on screen.</p><span class="meta">Same pixels on every Android version</span><span class="open">Open template</span></a>
+<a class="dir" href="07-obsidian-depth.html"><span class="n">07</span><h2>Depth</h2><p>Layered material. Frosted top bar, search and nav float over the list, sheets rise over a blurred list, a one-time sheen when a card lands.</p><span class="meta">Blur on Android 12+, opaque fallback before</span><span class="open">Open template</span></a>
+<a class="dir" href="08-obsidian-tactile.html"><span class="n">08</span><h2>Tactile</h2><p>Physical cards. Brushed, soft-touch and matte finishes, values that press like keys, a copied value that lifts and turns into “✓ Copied”, a saved card that flies into the list.</p><span class="meta">Finishes fall back to a grain bitmap on Android 8–9</span><span class="open">Open template</span></a>
+<a class="dir" href="09-obsidian-checkout.html"><span class="n">09</span><h2>Checkout</h2><p>Built around paying online. Closed cards copy the number in one tap; open one for Number, Expiry and CVV rows. Autofill leads, two tabs, Manage inside Settings.</p><span class="meta">Biggest change to navigation</span><span class="open">Open template</span></a>
+</div>
+
+<h3>Decisions these variants need from you</h3>
+<ol>
+<li><b>No lock on an empty vault.</b> First launch goes straight to “Add your first card”; the lock arms with the first saved card.</li>
+<li><b>Archive without a dialog.</b> Archive happens at once with an Undo toast.</li>
+<li><b>“Pay faster” panel.</b> Shown once after the second copy, offering autofill and the expiry and CVV notification.</li>
+<li><b>Settings sub-pages.</b> App lock and card-list options move one level down to reach about 15 rows.</li>
+<li><b>Checkout only.</b> Two tabs with Manage folded into Settings, and tags, notes and ⋮ only on an open card.</li>
+<li><b>Quiet only.</b> Notes fold behind a small button on Home instead of showing two lines.</li>
+<li><b>New strings.</b> “Set a screen lock”, “Notifications are off · Turn on”, “More details”, “Get the Excel sheet”, “Pay faster”. Each page can mark them.</li>
+</ol>
+
+<h3>Round 1: five directions</h3>
+<div class="grid">
+<a class="dir" href="01-obsidian.html"><span class="n">01</span><h2>Obsidian</h2><p>A precision instrument. Near-black graphite, hairlines, and the card as a matte slab of colour lit along its top edge. Search sits under the thumb.</p><span class="meta">Geist · Geist Mono · dark-first</span><span class="open">Open template</span></a>
+<a class="dir" href="02-ledger.html"><span class="n">02</span><h2>Ledger</h2><p>A private-bank statement. Warm paper, a serif bank name on a coloured masthead, values in ruled cells that each copy in one tap.</p><span class="meta">Newsreader · Inter Tight · IBM Plex Mono · light-first</span><span class="open">Open template</span></a>
+<a class="dir" href="03-pocket.html"><span class="n">03</span><h2>Pocket</h2><p>Your cards in a stitched black wallet. One card pulled out in full, the rest as strips. Brushed, lacquer and matte finishes, embossed numbers, a CVV flip.</p><span class="meta">Manrope · IBM Plex Mono · dark-first</span><span class="open">Open template</span></a>
+<a class="dir" href="04-expressive.html"><span class="n">04</span><h2>Expressive</h2><p>A first-class Pixel app on Material 3 Expressive. Big condensed last four, shapes that react to the thumb, a copied value that blooms into a red check.</p><span class="meta">Roboto Flex · Roboto Mono · dark and light equal</span><span class="open">Open template</span></a>
+<a class="dir" href="05-signal.html"><span class="n">05</span><h2>Signal</h2><p>A Swiss instrument. Monochrome chrome, solid colour cards with the logo's cut corner, and a dot-matrix number that lights only the last four.</p><span class="meta">Doto · Space Grotesk · Space Mono · dark-first</span><span class="open">Open template</span></a>
+</div>
+
+</body>
+</html>

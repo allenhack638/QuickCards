@@ -78,7 +78,7 @@
 
     <string name="settings_reason_app_lock_off">Turn off app lock</string>
     <string name="settings_reason_inactivity_never">Turn off auto-lock</string>
-    <string name="settings_reason_notif_on">Turn on the copy notification</string>
+    <string name="settings_reason_notif_on">Show expiry and CVV in notifications</string>
     <string name="settings_reason_lock_on_leave_off">Stop locking when you leave</string>
 
     <string name="settings_help_instant_body">After you unlock, copy without your fingerprint for a while.</string>

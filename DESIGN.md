@@ -483,7 +483,7 @@ M3 snackbar on `inverse`: one line of text, left-aligned, no icon, no image, opt
 
 ### Notifications
 
-Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons. No card thumbnails. Copy notification: masked "Expiry ••/•• · CVV •••" (the values are never displayed) with "Copy expiry" and "Copy CVV" actions; it is hidden entirely on the lock screen. Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days"; on the lock screen "QuickCards" / "Card reminder"; a tap opens that card's details once the app is unlocked. Small icon tinted brand red.
+Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons where the notification has them. No card thumbnails. Copy notification: "Expiry 12/29 · CVV 381" (the card's real values, in the shade only), no action buttons; it is hidden entirely on the lock screen. Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days"; on the lock screen "QuickCards" / "Card reminder"; a tap opens that card's details once the app is unlocked. Small icon tinted brand red.
 
 ### Navigation and bars
 
