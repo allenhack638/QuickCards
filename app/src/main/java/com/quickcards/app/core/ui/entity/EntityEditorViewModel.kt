@@ -10,6 +10,7 @@ import com.quickcards.app.core.data.model.CardType
 import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
+import com.quickcards.app.core.data.repository.BankColourRules
 import com.quickcards.domain.EntityBefore
 import com.quickcards.domain.EntityDraft
 import com.quickcards.domain.EntityKind
@@ -21,6 +22,7 @@ import com.quickcards.domain.UsageNetwork
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import java.util.Locale
 
@@ -116,12 +118,12 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), EntityEditorData())
 
-    /** [colour] is a bank colour picked by hand; null keeps the stored or automatic one. */
+    /** [picked] is a bank colour picked by hand; without one the bank saves the colour the editor showed. */
     suspend fun save(
         kind: EntityKind,
         editingId: String?,
         draft: EntityDraft,
-        colour: String? = null
+        picked: String? = null
     ): Result<String> = runCatching {
         val name = EntityValidator.normalizeName(kind, draft.name)
         when (kind) {
@@ -132,12 +134,16 @@ class EntityEditorViewModel(application: Application) : AndroidViewModel(applica
                 editingId
             }
 
-            EntityKind.BANK -> if (editingId == null) {
-                repository.createBank(name, colour).id
-            } else {
-                repository.renameBank(editingId, name)
-                if (colour != null) repository.setBankColour(editingId, colour)
-                editingId
+            EntityKind.BANK -> {
+                val banks = repository.banks.first()
+                val before = banks.firstOrNull { it.id == editingId }
+                val colour = BankColourRules.colourToStore(name, picked, before, banks.filter { it.id != editingId })
+                if (editingId == null) {
+                    repository.createBank(name, colour).id
+                } else {
+                    repository.updateBank(editingId, name, colour)
+                    editingId
+                }
             }
 
             EntityKind.TYPE -> if (editingId == null) {

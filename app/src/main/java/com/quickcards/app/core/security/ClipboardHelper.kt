@@ -6,6 +6,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.PersistableBundle
+import com.quickcards.app.core.data.settings.AppSettings
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -75,6 +77,13 @@ object ClipboardHelper {
         }
     }
 
+    /** [copySensitive] with the Settings › Clear clipboard time; returns that time in seconds (0 = never). */
+    fun copyTimed(context: Context, label: String, text: String): Int {
+        val clearSec = AppSettings.get(context).clipClearSec.value
+        copySensitive(context, label, text, clearSec.takeIf { it > 0 }?.let { it * 1000L })
+        return clearSec
+    }
+
     fun clearNow() {
         clearJob?.cancel()
         clearJob = null
@@ -85,37 +94,41 @@ object ClipboardHelper {
     }
 
     /**
-     * Called when the window gains focus: a copy whose timer was lost to process death is
-     * cleared if it is still the clipboard value. A null read (unfocused) keeps the record so
-     * the next focused read can decide. The record and the clipboard are read off the main
-     * thread at once; only the clear itself comes back to it.
+     * Called on the main thread when the window gains focus: a copy whose timer was lost to process
+     * death is cleared if it is still the clipboard value. A null read (unfocused) keeps the record
+     * so the next focused read can decide. [ClipboardManager] is obtained here on the main thread
+     * (on Android 8 its constructor needs a Looper); only the record, the clip read and the hash run
+     * on IO. Any failure keeps the record for the next focus and never reaches the app.
      */
     fun expireIfNeeded(context: Context) {
         val app = context.applicationContext
         appContext = app
-        scope.launch(Dispatchers.IO) {
-            val (expiresAt, action) = expiryAction(app) ?: return@launch
+        val clipboard = runCatching { app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
+            .getOrNull() ?: return
+        scope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+            val (expiresAt, action) = runCatching { expiryAction(app, clipboard) }.getOrNull() ?: return@launch
             withContext(Dispatchers.Main.immediate) {
-                // A copy made since the read owns the record now.
-                if (prefs(app).getLong(KEY_EXPIRES_AT, 0L) != expiresAt) return@withContext
-                if (action == ClipboardExpiryAction.CLEAR_AND_FORGET) {
-                    clearClipboard(app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    lastCopiedText = null
-                    clearJob?.cancel()
-                    clearJob = null
+                runCatching {
+                    // A copy made since the read owns the record now.
+                    if (prefs(app).getLong(KEY_EXPIRES_AT, 0L) != expiresAt) return@runCatching
+                    if (action == ClipboardExpiryAction.CLEAR_AND_FORGET) {
+                        clearClipboard(clipboard)
+                        lastCopiedText = null
+                        clearJob?.cancel()
+                        clearJob = null
+                    }
+                    forgetCopy(app)
                 }
-                forgetCopy(app)
             }
         }
     }
 
     /** The overdue record's deadline and what it calls for; null while none is due or the read must wait. */
-    private fun expiryAction(app: Context): Pair<Long, ClipboardExpiryAction>? {
+    private fun expiryAction(app: Context, clipboard: ClipboardManager): Pair<Long, ClipboardExpiryAction>? {
         val prefs = prefs(app)
         val expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0L)
         if (expiresAt <= 0L || System.currentTimeMillis() < expiresAt) return null
         val expected = prefs.getString(KEY_HASH, null) ?: return expiresAt to ClipboardExpiryAction.FORGET_RECORD
-        val clipboard = app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val current = runCatching { clipboard.primaryClip?.getItemAt(0)?.text?.toString() }
             .getOrNull()
         val action = ClipboardExpiry.decide(current, expected) { value ->

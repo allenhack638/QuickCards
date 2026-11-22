@@ -34,6 +34,7 @@
     <string name="cards_field_expiry">Expiry</string>
     <string name="cards_field_cvv">CVV</string>
     <string name="cards_field_name">Name</string>
+    <string name="cards_field_details">Details</string>
     <string name="cards_pass_copied">Copied</string>
     <string name="cards_pass_pinned">Pinned</string>
 
@@ -156,7 +157,6 @@
     <string name="cards_empty_sample_bank">Your bank</string>
     <string name="cards_empty_sample_expiry">MM/YY</string>
     <string name="cards_empty_tap">Tap a card</string>
-    <string name="cards_a11y_field_number">Card number</string>
     <string name="cards_a11y_copy_number">Copy %1$s card number ending %2$s</string>
     <string name="cards_a11y_number_copied">%1$s card number copied</string>
     <string name="cards_a11y_tile">%1$s, ending %2$s</string>

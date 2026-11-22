@@ -8,6 +8,9 @@ import androidx.compose.ui.unit.em
 
 const val MASK_DOTS = "••"
 
+/** A masked group of four digits, as on the card art and the full-width rows. */
+const val MASK_GROUP = "••••"
+
 /**
  * Sets the masked "•• 1234" inside [text] (a dialog title, a sheet header, a list row) in Geist
  * Mono with the tile's tracked dots, so every compact surface shows the masked number one way.

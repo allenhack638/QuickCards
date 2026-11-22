@@ -18,9 +18,28 @@ object BankColourRules {
     }
 
     /**
-     * The colour the bank editor shows: [current] (picked or stored) when set, else what saving
-     * would give it: the built-in default for a catalog name, otherwise the auto-pick.
+     * The colour the bank editor shows, and so the colour saving gives the bank ([before] is the
+     * bank as stored, null for a new one): the colour [picked] by hand; else the new name's
+     * built-in default when the name maps to a different one; else the bank's current colour;
+     * else the built-in default for a catalog name; otherwise the auto-pick.
      */
-    fun editorColour(name: String, current: String?, otherBanks: List<Bank>): String =
-        current ?: BankColours.defaultFor(name) ?: BankColours.autoPick(otherBanks.mapNotNull(::colourOf))
+    fun editorColour(name: String, picked: String?, before: Bank?, otherBanks: List<Bank>): String =
+        picked
+            ?: renamedDefault(name, before)
+            ?: before?.let(::colourOf)
+            ?: BankColours.defaultFor(name)
+            ?: BankColours.autoPick(otherBanks.mapNotNull(::colourOf))
+
+    /** What saving stores for the bank: null while it follows its built-in default, else [editorColour]. */
+    fun colourToStore(name: String, picked: String?, before: Bank?, otherBanks: List<Bank>): String? {
+        val default = BankColours.defaultFor(name)
+        val followsDefault = picked == null && default != null &&
+            (before?.color == null || BankColours.defaultFor(before.name) != default)
+        return if (followsDefault) null else editorColour(name, picked, before, otherBanks)
+    }
+
+    private fun renamedDefault(name: String, before: Bank?): String? {
+        val default = BankColours.defaultFor(name) ?: return null
+        return default.takeIf { before == null || BankColours.defaultFor(before.name) != default }
+    }
 }

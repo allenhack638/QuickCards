@@ -11,7 +11,11 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.lifecycle.Lifecycle
 import com.quickcards.app.core.security.AppLockController
+import com.quickcards.app.core.security.BiometricAuthHelper
+import org.junit.Assert.assertFalse
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -76,16 +80,53 @@ class LockFlowTest : FlowTestBase() {
         waitForText("Archived")
         compose.onNodeWithText("Archived").performClick()
         waitForContentDescription("Search archived cards")
-        waitForText("Archived · Card closed", unmerged = true)
+        waitForText("Card closed", unmerged = true)
 
         compose.runOnUiThread { AppLockController.lock() }
         waitForContentDescription(LOCKED)
         compose.onAllNodesWithContentDescription("Search archived cards").assertCountEquals(0)
-        compose.onAllNodesWithText("Archived · Card closed").assertCountEquals(0)
+        compose.onAllNodesWithText("Card closed").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
         waitForLockGone()
-        waitForText("Archived · Card closed", unmerged = true)
+        waitForText("Card closed", unmerged = true)
+    }
+
+    @Test
+    fun aQuickTripToTheShareSheetStaysUnlocked() {
+        assumeTrue(BiometricAuthHelper(app).isAuthenticationAvailable())
+        app.settings.setAppLockEnabled(true)
+        app.settings.setLockOnLeave(true)
+
+        leaveForTheShareSheet(awayMillis = 2_000)
+
+        assertFalse(AppLockController.isLocked.value)
+    }
+
+    @Test
+    fun comingBackAfterTheShareGraceLocks() {
+        assumeTrue(BiometricAuthHelper(app).isAuthenticationAvailable())
+        app.settings.setAppLockEnabled(true)
+        app.settings.setLockOnLeave(true)
+        AppLockController.shareSheetGraceMs = 2_000
+        try {
+            // The stop lands inside the grace (no lock yet); the return comes after it ends.
+            leaveForTheShareSheet(awayMillis = 4_000)
+            waitForContentDescription(LOCKED)
+        } finally {
+            AppLockController.shareSheetGraceMs = 60_000
+            compose.runOnUiThread { AppLockController.unlock() }
+            app.settings.setAppLockEnabled(false)
+        }
+    }
+
+    /** The app goes to the background as the share sheet opens, and comes back [awayMillis] later. */
+    private fun leaveForTheShareSheet(awayMillis: Long) {
+        compose.runOnUiThread { AppLockController.beginShareSheet() }
+        compose.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
+        Thread.sleep(awayMillis)
+        compose.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        compose.waitForIdle()
     }
 
     private fun waitForLockGone() {

@@ -229,10 +229,7 @@ abstract class QuickCardsDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `banks` ADD COLUMN `color` TEXT")
                 database.execSQL("ALTER TABLE `cards` ADD COLUMN `bandColorManual` INTEGER NOT NULL DEFAULT 0")
-                database.execSQL(
-                    "UPDATE `cards` SET `bandColorManual` = 1 " +
-                        "WHERE `bandColor` IS NOT NULL OR `cardColor` IS NOT NULL"
-                )
+                database.execSQL("UPDATE `cards` SET `bandColorManual` = 1")
             }
         }
 

@@ -78,6 +78,7 @@ fun PassCard(
     modifier: Modifier = Modifier,
     status: CardStatus? = null,
     archiveReason: String? = null,
+    inArchive: Boolean = false,
     note: String? = null,
     tags: List<String> = emptyList(),
     dueText: String? = null,
@@ -134,7 +135,7 @@ fun PassCard(
             )
         }
         Column(modifier = Modifier.fillMaxWidth()) {
-            PassHead(card = card, status = status, archiveReason = archiveReason)
+            PassHead(card = card, status = status, archiveReason = archiveReason, inArchive = inArchive)
             if (note != null) {
                 PassNote(note = note, onOpen = onOpen, onCopyNote = onCopyNote)
             }
@@ -180,12 +181,11 @@ fun PassCard(
 private val ArtPad: Dp = QcSpacing.s4
 
 @Composable
-private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?) {
+private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?, inArchive: Boolean) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val networkId = card.network?.id
     val hasMark = networkId != null && NetworkMarks.drawable(networkId) != null
-    val meta = listOfNotNull(card.typeName?.takeIf { it.isNotBlank() }, card.holderName.takeIf { it.isNotBlank() })
-        .joinToString(" · ")
+    val meta = metaLine(card.typeName, card.holderName)
     Column(
         modifier = Modifier.clearAndSetSemantics { },
         verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)
@@ -243,7 +243,7 @@ private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?
                 modifier = Modifier.weight(1f)
             )
             if (status != null) {
-                CardStatusChip(status = status, archiveReason = archiveReason)
+                CardStatusChip(status = status, archiveReason = archiveReason, inArchive = inArchive)
             }
         }
     }

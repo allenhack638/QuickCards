@@ -39,6 +39,21 @@ class ReminderOpenFlowTest : FlowTestBase() {
         app.settings.setAppLockEnabled(false)
     }
 
+    @Test
+    fun aReminderForADeletedCardStaysOnHomeAndSaysSo() {
+        val bank = kotlinx.coroutines.runBlocking { app.repository.createBank("HDFC Bank") }
+        seedCard("4532778103492211", bankId = bank.id)
+        awaitTile("HDFC Bank")
+
+        compose.runOnUiThread {
+            OpenCardRequest.offer(Intent().putExtra(OpenCardRequest.EXTRA_CARD_ID, "deleted-card"))
+        }
+        waitForText("Card not found")
+        compose.onAllNodesWithContentDescription(EDIT).assertCountEquals(0)
+        awaitTile("HDFC Bank")
+        assertNull(OpenCardRequest.cardId.value)
+    }
+
     private companion object {
         const val LOCKED = "QuickCards, locked"
         const val EDIT = "Edit card"

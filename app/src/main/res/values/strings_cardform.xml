@@ -117,7 +117,7 @@
     <string name="form_error_number_length_network">%1$s numbers have %2$s digits</string>
     <string name="form_error_number_length_generic">Use 12 to 19 digits</string>
     <string name="form_error_number_luhn">Check the digits</string>
-    <string name="form_error_number_duplicate">Already saved as %1$s ••%2$s</string>
+    <string name="form_error_number_duplicate">Already saved as %1$s •• %2$s</string>
     <string name="form_duplicate_open">Open</string>
     <string name="form_duplicate_open_a11y">Open %1$s card ending %2$s</string>
     <string name="form_error_expiry_format">Use MM/YY</string>

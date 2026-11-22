@@ -24,6 +24,9 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomSheetDefaults
@@ -91,9 +94,10 @@ fun QcModalBottomSheet(
             }
         }
     }
+    val statusBarTop = WindowInsets.statusBars.getTop(LocalDensity.current)
     ModalBottomSheet(
         onDismissRequest = dismiss,
-        modifier = modifier,
+        modifier = modifier.belowStatusBar(statusBarTop),
         sheetState = sheetState,
         shape = QcShapes.sheet,
         containerColor = containerColor,
@@ -105,6 +109,23 @@ fun QcModalBottomSheet(
         properties = ModalBottomSheetProperties(),
         content = stableContent
     )
+}
+
+/**
+ * A tall sheet stops [QcSpacing.s6] below the status bar, so its handle never sits under the clock
+ * (Android 8 lets the sheet window run under it) and the scrim shows above it.
+ */
+private fun Modifier.belowStatusBar(statusBarTop: Int): Modifier = layout { measurable, constraints ->
+    if (!constraints.hasBoundedHeight) {
+        val placeable = measurable.measure(constraints)
+        return@layout layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    }
+    // The sheet anchors itself inside the height it is given, so give it less and move it down.
+    val reserve = (statusBarTop + QcSpacing.s6.roundToPx()).coerceAtMost(constraints.maxHeight)
+    val placeable = measurable.measure(
+        constraints.copy(minHeight = 0, maxHeight = constraints.maxHeight - reserve)
+    )
+    layout(placeable.width, constraints.maxHeight) { placeable.place(0, reserve) }
 }
 
 /**

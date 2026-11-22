@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.quickcards.app.core.ui.components.metaLine
 import com.quickcards.app.R
 import com.quickcards.app.core.ui.components.MiniCard
 import com.quickcards.app.core.ui.components.QcEmptyMessage
@@ -153,7 +154,7 @@ fun AutofillPickerContent(
 @Composable
 private fun PickerRow(card: PickerCard, onClick: () -> Unit) {
     val colors = QcTheme.colors
-    val meta = listOf(card.typeName, card.holderName).filter { it.isNotBlank() }.joinToString(" · ")
+    val meta = metaLine(card.typeName, card.holderName)
     Row(
         modifier = Modifier
             .fillMaxWidth()

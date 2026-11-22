@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -55,21 +56,24 @@ internal object ArtCache {
     private data class GlowKey(val w: Int, val h: Int, val radius: Int, val sigma: Int, val scale: Int)
 
     private val pending = HashSet<Any>()
+    private val failed = HashSet<Any>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var landed by mutableIntStateOf(0)
 
     private fun get(key: Any, build: () -> ImageBitmap): ImageBitmap? {
         synchronized(cache) { cache.get(key) }?.let { return it }
         landed
-        val first = synchronized(cache) { pending.add(key) }
+        val first = synchronized(cache) { key !in failed && pending.add(key) }
         if (first) {
             scope.launch {
-                val image = build()
+                // A layer that cannot be built (out of memory, a bad size) is skipped for good
+                // rather than crashing the app; the card draws without it.
+                val image = runCatching(build).getOrNull()
                 synchronized(cache) {
-                    cache.put(key, image)
+                    if (image != null) cache.put(key, image) else failed += key
                     pending.remove(key)
                 }
-                landed++
+                if (image != null) withContext(Dispatchers.Main) { landed++ }
             }
         }
         return null

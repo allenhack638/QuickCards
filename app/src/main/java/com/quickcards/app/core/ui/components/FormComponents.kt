@@ -115,7 +115,7 @@ fun FormSupportingLine(
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)
     ) {
         Text(
-            text = text,
+            text = maskedNumberText(text),
             style = FormHelperText,
             color = color,
             maxLines = 2,

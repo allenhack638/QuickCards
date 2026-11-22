@@ -15,8 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
+import com.quickcards.app.core.ui.components.metaLine
 import com.quickcards.app.R
 import com.quickcards.app.core.ui.art.CardArt
+import com.quickcards.app.core.ui.components.MASK_GROUP
 import com.quickcards.app.core.ui.components.MarkFit
 import com.quickcards.app.core.ui.components.NetworkMark
 import com.quickcards.app.core.ui.components.NetworkMarks
@@ -30,9 +32,7 @@ import com.quickcards.domain.ExpiryState
 import com.quickcards.domain.ExpiryStatus
 import java.time.LocalDate
 
-private const val DOTS = "••••"
 private const val DOTS_ALPHA = 0.72f
-private const val META_SEPARATOR = " · "
 
 /**
  * The live pass above the form: graphite "New card •••• 0000 MM/YY" while empty, then the bank,
@@ -45,7 +45,7 @@ internal fun FormPreview(session: CardFormSession, bankName: String?, holderName
     val form = session.form
     val network = session.network(session.lists.networks)
     val expired = ExpiryStatus.expiryState(form.expiry, LocalDate.now(), session.options.expiresSoonMonths) == ExpiryState.EXPIRED
-    val meta = listOfNotNull(typeName, holderName).joinToString(META_SEPARATOR)
+    val meta = metaLine(typeName, holderName)
     CardArt(
         band = form.bandColor,
         expired = expired,
@@ -84,7 +84,7 @@ internal fun FormPreview(session: CardFormSession, bankName: String?, holderName
             FlowRow(horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
                 Row(modifier = Modifier.align(Alignment.Bottom), verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = DOTS,
+                        text = MASK_GROUP,
                         style = QcText.MonoDotsF4,
                         color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
                         modifier = Modifier.padding(end = QcSpacing.s2)

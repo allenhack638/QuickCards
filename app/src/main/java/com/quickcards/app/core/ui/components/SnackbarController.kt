@@ -64,7 +64,7 @@ val LocalSnackbar = staticCompositionLocalOf<SnackbarController> {
 /**
  * The app's snackbar host: M3 snackbar on `inverse`, one line, no icon, an optional
  * `inverse-accent` action; full width − 16 each side, 8 above whatever [modifier] places it on.
- * Short snackbars stay 3 s (4.5 s with TalkBack).
+ * Short snackbars stay 3 s (4.5 s with TalkBack); one with an action (Undo, Clear) always 4.5 s.
  */
 @Composable
 fun QcSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) {
@@ -72,14 +72,16 @@ fun QcSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) 
     val current = hostState.currentSnackbarData
     LaunchedEffect(current) {
         if (current == null || current.visuals.duration != SnackbarDuration.Short) return@LaunchedEffect
-        val base = QcMotion.TOAST_MS
+        // An Undo or Clear must be reachable: action snackbars always get the TalkBack-length 4.5 s.
+        val hasAction = current.visuals.actionLabel != null
+        val base = if (hasAction) QcMotion.TOAST_A11Y_MS else QcMotion.TOAST_MS
         delay(
             accessibility?.calculateRecommendedTimeoutMillis(
                 base,
                 containsIcons = false,
                 containsText = true,
-                containsControls = current.visuals.actionLabel != null
-            )?.coerceAtMost(QcMotion.TOAST_A11Y_MS) ?: base
+                containsControls = hasAction
+            )?.coerceIn(base, QcMotion.TOAST_A11Y_MS) ?: base
         )
         current.dismiss()
     }

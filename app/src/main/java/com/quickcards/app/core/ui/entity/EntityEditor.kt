@@ -232,7 +232,7 @@ private fun EntityEditorContent(
         ) {
             val otherBanks = data.banks.filter { it.id != form.editingId }
             val bankColour = if (kind == EntityKind.BANK) {
-                BankColourRules.editorColour(form.name.text, form.colour ?: form.beforeColour, otherBanks)
+                BankColourRules.editorColour(form.name.text, form.colour, data.banks.firstOrNull { it.id == form.editingId }, otherBanks)
             } else {
                 null
             }

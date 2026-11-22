@@ -23,6 +23,7 @@ import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.model.toDomain
+import com.quickcards.app.core.ui.CardUseStatus
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
@@ -59,6 +60,8 @@ data class HomeOptions(
 data class HomeUiState(
     val loading: Boolean = true,
     val hasAnyCards: Boolean = false,
+    /** Every card, archived ones included: what Card details and the actions sheet can open. */
+    val allCards: List<HomeCard> = emptyList(),
     val cards: List<HomeCard> = emptyList(),
     val visibleCards: List<HomeCard> = emptyList(),
     val holderChips: List<NamedRef> = emptyList(),
@@ -99,8 +102,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val searchOn = MutableStateFlow(false)
     private val query = MutableStateFlow("")
 
-    /** Null until read from disk; Home stays loading until both are known. */
-    private val usage = MutableStateFlow<Map<String, Long>?>(null)
+    /** Null until read from disk; Home stays loading until it and the copy times are known. */
     private val tipsSeen = MutableStateFlow<Boolean?>(null)
 
     private val _keyUnavailable = MutableStateFlow(false)
@@ -111,7 +113,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     init {
         retryKeyCheck()
         viewModelScope.launch(Dispatchers.IO) {
-            usage.value = CardUsage.lastUsed(application)
             val seen = FirstRunTips.seen(application)
             tipsSeen.value = seen
             if (!seen) {
@@ -192,7 +193,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private data class Extras(val usage: Map<String, Long>, val tipsSeen: Boolean)
 
-    private val extras = combine(usage.filterNotNull(), tipsSeen.filterNotNull()) { used, seen -> Extras(used, seen) }
+    private val extras = combine(CardUsage.observe(application), tipsSeen.filterNotNull()) { used, seen -> Extras(used, seen) }
 
     private data class UiFilters(
         val cardFilters: CardFilters,
@@ -242,23 +243,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     ) { (lists, due, extras), tags, options, repair, ui ->
         buildState(lists, due, extras, tags, options, repair, ui)
     }.flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_AFTER_MS), HomeUiState())
 
     /** Search and the first-run tips take the whole window, so the navigation bar hides. */
     val hidesNavBar: StateFlow<Boolean> = combine(searchOn, uiState) { on, state -> on || state.showTips }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    fun recordCopy(cardId: String) {
-        CardUsage.record(getApplication(), cardId)
-        refreshUsage()
-    }
-
-    /** Card details records its own copies; Home re-reads them when it shows again. */
-    fun refreshUsage() {
-        viewModelScope.launch(Dispatchers.IO) {
-            usage.value = CardUsage.lastUsed(getApplication())
-        }
-    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_AFTER_MS), false)
 
     fun finishTips() {
         tipsSeen.value = true
@@ -396,6 +385,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         return HomeUiState(
             loading = false,
             hasAnyCards = allCards.isNotEmpty(),
+            allCards = allCards,
             cards = cards,
             visibleCards = visibleCards,
             holderChips = CardQuery.holdersWithCards(holderRefs, entries),
@@ -414,11 +404,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     ui.reviewOnly
             ),
             repairSummary = repair,
-            recentCards = CardsListState.recentCards(cards, extras.usage),
+            recentCards = CardUseStatus.recentCards(cards, extras.usage),
             showTips = !extras.tipsSeen && allCards.isEmpty(),
             searchOn = ui.search.on,
             query = ui.search.query,
             options = options
         )
+    }
+
+    private companion object {
+        /** Long enough to ride out a rotation; after that the list stops decrypting in the background. */
+        const val STOP_AFTER_MS = 5_000L
     }
 }

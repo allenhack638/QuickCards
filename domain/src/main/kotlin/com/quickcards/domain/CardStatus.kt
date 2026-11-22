@@ -18,7 +18,4 @@ object CardStatusRules {
         lastUsed -> CardStatus.LAST_USED
         else -> null
     }
-
-    /** The most recently copied card id, from card id → last copy time. */
-    fun lastUsedId(copiedAt: Map<String, Long>): String? = copiedAt.maxByOrNull { it.value }?.key
 }

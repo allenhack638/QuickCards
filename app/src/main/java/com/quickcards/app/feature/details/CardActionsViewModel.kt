@@ -1,15 +1,11 @@
 package com.quickcards.app.feature.details
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import com.quickcards.app.QuickCardsApplication
+import androidx.lifecycle.ViewModel
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.repository.VaultRepository
 
 /** The card actions that change the vault, each with what its Undo needs. */
-class CardActionsViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = (application as QuickCardsApplication).repository
+class CardActionsViewModel(private val repository: VaultRepository) : ViewModel() {
 
     data class PinOutcome(val pinned: Boolean, val previous: VaultRepository.CardPinState)
 

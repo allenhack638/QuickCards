@@ -21,7 +21,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
@@ -133,9 +132,11 @@ class BackupHostState internal constructor(
     private val launchOpenDocument: () -> Unit,
     private val launchCreateXlsx: (String) -> Unit = {},
     private val launchCreateCsv: (String) -> Unit = {},
-    private val launchOpenSheet: () -> Unit = {},
-    internal val onHelpTopic: (HelpTopic) -> Unit = {}
+    private val launchOpenSheet: () -> Unit = {}
 ) {
+
+    /** Opens a Help row's target picked from the spreadsheet's help sheet; set by [BackupHost]. */
+    internal var onHelpTopic: (HelpTopic) -> Unit = {}
 
     private val version: String = BuildConfig.VERSION_NAME
 
@@ -758,16 +759,14 @@ class BackupHostState internal constructor(
         appContext.getString(resourceId, *args)
 }
 
-/** [onHelpTopic] opens a Help row's target when it is picked from the spreadsheet's help sheet. */
 @Composable
-fun rememberBackupHostState(onHelpTopic: (HelpTopic) -> Unit = {}): BackupHostState {
+fun rememberBackupHostState(): BackupHostState {
     val context = LocalContext.current
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
     val app = context.applicationContext as QuickCardsApplication
 
     var hostState by remember { mutableStateOf<BackupHostState?>(null) }
-    val latestHelpTopic by rememberUpdatedState(onHelpTopic)
 
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/octet-stream")
@@ -817,8 +816,7 @@ fun rememberBackupHostState(onHelpTopic: (HelpTopic) -> Unit = {}): BackupHostSt
             launchOpenSheet = {
                 AppLockController.beginSystemPicker()
                 openSheet.launch(arrayOf("*/*"))
-            },
-            onHelpTopic = { topic -> latestHelpTopic(topic) }
+            }
         )
     }
 
@@ -828,7 +826,8 @@ fun rememberBackupHostState(onHelpTopic: (HelpTopic) -> Unit = {}): BackupHostSt
 }
 
 @Composable
-fun BackupHost(state: BackupHostState) {
+fun BackupHost(state: BackupHostState, onHelpTopic: (HelpTopic) -> Unit) {
+    SideEffect { state.onHelpTopic = onHelpTopic }
     val locked by AppLockController.isLocked.collectAsState()
     LaunchedEffect(locked) {
         if (locked) state.dismissForLock()

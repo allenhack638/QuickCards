@@ -16,9 +16,9 @@
     <string name="details_copied_expiry">Expiry copied</string>
     <string name="details_copied_cvv">CVV copied</string>
     <string name="details_copied_name">Name copied</string>
+    <string name="details_card_not_found">Card not found</string>
     <string name="details_number_hidden">Card number ending %1$s, hidden</string>
     <string name="details_cvv_hidden">CVV, hidden</string>
 
     <!-- Card actions sheet -->
-    <string name="details_actions_meta">%1$s · %2$s</string>
 </resources>

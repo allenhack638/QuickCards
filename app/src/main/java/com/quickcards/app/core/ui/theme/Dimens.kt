@@ -109,8 +109,12 @@ object QcDimens {
     val PageMax = 600.dp
     val DetailMax = 840.dp
     val HingeZone = QcSpacing.s6
+    /** How far a pushed screen slides in (Material shared axis). */
+    val SharedAxisOffset = QcSpacing.s8
     /** The hero's design width; narrower panes scale it as one object. */
     val HeroDesign = 328.dp
+    /** The hero keeps the ISO card ratio (328 x 207) at any width. */
+    const val HeroRatio = 328f / 207f
     val CardMaxWidth = 360.dp
     /** Panes narrower than this put each details key above its value. */
     val NarrowPane = 320.dp
@@ -125,4 +129,7 @@ object QcDimens {
 
     // Interaction
     val RevealDurationMillis = 5_000f
+
+    /** How long a row or tile keeps its "Copied" mark. */
+    const val CopiedMillis = 1_600L
 }

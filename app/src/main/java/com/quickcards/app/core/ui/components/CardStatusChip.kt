@@ -6,17 +6,21 @@ import androidx.compose.ui.res.stringResource
 import com.quickcards.app.R
 import com.quickcards.domain.CardStatus
 
-/** The card's one status chip (tile, details hero, Archived): same slot, text and tone everywhere. */
+/**
+ * The card's one status chip (tile, details hero, Archived): same slot, text and tone everywhere.
+ * Inside Manage › Archived ([inArchive]) an archived card's chip is its reason alone.
+ */
 @Composable
 fun CardStatusChip(
     status: CardStatus,
     modifier: Modifier = Modifier,
-    archiveReason: String? = null
+    archiveReason: String? = null,
+    inArchive: Boolean = false
 ) {
     when (status) {
         CardStatus.ARCHIVED -> QcStatusChip(
             text = archiveReason?.takeIf { it.isNotBlank() }
-                ?.let { stringResource(R.string.cards_status_archived_reason, it) }
+                ?.let { if (inArchive) it else stringResource(R.string.cards_status_archived_reason, it) }
                 ?: stringResource(R.string.cards_status_archived),
             modifier = modifier,
             quiet = !archiveReason.isNullOrBlank()

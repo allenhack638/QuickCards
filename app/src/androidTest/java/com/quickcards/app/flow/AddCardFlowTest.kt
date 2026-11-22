@@ -96,7 +96,7 @@ class AddCardFlowTest : FlowTestBase() {
         field("CVV").performTextInput("381")
         selectBank("HDFC Bank")
 
-        waitForText("Already saved as HDFC Bank ••2211")
+        waitForText("Already saved as HDFC Bank •• 2211")
         compose.onNode(hasText("Save card") and hasClickAction()).assertIsNotEnabled()
         assertEquals(1, cardsNow().size)
     }

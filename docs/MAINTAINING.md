@@ -47,7 +47,9 @@ To see the prototype running: `cd prototype && python3 -m http.server 8765`, the
 |  MainActivity -> core/ui/base/BaseActivity (FLAG_SECURE in release)          |
 |  QuickCardsApplication (database, repository, settings singletons)            |
 |                                                                              |
-|  app/navigation/          QcApp.kt: NavHost, bottom bar/rail, transitions     |
+|  app/navigation/          QcApp.kt: NavHost, scaffold, transitions; QcRoutes, |
+|                           QcNavBars, CardsDestination (two-pane + reminder |
+|                           open), AppLockHost                               |
 |                                                                              |
 |  core/                                                                        |
 |    data/                  Room database, DAOs/entities, VaultRepository,      |
@@ -105,10 +107,12 @@ Compose field -> feature ViewModel -> :domain validator/session
   -> Room DAO in a transaction -> Flow re-emits -> UI
 
 COPY
-PassField tap -> UnlockSession.requireUnlock(activity, reason)
-  -> ClipboardHelper.copySensitive(...) -> snackbar
-  -> if the field was the number: CardNotifications.numberCopied(card)
-     (first time on 13+: POST_NOTIFICATIONS prompt, once; then CopyCompanionNotifier)
+Copy tap -> UnlockSession.requireUnlock(activity, reason)
+  -> core/ui CardCopier.copy(card, field): ClipboardHelper.copyTimed (sensitive clip,
+     Settings clear timer), CardUsage.record (Last used, autofill order), and for the
+     number CardNotifications.numberCopied(card) (first time on 13+: POST_NOTIFICATIONS
+     prompt, once; then CopyCompanionNotifier) -> returns the spoken confirmation
+  -> the caller shows its own feedback (Copied mark, snackbar)
 
 REVEAL
 Hold 450 ms -> UnlockSession.requireUnlock(...) -> show full value with a 5 s drain

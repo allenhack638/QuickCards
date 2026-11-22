@@ -1,6 +1,7 @@
 package com.quickcards.app.feature.cards
 
 import com.quickcards.app.core.data.model.VaultCard
+import com.quickcards.app.core.ui.CardUseStatus
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.domain.CardField
 import com.quickcards.domain.CardFilters
@@ -302,23 +303,23 @@ class CardsListStateTest {
         val cards = listOf(card("a"), card("b"), card("c"), card("d"), card("gone", archived = true))
         val copied = mapOf("a" to 10L, "b" to 40L, "c" to 30L, "d" to 20L, "gone" to 50L, "deleted" to 60L)
 
-        assertEquals(listOf("b", "c", "d"), ids(CardsListState.recentCards(cards, copied)))
+        assertEquals(listOf("b", "c", "d"), ids(CardUseStatus.recentCards(cards, copied)))
     }
 
     @Test
     fun tileShowsOneStatusByPriority() {
-        assertEquals(CardStatus.ARCHIVED, CardsListState.status(card("x", archived = true, state = ExpiryState.EXPIRED), "x"))
-        assertEquals(CardStatus.EXPIRED, CardsListState.status(card("x", state = ExpiryState.EXPIRED, needsReview = true), "x"))
-        assertEquals(CardStatus.CHECK, CardsListState.status(card("x", state = ExpiryState.EXPIRES_SOON, needsReview = true), "x"))
-        assertEquals(CardStatus.EXPIRES_SOON, CardsListState.status(card("x", state = ExpiryState.EXPIRES_SOON), "x"))
-        assertEquals(CardStatus.LAST_USED, CardsListState.status(card("x"), "x"))
-        assertEquals(null, CardsListState.status(card("x"), "y"))
+        assertEquals(CardStatus.ARCHIVED, CardUseStatus.of(card("x", archived = true, state = ExpiryState.EXPIRED), "x"))
+        assertEquals(CardStatus.EXPIRED, CardUseStatus.of(card("x", state = ExpiryState.EXPIRED, needsReview = true), "x"))
+        assertEquals(CardStatus.CHECK, CardUseStatus.of(card("x", state = ExpiryState.EXPIRES_SOON, needsReview = true), "x"))
+        assertEquals(CardStatus.EXPIRES_SOON, CardUseStatus.of(card("x", state = ExpiryState.EXPIRES_SOON), "x"))
+        assertEquals(CardStatus.LAST_USED, CardUseStatus.of(card("x"), "x"))
+        assertEquals(null, CardUseStatus.of(card("x"), "y"))
     }
 
     @Test
     fun lastUsedNeverSitsBesideADueBill() {
         val due = card("x").copy(dueInDays = 2)
 
-        assertEquals(null, CardsListState.status(due, "x"))
+        assertEquals(null, CardUseStatus.of(due, "x"))
     }
 }

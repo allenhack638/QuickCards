@@ -28,12 +28,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.quickcards.app.core.ui.components.metaLine
+import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
-import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
+import com.quickcards.app.core.ui.CardCopyField
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.components.LocalSnackbar
@@ -42,12 +44,12 @@ import com.quickcards.app.core.ui.components.QcDeleteCardDialog
 import com.quickcards.app.core.ui.components.QcListRow
 import com.quickcards.app.core.ui.components.QcModalBottomSheet
 import com.quickcards.app.core.ui.components.maskedNumberText
+import com.quickcards.app.core.ui.rememberCardCopier
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTheme
-import com.quickcards.domain.CardNumberRules
 import kotlinx.coroutines.launch
 
 /** Which card's actions sheet is open, and which follow-up dialog; reset whenever the app locks. */
@@ -88,7 +90,10 @@ fun CardActionsHost(
     val activity = context as? FragmentActivity
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
-    val viewModel: CardActionsViewModel = viewModel()
+    val viewModel: CardActionsViewModel = viewModel {
+        CardActionsViewModel((context.applicationContext as QuickCardsApplication).repository)
+    }
+    val copier = rememberCardCopier()
     val locked = LocalAppLocked.current
     LaunchedEffect(locked) { if (locked) state.closeAll() }
 
@@ -121,7 +126,7 @@ fun CardActionsHost(
             onCopyDetails = {
                 act {
                     if (!unlocked()) return@act
-                    copyDetails(context, card)
+                    copier.copy(card, CardCopyField.DETAILS) ?: return@act
                     val result = snackbar.showAndAwait(
                         message = context.getString(R.string.cards_copied_details),
                         actionLabel = context.getString(R.string.cards_clear),
@@ -245,7 +250,7 @@ private fun CardActionsSheet(
 @Composable
 private fun SheetHeader(card: HomeCard) {
     val colors = QcTheme.colors
-    val meta = listOfNotNull(card.typeName?.takeIf { it.isNotBlank() }, card.holderName.takeIf { it.isNotBlank() })
+    val meta = metaLine(card.typeName, card.holderName)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -259,7 +264,7 @@ private fun SheetHeader(card: HomeCard) {
         )
         if (meta.isNotEmpty()) {
             Text(
-                text = if (meta.size == 2) stringResource(R.string.details_actions_meta, meta[0], meta[1]) else meta[0],
+                text = meta,
                 style = QcText.F2,
                 color = colors.ink2
             )
@@ -274,17 +279,6 @@ private fun SheetHeader(card: HomeCard) {
             )
         }
     }
-}
-
-private fun copyDetails(context: Context, card: HomeCard) {
-    val clearSec = AppSettings.get(context).clipClearSec.value
-    val number = CardNumberRules.format(card.card.number, card.network, masked = false)
-    ClipboardHelper.copySensitive(
-        context,
-        context.getString(R.string.cards_clipboard_details, card.title),
-        "$number\n${card.card.expiry}\n${card.holderName}",
-        if (clearSec > 0) clearSec * 1000L else null
-    )
 }
 
 private fun share(context: Context, card: HomeCard, includeCvv: Boolean) {

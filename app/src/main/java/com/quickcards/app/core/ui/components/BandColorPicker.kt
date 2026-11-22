@@ -512,7 +512,7 @@ fun PreviewCard(key: String, preview: ColourPreview, modifier: Modifier = Modifi
                 }
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = DOTS,
+                        text = MASK_GROUP,
                         style = QcText.MonoDotsF3,
                         color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
                         modifier = Modifier.padding(end = QcSpacing.s1)
@@ -528,7 +528,6 @@ fun PreviewCard(key: String, preview: ColourPreview, modifier: Modifier = Modifi
     }
 }
 
-private const val DOTS = "••••"
 private const val DOTS_ALPHA = 0.72f
 
 @Composable

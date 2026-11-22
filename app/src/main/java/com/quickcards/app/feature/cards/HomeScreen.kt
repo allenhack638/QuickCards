@@ -29,18 +29,19 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.quickcards.app.R
-import com.quickcards.app.core.notifications.rememberCardNotifications
 import com.quickcards.app.core.reminders.Reminders
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
+import com.quickcards.app.core.ui.CardCopyField
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.LockGate
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.SearchTopBar
+import com.quickcards.app.core.ui.rememberCardCopier
+import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.domain.ExpiredPlacement
-import com.quickcards.domain.TimeText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -75,11 +76,9 @@ fun HomeScreen(
         if (locked) filterSheetOpen = false
     }
 
-    LaunchedEffect(Unit) { viewModel.refreshUsage() }
-
     LaunchedEffect(copiedId) {
         if (copiedId == null) return@LaunchedEffect
-        delay(COPIED_MS)
+        delay(QcDimens.CopiedMillis)
         copiedId = null
     }
 
@@ -87,7 +86,7 @@ fun HomeScreen(
         viewModel.setSearchActive(false)
     }
 
-    val notifications = rememberCardNotifications()
+    val copier = rememberCardCopier()
 
     if (state.showTips) {
         FirstRunTipsScreen(
@@ -102,39 +101,22 @@ fun HomeScreen(
         return
     }
 
-    fun clipMillis(): Long? = state.options.clipClearSec.takeIf { it > 0 }?.let { it * 1000L }
-
     fun copyNumber(card: HomeCard) {
         scope.launch {
             val host = activity ?: return@launch
             if (!UnlockSession.requireUnlock(host)) return@launch
-            ClipboardHelper.copySensitive(
-                context,
-                context.getString(R.string.cards_clipboard_field, card.title, context.getString(R.string.cards_a11y_field_number)),
-                card.card.number,
-                clipMillis()
-            )
-            viewModel.recordCopy(card.id)
+            val announcement = copier.copy(card, CardCopyField.NUMBER) ?: return@launch
             copiedId = card.id
-            val clearSec = state.options.clipClearSec
-            val field = context.getString(R.string.cards_a11y_field_number)
-            view.announceForAccessibility(
-                if (clearSec > 0) {
-                    context.getString(R.string.cards_copied_clears, field, TimeText.clipText(clearSec))
-                } else {
-                    context.getString(R.string.cards_copied, field)
-                }
-            )
-            notifications.numberCopied(card)
+            view.announceForAccessibility(announcement)
         }
     }
 
     fun copyNote(card: HomeCard) {
         scope.launch {
             val host = activity ?: return@launch
+            if (card.card.note.isBlank()) return@launch
             if (!UnlockSession.requireUnlock(host, context.getString(R.string.cards_unlock_note))) return@launch
-            val note = card.card.note.takeIf { it.isNotBlank() } ?: return@launch
-            ClipboardHelper.copySensitive(context, context.getString(R.string.cards_clipboard_note), note, clipMillis())
+            copier.copy(card, CardCopyField.NOTE) ?: return@launch
             val result = snackbar.showAndAwait(
                 message = context.getString(R.string.cards_note_copied),
                 actionLabel = context.getString(R.string.cards_clear),
@@ -287,4 +269,3 @@ private fun rememberScreenLockSet(): Boolean {
     return secure
 }
 
-private const val COPIED_MS = 1_600L

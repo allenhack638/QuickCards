@@ -286,16 +286,19 @@ class VaultRepository(
     }
 
     /** The bank's colour (stored, else built-in default), or null when it has none. */
-    suspend fun bankColour(bankId: String?): String? =
+    private suspend fun bankColour(bankId: String?): String? =
         bankId?.let { bankDao.getBankById(it) }?.let(BankColourRules::colourOf)
 
-    /** Stores [colour] (null = built-in default) and repaints every card that follows the bank. */
-    suspend fun setBankColour(bankId: String, colour: String?) = database.withTransaction {
-        val bank = bankDao.getBankById(bankId) ?: return@withTransaction
-        val updated = bank.copy(color = colour)
-        bankDao.setColor(bankId, colour)
+    /**
+     * Renames the bank and stores [colour] (null = its built-in default) in one transaction, then
+     * repaints every card that follows the bank; cards with a colour of their own keep it.
+     */
+    suspend fun updateBank(id: String, name: String, colour: String?) = database.withTransaction {
+        val bank = bankDao.getBankById(id) ?: return@withTransaction
+        val updated = bank.copy(name = normalizeName(name), color = colour)
+        bankDao.updateBank(updated)
         BankColourRules.colourOf(updated)?.let { band ->
-            cardDao.applyBankColour(bankId, band, BandColor.hexFor(band))
+            cardDao.applyBankColour(id, band, BandColor.hexFor(band))
         }
     }
 
@@ -380,11 +383,6 @@ class VaultRepository(
         )
         bankDao.insertBank(bank)
         return bank
-    }
-
-    suspend fun renameBank(id: String, name: String) {
-        val bank = bankDao.getBankById(id) ?: return
-        bankDao.updateBank(bank.copy(name = normalizeName(name)))
     }
 
     suspend fun deleteBank(id: String): Boolean {

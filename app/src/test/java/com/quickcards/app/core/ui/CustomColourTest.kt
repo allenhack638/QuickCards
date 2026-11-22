@@ -43,8 +43,8 @@ class CustomColourTest {
     @Test
     fun theBankEditorShowsTheColourSavingWouldGive() {
         val banks = listOf(Bank(id = "1", name = "HDFC Bank"), Bank(id = "2", name = "SBI Card"))
-        assertEquals("navy", BankColourRules.editorColour("HDFC", null, banks))
-        assertEquals(ArtRules.PALETTE_ORDER[2], BankColourRules.editorColour("Saraswat Bank", null, banks))
-        assertEquals("plum", BankColourRules.editorColour("Saraswat Bank", "plum", banks))
+        assertEquals("navy", BankColourRules.editorColour("HDFC", null, null, banks))
+        assertEquals(ArtRules.PALETTE_ORDER[2], BankColourRules.editorColour("Saraswat Bank", null, null, banks))
+        assertEquals("plum", BankColourRules.editorColour("Saraswat Bank", "plum", null, banks))
     }
 }

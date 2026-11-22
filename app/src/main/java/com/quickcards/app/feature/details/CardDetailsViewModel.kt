@@ -1,13 +1,16 @@
 package com.quickcards.app.feature.details
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.quickcards.app.core.ui.CardCopyField
+import com.quickcards.app.core.ui.CardFieldCopier
 import com.quickcards.app.core.ui.HomeCard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
-/** The Card details rows, in screen order. */
-enum class DetailsField { NUMBER, EXPIRY, CVV, HOLDER, NOTE }
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 /** Why the unlock prompt is shown; each maps to its own prompt subtitle. */
 enum class UnlockReason { COPY, COPY_NOTE, SHOW_NUMBER, SHOW_CVV }
@@ -17,55 +20,70 @@ fun interface Unlock {
     suspend fun request(reason: UnlockReason): Boolean
 }
 
-/** Puts one value on the clipboard (sensitive, timed) and records the card's use. */
-fun interface DetailsCopier {
-    fun copy(card: HomeCard, field: DetailsField, value: String)
-}
+/** One row of one card: what is revealed or marked Copied. */
+data class FieldMark(val cardId: String, val field: CardCopyField)
 
-/** Copy and reveal on Card details: both pass the unlock gate first and change nothing when it fails. */
-class CardDetailsViewModel(private val copier: DetailsCopier) : ViewModel() {
+/**
+ * Copy and reveal on Card details. Both pass the unlock gate first and change nothing when it
+ * fails. One instance serves a pane, so a reveal or Copied mark belongs to a card: showing another
+ * card, leaving the pane ([clear]) or a lock drops it, and coming back asks again.
+ */
+class CardDetailsViewModel(private val locked: StateFlow<Boolean>) : ViewModel() {
 
-    private val _copied = MutableStateFlow<DetailsField?>(null)
-    val copied: StateFlow<DetailsField?> = _copied.asStateFlow()
+    private val _copied = MutableStateFlow<FieldMark?>(null)
+    val copied: StateFlow<FieldMark?> = _copied.asStateFlow()
 
-    private val _revealed = MutableStateFlow<DetailsField?>(null)
-    val revealed: StateFlow<DetailsField?> = _revealed.asStateFlow()
+    private val _revealed = MutableStateFlow<FieldMark?>(null)
+    val revealed: StateFlow<FieldMark?> = _revealed.asStateFlow()
 
-    suspend fun copy(card: HomeCard, field: DetailsField, unlock: Unlock): Boolean {
-        val value = valueOf(card, field) ?: return false
-        val reason = if (field == DetailsField.NOTE) UnlockReason.COPY_NOTE else UnlockReason.COPY
-        if (!unlock.request(reason)) return false
-        copier.copy(card, field, value)
-        _copied.value = field
-        return true
+    private var shownId: String? = null
+
+    init {
+        locked.filter { it }.onEach { clear() }.launchIn(viewModelScope)
     }
 
-    suspend fun reveal(card: HomeCard, field: DetailsField, unlock: Unlock): Boolean {
+    /** The pane now shows [cardId]; anything marked on another card is dropped. */
+    fun show(cardId: String) {
+        if (cardId == shownId) return
+        shownId = cardId
+        clear()
+    }
+
+    /** Returns what to announce, or null when nothing was copied. [unlock] and [copier] belong to the screen. */
+    suspend fun copy(card: HomeCard, field: CardCopyField, unlock: Unlock, copier: CardFieldCopier): String? {
+        if (CardCopyField.valueOf(card, field) == null) return null
+        val reason = if (field == CardCopyField.NOTE) UnlockReason.COPY_NOTE else UnlockReason.COPY
+        if (!unlock.request(reason) || locked.value) return null
+        show(card.id)
+        val announcement = copier.copy(card, field) ?: return null
+        _copied.value = FieldMark(card.id, field)
+        return announcement
+    }
+
+    suspend fun reveal(card: HomeCard, field: CardCopyField, unlock: Unlock): Boolean {
         if (!canReveal(card, field)) return false
-        val reason = if (field == DetailsField.CVV) UnlockReason.SHOW_CVV else UnlockReason.SHOW_NUMBER
-        if (!unlock.request(reason)) return false
-        _revealed.value = field
+        val reason = if (field == CardCopyField.CVV) UnlockReason.SHOW_CVV else UnlockReason.SHOW_NUMBER
+        if (!unlock.request(reason) || locked.value) return false
+        show(card.id)
+        _revealed.value = FieldMark(card.id, field)
         return true
     }
 
-    fun clearCopied(field: DetailsField) {
-        _copied.compareAndSet(field, null)
+    fun clearCopied(mark: FieldMark) {
+        _copied.compareAndSet(mark, null)
     }
 
     fun hide() {
         _revealed.value = null
     }
 
-    companion object {
-        fun valueOf(card: HomeCard, field: DetailsField): String? = when (field) {
-            DetailsField.NUMBER -> card.card.number
-            DetailsField.EXPIRY -> card.card.expiry
-            DetailsField.CVV -> card.card.cvv
-            DetailsField.HOLDER -> card.holderName
-            DetailsField.NOTE -> card.card.note
-        }.takeIf { it.isNotBlank() }
+    fun clear() {
+        _revealed.value = null
+        _copied.value = null
+    }
 
-        fun canReveal(card: HomeCard, field: DetailsField): Boolean =
-            (field == DetailsField.NUMBER || field == DetailsField.CVV) && valueOf(card, field) != null
+    companion object {
+        fun canReveal(card: HomeCard, field: CardCopyField): Boolean =
+            (field == CardCopyField.NUMBER || field == CardCopyField.CVV) && CardCopyField.valueOf(card, field) != null
     }
 }

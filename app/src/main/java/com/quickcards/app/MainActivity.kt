@@ -2,6 +2,8 @@ package com.quickcards.app
 
 import android.content.Intent
 import androidx.compose.runtime.getValue
+import android.content.res.Configuration
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,8 +22,11 @@ import com.quickcards.app.core.security.InteractionTrackingWindowCallback
 import com.quickcards.app.core.reminders.OpenCardRequest
 import com.quickcards.app.navigation.QcApp
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
-import com.quickcards.app.core.ui.theme.ThemeMode
-import com.quickcards.app.core.ui.theme.ThemeSettings
+import com.quickcards.app.core.data.settings.AppSettings
+import com.quickcards.app.core.data.settings.AppTheme
+import com.quickcards.app.core.ui.theme.DarkQcColors
+import com.quickcards.app.core.ui.theme.LightQcColors
+import androidx.compose.ui.graphics.toArgb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -34,14 +39,15 @@ class MainActivity : BaseActivity() {
         seedDemoDataIfRequested(intent)
         if (savedInstanceState == null) OpenCardRequest.offer(intent)
 
-        val themeSettings = ThemeSettings(this)
+        val themeSettings = AppSettings.get(this)
+        paintWindowForTheme(themeSettings.theme.value)
 
         setContent {
-            val themeMode by themeSettings.themeMode.collectAsState()
+            val themeMode by themeSettings.theme.collectAsState()
             val darkTheme = when (themeMode) {
-                ThemeMode.SYSTEM -> isSystemInDarkTheme()
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
+                AppTheme.SYSTEM -> isSystemInDarkTheme()
+                AppTheme.LIGHT -> false
+                AppTheme.DARK -> true
             }
             QuickCardsTheme(darkTheme = darkTheme) {
                 Surface(
@@ -52,6 +58,17 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * Before Android 12 the window background comes from the system's night mode, not the in-app
+     * theme; painting it in the saved theme keeps Dark from showing a light frame before Compose
+     * draws. (The system's own starting window still follows the system theme there.)
+     */
+    private fun paintWindowForTheme(theme: AppTheme) {
+        val systemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val dark = theme == AppTheme.DARK || (theme == AppTheme.SYSTEM && systemDark)
+        window.setBackgroundDrawable(ColorDrawable((if (dark) DarkQcColors else LightQcColors).bg.toArgb()))
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

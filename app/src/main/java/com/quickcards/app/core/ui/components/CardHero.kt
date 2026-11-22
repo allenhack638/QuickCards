@@ -37,7 +37,7 @@ import com.quickcards.domain.ExpiryState
 
 /** The details pass: bank (+ pin) | mark, type | status chip, EMV chip, •••• last 4, holder | expiry. */
 @Composable
-fun CardHero(card: HomeCard, status: CardStatus?, modifier: Modifier = Modifier, mask: String = MASK) {
+fun CardHero(card: HomeCard, status: CardStatus?, modifier: Modifier = Modifier, mask: String = MASK_GROUP) {
     val expired = card.expiryState == ExpiryState.EXPIRED
     CardArt(
         band = card.card.bandColor,
@@ -152,7 +152,6 @@ private fun HeroHead(card: HomeCard, status: CardStatus?) {
     }
 }
 
-private const val MASK = "••••"
 private const val HERO_DOT_GAP = " "
 private const val DOTS_ALPHA = .72f
 private const val PIN_ALPHA = .9f

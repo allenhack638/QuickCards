@@ -1,6 +1,7 @@
 package com.quickcards.app.core.security
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import android.os.SystemClock
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -45,7 +46,11 @@ object AppLockController {
     var autoPromptOnLock = true
 
     private const val SYSTEM_PICKER_GRACE_MS = 5 * 60_000L
-    private const val SHARE_SHEET_GRACE_MS = 60_000L
+
+    /** How long a trip to the share sheet may last without the lock; tests shorten it. */
+    @VisibleForTesting
+    @Volatile
+    var shareSheetGraceMs = 60_000L
 
     fun attach(context: Context) {
         if (started) return
@@ -89,7 +94,7 @@ object AppLockController {
 
     /** Sharing sends the user to another app, so only a quick trip back skips the lock. */
     fun beginShareSheet() {
-        systemPickerUntil = SystemClock.elapsedRealtime() + SHARE_SHEET_GRACE_MS
+        systemPickerUntil = SystemClock.elapsedRealtime() + shareSheetGraceMs
     }
 
     fun onUserInteraction() {

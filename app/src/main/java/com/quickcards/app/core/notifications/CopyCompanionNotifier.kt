@@ -159,12 +159,6 @@ class CopyActionReceiver : BroadcastReceiver() {
         val label = context.getString(
             if (field == CopyField.EXPIRY) R.string.cards_field_expiry else R.string.cards_field_cvv
         )
-        val clearSec = AppSettings.get(context).clipClearSec.value
-        ClipboardHelper.copySensitive(
-            context,
-            context.getString(R.string.cards_clipboard_field, value.title, label),
-            value.text,
-            if (clearSec > 0) clearSec * 1000L else null
-        )
+        ClipboardHelper.copyTimed(context, context.getString(R.string.cards_clipboard_field, value.title, label), value.text)
     }
 }

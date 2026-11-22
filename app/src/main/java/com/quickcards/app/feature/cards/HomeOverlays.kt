@@ -35,11 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.quickcards.app.R
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.components.QcModalBottomSheet
 import com.quickcards.app.core.ui.theme.QcDimens
@@ -52,16 +51,6 @@ import com.quickcards.domain.FilterGroup
 import com.quickcards.domain.FilterGroupOptions
 import com.quickcards.domain.FilterOption
 
-private val FilterRowText = TextStyle(
-    fontSize = 16.sp,
-    lineHeight = 24.sp,
-    fontWeight = FontWeight(400)
-)
-private val CountText = TextStyle(
-    fontSize = 13.sp,
-    lineHeight = 18.sp,
-    fontWeight = FontWeight(400)
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -235,13 +224,13 @@ private fun FilterCheckRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(QcSize.icon),
             contentAlignment = Alignment.Center
         ) {
             Checkbox(
                 checked = checked,
                 onCheckedChange = null,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(QcSize.iconSm),
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.secondary,
                     checkmarkColor = MaterialTheme.colorScheme.onSecondary,
@@ -252,13 +241,13 @@ private fun FilterCheckRow(
         Spacer(modifier = Modifier.size(QcDimens.Gutter))
         Text(
             text = label,
-            style = FilterRowText,
+            style = QcText.F3,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
         Text(
             text = count.toString(),
-            style = CountText,
+            style = QcText.F2,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

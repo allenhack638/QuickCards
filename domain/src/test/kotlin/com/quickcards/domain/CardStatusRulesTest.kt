@@ -24,10 +24,4 @@ class CardStatusRulesTest {
         assertNull(CardStatusRules.of(false, ExpiryState.VALID, false, false))
         assertNull(CardStatusRules.of(false, null, false, false))
     }
-
-    @Test
-    fun lastUsedIsTheLatestCopy() {
-        assertEquals("b", CardStatusRules.lastUsedId(mapOf("a" to 1L, "b" to 5L, "c" to 3L)))
-        assertNull(CardStatusRules.lastUsedId(emptyMap()))
-    }
 }

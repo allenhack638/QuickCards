@@ -279,7 +279,7 @@ Geist 400/500/600 and Geist Mono 500 (numbers only), bundled in `res/font` (no d
 - **Spacing:** 4dp grid, tokens `s1` 4 · `s2` 8 · `s3` 12 · `s4` 16 · `s5` 20 · `s6` 24 · `s8` 32 · `s10` 40 · `s12` 48 · `s16` 64. Paddings, margins and gaps use only these (or 0).
 - **Defaults:** screen edge `s4` · tile and row inner `s4` · list gap `s3` · section gap `s6` · icon-to-text `s1`–`s2` · sheet side inset `s6` · editor block rhythm `s3`.
 - **Sizes:** touch target 48 (invisible hit areas) · field 48 · top bar 64 · row 56 / two-line 64 · nav bar 80 · icons 24 (bars, rows), 20 (menus, fields, banners), 18 (pills, discs), 16 (pin mark).
-- **Phone frame:** 360 × 780 reference; card tile 328 wide; hero 207 tall (ISO ID-1).
+- **Phone frame:** 360 × 780 reference; card tile 328 wide; hero 207 tall (ISO ID-1). On Card details the hero fills the rows' content width (380 on a 412 phone) at the ISO ratio, so card and rows share both edges; the column cap (600) caps it on wider windows.
 - Controls size from content: buttons, chips, segments, pills, status chips and fields use a minimum height, never a fixed one, so 200% text grows them.
 
 ### Alignment rules
@@ -406,7 +406,7 @@ Pill, min 32 tall, min 88 wide, 48 hit. Idle: copy icon + "Copy" (`f2`/500) on w
 
 ### Status chip
 
-One component for Check, Expires soon, Expired, Last used, Archived (and "Archived · reason"): text only, no icon, `f1`/600 white on `on-art-chip`, 1dp white 30% inner ring (Expired: `on-art-danger` ring), `r-xs`, min height 20. One chip per card, priority Archived > Expired > Check > Expires soon > Last used. Same slot and style on tiles, the details hero, Archived, adaptive panes and the gallery. Check reads "Check details" to TalkBack.
+One component for Check, Expires soon, Expired, Last used, Archived (and "Archived · reason"; inside Manage › Archived the chip is the reason alone, and the card keeps its own colour): text only, no icon, `f1`/600 white on `on-art-chip`, 1dp white 30% inner ring (Expired: `on-art-danger` ring), `r-xs`, min height 20. One chip per card, priority Archived > Expired > Check > Expires soon > Last used. Same slot and style on tiles, the details hero, Archived, adaptive panes and the gallery. Check reads "Check details" to TalkBack.
 
 ### Card details
 
@@ -479,7 +479,7 @@ One component for every inline banner: tonal container (`danger-bg` for errors, 
 
 ### Snackbar
 
-M3 snackbar on `inverse`: one line of text, left-aligned, no icon, no image, optional text action in `inverse-accent`. Min 48, 16 inset, `r-md`, full width − 16 each side, 8 above the nav bar or gesture area. Shown 3 s (4.5 s with TalkBack). Used for Undo (Card deleted, Card archived, Card restored, Paid), Clear (Details copied, Note copied), errors (Try again), "Number pasted", "Update ready" + Restart, "Copying locked". Never for a single-value copy.
+M3 snackbar on `inverse`: one line of text, left-aligned, no icon, no image, optional text action in `inverse-accent`. Min 48, 16 inset, `r-md`, full width − 16 each side, 8 above the nav bar or gesture area. Shown 3 s (4.5 s with TalkBack); one with an action (Undo, Clear, Restart) always 4.5 s so the action can be reached. Used for Undo (Card deleted, Card archived, Card restored, Paid), Clear (Details copied, Note copied), errors (Try again), "Number pasted", "Update ready" + Restart, "Copying locked". Never for a single-value copy.
 
 ### Notifications
 
@@ -507,7 +507,7 @@ Empty vault: faded sample card, "Add your first card", one line, full-width fill
 |---|---|---|
 | `dur-state` | 150 ms | Copy → check + "Copied", press layers, switch |
 | `dur-nav` | 200 ms | Screen fade + 16dp slide, sheet and dialog in |
-| `dur-toast` | 3000 ms | Snackbar on screen (4.5 s with TalkBack) |
+| `dur-toast` | 3000 ms | Snackbar on screen (4.5 s with TalkBack, and always for a snackbar with an action) |
 | `ease` | cubic-bezier(.2, 0, 0, 1) | Emphasized decelerate |
 
 Nothing moves on its own: no tilt, particles, rolling digits or flips. Reduced motion (targeted, not a global kill): no slides, no switch-thumb travel, crossfades stay. Masking is instant.

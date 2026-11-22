@@ -33,15 +33,5 @@
             android:textColor="?android:attr/textColorPrimary"
             android:singleLine="true"
             android:ellipsize="end" />
-        <TextView
-            android:id="@+id/autofill_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/geist_regular"
-            android:textSize="11sp"
-            android:lineSpacingExtra="3sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:singleLine="true"
-            android:ellipsize="end" />
     </LinearLayout>
 </LinearLayout>

@@ -102,7 +102,6 @@ private val DigitsKeyboard = KeyboardOptions(
     imeAction = ImeAction.Next
 )
 
-private const val CVV_REVEAL_MS = 5_000L
 private const val AUTOFOCUS_DELAY_MS = 300L
 
 private sealed interface FormSheet {
@@ -174,7 +173,7 @@ internal fun CardFormContent(
     }
     LaunchedEffect(cvvShown) {
         if (cvvShown) {
-            delay(CVV_REVEAL_MS)
+            delay(QcDimens.RevealDurationMillis.toLong())
             cvvShown = false
         }
     }
@@ -216,7 +215,6 @@ internal fun CardFormContent(
                 is CardFormEvent.Saved -> {
                     focusManager.clearFocus(force = true)
                     saveError = null
-                    navController.previousBackStackEntry?.savedStateHandle?.set("savedCardId", event.cardId)
                     snackbar.show(
                         if (event.isEdit) {
                             context.getString(R.string.form_saved_changes)
@@ -548,7 +546,7 @@ internal fun CardFormContent(
         FormFooter(
             label = stringResource(if (form.isEdit) R.string.form_save_changes else R.string.form_save_card),
             enabled = !saving && session.canSave(),
-            note = saveError ?: saveIssue?.takeIf { !form.isEdit }?.let { saveIssueText(it) },
+            note = saveError ?: saveIssue?.let { saveIssueText(it) },
             noteIsError = saveError != null,
             onClick = {
                 saveError = null

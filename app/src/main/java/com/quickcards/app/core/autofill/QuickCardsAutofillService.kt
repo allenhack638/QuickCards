@@ -70,7 +70,6 @@ class QuickCardsAutofillService : AutofillService() {
         val cards = app.repository.cards.first().filterNot { it.archived }
         if (cards.isEmpty()) return null
         val banks = app.repository.banks.first().associateBy { it.id }
-        val holders = app.repository.holders.first().associateBy { it.id }
         val networks = app.repository.networks.first().map { it.toDomain() }
         val used = CardUsage.lastUsed(this)
         val byId = cards.associateBy { it.id }
@@ -96,8 +95,7 @@ class QuickCardsAutofillService : AutofillService() {
         top.forEachIndexed { index, card ->
             val network = if (card.networkAuto) CardNumberRules.detect(card.number, networks) else networks.firstOrNull { it.id == card.networkId }
             val bank = card.bankId?.let { banks[it]?.name }.orEmpty().ifBlank { getString(R.string.app_name) }
-            val holder = card.holderId?.let { holders[it]?.name }.orEmpty()
-            val row = AutofillRows.card(this, bank, card.number.takeLast(4), holder, network?.id)
+            val row = AutofillRows.card(this, bank, card.number.takeLast(4), network?.id)
             val dataset = Dataset.Builder(row)
             // Placeholders only: the real values arrive from the auth activity after the prompt.
             form.fields.values.forEach { id ->

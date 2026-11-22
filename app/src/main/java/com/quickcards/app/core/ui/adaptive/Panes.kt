@@ -108,8 +108,8 @@ fun Modifier.selectionRing(selected: Boolean, corner: Dp, ink: Color): Modifier 
         translate(-inset, -inset) { drawOutline(outline, ink, style = Stroke(ring)) }
     }
 
-private val GAP = 2.dp
-private val RING = 2.dp
+private val GAP = QcSize.focus
+private val RING = QcSize.focus
 
 /**
  * Add and Edit on medium and expanded windows: the form in a 560 surface centred over a scrim,

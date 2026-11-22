@@ -19,8 +19,8 @@ import com.quickcards.app.core.data.model.toDomain
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.base.BaseActivity
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
-import com.quickcards.app.core.ui.theme.ThemeMode
-import com.quickcards.app.core.ui.theme.ThemeSettings
+import com.quickcards.app.core.data.settings.AppSettings
+import com.quickcards.app.core.data.settings.AppTheme
 import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.ExpiryState
 import com.quickcards.domain.ExpiryStatus
@@ -44,13 +44,13 @@ class AutofillPickerActivity : BaseActivity() {
             if (!UnlockSession.requireUnlock(this@AutofillPickerActivity, reason, fresh = true)) return@launch cancel()
             unlocked = true
             val cards = loadCards()
-            val themeSettings = ThemeSettings(this@AutofillPickerActivity)
+            val themeSettings = AppSettings.get(this@AutofillPickerActivity)
             setContent {
-                val themeMode by themeSettings.themeMode.collectAsState()
+                val themeMode by themeSettings.theme.collectAsState()
                 val dark = when (themeMode) {
-                    ThemeMode.SYSTEM -> isSystemInDarkTheme()
-                    ThemeMode.LIGHT -> false
-                    ThemeMode.DARK -> true
+                    AppTheme.SYSTEM -> isSystemInDarkTheme()
+                    AppTheme.LIGHT -> false
+                    AppTheme.DARK -> true
                 }
                 QuickCardsTheme(darkTheme = dark) {
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

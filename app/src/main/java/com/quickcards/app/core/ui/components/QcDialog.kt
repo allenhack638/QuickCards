@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import android.view.WindowManager
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,7 +101,11 @@ private fun DialogWindow(
         SecureOverlayWindow()
         val view = LocalView.current
         SideEffect {
-            (view.parent as? DialogWindowProvider)?.window?.setDimAmount(colors.scrim.alpha)
+            // Android 8 leaves FLAG_DIM_BEHIND off for this window, so the dim amount alone does nothing.
+            (view.parent as? DialogWindowProvider)?.window?.apply {
+                addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                setDimAmount(colors.scrim.alpha)
+            }
         }
         BoxWithConstraints(
             modifier = Modifier

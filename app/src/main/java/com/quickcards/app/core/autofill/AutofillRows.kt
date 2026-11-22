@@ -8,7 +8,6 @@ import android.graphics.ColorMatrixColorFilter
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.TypefaceSpan
-import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
@@ -27,15 +26,13 @@ internal object AutofillRows {
         setTextViewText(R.id.autofill_title, context.resources.getQuantityString(R.plurals.autofill_search_all, count, count))
     }
 
-    /** "HDFC Bank •• 0366" with the holder below; the mark sits in the 40x24 slot, or the app mark. */
-    fun card(context: Context, bank: String, lastFour: String, holder: String, networkId: String?) =
+    /**
+     * "HDFC Bank •• 0366" with the network mark in the 40x24 slot, or the app mark. The row shows in
+     * another app before any unlock, so it carries no holder name.
+     */
+    fun card(context: Context, bank: String, lastFour: String, networkId: String?) =
         RemoteViews(context.packageName, R.layout.autofill_suggestion).apply {
             setTextViewText(R.id.autofill_title, title(context, bank, lastFour))
-            if (holder.isBlank()) {
-                setViewVisibility(R.id.autofill_subtitle, View.GONE)
-            } else {
-                setTextViewText(R.id.autofill_subtitle, holder)
-            }
             markBitmap(context, networkId)?.let { setImageViewBitmap(R.id.autofill_icon, it) }
         }
 

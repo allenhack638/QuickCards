@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.ui.semantics.selected
+import com.quickcards.app.core.ui.components.metaLine
 import com.quickcards.app.core.ui.adaptive.selectionRing
 import com.quickcards.app.core.ui.art.ArtDimens
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.quickcards.app.R
 import com.quickcards.app.core.data.repository.RepairSummary
+import com.quickcards.app.core.ui.CardUseStatus
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.components.MASK_DOTS
 import com.quickcards.app.core.ui.components.MiniCard
@@ -178,7 +180,7 @@ private fun CardGrid(
 
 @Composable
 internal fun HomeTile(card: HomeCard, tile: TileState, actions: TileActions, modifier: Modifier = Modifier) {
-    val status = CardsListState.status(card, tile.lastUsedId)
+    val status = CardUseStatus.of(card, tile.lastUsedId)
     val selected = tile.selectedId == card.id
     PassCard(
         card = card,
@@ -227,8 +229,7 @@ private fun RecentRow(card: HomeCard, copied: Boolean, enabled: Boolean, actions
     val last4 = card.card.number.takeLast(4)
     val hue = remember(card.card.bandColor) { PassColors.hue(card.card.bandColor) }
     val openLabel = stringResource(R.string.cards_a11y_tile, card.bankName, last4)
-    val meta = listOfNotNull(card.typeName?.takeIf { it.isNotBlank() }, card.holderName.takeIf { it.isNotBlank() })
-        .joinToString(" · ")
+    val meta = metaLine(card.typeName, card.holderName)
     Row(
         modifier = Modifier
             .fillMaxWidth()

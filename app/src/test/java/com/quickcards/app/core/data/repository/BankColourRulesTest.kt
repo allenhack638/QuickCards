@@ -55,4 +55,55 @@ class BankColourRulesTest {
     fun `banks without any colour are not counted`() {
         assertEquals("navy", BankColourRules.pickFor("Corner Bank", listOf(Bank(name = "Old Co-op"))))
     }
+
+    private val others = listOf(Bank(name = "HDFC Bank"), Bank(name = "SBI Card"))
+
+    @Test
+    fun `a new unknown bank saves the colour the editor shows`() {
+        val shown = BankColourRules.editorColour("Corner Bank", null, null, others)
+        assertEquals("teal", shown)
+        assertEquals(shown, BankColourRules.colourToStore("Corner Bank", null, null, others))
+    }
+
+    @Test
+    fun `a new catalog bank follows its built-in default`() {
+        assertEquals("navy", BankColourRules.editorColour("HDFC Bank", null, null, emptyList()))
+        assertNull(BankColourRules.colourToStore("HDFC Bank", null, null, emptyList()))
+    }
+
+    @Test
+    fun `an old unknown bank without a stored colour saves the auto-pick it shows`() {
+        val before = Bank(name = "Old Co-op")
+        val shown = BankColourRules.editorColour("Old Co-op", null, before, others)
+        assertEquals("teal", shown)
+        assertEquals(shown, BankColourRules.colourToStore("Old Co-op", null, before, others))
+    }
+
+    @Test
+    fun `a stored colour stays when the name keeps the same default`() {
+        val before = Bank(name = "Corner Bank", color = "teal")
+        assertEquals("teal", BankColourRules.editorColour("Corner Bank Ltd", null, before, others))
+        assertEquals("teal", BankColourRules.colourToStore("Corner Bank Ltd", null, before, others))
+    }
+
+    @Test
+    fun `renaming onto a built-in bank takes that bank's default`() {
+        val before = Bank(name = "Corner Bank", color = "teal")
+        assertEquals("navy", BankColourRules.editorColour("HDFC Bank", null, before, others))
+        assertNull(BankColourRules.colourToStore("HDFC Bank", null, before, others))
+    }
+
+    @Test
+    fun `renaming a built-in bank away from the catalog keeps the colour it showed`() {
+        val before = Bank(name = "HDFC Bank")
+        assertEquals("navy", BankColourRules.editorColour("Corner Bank", null, before, others))
+        assertEquals("navy", BankColourRules.colourToStore("Corner Bank", null, before, others))
+    }
+
+    @Test
+    fun `a colour picked by hand always wins`() {
+        val before = Bank(name = "Corner Bank", color = "teal")
+        assertEquals("plum", BankColourRules.editorColour("HDFC Bank", "plum", before, others))
+        assertEquals("plum", BankColourRules.colourToStore("HDFC Bank", "plum", before, others))
+    }
 }

@@ -23,10 +23,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.quickcards.app.R
-import com.quickcards.app.core.notifications.rememberCardNotifications
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
+import com.quickcards.app.core.ui.CardCopyField
 import com.quickcards.app.core.ui.HomeCard
+import com.quickcards.app.core.ui.rememberCardCopier
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.PassCard
 import com.quickcards.app.core.ui.components.QcEmptyMessage
@@ -36,7 +37,6 @@ import com.quickcards.app.core.ui.components.SearchTopBar
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.domain.CardStatus
-import com.quickcards.domain.TimeText
 import kotlinx.coroutines.launch
 
 /**
@@ -55,50 +55,27 @@ fun ArchivedCardsScreen(
     val activity = context as? FragmentActivity
     val snackbar = LocalSnackbar.current
     val scope = rememberCoroutineScope()
-    val notifications = rememberCardNotifications()
+    val copier = rememberCardCopier()
 
     BackHandler(enabled = state.searchOn) { viewModel.setSearchActive(false) }
     DisposableEffect(viewModel) { onDispose { viewModel.setSearchActive(false) } }
 
-    fun copied(label: String, clipboardLabel: String, value: String) {
-        val clearSec = state.options.clipClearSec
-        ClipboardHelper.copySensitive(context, clipboardLabel, value, if (clearSec > 0) clearSec * 1000L else null)
-        scope.launch {
-            val result = snackbar.showAndAwait(
-                message = if (clearSec > 0) {
-                    context.getString(R.string.cards_copied_clears, label, TimeText.clipText(clearSec))
-                } else {
-                    context.getString(R.string.cards_copied, label)
-                },
-                actionLabel = if (clearSec > 0) context.getString(R.string.cards_clear) else null,
-                duration = SnackbarDuration.Short
-            )
-            if (result == SnackbarResult.ActionPerformed) ClipboardHelper.clearNow()
-        }
-    }
-
-    fun copyNumber(card: HomeCard) = scope.launch {
+    fun copy(card: HomeCard, field: CardCopyField, reason: String?) = scope.launch {
         val host = activity ?: return@launch
-        if (!UnlockSession.requireUnlock(host)) return@launch
-        val label = context.getString(R.string.cards_field_number)
-        copied(label, context.getString(R.string.cards_clipboard_field, card.title, label), card.card.number)
-        notifications.numberCopied(card)
-    }
-
-    fun copyNote(card: HomeCard) = scope.launch {
-        val host = activity ?: return@launch
-        if (!UnlockSession.requireUnlock(host, context.getString(R.string.cards_unlock_note))) return@launch
-        val note = card.card.note
-        if (note.isBlank()) return@launch
-        val clearSec = state.options.clipClearSec
-        ClipboardHelper.copySensitive(
-            context,
-            context.getString(R.string.cards_clipboard_note),
-            note,
-            if (clearSec > 0) clearSec * 1000L else null
+        if (CardCopyField.valueOf(card, field) == null) return@launch
+        if (!UnlockSession.requireUnlock(host, reason)) return@launch
+        val message = copier.copy(card, field) ?: return@launch
+        val result = snackbar.showAndAwait(
+            message = message,
+            actionLabel = context.getString(R.string.cards_clear),
+            duration = SnackbarDuration.Short
         )
-        snackbar.show(context.getString(R.string.cards_note_copied))
+        if (result == SnackbarResult.ActionPerformed) ClipboardHelper.clearNow()
     }
+
+    fun copyNumber(card: HomeCard) = copy(card, CardCopyField.NUMBER, null)
+
+    fun copyNote(card: HomeCard) = copy(card, CardCopyField.NOTE, context.getString(R.string.cards_unlock_note))
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (state.searchOn) {
@@ -155,6 +132,7 @@ fun ArchivedCardsScreen(
                         card = item.card,
                         status = CardStatus.ARCHIVED,
                         archiveReason = item.reason,
+                        inArchive = true,
                         note = item.card.card.note.takeIf { state.options.showNotes && it.isNotBlank() },
                         tags = if (state.options.tagsShow) item.card.tagNames else emptyList(),
                         onOpen = { onCardActions(item.id) },
