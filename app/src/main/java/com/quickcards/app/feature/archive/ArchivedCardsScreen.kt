@@ -130,6 +130,7 @@ fun ArchivedCardsScreen(
                 items(state.visibleCards, key = { it.id }) { item ->
                     PassCard(
                         card = item.card,
+                        maskNumber = state.options.maskNumbers,
                         status = CardStatus.ARCHIVED,
                         archiveReason = item.reason,
                         inArchive = true,

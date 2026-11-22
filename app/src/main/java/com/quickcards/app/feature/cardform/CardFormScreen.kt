@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,6 +36,7 @@ import androidx.navigation.NavController
 import com.quickcards.app.R
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.LocalAppLocked
+import com.quickcards.app.core.ui.LocalLeaveGuard
 import com.quickcards.app.core.ui.components.QcDialog
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSize
@@ -43,6 +45,7 @@ import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTextButton
 import com.quickcards.app.core.ui.theme.QcTextTone
 import com.quickcards.app.core.ui.theme.QcTheme
+import kotlinx.coroutines.CompletableDeferred
 
 @Composable
 fun CardFormScreen(
@@ -60,10 +63,40 @@ fun CardFormScreen(
     val cardId = viewModel.cardId
     var editReady by remember { mutableStateOf(cardId == null) }
     var showDiscard by remember { mutableStateOf(false) }
+    // Set while a leave asked from outside the form (a reminder tap) waits for the dialog's answer.
+    var outsideLeave by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
     val locked = LocalAppLocked.current
+    val leaveGuard = LocalLeaveGuard.current
 
     LaunchedEffect(locked) {
         if (locked) showDiscard = false
+    }
+
+    DisposableEffect(leaveGuard) {
+        val ask: suspend () -> Boolean = {
+            if (viewModel.session.value?.isDirty() != true) {
+                true
+            } else {
+                val answer = CompletableDeferred<Boolean>()
+                outsideLeave = answer
+                showDiscard = true
+                try {
+                    answer.await()
+                } finally {
+                    if (outsideLeave === answer) {
+                        outsideLeave = null
+                        showDiscard = false
+                    }
+                }
+            }
+        }
+        leaveGuard.register(ask)
+        onDispose { leaveGuard.unregister(ask) }
+    }
+
+    fun keepEditing() {
+        showDiscard = false
+        outsideLeave?.complete(false)
     }
 
     fun requestBack() {
@@ -118,12 +151,12 @@ fun CardFormScreen(
 
     if (showDiscard) {
         QcDialog(
-            onDismissRequest = { showDiscard = false },
+            onDismissRequest = ::keepEditing,
             title = stringResource(R.string.form_discard_title),
             actions = {
                 QcTextButton(
                     text = stringResource(R.string.form_discard_keep),
-                    onClick = { showDiscard = false },
+                    onClick = ::keepEditing,
                     tone = QcTextTone.Neutral
                 )
                 QcTextButton(
@@ -131,7 +164,8 @@ fun CardFormScreen(
                     onClick = {
                         showDiscard = false
                         focusManager.clearFocus(force = true)
-                        navController.popBackStack()
+                        val outside = outsideLeave
+                        if (outside != null) outside.complete(true) else navController.popBackStack()
                     },
                     tone = QcTextTone.Danger
                 )

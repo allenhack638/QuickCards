@@ -290,7 +290,7 @@ Geist 400/500/600 and Geist Mono 500 (numbers only), bundled in `res/font` (no d
 | Status chip: one slot on the subtitle line, right-aligned, vertically centred; its right edge = the network mark's artwork right edge = the Copy pill's right edge (tile, hero, form preview, adaptive) | Δ 0 px |
 | Leading checkbox / radio to its label | `s3` 12 · box 20 · hit 48 |
 | Inline field action (e.g. "Add") lives inside the field as a trailing text button; an action outside a field matches its height and radius | field 48 |
-| Masked number: compact surfaces (tile, row, sheet header, dialog, notification, autofill) "••0366"; hero, detail rows and form preview "••••0366" | 2 / 4 dots + last 4 |
+| Masked number: compact surfaces (tile, row, sheet header, dialog, notification, autofill) "••0366"; hero, detail rows and form preview "••••0366". Hide card numbers off: tile shows the grouped number in mono f3, hero in mono f4, the Number row in mono f3; all else stays masked | 2 / 4 dots + last 4 |
 | Pin mark sits after the bank name on the tile and hero | `push_pin` filled 16, white 90% |
 | Editors: one vertical rhythm between every block (preview, field, field row, segmented control, checkbox list, banner); a checkbox group is a plain list of 48 rows with the box on the field edge, no container | `s3` 12 |
 

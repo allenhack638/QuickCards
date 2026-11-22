@@ -35,9 +35,18 @@ import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.domain.CardStatus
 import com.quickcards.domain.ExpiryState
 
-/** The details pass: bank (+ pin) | mark, type | status chip, EMV chip, •••• last 4, holder | expiry. */
+/**
+ * The details pass: bank (+ pin) | mark, type | status chip, EMV chip, •••• last 4, holder | expiry.
+ * With [maskNumber] off the full grouped number shows in f4, the size that fits the card's width.
+ */
 @Composable
-fun CardHero(card: HomeCard, status: CardStatus?, modifier: Modifier = Modifier, mask: String = MASK_GROUP) {
+fun CardHero(
+    card: HomeCard,
+    status: CardStatus?,
+    modifier: Modifier = Modifier,
+    mask: String = MASK_GROUP,
+    maskNumber: Boolean = true
+) {
     val expired = card.expiryState == ExpiryState.EXPIRED
     CardArt(
         band = card.card.bandColor,
@@ -54,18 +63,28 @@ fun CardHero(card: HomeCard, status: CardStatus?, modifier: Modifier = Modifier,
             HeroHead(card, status)
             EmvChip(Modifier.clearAndSetSemantics { })
             Column(modifier = Modifier.clearAndSetSemantics { }) {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(letterSpacing = QcText.MonoDotsF5.letterSpacing, color = PassColors.OnArt.copy(alpha = DOTS_ALPHA))) {
-                            append(mask)
-                        }
-                        append(HERO_DOT_GAP)
-                        append(card.card.number.takeLast(4))
-                    },
-                    style = QcText.MonoF5.copy(letterSpacing = HERO_TRACKING),
-                    color = PassColors.OnArt,
-                    maxLines = 1
-                )
+                val fullNumber = shownNumber(card, maskNumber)
+                if (fullNumber == null) {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(letterSpacing = QcText.MonoDotsF5.letterSpacing, color = PassColors.OnArt.copy(alpha = DOTS_ALPHA))) {
+                                append(mask)
+                            }
+                            append(HERO_DOT_GAP)
+                            append(card.card.number.takeLast(4))
+                        },
+                        style = QcText.MonoF5.copy(letterSpacing = HERO_TRACKING),
+                        color = PassColors.OnArt,
+                        maxLines = 1
+                    )
+                } else {
+                    Text(
+                        text = fullNumber,
+                        style = QcText.MonoF4.copy(letterSpacing = HERO_TRACKING),
+                        color = PassColors.OnArt,
+                        maxLines = 2
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),

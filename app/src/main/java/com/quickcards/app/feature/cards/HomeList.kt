@@ -188,6 +188,7 @@ internal fun HomeTile(card: HomeCard, tile: TileState, actions: TileActions, mod
             .selectionRing(selected, ArtDimens.CornerTile, QcTheme.colors.ink)
             .semantics { this.selected = selected }
             .sharedPass(card.id),
+        maskNumber = tile.options.maskNumbers,
         status = status,
         archiveReason = card.card.archiveReason,
         note = card.card.note.takeIf { tile.options.showNotes && it.isNotBlank() },

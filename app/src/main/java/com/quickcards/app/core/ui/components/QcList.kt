@@ -1,6 +1,22 @@
 package com.quickcards.app.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.translate
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import com.quickcards.app.core.ui.theme.QcColors
+import com.quickcards.app.core.ui.theme.QcElevation
+import com.quickcards.app.core.ui.theme.QcRadius
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,6 +65,54 @@ fun QcGroupLabel(text: String, modifier: Modifier = Modifier) {
             .padding(top = QcSpacing.s4, bottom = QcSpacing.s2)
             .semantics { heading() }
     )
+}
+
+/**
+ * One row of a [QcGroup] laid out by a lazy list (keyed `items`): each row draws its own slice,
+ * rounded on the first and last, with the hairline above every row but the first, so the list
+ * looks like one group. The shadow stops short of each seam so it never shades a neighbour.
+ */
+fun Modifier.qcGroupItem(index: Int, count: Int, colors: QcColors): Modifier {
+    val first = index == 0
+    val last = index == count - 1
+    val shape = RoundedCornerShape(
+        topStart = if (first) QcRadius.lg else 0.dp,
+        topEnd = if (first) QcRadius.lg else 0.dp,
+        bottomEnd = if (last) QcRadius.lg else 0.dp,
+        bottomStart = if (last) QcRadius.lg else 0.dp
+    )
+    val shadow = if (colors.dark) {
+        Modifier
+    } else {
+        Modifier.shadow(QcElevation.e1, SeamInsetShape(shape, top = !first, bottom = !last), ambientColor = colors.shadow, spotColor = colors.shadow)
+    }
+    return this
+        .fillMaxWidth()
+        .then(shadow)
+        .clip(shape)
+        .background(colors.surface)
+        .drawWithContent {
+            drawContent()
+            val stroke = QcSize.hairline.toPx()
+            // Below a seam the ring runs one stroke past the row and is clipped, so only the line above shows.
+            val reach = if (last) 0f else stroke
+            val outline = shape.createOutline(Size(size.width - stroke, size.height - stroke + reach), layoutDirection, this)
+            translate(stroke / 2, stroke / 2) { drawOutline(outline, colors.line, style = Stroke(stroke)) }
+        }
+}
+
+private class SeamInsetShape(private val shape: Shape, private val top: Boolean, private val bottom: Boolean) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val inset = with(density) { QcSpacing.s1.toPx() }
+        val t = if (top) inset else 0f
+        val b = if (bottom) inset else 0f
+        val inner = shape.createOutline(Size(size.width, (size.height - t - b).coerceAtLeast(0f)), layoutDirection, density)
+        return when (inner) {
+            is Outline.Rectangle -> Outline.Rectangle(inner.rect.translate(0f, t))
+            is Outline.Rounded -> Outline.Rounded(inner.roundRect.translate(Offset(0f, t)))
+            is Outline.Generic -> Outline.Generic(Path().apply { addPath(inner.path, Offset(0f, t)) })
+        }
+    }
 }
 
 /** Rounded `surface` group (`r-lg`, e1) with a hairline between its rows. */

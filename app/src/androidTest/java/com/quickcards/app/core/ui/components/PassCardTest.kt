@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -50,6 +52,7 @@ class PassCardTest {
         status: CardStatus? = null,
         copied: Boolean = false,
         copyEnabled: Boolean = true,
+        maskNumber: Boolean = true,
         taps: Taps = Taps()
     ): Taps {
         compose.setContent {
@@ -57,6 +60,7 @@ class PassCardTest {
                 Box(modifier = Modifier.width(328.dp)) {
                     PassCard(
                         card = shown,
+                        maskNumber = maskNumber,
                         status = status,
                         note = NOTE,
                         copied = copied,
@@ -98,6 +102,23 @@ class PassCardTest {
     }
 
     @Test
+    fun maskedTileShowsOnlyTheLastFour() {
+        show()
+        compose.onAllNodesWithText(FULL, useUnmergedTree = true).assertCountEquals(0)
+        compose.onAllNodesWithText("0366", useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test
+    fun hideCardNumbersOffShowsTheFullNumberButSpeaksOnlyTheLastFour() {
+        val taps = show(maskNumber = false)
+        compose.onAllNodesWithText(FULL, useUnmergedTree = true).assertCountEquals(1)
+        compose.onNodeWithContentDescription("HDFC Bank, ending 0366. Hold for card actions").assertExists()
+        compose.onNodeWithContentDescription("Copy HDFC Bank card number ending 0366").performClick()
+        compose.waitForIdle()
+        assertEquals(1, taps.copy)
+    }
+
+    @Test
     fun copiedPillSaysCopied() {
         show(copied = true)
         compose.onNodeWithContentDescription("HDFC Bank card number copied").assertExists()
@@ -133,6 +154,7 @@ class PassCardTest {
 
     private companion object {
         const val HEAD_FRACTION = 0.12f
+        const val FULL = "4532 7180 2299 0366"
         const val NOTE = "Travel card. 2 free lounge visits a quarter, 1% forex markup. Call the bank before a trip abroad."
     }
 }

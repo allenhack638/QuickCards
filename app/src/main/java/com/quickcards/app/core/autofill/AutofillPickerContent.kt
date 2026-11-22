@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,12 +30,12 @@ import com.quickcards.app.core.ui.components.metaLine
 import com.quickcards.app.R
 import com.quickcards.app.core.ui.components.MiniCard
 import com.quickcards.app.core.ui.components.QcEmptyMessage
-import com.quickcards.app.core.ui.components.QcGroup
 import com.quickcards.app.core.ui.components.QcGroupLabel
 import com.quickcards.app.core.ui.components.QcIconButton
 import com.quickcards.app.core.ui.components.QcNestedTopBar
 import com.quickcards.app.core.ui.components.SearchTopBar
 import com.quickcards.app.core.ui.components.maskedNumberText
+import com.quickcards.app.core.ui.components.qcGroupItem
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
@@ -141,10 +141,13 @@ fun AutofillPickerContent(
                     )
                 }
             } else {
-                item {
-                    QcGroup(modifier = if (requester.isNullOrBlank()) Modifier.padding(top = QcSpacing.s2) else Modifier) {
-                        visible.forEach { card -> PickerRow(card = card, onClick = { onPick(card.id) }) }
-                    }
+                itemsIndexed(visible, key = { _, card -> card.id }) { index, card ->
+                    val lead = if (index == 0 && requester.isNullOrBlank()) Modifier.padding(top = QcSpacing.s2) else Modifier
+                    PickerRow(
+                        card = card,
+                        onClick = { onPick(card.id) },
+                        modifier = lead.qcGroupItem(index, visible.size, QcTheme.colors)
+                    )
                 }
             }
         }
@@ -152,12 +155,11 @@ fun AutofillPickerContent(
 }
 
 @Composable
-private fun PickerRow(card: PickerCard, onClick: () -> Unit) {
+private fun PickerRow(card: PickerCard, onClick: () -> Unit, modifier: Modifier) {
     val colors = QcTheme.colors
     val meta = metaLine(card.typeName, card.holderName)
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .testTag(PICKER_ROW)
             .clickable(onClick = onClick)
             .heightIn(min = QcSize.row2)

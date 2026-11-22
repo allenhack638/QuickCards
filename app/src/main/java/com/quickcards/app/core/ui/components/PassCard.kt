@@ -67,8 +67,9 @@ import com.quickcards.domain.ExpiryState
 /**
  * The Home tile: card art with bank (+ pin), "Type · Holder" and the one status chip, an
  * optional two-line note and tags, then "•• last4  MM/YY" with the Copy pill on its centre line
- * and an optional bill-due strip. The body opens the card ([onOpen]) and a hold opens its actions
- * ([onActions]); Copy, the note and Mark paid sit above the body as their own targets.
+ * and an optional bill-due strip; with [maskNumber] off the full grouped number replaces "•• last4".
+ * The body opens the card ([onOpen]) and a hold opens its actions ([onActions]); Copy, the note
+ * and Mark paid sit above the body as their own targets.
  * Null callbacks make a static illustration.
  */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
@@ -76,6 +77,7 @@ import com.quickcards.domain.ExpiryState
 fun PassCard(
     card: HomeCard,
     modifier: Modifier = Modifier,
+    maskNumber: Boolean = true,
     status: CardStatus? = null,
     archiveReason: String? = null,
     inArchive: Boolean = false,
@@ -158,6 +160,7 @@ fun PassCard(
             ) {
                 PassDigits(
                     last4 = last4,
+                    fullNumber = shownNumber(card, maskNumber),
                     expiry = card.card.expiry,
                     expired = expired,
                     modifier = Modifier.weight(1f)
@@ -321,25 +324,32 @@ private fun PassTag(name: String) {
     }
 }
 
-/** "•• 1234  12/28"; when larger text leaves no room the expiry drops below the number. */
+/**
+ * "•• 1234  12/28", or "4111 1111 1111 1234  12/28" in f3 so it fits beside Copy; when larger
+ * text leaves no room the expiry drops below the number.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PassDigits(last4: String, expiry: String, expired: Boolean, modifier: Modifier) {
+private fun PassDigits(last4: String, fullNumber: String?, expiry: String, expired: Boolean, modifier: Modifier) {
     FlowRow(
         modifier = modifier.clearAndSetSemantics { },
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),
         verticalArrangement = Arrangement.Center
     ) {
-        Row(modifier = Modifier.alignByBaseline()) {
-            Text(
-                text = DOTS,
-                style = QcText.MonoDotsF4,
-                color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
-                maxLines = 1,
-                modifier = Modifier.alignByBaseline()
-            )
-            Spacer(Modifier.width(QcSpacing.s2))
-            Text(text = last4, style = QcText.MonoF4, color = PassColors.OnArt, maxLines = 1, modifier = Modifier.alignByBaseline())
+        if (fullNumber != null) {
+            Text(text = fullNumber, style = QcText.MonoF3, color = PassColors.OnArt, maxLines = 2, modifier = Modifier.alignByBaseline())
+        } else {
+            Row(modifier = Modifier.alignByBaseline()) {
+                Text(
+                    text = DOTS,
+                    style = QcText.MonoDotsF4,
+                    color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
+                    maxLines = 1,
+                    modifier = Modifier.alignByBaseline()
+                )
+                Spacer(Modifier.width(QcSpacing.s2))
+                Text(text = last4, style = QcText.MonoF4, color = PassColors.OnArt, maxLines = 1, modifier = Modifier.alignByBaseline())
+            }
         }
         Text(
             text = expiry,

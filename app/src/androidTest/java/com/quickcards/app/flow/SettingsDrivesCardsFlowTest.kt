@@ -1,10 +1,13 @@
 package com.quickcards.app.flow
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -103,6 +106,39 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         waitForTextGone("Renewal due in June")
     }
 
+    @Test
+    fun hideCardNumbersOffShowsTheFullNumberOnTheTileAndDetails() {
+        val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
+        val bank = runBlocking { app.repository.createBank("HDFC Bank") }
+        seedCard("4532778103492211", holder.id, bank.id)
+        awaitTile("HDFC Bank")
+
+        tile("HDFC Bank").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithContentDescription(HIDDEN, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onAllNodesWithText(FULL, useUnmergedTree = true).assertCountEquals(0)
+        compose.onNodeWithContentDescription("Back").performClick()
+        awaitTile("HDFC Bank")
+
+        openSettingsTab()
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Hide card numbers"))
+        compose.onNode(hasText("Hide card numbers") and isToggleable()).performClick()
+        awaitSetting { !app.settings.maskNumbers.value }
+
+        openCards()
+        awaitTile("HDFC Bank")
+        waitForText(FULL, unmerged = true)
+        tile("HDFC Bank").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithContentDescription("Number, $FULL", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onAllNodesWithContentDescription(HIDDEN, useUnmergedTree = true).assertCountEquals(0)
+    }
+
     private fun openSettingsTab() {
         compose.onNode(hasText("Settings") and isSelectable()).performClick()
         compose.waitForIdle()
@@ -133,5 +169,10 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
 
     private fun awaitSetting(predicate: () -> Boolean) {
         compose.waitUntil(10_000, condition = predicate)
+    }
+
+    private companion object {
+        const val FULL = "4532 7781 0349 2211"
+        const val HIDDEN = "Card number ending 2211, hidden"
     }
 }

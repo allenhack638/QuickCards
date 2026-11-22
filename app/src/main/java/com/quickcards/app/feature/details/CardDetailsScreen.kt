@@ -67,7 +67,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Card details: the pass, then Number, Expiry, CVV, Holder and Note, each with its own Copy.
- * Holding Number or CVV reveals it for five seconds. A [card] that disappears after it was shown
+ * Holding Number or CVV reveals it for five seconds; with [maskNumber] off (Settings › Hide card
+ * numbers) the number is shown in full on the card and its row. A [card] that disappears after it was shown
  * (deleted) goes back; one that never shows once [loading] is over (a stale link or reminder)
  * says so and goes back.
  */
@@ -81,7 +82,8 @@ fun CardDetailsScreen(
     onEdit: (cardId: String) -> Unit,
     onActions: (cardId: String) -> Unit,
     layout: DetailsLayout = DetailsLayout.STACKED,
-    showBack: Boolean = true
+    showBack: Boolean = true,
+    maskNumber: Boolean = true
 ) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
@@ -161,7 +163,7 @@ fun CardDetailsScreen(
     val hue = PassColors.hue(shown.card.bandColor, shown.expiryState == ExpiryState.EXPIRED)
     val hueInk = if (colors.dark) lerp(hue.c2, PassColors.OnArt, HUE_INK_LIFT) else hue.c2
     val copiedWord = stringResource(R.string.cards_pass_copied)
-    val rows = detailsRows(shown, revealed, ::copy, ::reveal)
+    val rows = detailsRows(shown, revealed, maskNumber, ::copy, ::reveal)
 
     val topBar: @Composable () -> Unit = {
         QcNestedTopBar(
@@ -173,7 +175,7 @@ fun CardDetailsScreen(
             QcIconButton(QcIcons.more, stringResource(R.string.details_more), { onActions(shown.id) })
         }
     }
-    val hero: @Composable (Modifier) -> Unit = { modifier -> CardHero(card = shown, status = status, modifier = modifier) }
+    val hero: @Composable (Modifier) -> Unit = { modifier -> CardHero(card = shown, status = status, modifier = modifier, maskNumber = maskNumber) }
     val keysStacked = rememberKeysStacked(rows.map { it.second.label })
     val group: @Composable (Modifier) -> Unit = { modifier ->
         QcGroup(modifier = modifier) {
@@ -256,12 +258,13 @@ enum class DetailsLayout { STACKED, SPLIT, SIDE }
 private fun detailsRows(
     card: HomeCard,
     revealed: CardCopyField?,
+    maskNumber: Boolean,
     onCopy: (CardCopyField) -> Unit,
     onReveal: (CardCopyField) -> Unit
 ): List<Pair<CardCopyField, DetailsRowSpec>> {
     val dotsStyle = SpanStyle(color = QcTheme.colors.ink2)
     val last4 = card.card.number.takeLast(4)
-    val numberShown = revealed == CardCopyField.NUMBER
+    val numberShown = !maskNumber || revealed == CardCopyField.NUMBER
     val cvv = card.card.cvv
     val cvvShown = revealed == CardCopyField.CVV
     val numberLabel = stringResource(R.string.details_row_number)
@@ -284,8 +287,8 @@ private fun detailsRows(
                 copyLabel = stringResource(R.string.details_copy_number),
                 copiedLabel = stringResource(R.string.details_copied_number),
                 onCopy = { onCopy(CardCopyField.NUMBER) },
-                revealLabel = stringResource(R.string.cards_reveal_number),
-                onReveal = { onReveal(CardCopyField.NUMBER) }
+                revealLabel = stringResource(R.string.cards_reveal_number).takeIf { maskNumber },
+                onReveal = { onReveal(CardCopyField.NUMBER) }.takeIf { maskNumber }
             )
         )
         add(

@@ -60,7 +60,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.quickcards.app.core.security.AppLockController
+import com.quickcards.app.core.ui.LeaveGuard
 import com.quickcards.app.core.ui.LocalAppLocked
+import com.quickcards.app.core.ui.LocalLeaveGuard
 import com.quickcards.app.core.ui.LocalNavAnimatedScope
 import com.quickcards.app.core.ui.LocalSharedTransitionScope
 import com.quickcards.app.core.ui.adaptive.FormPanel
@@ -114,6 +116,7 @@ fun QcApp() {
     var selectedCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val formHolder = rememberSaveableStateHolder()
     val cardActions = rememberCardActionsState()
+    val leaveGuard = remember { LeaveGuard() }
     val manageViewModel: ManageViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
@@ -133,7 +136,8 @@ fun QcApp() {
 
     CompositionLocalProvider(
         LocalSnackbar provides snackbarController,
-        LocalAppLocked provides locked
+        LocalAppLocked provides locked,
+        LocalLeaveGuard provides leaveGuard
     ) {
         var autofillRequested by remember { mutableStateOf(false) }
         val backupHostState = rememberBackupHostState()
@@ -384,7 +388,8 @@ fun QcApp() {
                                                     onBack = { navController.popBackStack() },
                                                     onEdit = openEdit,
                                                     onActions = cardActions::open,
-                                                    layout = if (window.sideBySideDetails) DetailsLayout.SIDE else DetailsLayout.STACKED
+                                                    layout = if (window.sideBySideDetails) DetailsLayout.SIDE else DetailsLayout.STACKED,
+                                                    maskNumber = homeState.options.maskNumbers
                                                 )
                                             }
                                         }

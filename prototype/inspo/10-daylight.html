@@ -866,6 +866,7 @@ QC.NETNAME = {visa:"Visa",mc:"Mastercard",rupay:"RuPay",amex:"American Express",
 QC.hueOf = c => QC.HUES[(typeof c==="string" ? (QC.CARDS[c]?QC.CARDS[c].hue:c) : c.hue)] || QC.HUES.navy;
 QC.card = c => typeof c==="string" ? QC.CARDS[c] : c;
 /* the one masked-number format: n bullets (U+2022) + last 4, mono digits. Tile/sheet/dialog/notification/autofill use n=2; hero and details n=4.
+   Settings › Hide card numbers off: the tile (mono f3), hero (mono f4) and details Number row show the full grouped number; every other surface keeps this mask.
    Never put a "·" separator straight before it: "HDFC Bank ••0366", holder on its own line. */
 QC.dots = (n=2) => `<span class="dots">${"•".repeat(n)}</span>`;
 QC.masked = (last, n=2, cls="") => `<span class="num${cls?" "+cls:""}">${QC.dots(n)}${last}</span>`;

@@ -3,7 +3,9 @@ package com.quickcards.app.core.ui.components
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.domain.CardNumberRules
 import androidx.compose.ui.unit.em
 
 const val MASK_DOTS = "••"
@@ -40,6 +42,13 @@ fun maskedNumberText(text: String): AnnotatedString {
         )
     }
 }
+
+/**
+ * The full grouped number for the tile, the details card and its Number row when Settings › Hide
+ * card numbers is off, or null to mask. Only the already-decrypted card on screen is read.
+ */
+fun shownNumber(card: HomeCard, maskNumber: Boolean): String? =
+    if (maskNumber) null else CardNumberRules.format(card.card.number, card.network, masked = false)
 
 /** A Geist Mono space is 0.6 em; at half size it leaves the frame's 4 + tracking. */
 private val GAP_SIZE = 0.5.em

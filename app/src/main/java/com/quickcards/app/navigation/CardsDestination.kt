@@ -11,6 +11,7 @@ import androidx.lifecycle.withResumed
 import com.quickcards.app.R
 import com.quickcards.app.core.reminders.OpenCardRequest
 import com.quickcards.app.core.security.AppLockController
+import com.quickcards.app.core.ui.LocalLeaveGuard
 import com.quickcards.app.core.ui.adaptive.ListDetailPanes
 import com.quickcards.app.core.ui.adaptive.QcWindow
 import com.quickcards.app.core.ui.adaptive.WidthClass
@@ -67,7 +68,8 @@ internal fun CardsWithDetail(
                 onEdit = actions.onEdit,
                 onActions = actions.onActions,
                 layout = if (paneWidth >= SplitDetailMin) DetailsLayout.SPLIT else DetailsLayout.STACKED,
-                showBack = false
+                showBack = false,
+                maskNumber = home.options.maskNumbers
             )
         }
     )
@@ -75,6 +77,7 @@ internal fun CardsWithDetail(
 
 /**
  * Opens the card a reminder asked for once the app is unlocked, resumed and the list has loaded.
+ * An open form with unsaved changes asks "Discard changes?" first; Keep editing drops the request.
  * Either way it goes to Home first ([onHome]); a card deleted since the reminder was posted then
  * gets "Card not found" instead of a details screen.
  */
@@ -88,13 +91,16 @@ internal fun OpenCardRequestEffect(
     val context = LocalContext.current
     val snackbar = LocalSnackbar.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val leaveGuard = LocalLeaveGuard.current
     val requested by OpenCardRequest.cardId.collectAsState()
     LaunchedEffect(requested, locked, home.loading) {
         val cardId = requested ?: return@LaunchedEffect
         if (locked || home.loading) return@LaunchedEffect
         lifecycleOwner.lifecycle.withResumed { }
         if (AppLockController.isLocked.value) return@LaunchedEffect
+        val leave = leaveGuard.confirmLeave()
         OpenCardRequest.consume(cardId)
+        if (!leave) return@LaunchedEffect
         onHome()
         if (home.allCards.any { it.id == cardId }) {
             onOpen(cardId)
