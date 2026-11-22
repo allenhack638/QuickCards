@@ -72,12 +72,8 @@ object QcText {
 
 /** Legacy names kept so features compile; each maps onto the Daylight scale. */
 object QcType {
-    val ScreenTitle = QcText.F5
     val Headline = QcText.F4
-    val DialogTitle = QcText.F4
     val NestedTitle = QcText.F4
-    val Title = QcText.F3Semibold
-    val BodyLarge = QcText.F3
     val Body = QcText.F2
     val Label = QcText.F1Semibold
     val FieldLabel = QcText.F1Semibold

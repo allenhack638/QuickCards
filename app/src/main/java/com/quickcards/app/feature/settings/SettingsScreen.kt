@@ -42,7 +42,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -75,7 +74,6 @@ import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.domain.SecurityConfirmation
 import com.quickcards.domain.TimeText
-import kotlinx.coroutines.launch
 
 /**
  * Settings: Theme alone at the top, then Cards, Copying, Security, Reminders, Backup and About,
@@ -90,8 +88,9 @@ fun SettingsScreen(
     onErase: () -> Unit = {},
     onPrivacy: () -> Unit = {},
     onAppLock: () -> Unit = {},
-    onHelpSpreadsheet: () -> Unit = {},
-    onHelpCheck: () -> Unit = {},
+    onHelpTopic: (HelpTopic) -> Unit = {},
+    showAutofill: Boolean = false,
+    onAutofillShown: () -> Unit = {},
     updateState: AppUpdates.State = AppUpdates.State.None,
     onUpdate: () -> Unit = {},
     onCompleteUpdate: () -> Unit = {},
@@ -102,7 +101,6 @@ fun SettingsScreen(
     val notifications = rememberCardNotifications()
     val guard = rememberSettingsGuard()
     val choices = rememberSettingsChoiceHost()
-    val scope = rememberCoroutineScope()
     val autofillRow = remember { BringIntoViewRequester() }
     var helpOpen by remember { mutableStateOf(false) }
     var openSection by rememberSaveable { mutableStateOf(SettingsSection.CARDS) }
@@ -122,6 +120,14 @@ fun SettingsScreen(
     val expiryReminders by settings.expiryReminders.collectAsState()
     val paymentReminders by settings.paymentReminders.collectAsState()
     val hasNfc = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC) }
+
+    LaunchedEffect(showAutofill) {
+        if (!showAutofill) return@LaunchedEffect
+        openSection = SettingsSection.COPYING
+        withFrameNanos { }
+        autofillRow.bringIntoView()
+        onAutofillShown()
+    }
 
     val locked = LocalAppLocked.current
     LaunchedEffect(locked) {
@@ -213,7 +219,7 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.settings_notification_subtitle),
                         checked = notifEnabled,
                         onCheckedChange = { on ->
-                            guard(securityReason(context, SecurityConfirmation.reasonForNotificationCvv(on))) {
+                            guard(securityReason(context, SecurityConfirmation.reasonForNotification(on))) {
                                 settings.setNotifEnabled(on)
                                 if (on) notifications.settingTurnedOn() else CopyCompanionNotifier.cancel(context)
                             }
@@ -384,18 +390,7 @@ fun SettingsScreen(
     if (helpOpen) {
         QcHelpSheet(
             onDismiss = { helpOpen = false },
-            onOpen = { topic ->
-                when (topic) {
-                    HelpTopic.INSTANT_COPY -> onAppLock()
-                    HelpTopic.AUTOFILL -> scope.launch {
-                        openSection = SettingsSection.COPYING
-                        withFrameNanos { }
-                        autofillRow.bringIntoView()
-                    }
-                    HelpTopic.SPREADSHEET -> onHelpSpreadsheet()
-                    HelpTopic.CHECK -> onHelpCheck()
-                }
-            }
+            onOpen = onHelpTopic
         )
     }
 }

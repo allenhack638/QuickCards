@@ -78,7 +78,7 @@ internal fun securityReason(context: Context, reason: String?): String? = when (
     SecurityConfirmation.APP_LOCK_OFF -> context.getString(R.string.settings_reason_app_lock_off)
     SecurityConfirmation.INACTIVITY_NEVER -> context.getString(R.string.settings_reason_inactivity_never)
     SecurityConfirmation.LOCK_ON_LEAVE_OFF -> context.getString(R.string.settings_reason_lock_on_leave_off)
-    SecurityConfirmation.NOTIF_CVV_ON -> context.getString(R.string.settings_reason_notif_cvv_on)
+    SecurityConfirmation.NOTIF_ON -> context.getString(R.string.settings_reason_notif_on)
     else -> reason
 }
 

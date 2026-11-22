@@ -72,8 +72,9 @@ fun QcStatusChip(
 }
 
 /**
- * The one inline banner for a fixable screen state: icon 20, one `f3`/600 line, then trailing
- * text actions or a close button. [error] tints only the icon; the container stays tonal.
+ * The one inline banner for a fixable screen state: icon 20, one `f3`/600 line (an `f2` regular
+ * line when [quiet], for a plain note), then trailing text actions or a close button. [error]
+ * tints only the icon; the container stays tonal.
  * At large text the actions drop below the line, right-aligned; the text stays by its icon.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -83,6 +84,7 @@ fun QcBanner(
     icon: ImageVector,
     modifier: Modifier = Modifier,
     error: Boolean = false,
+    quiet: Boolean = false,
     onClose: (() -> Unit)? = null,
     closeLabel: String? = null,
     actions: (@Composable RowScope.() -> Unit)? = null
@@ -119,7 +121,7 @@ fun QcBanner(
             )
             Text(
                 text = text,
-                style = QcText.F3Semibold,
+                style = if (quiet) QcText.F2 else QcText.F3Semibold,
                 color = colors.ink,
                 modifier = Modifier.padding(vertical = QcSpacing.s2)
             )

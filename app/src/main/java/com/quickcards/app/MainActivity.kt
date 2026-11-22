@@ -17,6 +17,7 @@ import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.update.AppUpdates
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.InteractionTrackingWindowCallback
+import com.quickcards.app.core.reminders.OpenCardRequest
 import com.quickcards.app.navigation.QcApp
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
 import com.quickcards.app.core.ui.theme.ThemeMode
@@ -31,6 +32,7 @@ class MainActivity : BaseActivity() {
         AppUpdates.attach(this)
         installInteractionTracking()
         seedDemoDataIfRequested(intent)
+        if (savedInstanceState == null) OpenCardRequest.offer(intent)
 
         val themeSettings = ThemeSettings(this)
 
@@ -69,6 +71,7 @@ class MainActivity : BaseActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         seedDemoDataIfRequested(intent)
+        OpenCardRequest.offer(intent)
     }
 
     private fun seedDemoDataIfRequested(intent: Intent?) {

@@ -2059,7 +2059,7 @@ QC.addScreens("#shots-settings", [
   ["settings-expired", "Expired cards", settings(sTop()), choice("Expired cards", ["Keep in place","At the end","Hide from the list"], "At the end")],
   ["settings-soon", "Expires soon", settings(sTop()), choice("Expires soon", ["Within 1 month","Within 2 months","Within 3 months"], "Within 1 month")],
   ["settings-autolock", "Auto-lock", appLock, choice("Auto-lock", ["After 10 seconds","After 30 seconds","After 1 minute","After 5 minutes","Never"], "After 1 minute")],
-  ["settings-notif-unlock", "Notification · unlock", settings(sMid), QC.sysPrompt("Show CVV in notifications")],
+  ["settings-notif-unlock", "Notification · unlock", settings(sMid), QC.sysPrompt("Turn on the copy notification")],
   ["settings-locked", "Lock now", appLock, QC.toast("Copying locked")],
   /* Play update (flexible): Version row states; the download ends in "Update ready" + Restart */
   ["settings-update", "Update available", settings(sEndV("avail"))],

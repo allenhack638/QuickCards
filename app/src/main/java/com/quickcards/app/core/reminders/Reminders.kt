@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
  * Local reminders: a card expiring within 30 days, and a payment due day 3 days ahead.
  * A daily inexact alarm and every app start run the same check. An expiry reminder is posted
  * once; a payment reminder repeats daily inside its window until Paid. Notifications carry only
- * the bank and last four digits and are private on the lock screen.
+ * the bank and last four digits and are private on the lock screen; a tap opens the card's
+ * details (the intent holds only the card id) after the app is unlocked.
  */
 object Reminders {
 
@@ -80,7 +81,7 @@ object Reminders {
                     val key = ReminderRules.expiryKey(card.id, PanHasher.hash("exp:" + card.expiry).take(16))
                     if (!prefs.contains(key)) {
                         val text = context.resources.getQuantityString(R.plurals.reminder_expiry_text, days.toInt(), days.toInt())
-                        post(context, manager, key, title, text)
+                        post(context, manager, key, card.id, title, text)
                         prefs.edit().putLong(key, System.currentTimeMillis()).apply()
                     }
                 }
@@ -94,7 +95,7 @@ object Reminders {
                             R.string.reminder_due_text,
                             due.format(dayMonth())
                         )
-                        post(context, manager, period, title, text, paidAction = true)
+                        post(context, manager, period, card.id, title, text, paidAction = true)
                         prefs.edit().putLong(todayKey, System.currentTimeMillis()).apply()
                     }
                 }
@@ -106,12 +107,14 @@ object Reminders {
         context: Context,
         manager: NotificationManager,
         key: String,
+        cardId: String,
         title: String,
         text: String,
         paidAction: Boolean = false
     ) {
+        val openCard = Intent(context, MainActivity::class.java).putExtra(OpenCardRequest.EXTRA_CARD_ID, cardId)
         val open = PendingIntent.getActivity(
-            context, key.hashCode(), Intent(context, MainActivity::class.java),
+            context, key.hashCode(), openCard,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val publicVersion = Notification.Builder(context, CHANNEL_ID)

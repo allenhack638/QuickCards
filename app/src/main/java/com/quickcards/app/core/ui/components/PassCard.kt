@@ -64,8 +64,6 @@ import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.domain.CardStatus
 import com.quickcards.domain.ExpiryState
 
-enum class PassField { NUMBER, EXPIRY, CVV, NAME }
-
 /**
  * The Home tile: card art with bank (+ pin), "Type · Holder" and the one status chip, an
  * optional two-line note and tags, then "•• last4  MM/YY" with the Copy pill on its centre line
@@ -323,19 +321,26 @@ private fun PassTag(name: String) {
     }
 }
 
+/** "•• 1234  12/28"; when larger text leaves no room the expiry drops below the number. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PassDigits(last4: String, expiry: String, expired: Boolean, modifier: Modifier) {
-    Row(modifier = modifier.clearAndSetSemantics { }) {
-        Text(
-            text = DOTS,
-            style = QcText.MonoDotsF4,
-            color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
-            maxLines = 1,
-            modifier = Modifier.alignByBaseline()
-        )
-        Spacer(Modifier.width(QcSpacing.s2))
-        Text(text = last4, style = QcText.MonoF4, color = PassColors.OnArt, maxLines = 1, modifier = Modifier.alignByBaseline())
-        Spacer(Modifier.width(QcSpacing.s3))
+    FlowRow(
+        modifier = modifier.clearAndSetSemantics { },
+        horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(modifier = Modifier.alignByBaseline()) {
+            Text(
+                text = DOTS,
+                style = QcText.MonoDotsF4,
+                color = PassColors.OnArt.copy(alpha = DOTS_ALPHA),
+                maxLines = 1,
+                modifier = Modifier.alignByBaseline()
+            )
+            Spacer(Modifier.width(QcSpacing.s2))
+            Text(text = last4, style = QcText.MonoF4, color = PassColors.OnArt, maxLines = 1, modifier = Modifier.alignByBaseline())
+        }
         Text(
             text = expiry,
             style = QcText.MonoF3.copy(fontSize = QcText.F2.fontSize),

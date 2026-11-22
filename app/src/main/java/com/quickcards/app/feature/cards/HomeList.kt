@@ -26,7 +26,6 @@ import androidx.compose.ui.semantics.selected
 import com.quickcards.app.core.ui.adaptive.selectionRing
 import com.quickcards.app.core.ui.art.ArtDimens
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -47,24 +45,19 @@ import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.quickcards.app.R
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.ui.HomeCard
-import com.quickcards.app.core.ui.art.ArtKind
-import com.quickcards.app.core.ui.art.CardArt
-import com.quickcards.app.core.ui.components.MarkFit
-import com.quickcards.app.core.ui.components.NetworkMark
-import com.quickcards.app.core.ui.components.NetworkMarks
+import com.quickcards.app.core.ui.components.MASK_DOTS
+import com.quickcards.app.core.ui.components.MiniCard
 import com.quickcards.app.core.ui.components.PassCard
+import com.quickcards.app.core.ui.components.maskedNumberText
+import androidx.compose.ui.text.style.TextOverflow
 import com.quickcards.app.core.ui.components.QcGroup
 import com.quickcards.app.core.ui.components.QcGroupLabel
 import com.quickcards.app.core.ui.components.QcSkeleton
-import com.quickcards.app.core.ui.components.markTone
 import com.quickcards.app.core.ui.sharedPass
 import com.quickcards.app.core.ui.theme.PassColors
 import com.quickcards.app.core.ui.theme.QcDimens
@@ -246,23 +239,18 @@ private fun RecentRow(card: HomeCard, copied: Boolean, enabled: Boolean, actions
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)
     ) {
-        MiniArt(card)
+        MiniCard(
+            band = card.card.bandColor,
+            networkId = card.network?.id,
+            expired = card.expiryState == ExpiryState.EXPIRED
+        )
         Column(modifier = Modifier.weight(1f).clearAndSetSemantics { }) {
             Text(
-                text = buildAnnotatedString {
-                    append(card.bankName)
-                    append(' ')
-                    withStyle(SpanStyle(fontFamily = QcText.MonoDotsF3.fontFamily, letterSpacing = QcText.MonoDotsF3.letterSpacing)) {
-                        append("••")
-                    }
-                    append(' ')
-                    withStyle(SpanStyle(fontFamily = QcText.MonoF3.fontFamily, fontWeight = QcText.MonoF3.fontWeight, letterSpacing = QcText.MonoF3.letterSpacing)) {
-                        append(last4)
-                    }
-                },
+                text = maskedNumberText("${card.bankName} $MASK_DOTS $last4"),
                 style = QcText.F3,
                 color = colors.ink,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             if (meta.isNotEmpty()) {
                 Text(text = meta, style = QcText.F2, color = colors.ink2, maxLines = 1)
@@ -272,25 +260,6 @@ private fun RecentRow(card: HomeCard, copied: Boolean, enabled: Boolean, actions
             Text(text = stringResource(R.string.cards_pass_copied), style = QcText.F1, color = hue.c2)
         }
         CopyDisc(card, last4, copied, enabled, hue.c2) { actions.copy(card) }
-    }
-}
-
-@Composable
-private fun MiniArt(card: HomeCard) {
-    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val networkId = card.network?.id
-    CardArt(band = card.card.bandColor, kind = ArtKind.MINI, expired = card.expiryState == ExpiryState.EXPIRED) {
-        if (networkId != null && NetworkMarks.drawable(networkId) != null) {
-            NetworkMark(
-                networkId = networkId,
-                contentDescription = null,
-                tone = markTone(networkId, onArt = true, dark = dark),
-                fit = MarkFit.MINI,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = QcSpacing.s1, bottom = QcSpacing.s1 / 2)
-            )
-        }
     }
 }
 

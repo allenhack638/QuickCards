@@ -1,9 +1,7 @@
 package com.quickcards.app.feature.cards
 
 import android.content.pm.PackageManager
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,10 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -26,7 +23,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -38,25 +34,25 @@ import com.quickcards.app.R
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.components.CardHero
+import com.quickcards.app.core.ui.components.QcEmptyMessage
+import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcFilledButton
 import com.quickcards.app.core.ui.theme.QcIcons
-import com.quickcards.app.core.ui.theme.QcShapes
-import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
-import com.quickcards.app.core.ui.theme.QcTextButton
 import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.app.core.ui.theme.QcTonalButton
 
 /** Search or filters matched nothing: the search disc, "No matches" and, for a search, Clear search. */
 @Composable
 internal fun NoResult(modifier: Modifier, onClearSearch: (() -> Unit)?) {
-    CardsMessage(
+    QcEmptyMessage(
         modifier = modifier,
         icon = QcIcons.search,
         title = stringResource(R.string.cards_no_result_title),
         body = stringResource(R.string.cards_no_result_body),
         actionLabel = onClearSearch?.let { stringResource(R.string.cards_no_result_clear) },
+        compact = true,
         onAction = onClearSearch
     )
 }
@@ -70,67 +66,23 @@ internal fun EmptyNote(
     onOpenArchived: () -> Unit
 ) {
     when (note) {
-        CardsEmptyNote.HIDDEN_EXPIRED -> CardsMessage(
+        CardsEmptyNote.HIDDEN_EXPIRED -> QcEmptyMessage(
             modifier = modifier,
             icon = QcIcons.eventBusy,
             title = stringResource(R.string.cards_empty_hidden_expired_title),
             actionLabel = stringResource(R.string.cards_empty_hidden_expired_action),
+            compact = true,
             onAction = onShowExpired
         )
-        CardsEmptyNote.ONLY_ARCHIVED -> CardsMessage(
+        CardsEmptyNote.ONLY_ARCHIVED -> QcEmptyMessage(
             modifier = modifier,
             icon = QcIcons.inventory2,
             title = stringResource(R.string.cards_empty_archived_title),
             actionLabel = stringResource(R.string.cards_empty_archived_action),
+            compact = true,
             onAction = onOpenArchived
         )
         CardsEmptyNote.NONE -> NoResult(modifier = modifier, onClearSearch = null)
-    }
-}
-
-@Composable
-private fun CardsMessage(
-    modifier: Modifier,
-    icon: ImageVector,
-    title: String,
-    body: String? = null,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
-) {
-    val colors = QcTheme.colors
-    Column(
-        modifier = modifier.padding(start = QcSpacing.s6, end = QcSpacing.s6, top = QcSpacing.s10),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(QcSpacing.s16)
-                .background(colors.tonal, QcShapes.full),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = colors.ink2, modifier = Modifier.size(QcSize.iconLg))
-        }
-        Text(
-            text = title,
-            style = QcText.F3Semibold,
-            color = colors.ink,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(top = QcSpacing.s4)
-                .semantics { heading() }
-        )
-        if (body != null) {
-            Text(
-                text = body,
-                style = QcText.F2,
-                color = colors.ink2,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = QcSpacing.s2)
-            )
-        }
-        if (actionLabel != null && onAction != null) {
-            QcTextButton(text = actionLabel, onClick = onAction, modifier = Modifier.padding(top = QcSpacing.s6))
-        }
     }
 }
 
@@ -152,6 +104,8 @@ internal fun EmptyState(
     BoxWithConstraints(modifier = modifier) {
         Column(
             modifier = Modifier
+                .align(Alignment.TopCenter)
+                .widthIn(max = EmptyMaxWidth)
                 .verticalScroll(rememberScrollState())
                 .heightIn(min = maxHeight)
                 .padding(start = QcSpacing.s4, end = QcSpacing.s4, top = QcSpacing.s2, bottom = bottomInset)
@@ -248,6 +202,9 @@ private fun SampleCard() {
             }
     )
 }
+
+/** On a wide window the empty vault keeps a phone's column: the card at its widest plus the gutters. */
+private val EmptyMaxWidth = QcDimens.CardMaxWidth + QcSpacing.s4 * 2
 
 private const val SAMPLE_NUMBER = "0000"
 private const val SAMPLE_MASK = "••"

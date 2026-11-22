@@ -60,10 +60,7 @@ object AppSettingsDefaults {
     const val PAYMENT_REMINDERS = true
 }
 
-class AppSettings(
-    private val preferences: SharedPreferences,
-    private val isUpgrade: Boolean = false
-) {
+class AppSettings(private val preferences: SharedPreferences) {
 
     init {
         // 2.2 merged "show expiry" and "show CVV" into one switch; whoever hid either keeps it off.
@@ -80,18 +77,14 @@ class AppSettings(
     }
 
     /**
-     * Pins the copy notification choice so a default change never flips it for an upgrader:
-     * before 2.4 it was on, 2.4 to 2.6 left it off without storing a value (only the marker),
-     * and a fresh Daylight install starts on. The legacy hidden-CVV rule above wins because it
-     * writes `notif_enabled = false` first.
+     * Pins the copy notification choice so a default change never flips it for an upgrader.
+     * Only 2.4 to 2.6 left it off without storing a value (they wrote just the marker); a fresh
+     * install and a pre-2.4 upgrade (it was on then) both start on. The legacy hidden-CVV rule
+     * above wins because it writes `notif_enabled = false` first.
      */
     private fun migrateNotificationDefault() {
         if (!preferences.contains(KEY_NOTIF_ENABLED)) {
-            val enabled = when {
-                preferences.getBoolean(KEY_NOTIF_MIGRATED, false) -> false
-                isUpgrade -> true
-                else -> AppSettingsDefaults.NOTIF_ENABLED
-            }
+            val enabled = !preferences.getBoolean(KEY_NOTIF_MIGRATED, false) && AppSettingsDefaults.NOTIF_ENABLED
             preferences.edit().putBoolean(KEY_NOTIF_ENABLED, enabled).apply()
         }
         if (!preferences.contains(KEY_NOTIF_MIGRATED)) {
@@ -400,22 +393,12 @@ class AppSettings(
         @Volatile
         private var instance: AppSettings? = null
 
-        internal fun isUpgrade(lastUpdateTime: Long, firstInstallTime: Long): Boolean =
-            lastUpdateTime > firstInstallTime
-
         fun get(context: Context): AppSettings {
             instance?.let { return it }
             synchronized(this) {
                 instance?.let { return it }
-                val app = context.applicationContext
-                val preferences = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val packageInfo = runCatching {
-                    app.packageManager.getPackageInfo(app.packageName, 0)
-                }.getOrNull()
-                val upgrade = preferences.all.isNotEmpty() ||
-                    (packageInfo != null &&
-                        isUpgrade(packageInfo.lastUpdateTime, packageInfo.firstInstallTime))
-                return AppSettings(preferences, upgrade).also { instance = it }
+                val preferences = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                return AppSettings(preferences).also { instance = it }
             }
         }
 

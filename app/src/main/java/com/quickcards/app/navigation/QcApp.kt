@@ -74,12 +74,15 @@ import androidx.navigation.navArgument
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.EntityKind
 import com.quickcards.app.R
+import com.quickcards.app.core.reminders.OpenCardRequest
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.LocalNavAnimatedScope
 import com.quickcards.app.core.ui.LocalSharedTransitionScope
 import com.quickcards.app.feature.archive.ArchivedCardsScreen
 import com.quickcards.app.feature.backup.BackupHost
+import com.quickcards.app.feature.backup.BackupHostState
 import com.quickcards.app.feature.backup.rememberBackupHostState
+import com.quickcards.app.core.ui.components.HelpTopic
 import com.quickcards.app.feature.cardform.CardFormScreen
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.update.AppUpdatePrompts
@@ -209,7 +212,34 @@ fun QcApp() {
         LocalSnackbar provides snackbarController,
         com.quickcards.app.core.ui.LocalAppLocked provides locked
     ) {
-        val backupHostState = rememberBackupHostState()
+        var autofillRequested by remember { mutableStateOf(false) }
+        lateinit var backupHostState: BackupHostState
+        val openSettingsRoot = {
+            navController.navigate(ROUTE_SETTINGS) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+        // One handler for the Help sheet, whether it opens from Settings or the spreadsheet import.
+        val openHelpTopic: (HelpTopic) -> Unit = { topic ->
+            when (topic) {
+                HelpTopic.INSTANT_COPY -> navController.navigate(ROUTE_APP_LOCK)
+                HelpTopic.AUTOFILL -> {
+                    autofillRequested = true
+                    if (route != ROUTE_SETTINGS) openSettingsRoot()
+                }
+                HelpTopic.SPREADSHEET -> backupHostState.requestImport()
+                HelpTopic.CHECK -> {
+                    homeViewModel.showNeedsCheck()
+                    navController.navigate(ROUTE_CARDS) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+        backupHostState = rememberBackupHostState(onHelpTopic = openHelpTopic)
         Box(modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(
             modifier = Modifier
@@ -223,6 +253,19 @@ fun QcApp() {
         ) {
         val hinge = rememberHinge()
         val window = remember(maxWidth, maxHeight, hinge) { QcWindow.of(maxWidth, maxHeight, hinge) }
+        val requestedCard by OpenCardRequest.cardId.collectAsState()
+        LaunchedEffect(requestedCard, locked) {
+            val cardId = requestedCard ?: return@LaunchedEffect
+            if (locked) return@LaunchedEffect
+            lifecycleOwner.lifecycle.withResumed { }
+            if (AppLockController.isLocked.value) return@LaunchedEffect
+            OpenCardRequest.consume(cardId)
+            navController.navigate(ROUTE_CARDS) {
+                popUpTo(navController.graph.findStartDestination().id)
+                launchSingleTop = true
+            }
+            if (window.twoPane) selectedCardId = cardId else navController.navigate("card/details/$cardId")
+        }
         val useRail = window.rail
         val formOverlay = window.formDialog && isForm(route)
         val detailPane = window.detailBesideList && route == ROUTE_CARD_DETAILS
@@ -467,16 +510,9 @@ fun QcApp() {
                                 onErase = backupHostState::requestErase,
                                 onPrivacy = { navController.navigate(ROUTE_PRIVACY) },
                                 onAppLock = { navController.navigate(ROUTE_APP_LOCK) },
-                                onHelpSpreadsheet = backupHostState::requestImport,
-                                onHelpCheck = {
-                                    homeViewModel.showNeedsCheck()
-                                    navController.navigate(ROUTE_CARDS) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                    }
-                                },
+                                onHelpTopic = openHelpTopic,
+                                showAutofill = autofillRequested,
+                                onAutofillShown = { autofillRequested = false },
                                 updateState = updateState,
                                 onUpdate = { AppUpdates.startFromSettings(updateLauncher) },
                                 onCompleteUpdate = AppUpdates::completeUpdate,

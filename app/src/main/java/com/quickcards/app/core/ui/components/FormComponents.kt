@@ -25,9 +25,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -90,41 +88,6 @@ val FormInputText: TextStyle = QcText.F3
 
 /** Real bullets for CVV, PIN and password fields, drawn in Geist Mono like masked digits. */
 val QcMask = PasswordVisualTransformation('•')
-
-/** Colours for the few screens that still host a Material [androidx.compose.material3.OutlinedTextField]. */
-@Composable
-fun formFieldColors(): TextFieldColors {
-    val colors = QcTheme.colors
-    return OutlinedTextFieldDefaults.colors(
-        focusedTextColor = colors.ink,
-        unfocusedTextColor = colors.ink,
-        disabledTextColor = colors.ink3,
-        errorTextColor = colors.ink,
-        focusedContainerColor = colors.surface,
-        unfocusedContainerColor = colors.surface,
-        disabledContainerColor = colors.tonal,
-        errorContainerColor = colors.surface,
-        cursorColor = colors.accent,
-        errorCursorColor = colors.danger,
-        focusedBorderColor = colors.accent,
-        unfocusedBorderColor = colors.outline,
-        disabledBorderColor = Color.Transparent,
-        errorBorderColor = colors.danger,
-        focusedLabelColor = colors.accent,
-        unfocusedLabelColor = colors.ink2,
-        disabledLabelColor = colors.ink3,
-        errorLabelColor = colors.danger,
-        focusedPlaceholderColor = colors.inkPh,
-        unfocusedPlaceholderColor = colors.inkPh,
-        focusedSupportingTextColor = colors.ink2,
-        unfocusedSupportingTextColor = colors.ink2,
-        disabledSupportingTextColor = colors.ink3,
-        errorSupportingTextColor = colors.danger,
-        focusedTrailingIconColor = colors.ink2,
-        unfocusedTrailingIconColor = colors.ink2,
-        errorTrailingIconColor = colors.ink2
-    )
-}
 
 /**
  * The help line under a field (`f1`): [error] in `danger`, [warn] in `warn` (never blocks),

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import com.quickcards.app.core.ui.theme.PassColors
+import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcMotion
 import com.quickcards.app.core.ui.theme.QcShapes
@@ -72,8 +73,8 @@ internal fun rememberKeysStacked(labels: List<String>): Boolean {
 }
 
 /**
- * Key, value and a right-aligned copy disc. The value sits under the key when [keyStacked] or
- * when the value's longest word no longer fits beside it (large text). Copied tints the value in the card hue and fills the
+ * Key, value and a right-aligned copy disc. The value sits under the key when [keyStacked], in a
+ * pane under 320, or when the value's longest word no longer fits beside it (large text). Copied tints the value in the card hue and fills the
  * disc; [drain] (1 → 0) draws the reveal line under the row.
  */
 @Composable
@@ -208,10 +209,12 @@ private fun KeyValueAct(
         val value = values.first()
         val keyColumn = KeyColumn.roundToPx()
 
+        val stacked = keyStacked || width < NarrowRow.roundToPx()
+
         fun fit(reserved: Int): ValueFit {
             val textMax = (width - discWidth - reserved - if (actPlaceable != null) gap else 0).coerceAtLeast(0)
             val besideMax = textMax - keyColumn - gap
-            val inline = !keyStacked && besideMax > 0 && value.minIntrinsicWidth(Constraints.Infinity) <= besideMax
+            val inline = !stacked && besideMax > 0 && value.minIntrinsicWidth(Constraints.Infinity) <= besideMax
             val valueMax = if (inline) besideMax else textMax
             return ValueFit(textMax, inline, valueMax, value.minIntrinsicHeight(valueMax))
         }
@@ -253,4 +256,7 @@ private fun KeyValueAct(
 private class ValueFit(val textMax: Int, val inline: Boolean, val valueMax: Int, val height: Int)
 
 private val KeyColumn = QcSpacing.s16 + QcSpacing.s2
+
+/** A row in a pane under [QcDimens.NarrowPane]: the pane less its page (16 + 16) and row (16 + 8) insets. */
+private val NarrowRow = QcDimens.NarrowPane - QcSpacing.s4 * 3 - QcSpacing.s2
 private val RevealLine = QcSize.focus

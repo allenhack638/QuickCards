@@ -1,7 +1,7 @@
 package com.quickcards.domain
 
 /**
- * Turning a protection off, or showing the CVV in notifications, needs fresh auth.
+ * Turning a protection off, or turning on the copy notification, needs fresh auth.
  * A null reason applies at once; a cancelled prompt applies nothing.
  */
 object SecurityConfirmation {
@@ -9,7 +9,7 @@ object SecurityConfirmation {
     const val APP_LOCK_OFF = "Confirm it’s you to turn off app lock"
     const val INACTIVITY_NEVER = "Confirm it’s you to turn off the inactivity lock"
     const val LOCK_ON_LEAVE_OFF = "Confirm it’s you to stop locking when you leave"
-    const val NOTIF_CVV_ON = "Confirm it’s you to show the CVV in notifications"
+    const val NOTIF_ON = "Confirm it’s you to turn on the copy notification"
 
     fun reasonForAppLock(enabled: Boolean): String? =
         if (enabled) null else APP_LOCK_OFF
@@ -20,6 +20,6 @@ object SecurityConfirmation {
     fun reasonForLockOnLeave(enabled: Boolean): String? =
         if (enabled) null else LOCK_ON_LEAVE_OFF
 
-    fun reasonForNotificationCvv(enabled: Boolean): String? =
-        if (enabled) NOTIF_CVV_ON else null
+    fun reasonForNotification(enabled: Boolean): String? =
+        if (enabled) NOTIF_ON else null
 }

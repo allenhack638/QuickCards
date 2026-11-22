@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
@@ -195,7 +196,9 @@ fun CardDetailsScreen(
                         .widthIn(max = QcDimens.PageMax),
                     verticalArrangement = Arrangement.spacedBy(QcSpacing.s6)
                 ) {
-                    hero(Modifier.scaledFrom(QcDimens.HeroDesign))
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                        hero(Modifier.widthIn(max = QcDimens.CardMaxWidth).scaledFrom(QcDimens.HeroDesign))
+                    }
                     group(Modifier)
                 }
             }

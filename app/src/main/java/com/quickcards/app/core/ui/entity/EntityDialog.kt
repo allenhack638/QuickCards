@@ -1,7 +1,6 @@
 package com.quickcards.app.core.ui.entity
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,22 +22,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.quickcards.app.R
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
-import com.quickcards.app.core.ui.art.ArtKind
-import com.quickcards.app.core.ui.art.CardArt
 import com.quickcards.app.core.ui.components.FormTextField
 import com.quickcards.app.core.ui.components.LocalSnackbar
-import com.quickcards.app.core.ui.components.MarkFit
-import com.quickcards.app.core.ui.components.NetworkMark
+import com.quickcards.app.core.ui.components.MiniCard
+import com.quickcards.app.core.ui.components.maskedNumberText
 import com.quickcards.app.core.ui.components.QcDialog
 import com.quickcards.app.core.ui.components.dialogEdgeToEdge
-import com.quickcards.app.core.ui.components.markTone
 import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
@@ -145,8 +138,6 @@ internal fun UpdateCardsDialog(
 @Composable
 private fun UsedCardRow(card: ManageCardItem) {
     val colors = QcTheme.colors
-    val label = stringResource(R.string.manage_card_list_item, card.bankName, card.lastFour)
-    val masked = label.removePrefix(card.bankName)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -155,20 +146,10 @@ private fun UsedCardRow(card: ManageCardItem) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s4)
     ) {
-        CardArt(band = card.bandColor, kind = ArtKind.MINI) {
-            val network = card.networkId
-            if (network != null) {
-                Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-                    NetworkMark(network, null, tone = markTone(network, onArt = true, dark = colors.dark), fit = MarkFit.MINI)
-                }
-            }
-        }
+        MiniCard(band = card.bandColor, networkId = card.networkId, expired = false)
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = buildAnnotatedString {
-                    append(card.bankName)
-                    withStyle(SpanStyle(fontFamily = QcText.MonoF3.fontFamily, fontFeatureSettings = "tnum")) { append(masked) }
-                },
+                text = maskedNumberText(stringResource(R.string.manage_card_list_item, card.bankName, card.lastFour)),
                 style = QcText.F3,
                 color = colors.ink,
                 maxLines = 1

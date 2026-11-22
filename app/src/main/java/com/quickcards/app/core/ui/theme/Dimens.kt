@@ -70,17 +70,12 @@ object QcDimens {
     val Half = QcSpacing.s1
     val Base = QcSpacing.s2
     val PassGap = QcSpacing.s3
-    val ListPassGap = QcSpacing.s3
     val NavBarHeight = QcSize.nav
     val Gutter = QcSpacing.s4
     val Section = QcSpacing.s6
-    val Xl = QcSpacing.s8
     val Touch = QcSize.hit
 
     // Rounded
-    val CornerXs = QcRadius.xs
-    val CornerBadge = 6.dp
-    val CornerMd = QcRadius.md
     val PassCorner = QcRadius.lg
 
     // App chrome
@@ -89,32 +84,20 @@ object QcDimens {
 
     // Rows, fields and icons
     val LeadSlot = 56.dp
-    val HelperLine = QcSize.icon
-    val ListRowOneLine = QcSize.row
-    val ListRowTwoLine = QcSize.row2
     val Icon = QcSize.iconLg
-    val IconSmall = QcSize.iconSm
-    val IconTiny = QcSize.iconXs
     val Monogram = QcSpacing.s10
-    val NetworkBadgeMinWidth = 56.dp
-    val NetworkBadgeHeight = 28.dp
 
     // Dialogs and sheets
-    val DialogHeaderGap = QcSpacing.s4
     val SheetHandleTop = QcSpacing.s3
     val SheetHandleBottom = QcSpacing.s2
     val SheetHandleWidth = QcSize.ctl
     val SheetHandleHeight = QcSpacing.s1
     val SheetTitleTop = QcSpacing.s2
     val SheetBottom = QcSpacing.s6
-    /** Body to action row in every dialog. */
     val SheetMaxHeightFraction = 0.86f
 
-    // Search and settings
+    // Search
     val SearchBox = QcSpacing.s10
-    val SubheadTop = QcSpacing.s4
-    val SubheadBottom = QcSpacing.s2
-    val SettingsRowVertical = QcSpacing.s2
 
     // Adaptive layout (DESIGN.md › Adaptive)
     val MediumWidth = 600.dp
@@ -129,6 +112,8 @@ object QcDimens {
     /** The hero's design width; narrower panes scale it as one object. */
     val HeroDesign = 328.dp
     val CardMaxWidth = 360.dp
+    /** Panes narrower than this put each details key above its value. */
+    val NarrowPane = 320.dp
     /** A loading tile: the height of a tile with a meta line and no note. */
     val SkeletonTile = 148.dp
 
@@ -139,6 +124,5 @@ object QcDimens {
     val LockMarkTopCompact = QcSpacing.s12
 
     // Interaction
-    val DisabledAlpha = 0.38f
     val RevealDurationMillis = 5_000f
 }

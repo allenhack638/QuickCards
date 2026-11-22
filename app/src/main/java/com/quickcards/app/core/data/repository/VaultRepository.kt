@@ -285,19 +285,9 @@ class VaultRepository(
         }
     }
 
-    suspend fun getBank(id: String): Bank? = bankDao.getBankById(id)
-
     /** The bank's colour (stored, else built-in default), or null when it has none. */
     suspend fun bankColour(bankId: String?): String? =
         bankId?.let { bankDao.getBankById(it) }?.let(BankColourRules::colourOf)
-
-    /** A colour chosen on the card sticks to it; null ("Bank colour") follows the bank again. */
-    suspend fun setCardColour(cardId: String, colour: String?) {
-        val card = cardDao.getCardById(cardId) ?: return
-        val manual = colour != null
-        val band = BankColourRules.cardColour(manual, colour ?: card.bandColor, bankColour(card.bankId))
-        cardDao.setColour(cardId, band, BandColor.hexFor(band), manual, System.currentTimeMillis())
-    }
 
     /** Stores [colour] (null = built-in default) and repaints every card that follows the bank. */
     suspend fun setBankColour(bankId: String, colour: String?) = database.withTransaction {
@@ -337,17 +327,6 @@ class VaultRepository(
 
     suspend fun unpin(id: String) {
         cardDao.setPinned(id, false, null, System.currentTimeMillis())
-    }
-
-    /** Unpins the most recently pinned cards above [limit]; returns how many. */
-    suspend fun trimPinned(limit: Int): Int {
-        val pinned = cardDao.getPinnedCardsSync()
-        val extras = pinned
-            .sortedByDescending { it.pinnedAt ?: 0L }
-            .take((pinned.size - limit).coerceAtLeast(0))
-        val now = System.currentTimeMillis()
-        extras.forEach { cardDao.setPinned(it.id, false, null, now) }
-        return extras.size
     }
 
     /** Counted in Kotlin: networkAuto cards use the detected network, which SQL cannot see. */

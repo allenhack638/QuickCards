@@ -51,7 +51,7 @@
     <string name="manage_delete_blocked_body">Used by %1$s. Change or delete them first.</string>
     <string name="manage_delete_blocked_tag_body">Used by %1$s. Remove the tag from them first.</string>
 
-    <string name="manage_card_list_item">%1$s ••%2$s</string>
+    <string name="manage_card_list_item">%1$s •• %2$s</string>
     <string name="manage_warning_renaming">%1$s becomes %2$s.</string>
 
     <string name="manage_dialog_new">New %1$s</string>

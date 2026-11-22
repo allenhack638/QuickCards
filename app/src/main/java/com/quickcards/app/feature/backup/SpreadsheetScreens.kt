@@ -227,7 +227,7 @@ private fun DoneStep(state: BackupHostState) {
                 top = QcSpacing.s8
             )
             if (state.sheetHasFile) {
-                QcBanner(text = stringResource(R.string.import_done_delete_hint), icon = QcIcons.file)
+                QcBanner(text = stringResource(R.string.import_done_delete_hint), icon = QcIcons.file, quiet = true)
             }
         }
     }
