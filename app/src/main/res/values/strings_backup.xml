@@ -6,19 +6,18 @@
 
     <string name="backup_export_title">Export backup</string>
     <plurals name="backup_export_body">
-        <item quantity="one">%1$d card with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this backup password. You’ll need it to import, and it can’t be recovered.</item>
-        <item quantity="other">%1$d cards with their numbers, expiry, CVV and notes, plus your holders, banks, networks, types and tags, encrypted with this backup password. You’ll need it to import, and it can’t be recovered.</item>
+        <item quantity="one">%1$d card and your lists, encrypted with this password. It can’t be recovered.</item>
+        <item quantity="other">%1$d cards and your lists, encrypted with this password. It can’t be recovered.</item>
     </plurals>
     <string name="backup_include_settings">Include settings</string>
-    <string name="backup_password">Backup password</string>
+    <string name="backup_password">Password</string>
     <string name="backup_password_helper">At least 8 characters</string>
-    <string name="backup_confirm_password">Confirm backup password</string>
-    <string name="backup_password_mismatch">Backup passwords don’t match</string>
+    <string name="backup_confirm_password">Confirm password</string>
+    <string name="backup_password_must_match">Must match</string>
+    <string name="backup_password_match">Passwords match</string>
     <string name="backup_action_export">Export</string>
 
     <string name="backup_import_title">Import backup</string>
-    <string name="backup_import_body">Choose a QuickCards backup and enter its backup password. You’ll see what it contains before anything changes.</string>
-    <string name="backup_choose_file">Choose backup file</string>
     <string name="backup_file_encrypted">Encrypted backup</string>
     <string name="backup_file_quickcards">QuickCards backup</string>
     <plurals name="backup_file_card_count">
@@ -27,66 +26,47 @@
     </plurals>
     <string name="backup_action_open">Open</string>
     <string name="backup_action_import">Import</string>
-    <string name="backup_wrong_password">That backup password doesn’t open this backup</string>
+    <string name="backup_action_done">Done</string>
+    <string name="backup_wrong_password">Wrong password</string>
 
-    <string name="backup_review_title">Review backup</string>
-    <string name="backup_review_exported">%1$s · exported %2$s</string>
+    <string name="backup_review_title">Review</string>
+    <string name="backup_review_lead">QuickCards backup</string>
+    <string name="backup_review_lead_exported">QuickCards backup · exported %1$s</string>
+    <string name="backup_review_cards">Cards</string>
+    <string name="backup_review_holders">Holders</string>
+    <string name="backup_review_banks">Banks</string>
+    <string name="backup_review_networks">Networks</string>
+    <string name="backup_review_types">Types</string>
+    <string name="backup_review_tags">Tags</string>
+    <string name="backup_review_duplicates_label">Duplicates</string>
+    <string name="backup_review_formats_label">Formats</string>
     <string name="backup_review_cards_summary" tools:ignore="PluralsCandidate">%1$d new · %2$d changed · %3$d same</string>
     <plurals name="backup_review_new_count">
         <item quantity="one">%1$d new</item>
         <item quantity="other">%1$d new</item>
     </plurals>
-    <string name="backup_review_duplicates_label">Duplicates</string>
     <plurals name="backup_review_duplicates">
-        <item quantity="one">%d skipped, same number as another card in this backup</item>
-        <item quantity="other">%d skipped, same number as another card in this backup</item>
+        <item quantity="one">%d repeated, skipped</item>
+        <item quantity="other">%d repeated, skipped</item>
     </plurals>
-    <string name="backup_review_all_exist">all exist</string>
-    <string name="backup_review_formats">Formats fixed: %1$d · Need a check: %2$d</string>
-    <string name="backup_review_settings_label">Settings</string>
-    <string name="backup_review_settings_included">included</string>
-    <string name="backup_review_settings_missing">not in this backup</string>
-    <string name="backup_review_saved_title">Cards you’ve already saved</string>
-    <string name="backup_review_update">Update with the backup’s details</string>
-    <string name="backup_review_keep">Keep what’s on this phone</string>
-    <string name="backup_review_restore">Restore settings from the backup</string>
-    <plurals name="backup_card_count">
-        <item quantity="one">%1$d card</item>
-        <item quantity="other">%1$d cards</item>
-    </plurals>
-    <plurals name="backup_holder_count">
-        <item quantity="one">%1$d holder</item>
-        <item quantity="other">%1$d holders</item>
-    </plurals>
-    <plurals name="backup_bank_count">
-        <item quantity="one">%1$d bank</item>
-        <item quantity="other">%1$d banks</item>
-    </plurals>
-    <plurals name="backup_network_count">
-        <item quantity="one">%1$d network</item>
-        <item quantity="other">%1$d networks</item>
-    </plurals>
-    <plurals name="backup_type_count">
-        <item quantity="one">%1$d type</item>
-        <item quantity="other">%1$d types</item>
-    </plurals>
-    <plurals name="backup_tag_count">
-        <item quantity="one">%1$d tag</item>
-        <item quantity="other">%1$d tags</item>
-    </plurals>
+    <string name="backup_review_formats" tools:ignore="PluralsCandidate">%1$d fixed · %2$d to check</string>
+    <string name="backup_review_saved_title">Existing cards</string>
+    <string name="backup_review_update">Use backup</string>
+    <string name="backup_review_keep">Keep current</string>
+    <string name="backup_review_restore">Restore settings</string>
 
     <string name="backup_erase_title">Erase all data?</string>
-    <string name="backup_erase_body">Every card, holder, bank, type and tag will be erased from this phone. Card networks go back to the defaults. Export a backup first if you might need them.</string>
-    <string name="backup_erase_ack">I understand this can’t be undone</string>
+    <string name="backup_erase_body">Every card and list will be erased. Export a backup first.</string>
+    <string name="backup_erase_ack">This can’t be undone</string>
     <string name="backup_action_erase">Erase</string>
     <string name="backup_action_change">Change</string>
     <string name="backup_action_cancel">Cancel</string>
+    <string name="backup_back">Back</string>
 
-    <string name="backup_a11y_show_password">Show backup password</string>
-    <string name="backup_a11y_hide_password">Hide backup password</string>
+    <string name="backup_a11y_show_password">Show password</string>
+    <string name="backup_a11y_hide_password">Hide password</string>
 
-    <string name="backup_snack_saved_settings">Backup with settings saved to Downloads</string>
-    <string name="backup_snack_saved">Backup saved to Downloads</string>
+    <string name="backup_snack_saved">Saved to Downloads</string>
     <string name="backup_snack_erased">All data erased</string>
 
     <string name="backup_value_separator">" · "</string>
@@ -107,12 +87,12 @@
         <item quantity="other">%1$d unchanged</item>
     </plurals>
     <string name="backup_result_nothing">Nothing to import</string>
-    <string name="backup_result_with_settings">%1$s · settings restored</string>
+    <string name="backup_result_settings">settings restored</string>
 
-    <string name="backup_error_create">Couldn’t create the backup</string>
-    <string name="backup_error_save">Couldn’t save the backup</string>
+    <string name="backup_error_create">Couldn’t create backup</string>
+    <string name="backup_error_save">Couldn’t save backup</string>
     <string name="backup_error_read">Couldn’t read this file</string>
-    <string name="backup_error_format">This file isn’t a QuickCards backup</string>
-    <string name="backup_error_import">Couldn’t import this backup</string>
+    <string name="backup_error_format">Not a QuickCards backup</string>
+    <string name="backup_error_import">Couldn’t import</string>
     <string name="backup_error_erase">Couldn’t erase all data</string>
 </resources>

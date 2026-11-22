@@ -1,6 +1,8 @@
 package com.quickcards.app.flow
 
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -15,8 +17,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class RepairBannerFlowTest : FlowTestBase() {
 
-    private val bannerText =
-        "Fixed the format of 12 cards. 3 need a quick check."
+    private val bannerText = "12 fixed · 3 to check"
 
     @Test
     fun reviewShowsTheNeedsCheckChipAndHidesTheBanner() {
@@ -40,16 +41,11 @@ class RepairBannerFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("Review").performClick()
 
-        waitForText("Needs check (1)")
+        waitForContentDescription("Needs check (1)", substring = true)
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasText(bannerText)).fetchSemanticsNodes().isEmpty()
         }
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(
-                hasText("CHECK DETAILS", substring = true),
-                useUnmergedTree = true
-            ).fetchSemanticsNodes().isNotEmpty()
-        }
+        waitForContentDescription("Kotak Mahindra Bank, ending 7441, Check details", substring = true)
     }
 
     @Test
@@ -61,15 +57,15 @@ class RepairBannerFlowTest : FlowTestBase() {
         app.repairSummaryStore.record(RepairSummary(fixedCards = 4, needsCheck = 0))
         awaitBanner()
 
-        compose.onNodeWithText("Dismiss").performClick()
+        compose.onNodeWithContentDescription("Dismiss").performClick()
 
         compose.waitUntil(10_000) {
-            compose.onAllNodes(hasText("Dismiss")).fetchSemanticsNodes().isEmpty()
+            compose.onAllNodes(hasContentDescription("Dismiss")).fetchSemanticsNodes().isEmpty()
         }
         assertNull(runBlocking { app.repairSummaryStore.summary.first() })
     }
 
-    private fun awaitBanner(text: String = "Fixed the format of") {
+    private fun awaitBanner(text: String = " fixed · ") {
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasText(text, substring = true))
                 .fetchSemanticsNodes().isNotEmpty()

@@ -2,7 +2,10 @@
 <resources>
     <string name="common_add_tag">Add tag</string>
     <string name="common_remove_tag">Remove tag %1$s</string>
-    <string name="common_cancel">Cancel</string>
+    <string name="common_choose">Choose</string>
+    <string name="common_dismiss">Dismiss</string>
+    <string name="common_not_set">Not set</string>
     <string name="common_unlock_title">Unlock QuickCards</string>
-    <string name="rules_reset_to_standard">Reset to standard</string>
+    <string name="rules_reset_to_standard">Reset</string>
+    <string name="common_meta_separator">" · "</string>
 </resources>

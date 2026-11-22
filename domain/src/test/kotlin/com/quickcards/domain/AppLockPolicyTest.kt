@@ -87,4 +87,78 @@ class AppLockPolicyTest {
             )
         )
     }
+
+    @Test
+    fun returnInsidePickerGraceStaysUnlocked() {
+        assertFalse(
+            AppLockPolicy.shouldLockOnReturn(
+                nowMillis = 30_000L,
+                pickerUntilMillis = 60_000L,
+                lastActiveMillis = 0L,
+                afterSeconds = 60,
+                lockOnLeave = true
+            )
+        )
+    }
+
+    @Test
+    fun returnAfterPickerGraceLocksWhenLockOnLeaveIsOn() {
+        assertTrue(
+            AppLockPolicy.shouldLockOnReturn(
+                nowMillis = 60_000L,
+                pickerUntilMillis = 60_000L,
+                lastActiveMillis = 59_000L,
+                afterSeconds = 0,
+                lockOnLeave = true
+            )
+        )
+    }
+
+    @Test
+    fun expiredGraceWithLockOnLeaveOffFallsBackToInactivity() {
+        assertFalse(
+            AppLockPolicy.shouldLockOnReturn(
+                nowMillis = 90_000L,
+                pickerUntilMillis = 60_000L,
+                lastActiveMillis = 50_000L,
+                afterSeconds = 60,
+                lockOnLeave = false
+            )
+        )
+        assertTrue(
+            AppLockPolicy.shouldLockOnReturn(
+                nowMillis = 110_000L,
+                pickerUntilMillis = 60_000L,
+                lastActiveMillis = 50_000L,
+                afterSeconds = 60,
+                lockOnLeave = false
+            )
+        )
+    }
+
+    @Test
+    fun inactivityElapsedWhileAwayLocksEvenInsideTheGrace() {
+        assertTrue(
+            AppLockPolicy.shouldLockOnReturn(
+                nowMillis = 40_000L,
+                pickerUntilMillis = 60_000L,
+                lastActiveMillis = 0L,
+                afterSeconds = 30,
+                lockOnLeave = true
+            )
+        )
+    }
+
+    @Test
+    fun frozenProcessWithoutPickerStillLocksOnInactivity() {
+        assertTrue(
+            AppLockPolicy.shouldLockOnReturn(
+                nowMillis = 3_600_000L,
+                pickerUntilMillis = 0L,
+                lastActiveMillis = 0L,
+                afterSeconds = 60,
+                lockOnLeave = false
+            )
+        )
+    }
 }

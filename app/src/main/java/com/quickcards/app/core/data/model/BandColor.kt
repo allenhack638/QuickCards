@@ -105,6 +105,14 @@ object BandColor {
         return if (isReadable(custom)) custom else nearest(custom)
     }
 
+    /** A stored bank colour: a curated key or a readable hex, otherwise null (the built-in default). */
+    fun bankValue(value: String?): String? {
+        val trimmed = value?.trim().orEmpty()
+        val key = trimmed.lowercase(Locale.ROOT)
+        if (isCurated(key)) return key
+        return parseHex(trimmed)?.takeIf(::isReadable)
+    }
+
     fun nearest(hex: String?): String {
         val colour = parseColour(hex) ?: return NAVY
         var best = NAVY

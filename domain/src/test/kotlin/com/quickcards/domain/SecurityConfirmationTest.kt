@@ -30,11 +30,11 @@ class SecurityConfirmationTest {
     }
 
     @Test
-    fun showingTheCvvInNotificationsNeedsConfirmation() {
+    fun turningOnTheCopyNotificationNeedsConfirmation() {
         assertEquals(
-            SecurityConfirmation.NOTIF_CVV_ON,
-            SecurityConfirmation.reasonForNotificationCvv(true)
+            SecurityConfirmation.NOTIF_ON,
+            SecurityConfirmation.reasonForNotification(true)
         )
-        assertNull(SecurityConfirmation.reasonForNotificationCvv(false))
+        assertNull(SecurityConfirmation.reasonForNotification(false))
     }
 }

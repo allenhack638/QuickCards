@@ -36,12 +36,12 @@ class PaymentDueFlowTest : FlowTestBase() {
         }
         PaidStore.unmarkPaid(app, ReminderRules.dueKey(card.id, today))
 
-        waitForText("Bill due today")
+        waitForText("Due today")
         compose.onNodeWithContentDescription("Mark this payment as paid").performClick()
-        waitForTextGone("Bill due today")
+        waitForTextGone("Due today")
 
         compose.onNodeWithText("Undo").performClick()
-        waitForText("Bill due today")
+        waitForText("Due today")
     }
 
     @Test
@@ -61,8 +61,8 @@ class PaymentDueFlowTest : FlowTestBase() {
                 )
             ).getOrThrow()
         }
-        waitForContentDescription("More for HDFC Bank")
-        waitForTextGone("Bill due today")
+        awaitTile("HDFC Bank")
+        waitForTextGone("Due today")
         app.settings.setPaymentReminders(true)
     }
 }

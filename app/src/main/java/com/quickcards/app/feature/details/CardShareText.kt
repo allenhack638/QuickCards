@@ -1,4 +1,4 @@
-package com.quickcards.app.feature.cards
+package com.quickcards.app.feature.details
 
 import android.content.Context
 import com.quickcards.app.R

@@ -1,11 +1,6 @@
 package com.quickcards.app.feature.cards
 
 import androidx.compose.foundation.background
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -15,184 +10,149 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import com.quickcards.app.R
-import com.quickcards.app.core.security.UnlockSession
-import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
-import com.quickcards.app.core.ui.theme.QcType
+import com.quickcards.app.core.ui.theme.QcShapes
+import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.domain.CardQuery
 import com.quickcards.domain.FilterGroup
 
+/** "Cards", then search and add; the empty vault keeps only add. */
 @Composable
 internal fun HomeTopBar(
-    showActions: Boolean,
-    filterCount: Int,
+    showSearch: Boolean,
     onSearch: () -> Unit,
-    onFilter: () -> Unit,
-    onAdd: () -> Unit
+    onAdd: () -> Unit,
+    chips: (@Composable RowScope.() -> Unit)? = null
 ) {
+    val colors = QcTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(QcDimens.AppBar)
-            .padding(start = QcDimens.Gutter, end = QcDimens.Half),
-        verticalAlignment = Alignment.CenterVertically
+            .height(QcSize.bar)
+            .padding(start = QcSpacing.s4, end = QcSpacing.s1),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(QcSpacing.s1)
     ) {
         Text(
             text = stringResource(R.string.cards_title),
-            style = QcType.ScreenTitle,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
+            style = QcText.F5,
+            color = colors.ink,
+            maxLines = 1,
+            modifier = Modifier
+                .then(if (chips == null) Modifier.weight(1f) else Modifier)
+                .semantics { heading() }
         )
-        if (showActions) {
-            IconButton(onClick = onSearch, modifier = Modifier.size(QcDimens.Touch)) {
-                Icon(
-                    imageVector = QcIcons.search,
-                    contentDescription = stringResource(R.string.cards_search),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onFilter, modifier = Modifier.size(QcDimens.Touch)) {
-                Icon(
-                    imageVector = QcIcons.tune,
-                    contentDescription = if (filterCount > 0) {
-                        pluralStringResource(
-                            R.plurals.cards_filter_active,
-                            filterCount,
-                            filterCount
-                        )
-                    } else {
-                        stringResource(R.string.cards_filter)
-                    },
-                    tint = if (filterCount > 0) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
-            IconButton(onClick = onAdd, modifier = Modifier.size(QcDimens.Touch)) {
-                Icon(
-                    imageVector = QcIcons.add,
-                    contentDescription = stringResource(R.string.cards_add),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+        chips?.invoke(this)
+        if (showSearch) {
+            BarIcon(QcIcons.search, stringResource(R.string.cards_search), onSearch)
         }
+        BarIcon(QcIcons.add, stringResource(R.string.cards_add), onAdd)
     }
 }
 
+@Composable
+private fun BarIcon(icon: ImageVector, label: String, onClick: () -> Unit, tint: Color = QcTheme.colors.ink) {
+    IconButton(onClick = onClick, modifier = Modifier.size(QcSize.hit)) {
+        Icon(imageVector = icon, contentDescription = label, tint = tint, modifier = Modifier.size(QcSize.iconLg))
+    }
+}
+
+/** Holder chips (All, then each holder), the active filters, and the filter button at the end. */
 @Composable
 internal fun ChipRow(
     state: HomeUiState,
     onHolder: (String?) -> Unit,
     onRemoveFilter: (FilterGroup, String) -> Unit,
     onRemoveStatus: (String) -> Unit,
-    onRemoveReview: () -> Unit
+    onRemoveReview: () -> Unit,
+    onFilter: () -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth()
 ) {
-    val unlocked by UnlockSession.isUnlocked.collectAsState()
-    val view = LocalView.current
-    var lastAnnouncedUnlocked by remember { mutableStateOf(unlocked) }
-    val unlockedLabel = stringResource(R.string.cards_unlocked)
-    val lockedLabel = stringResource(R.string.cards_locked)
-
-    LaunchedEffect(unlocked) {
-        if (lastAnnouncedUnlocked != unlocked) {
-            view.announceForAccessibility(if (unlocked) unlockedLabel else lockedLabel)
-            lastAnnouncedUnlocked = unlocked
-        }
-    }
-
+    val filterCount = state.filters.activeCount + state.statusFilter.size + if (state.reviewOnly) 1 else 0
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(start = QcDimens.Gutter, end = QcDimens.Gutter, bottom = QcDimens.PassGap),
-        horizontalArrangement = Arrangement.spacedBy(QcDimens.Base),
+        modifier = modifier
+            .heightIn(min = QcSize.hit)
+            .padding(start = QcSpacing.s4, end = QcSpacing.s1),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (state.holderChips.size > 1) {
-            HolderChip(
-                label = stringResource(R.string.cards_holder_all),
-                selected = state.filters.holders.isEmpty(),
-                showCheck = false,
-                onClick = { onHolder(null) }
-            )
-            state.holderChips.forEach { holder ->
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(QcSpacing.s2),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (state.holderChips.size > 1) {
                 HolderChip(
-                    label = CardQuery.holderFirstName(holder.name),
-                    selected = holder.id in state.filters.holders,
-                    showCheck = true,
-                    onClick = { onHolder(holder.id) }
+                    label = stringResource(R.string.cards_holder_all),
+                    selected = state.filters.holders.isEmpty(),
+                    onClick = { onHolder(null) }
+                )
+                state.holderChips.forEach { holder ->
+                    HolderChip(
+                        label = CardQuery.holderFirstName(holder.name),
+                        selected = holder.id in state.filters.holders,
+                        onClick = { onHolder(holder.id) }
+                    )
+                }
+            }
+            listOf(FilterGroup.BANK, FilterGroup.NETWORK, FilterGroup.TYPE, FilterGroup.TAG).forEach { group ->
+                state.filters.ids(group).forEach { id ->
+                    val label = state.filterLabel(group, id)
+                    FilterChip(
+                        label = if (group == FilterGroup.TAG) stringResource(R.string.cards_tag_chip, label) else label,
+                        onRemove = { onRemoveFilter(group, id) }
+                    )
+                }
+            }
+            state.statusFilter.forEach { id ->
+                FilterChip(label = statusFilterLabel(state, id), onRemove = { onRemoveStatus(id) })
+            }
+            if (state.reviewOnly) {
+                FilterChip(
+                    label = stringResource(R.string.cards_filter_needs_check, state.needsCheckCount),
+                    onRemove = onRemoveReview
                 )
             }
         }
-
-        val groups = listOf(
-            FilterGroup.BANK,
-            FilterGroup.NETWORK,
-            FilterGroup.TYPE,
-            FilterGroup.TAG
+        BarIcon(
+            icon = QcIcons.tune,
+            label = if (filterCount > 0) {
+                pluralStringResource(R.plurals.cards_filter_active, filterCount, filterCount)
+            } else {
+                stringResource(R.string.cards_filter)
+            },
+            onClick = onFilter,
+            tint = if (filterCount > 0) QcTheme.colors.ink else QcTheme.colors.ink2
         )
-        groups.forEach { group ->
-            state.filters.ids(group).forEach { id ->
-                InputChip(
-                    label = if (group == FilterGroup.TAG) {
-                        stringResource(
-                            R.string.cards_tag_chip,
-                            state.filterLabel(group, id)
-                        )
-                    } else {
-                        state.filterLabel(group, id)
-                    },
-                    onRemove = { onRemoveFilter(group, id) }
-                )
-            }
-        }
-
-        state.statusFilter.forEach { id ->
-            InputChip(
-                label = statusFilterLabel(state, id),
-                onRemove = { onRemoveStatus(id) }
-            )
-        }
-        if (state.reviewOnly) {
-            InputChip(
-                label = stringResource(
-                    R.string.cards_filter_needs_check,
-                    state.needsCheckCount
-                ),
-                onRemove = onRemoveReview
-            )
-        }
     }
 }
 
@@ -206,147 +166,60 @@ private fun statusFilterLabel(state: HomeUiState, id: String): String {
     }
 }
 
+/** Single-select holder chip: 32 visible in a 48 hit, ink fill when selected, no check. */
 @Composable
-private fun QcChip(
-    onClick: (() -> Unit)? = null,
-    background: Color,
-    border: Color? = null,
-    paddingStart: Dp = QcDimens.Base,
-    paddingEnd: Dp = QcDimens.PassGap,
-    contentDescription: String? = null,
-    selected: Boolean? = null,
-    content: @Composable RowScope.() -> Unit
-) {
-    // The 48dp box is the touch target; the ripple is drawn by the 32dp pill, so a press
-    // never paints a tall rectangle above and below the chip.
-    val interactionSource = remember { MutableInteractionSource() }
+private fun HolderChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val colors = QcTheme.colors
     Box(
         modifier = Modifier
-            .height(QcDimens.Touch)
-            .then(
-                if (selected != null) {
-                    Modifier.semantics {
-                        this.selected = selected
-                        role = Role.Checkbox
-                    }
-                } else {
-                    Modifier
-                }
-            )
-            .then(
-                if (contentDescription != null) {
-                    Modifier.semantics { this.contentDescription = contentDescription }
-                } else {
-                    Modifier
-                }
-            )
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = onClick
-                    )
-                } else {
-                    Modifier
-                }
-            ),
+            .heightIn(min = QcSize.hit)
+            .clickable(role = Role.Button, onClick = onClick, interactionSource = null, indication = null)
+            .semantics { this.selected = selected },
         contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier
-                .height(QcDimens.ChipHeight)
-                .clip(RoundedCornerShape(QcDimens.CornerSm))
-                .background(background)
-                .indication(interactionSource, LocalIndication.current)
-                .then(
-                    if (border != null) {
-                        Modifier.border(
-                            QcDimens.Divider,
-                            border,
-                            RoundedCornerShape(QcDimens.CornerSm)
-                        )
-                    } else {
-                        Modifier
-                    }
-                )
-                .padding(start = paddingStart, end = paddingEnd),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base),
-            content = content
-        )
-    }
-}
-
-@Composable
-private fun HolderChip(
-    label: String,
-    selected: Boolean,
-    showCheck: Boolean,
-    onClick: () -> Unit
-) {
-    QcChip(
-        onClick = onClick,
-        background = if (selected) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            Color.Transparent
-        },
-        border = if (selected) null else MaterialTheme.colorScheme.outlineVariant,
-        selected = selected
-    ) {
-        if (selected && showCheck) {
-            Icon(
-                imageVector = QcIcons.check,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(QcDimens.IconSmall)
-            )
-        }
         Text(
             text = label,
-            style = QcType.Chip,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1
+            style = QcText.F2Medium,
+            color = if (selected) colors.onSelect else colors.ink,
+            maxLines = 1,
+            modifier = Modifier
+                .widthIn(min = QcSize.hit)
+                .heightIn(min = QcSize.ctl)
+                .background(if (selected) colors.select else colors.surface, QcShapes.full)
+                .border(QcSize.hairline, if (selected) Color.Transparent else colors.line, QcShapes.full)
+                .padding(horizontal = QcSpacing.s3, vertical = QcSpacing.s1 + QcSpacing.s1 / 2),
+            textAlign = TextAlign.Center
         )
     }
 }
 
+/** An active filter: selected chip with a leading check and a trailing close; tapping it removes the filter. */
 @Composable
-private fun InputChip(label: String, onRemove: () -> Unit) {
+private fun FilterChip(label: String, onRemove: () -> Unit) {
+    val colors = QcTheme.colors
+    val removeLabel = "$label. ${stringResource(R.string.cards_chip_remove)}"
     Box(
-        modifier = Modifier.height(QcDimens.Touch),
+        modifier = Modifier
+            .heightIn(min = QcSize.hit)
+            .clickable(onClick = onRemove, interactionSource = null, indication = null)
+            .clearAndSetSemantics {
+                contentDescription = removeLabel
+                role = Role.Button
+                onClick { onRemove(); true }
+            },
         contentAlignment = Alignment.Center
     ) {
         Row(
             modifier = Modifier
-                .height(QcDimens.ChipHeight)
-                .clip(RoundedCornerShape(QcDimens.CornerSm))
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(start = QcDimens.PassGap, end = 36.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .heightIn(min = QcSize.ctl)
+                .background(colors.select, QcShapes.full)
+                .padding(start = QcSpacing.s2, end = QcSpacing.s1),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(QcSpacing.s1)
         ) {
-            Text(
-                text = label,
-                style = QcType.Chip,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
-            )
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .size(QcDimens.Touch)
-                .clip(CircleShape)
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = QcIcons.close,
-                contentDescription = stringResource(R.string.cards_chip_remove),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(QcDimens.IconSmall)
-            )
+            Icon(QcIcons.check, null, tint = colors.onSelect, modifier = Modifier.size(QcSize.iconSm))
+            Text(text = label, style = QcText.F2Medium, color = colors.onSelect, maxLines = 1)
+            Icon(QcIcons.close, null, tint = colors.onSelect, modifier = Modifier.size(QcSize.iconSm))
         }
     }
 }

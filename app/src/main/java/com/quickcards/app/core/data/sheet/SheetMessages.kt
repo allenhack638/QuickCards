@@ -5,22 +5,57 @@ import com.quickcards.app.R
 import com.quickcards.domain.sheet.RowProblem
 import com.quickcards.domain.sheet.SheetFileProblem
 
+/** A refused file: the problem as a title, its fix, and whether a blank sheet would help. */
+data class SheetFileMessage(val title: String, val fix: String?, val offersBlankSheet: Boolean = false)
+
 /** Plain-language text for every import problem; the only place these sentences are built. */
 object SheetMessages {
 
-    fun file(resources: Resources, problem: SheetFileProblem): String = when (problem) {
-        is SheetFileProblem.MissingColumns -> resources.getString(R.string.import_file_missing_columns, problem.headers.joinToString(", "))
-        is SheetFileProblem.UnknownColumns -> resources.getString(R.string.import_file_unknown_columns, problem.headers.joinToString(", "))
-        SheetFileProblem.NoHeaderRow -> resources.getString(R.string.import_file_no_header)
-        SheetFileProblem.NoRows -> resources.getString(R.string.import_file_no_rows)
-        is SheetFileProblem.TooManyRows -> resources.getString(R.string.import_file_too_many_rows, problem.rows, problem.max)
+    fun file(resources: Resources, problem: SheetFileProblem): SheetFileMessage {
+        val fresh = resources.getString(R.string.import_file_fresh_sheet)
+        return when (problem) {
+            is SheetFileProblem.MissingColumns -> SheetFileMessage(
+                resources.getString(R.string.import_file_missing_columns, columns(problem.headers)),
+                fresh,
+                offersBlankSheet = true
+            )
+            is SheetFileProblem.UnknownColumns -> SheetFileMessage(
+                resources.getString(R.string.import_file_unknown_columns, columns(problem.headers)),
+                fresh,
+                offersBlankSheet = true
+            )
+            SheetFileProblem.NoHeaderRow -> SheetFileMessage(resources.getString(R.string.import_file_no_header), fresh)
+            SheetFileProblem.NoRows -> SheetFileMessage(
+                resources.getString(R.string.import_file_no_rows),
+                resources.getString(R.string.import_file_no_rows_fix)
+            )
+            is SheetFileProblem.TooManyRows -> SheetFileMessage(
+                resources.getQuantityString(R.plurals.import_file_too_many_rows, problem.rows, problem.rows),
+                resources.getString(R.string.import_file_too_many_rows_fix, problem.max)
+            )
+        }
     }
 
-    fun open(resources: Resources, problem: SheetOpenProblem): String = when (problem) {
-        SheetOpenProblem.TooLarge -> resources.getString(R.string.import_file_too_large)
-        SheetOpenProblem.NotASheet -> resources.getString(R.string.import_file_not_sheet)
-        SheetOpenProblem.Unreadable -> resources.getString(R.string.import_file_unreadable)
+    /** Headings as the user reads them, without the sheet's required-field mark. */
+    private fun columns(headers: List<String>): String = headers.joinToString(", ") { it.trimEnd('*') }
+
+    fun open(resources: Resources, problem: SheetOpenProblem): SheetFileMessage = when (problem) {
+        SheetOpenProblem.TooLarge -> SheetFileMessage(
+            resources.getString(R.string.import_file_too_large),
+            resources.getString(R.string.import_file_too_large_fix)
+        )
+        SheetOpenProblem.NotASheet -> SheetFileMessage(resources.getString(R.string.import_file_not_sheet), null)
+        SheetOpenProblem.Unreadable -> unreadable(resources)
     }
+
+    fun unreadable(resources: Resources): SheetFileMessage = SheetFileMessage(
+        resources.getString(R.string.import_file_unreadable),
+        resources.getString(R.string.import_file_unreadable_fix)
+    )
+
+    /** A row problem as a sentence, for the fix list where several share one cell. */
+    fun rowSentence(resources: Resources, problem: RowProblem): String =
+        row(resources, problem).let { if (it.endsWith('.')) it else "$it." }
 
     fun row(resources: Resources, problem: RowProblem): String = when (problem) {
         is RowProblem.Missing -> resources.getString(R.string.import_problem_missing, problem.column.header)

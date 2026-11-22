@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One autofill suggestion row: the framework renders this, so it is a plain RemoteViews layout. -->
+<!-- One card in the autofill dropdown: mark in the 40x24 slot, "Bank •• 1234", holder. Plain RemoteViews layout. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="56dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:minHeight="48dp"
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
-    tools:ignore="UseCompoundDrawables">
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
     <ImageView
         android:id="@+id/autofill_icon"
         android:layout_width="40dp"
-        android:layout_height="20dp"
-        android:background="@drawable/autofill_mark_plate"
+        android:layout_height="24dp"
         android:scaleType="fitCenter"
         android:src="@drawable/qc_app_mark"
         android:contentDescription="@null" />
-    <TextView
-        android:id="@+id/autofill_title"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:layout_marginStart="12dp"
-        android:textSize="14sp"
-        android:textColor="?android:attr/textColorPrimary"
-        android:singleLine="true"
-        android:ellipsize="end" />
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/autofill_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/geist_semibold"
+            android:textSize="13sp"
+            android:lineSpacingExtra="2sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:singleLine="true"
+            android:ellipsize="end" />
+    </LinearLayout>
 </LinearLayout>

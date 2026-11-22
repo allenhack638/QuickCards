@@ -14,6 +14,7 @@ import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.EncryptionHelper
 import com.quickcards.app.core.reminders.Reminders
 import com.quickcards.app.core.security.KeySentinel
+import com.quickcards.app.core.ui.theme.applyAppNightMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,6 +71,9 @@ class QuickCardsApplication : Application() {
             runCatching { DataMaintenance.run(database, repairSummaryStore, catalogVersionStore) }
             runCatching { Reminders.ensureScheduled(this@QuickCardsApplication) }
             runCatching { Reminders.check(this@QuickCardsApplication) }
+        }
+        applicationScope.launch {
+            settings.theme.collect { runCatching { applyAppNightMode(this@QuickCardsApplication, it) } }
         }
     }
 }

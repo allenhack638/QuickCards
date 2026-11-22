@@ -1,6 +1,7 @@
 package com.quickcards.app.core.security
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import android.os.SystemClock
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -46,6 +47,11 @@ object AppLockController {
 
     private const val SYSTEM_PICKER_GRACE_MS = 5 * 60_000L
 
+    /** How long a trip to the share sheet may last without the lock; tests shorten it. */
+    @VisibleForTesting
+    @Volatile
+    internal var shareSheetGraceMs = 60_000L
+
     fun attach(context: Context) {
         if (started) return
         started = true
@@ -56,13 +62,7 @@ object AppLockController {
         lastActiveMillis = SystemClock.elapsedRealtime()
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) {
-                if (systemPickerUntil != 0L) {
-                    systemPickerUntil = 0L
-                    lastActiveMillis = SystemClock.elapsedRealtime()
-                }
-                evaluateIdle()
-            }
+            override fun onStart(owner: LifecycleOwner) = onAppStarted()
 
             override fun onStop(owner: LifecycleOwner) = onAppStopped()
         })
@@ -90,6 +90,11 @@ object AppLockController {
      */
     fun beginSystemPicker() {
         systemPickerUntil = SystemClock.elapsedRealtime() + SYSTEM_PICKER_GRACE_MS
+    }
+
+    /** Sharing sends the user to another app, so only a quick trip back skips the lock. */
+    fun beginShareSheet() {
+        systemPickerUntil = SystemClock.elapsedRealtime() + shareSheetGraceMs
     }
 
     fun onUserInteraction() {
@@ -123,6 +128,21 @@ object AppLockController {
                 lastActiveMillis = now
             }
         }
+    }
+
+    private fun onAppStarted() {
+        val now = SystemClock.elapsedRealtime()
+        val pickerUntil = systemPickerUntil
+        systemPickerUntil = 0L
+        val prefs = settings ?: return
+        if (!_isLocked.value && AppLockPolicy.shouldLockOnReturn(
+                now, pickerUntil, lastActiveMillis, prefs.appLockAfterSec.value, prefs.lockOnLeave.value
+            )
+        ) {
+            lock()
+        }
+        if (pickerUntil != 0L && !_isLocked.value) lastActiveMillis = now
+        evaluateIdle()
     }
 
     private fun onAppStopped() {

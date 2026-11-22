@@ -2,37 +2,30 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="manage_title">Manage</string>
 
-    <string name="manage_list_holders">Card holders</string>
+    <string name="manage_list_holders">Holders</string>
     <string name="manage_list_banks">Banks</string>
-    <string name="manage_list_networks">Card networks</string>
-    <string name="manage_list_types">Card types</string>
+    <string name="manage_list_networks">Networks</string>
+    <string name="manage_list_types">Types</string>
     <string name="manage_list_tags">Tags</string>
-    <string name="manage_list_archived">Archived cards</string>
+    <string name="manage_list_archived">Archived</string>
 
-    <string name="manage_subtitle_holders">People whose cards you keep</string>
-    <string name="manage_subtitle_banks">Issuing banks</string>
-    <string name="manage_subtitle_networks">Detected from the first digits</string>
-    <string name="manage_subtitle_types">Credit, debit and more</string>
-    <string name="manage_subtitle_tags">Labels you attach to cards</string>
-
-    <string name="manage_kind_holder">card holder</string>
+    <string name="manage_kind_holder">holder</string>
     <string name="manage_kind_bank">bank</string>
-    <string name="manage_kind_network">card network</string>
-    <string name="manage_kind_type">card type</string>
+    <string name="manage_kind_network">network</string>
+    <string name="manage_kind_type">type</string>
     <string name="manage_kind_tag">tag</string>
 
-    <string name="manage_kind_holder_title">Card holder</string>
+    <string name="manage_kind_holder_title">Holder</string>
     <string name="manage_kind_bank_title">Bank</string>
-    <string name="manage_kind_network_title">Card network</string>
-    <string name="manage_kind_type_title">Card type</string>
+    <string name="manage_kind_network_title">Network</string>
+    <string name="manage_kind_type_title">Type</string>
     <string name="manage_kind_tag_title">Tag</string>
 
-    <string name="manage_empty_holders">No card holders yet</string>
+    <string name="manage_empty_holders">No holders yet</string>
     <string name="manage_empty_banks">No banks yet</string>
-    <string name="manage_empty_networks">No card networks yet</string>
-    <string name="manage_empty_types">No card types yet</string>
+    <string name="manage_empty_networks">No networks yet</string>
+    <string name="manage_empty_types">No types yet</string>
     <string name="manage_empty_tags">No tags yet</string>
-    <string name="manage_empty_body">Tap + to add one.</string>
 
     <string name="manage_usage_not_used">Not used</string>
     <string name="manage_usage_network">%1$s digits · CVV %2$d · %3$s</string>
@@ -44,84 +37,69 @@
 
     <string name="manage_a11y_back">Back</string>
     <string name="manage_a11y_add">Add %1$s</string>
-    <string name="manage_a11y_edit">Edit %1$s</string>
     <string name="manage_a11y_delete">Delete %1$s</string>
     <string name="manage_deleted">%1$s deleted</string>
-    <string name="manage_unknown_initial">?</string>
 
     <string name="manage_action_cancel">Cancel</string>
     <string name="manage_action_add">Add</string>
     <string name="manage_action_save">Save</string>
-    <string name="manage_action_delete">Delete</string>
     <string name="manage_action_show_cards">Show cards</string>
     <string name="manage_action_ok">OK</string>
     <string name="manage_action_undo">Undo</string>
 
-    <string name="manage_delete_blocked_title">Delete the cards first</string>
-    <string name="manage_delete_blocked_body">%1$s is used by %2$s. Delete %3$s%4$s before deleting this %5$s.</string>
-    <string name="manage_delete_blocked_tag_clause">, or remove the tag from them,</string>
-    <plurals name="manage_delete_blocked_that_card">
-        <item quantity="one">that card</item>
-        <item quantity="other">those cards</item>
-    </plurals>
-    <string name="manage_delete_confirm_title">Delete %1$s?</string>
-    <string name="manage_delete_confirm_body">No cards use this %1$s.</string>
+    <string name="manage_delete_blocked_title">Can’t delete %1$s</string>
+    <string name="manage_delete_blocked_body">Used by %1$s. Change or delete them first.</string>
+    <string name="manage_delete_blocked_tag_body">Used by %1$s. Remove the tag from them first.</string>
 
-    <string name="manage_card_list_item">%1$s · %2$s</string>
-    <plurals name="manage_warning_renaming">
-        <item quantity="one">Renaming %1$s to %2$s will update this card.</item>
-        <item quantity="other">Renaming %1$s to %2$s will update these %3$d cards.</item>
-    </plurals>
-    <plurals name="manage_warning_changing">
-        <item quantity="one">Changing %1$s will update this card.</item>
-        <item quantity="other">Changing %1$s will update these %2$d cards.</item>
-    </plurals>
+    <string name="manage_card_list_item">%1$s •• %2$s</string>
+    <string name="manage_warning_renaming">%1$s becomes %2$s.</string>
 
     <string name="manage_dialog_new">New %1$s</string>
     <string name="manage_dialog_edit">Edit %1$s</string>
     <string name="manage_update_title">Update %1$s?</string>
     <string name="manage_update_confirm">Update %1$s</string>
     <string name="manage_field_name">Name</string>
-    <string name="manage_helper_tag_no_hash">No # needed</string>
-    <string name="manage_counter">%1$d/%2$d</string>
-    <string name="manage_field_code">Label on card</string>
-    <string name="manage_helper_code">Up to 15 characters, shown on the card</string>
+    <string name="manage_field_code">Card label</string>
     <string name="manage_field_prefixes">Starting digits</string>
     <!-- Hyphens are the range syntax the user types; an en dash would not parse. -->
-    <string name="manage_helper_prefixes" tools:ignore="TypographyDashes">For example 4 or 51-55, separated by commas</string>
+    <string name="manage_helper_prefixes" tools:ignore="TypographyDashes">4, 51-55</string>
     <string name="manage_field_lengths">Number lengths</string>
-    <string name="manage_helper_lengths" tools:ignore="TypographyDashes">For example 16 or 16-19</string>
+    <string name="manage_helper_lengths" tools:ignore="TypographyDashes">16, 16-19</string>
     <string name="manage_group_cvv">CVV digits</string>
-    <string name="manage_luhn">Check the last digit (Luhn)</string>
-    <string name="manage_cvv_optional">Cards may have no CVV</string>
-    <string name="manage_rules_changed">Not the standard %1$s rules</string>
+    <string name="manage_luhn">Check last digit</string>
+    <string name="manage_a11y_luhn">Check last digit, Luhn</string>
+    <string name="manage_cvv_optional">CVV optional</string>
+    <string name="manage_rules_changed">Custom rules</string>
+    <string name="manage_a11y_reset_rules">Reset %1$s to standard rules</string>
     <string name="manage_rules_title">Change %1$s rules?</string>
-    <string name="manage_rules_body">%1$s cards use %2$s. Cards that do not match your rule cannot be saved, and saved ones show Check details.</string>
-    <string name="manage_rules_confirm">Change anyway</string>
+    <string name="manage_rules_body">Standard: %1$s. Cards that don’t fit can’t be saved and get flagged.</string>
+    <string name="manage_rules_confirm">Change</string>
     <plurals name="manage_rule_cvv">
-        <item quantity="one">a %1$d-digit CVV</item>
-        <item quantity="other">a %1$d-digit CVV</item>
+        <item quantity="one">%1$d‑digit CVV</item>
+        <item quantity="other">%1$d‑digit CVV</item>
     </plurals>
     <plurals name="manage_rule_cvv_optional">
-        <item quantity="one">a %1$d-digit CVV or none</item>
-        <item quantity="other">a %1$d-digit CVV or none</item>
+        <item quantity="one">%1$d‑digit CVV or none</item>
+        <item quantity="other">%1$d‑digit CVV or none</item>
     </plurals>
-    <string name="manage_rule_prefixes">numbers starting %1$s</string>
+    <string name="manage_rule_prefixes">starts with %1$s</string>
     <string name="manage_rule_lengths">%1$s digits</string>
-    <string name="manage_rule_luhn_on">the last-digit check</string>
-    <string name="manage_rule_luhn_off">no last-digit check</string>
-    <string name="manage_rule_join">, </string>
+    <string name="manage_rule_luhn_on">last‑digit check</string>
+    <string name="manage_rule_luhn_off">no last‑digit check</string>
+    <string name="manage_rule_join">"; "</string>
 
     <string name="manage_entity_added">%1$s added</string>
     <string name="manage_entity_updated">%1$s updated</string>
     <string name="manage_save_failed">Couldn’t save %1$s</string>
 
     <string name="manage_error_name_required">Enter a name</string>
-    <string name="manage_error_name_too_short">Use at least 2 characters</string>
-    <string name="manage_error_name_taken">This %1$s already exists</string>
-    <string name="manage_error_code_format">Use 2 to 15 letters, digits or spaces</string>
-    <string name="manage_error_code_taken">Another network already uses this label</string>
-    <string name="manage_error_prefixes_format" tools:ignore="TypographyDashes">Use digits, ranges like 51-55, and commas</string>
-    <string name="manage_error_lengths_range">Card numbers have 12 to 19 digits</string>
-    <string name="manage_archived_subtitle">Cards you’ve put away</string>
+    <string name="manage_error_name_too_short">At least 2 characters</string>
+    <string name="manage_error_name_taken">Already exists</string>
+    <string name="manage_error_code_format">2 to 15 letters, digits or spaces</string>
+    <string name="manage_error_code_taken">Label in use</string>
+    <string name="manage_error_prefixes_format">Use digits, ranges and commas</string>
+    <string name="manage_error_lengths_range">Use 12 to 19 digits</string>
+    <string name="manage_bank_colour">Colour</string>
+    <string name="manage_bank_colour_unused">Not used by another bank</string>
+    <string name="manage_bank_colour_shared">Also used by another bank</string>
 </resources>

@@ -1,7 +1,14 @@
 package com.quickcards.app.flow
 
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.core.app.ApplicationProvider
@@ -117,8 +124,55 @@ abstract class FlowTestBase {
         }
     }
 
-    protected fun field(label: String): SemanticsNodeInteraction =
-        compose.onNode(hasSetTextAction() and hasText(label))
+    /** A Home tile: its spoken name is "<bank>, ending <last4>…"; tap opens, hold opens actions. */
+    protected fun tile(bank: String): SemanticsNodeInteraction =
+        compose.onNode(hasContentDescription("$bank, ending", substring = true) and hasClickAction())
+
+    protected fun awaitTile(bank: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(hasContentDescription("$bank, ending", substring = true) and hasClickAction())
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    protected fun awaitTileGone(bank: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(hasContentDescription("$bank, ending", substring = true) and hasClickAction())
+                .fetchSemanticsNodes().isEmpty()
+        }
+    }
+
+    /** Hold a tile: the card actions sheet. */
+    protected fun openCardActions(bank: String) {
+        awaitTile(bank)
+        tile(bank).performScrollTo().performSemanticsAction(SemanticsActions.OnLongClick)
+        waitForText("Delete")
+    }
+
+    /**
+     * A text field by its accessible name: the Qc form field's label (its content description,
+     * "<label>, edit box" in TalkBack) or a Material label slot (merged text).
+     */
+    protected fun field(label: String): SemanticsNodeInteraction = compose.onNode(fieldNamed(label))
+
+    protected fun awaitField(label: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(fieldNamed(label)).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun fieldNamed(label: String): SemanticsMatcher =
+        hasSetTextAction() and (hasContentDescription(label) or hasText(label))
+
+    /** A picker field (Holder, Bank, Type): spoken as its label, the chosen value as its state. */
+    protected fun awaitLookup(label: String, value: String, timeout: Long = 10_000) {
+        compose.waitUntil(timeout) {
+            compose.onAllNodes(
+                hasContentDescription(label) and
+                    SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
 
     protected fun cardsNow(): List<VaultCard> = runBlocking { app.repository.cards.first() }
 

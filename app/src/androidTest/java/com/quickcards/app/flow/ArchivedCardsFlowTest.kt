@@ -2,6 +2,7 @@ package com.quickcards.app.flow
 
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -21,12 +22,10 @@ class ArchivedCardsFlowTest : FlowTestBase() {
     fun emptyArchiveShowsTheEmptyState() {
         openManage()
 
-        waitForText("Cards you’ve put away")
-        waitForText("0")
-        compose.onNodeWithText("Archived cards").performClick()
+        compose.onNodeWithText("Archived").performClick()
 
         waitForText("No archived cards")
-        waitForText("Archive a card from its ⋮ menu to keep it out of your list.")
+        waitForText("Hold a card to archive it")
     }
 
     @Test
@@ -43,42 +42,53 @@ class ArchivedCardsFlowTest : FlowTestBase() {
 
         openManage()
 
-        waitForText("Archived cards")
-        waitForText("2")
-        compose.onNodeWithText("Archived cards").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasText("Archived") and hasText("2")).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Archived").performClick()
 
         waitForContentDescription("Search archived cards")
         compose.onNodeWithContentDescription("Search archived cards").performClick()
 
-        waitForText("Search archived cards")
-        waitForText("ARCHIVED · CARD CLOSED", unmerged = true)
-        waitForText("ARCHIVED · REPLACED", unmerged = true)
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasSetTextAction() and hasContentDescription("Search archived cards")).fetchSemanticsNodes().isNotEmpty()
+        }
+        waitForContentDescription("Archived · Card closed", substring = true)
+        waitForContentDescription("Archived · Replaced", substring = true)
 
         compose.onNode(
             hasSetTextAction() and hasContentDescription("Search archived cards")
         ).performTextInput("replaced")
 
-        waitForText("ARCHIVED · REPLACED", unmerged = true)
-        waitForTextGone("ARCHIVED · CARD CLOSED", unmerged = true)
+        waitForContentDescription("Archived · Replaced", substring = true)
+        awaitDescriptionGone("Archived · Card closed")
 
-        compose.onNodeWithContentDescription("More for HDFC Bank").performClick()
-        waitForText("Restore")
+        openCardActions("HDFC Bank")
         compose.onNodeWithText("Restore").performClick()
 
         waitForText("Card restored")
         compose.waitUntil(10_000) { archivedNow() == 1 }
-        waitForTextGone("ARCHIVED · REPLACED", unmerged = true)
-        waitForText("No archived cards match", substring = true)
+        awaitDescriptionGone("Archived · Replaced")
+        waitForText("No matches")
 
         compose.onNodeWithContentDescription("Close search").performClick()
         compose.onNodeWithContentDescription("Back").performClick()
-        waitForText("1")
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasText("Archived") and hasText("1")).fetchSemanticsNodes().isNotEmpty()
+        }
         assertEquals(1, archivedNow())
     }
 
     private fun openManage() {
         compose.onNodeWithText("Manage").performClick()
-        waitForText("Archived cards")
+        waitForText("Archived")
+    }
+
+    private fun awaitDescriptionGone(description: String) {
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasContentDescription(description, substring = true))
+                .fetchSemanticsNodes().isEmpty()
+        }
     }
 
     private fun archivedNow(): Int = runBlocking {

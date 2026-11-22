@@ -5,10 +5,8 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.model.VaultCard
@@ -43,7 +41,7 @@ class PinFlowTest : FlowTestBase() {
             listOf(cards[0].id, cards[1].id, cards[2].id),
             cardsNow().map { it.id }
         )
-        compose.onAllNodesWithContentDescription("Pinned").assertCountEquals(2)
+        compose.onAllNodesWithContentDescription(", Pinned", substring = true).assertCountEquals(2)
 
         unpin("HDFC Bank")
         awaitCardsWhere("HDFC Bank unpinned") { list ->
@@ -57,7 +55,7 @@ class PinFlowTest : FlowTestBase() {
         )
         assertTrue(afterUnpin.first { it.id == cards[1].id }.pinned)
         assertFalse(afterUnpin.first { it.id == cards[0].id }.pinned)
-        compose.onAllNodesWithContentDescription("Pinned").assertCountEquals(1)
+        compose.onAllNodesWithContentDescription(", Pinned", substring = true).assertCountEquals(1)
     }
 
     @Test
@@ -65,7 +63,7 @@ class PinFlowTest : FlowTestBase() {
         val target = seedPinnedLimit()
 
         openActions("Axis Bank")
-        compose.onNodeWithText("10 of 10 pinned. Unpin a card.").assertExists()
+        compose.onNodeWithText("Unpin a card first").assertExists()
         compose.onNodeWithText("Pin").performClick()
         assertFalse(cardsNow().first { it.id == target.id }.pinned)
         assertTrue(cardsNow().count { it.pinned } == 10)
@@ -106,10 +104,7 @@ class PinFlowTest : FlowTestBase() {
 
     private fun openActions(title: String) {
         revealCard(title)
-        compose.onNodeWithContentDescription("More for $title")
-            .performScrollTo()
-            .performClick()
-        waitForText("Copy details")
+        openCardActions(title)
     }
 
     private fun pin(title: String) {
@@ -130,12 +125,9 @@ class PinFlowTest : FlowTestBase() {
                 .fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNode(hasScrollAction() and hasScrollToIndexAction())
-            .performScrollToNode(hasContentDescription("More for $title"))
+            .performScrollToNode(hasContentDescription("$title, ending", substring = true))
         compose.waitForIdle()
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(hasContentDescription("More for $title"))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        awaitTile(title)
     }
 
     private fun <T> runBlockingSeed(block: suspend () -> T): T =

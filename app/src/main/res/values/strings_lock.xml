@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="lock_title">QuickCards is locked</string>
-    <string name="lock_subtitle">Use your fingerprint or screen lock to see your cards</string>
+    <string name="lock_title">QuickCards</string>
+    <string name="lock_a11y_title">QuickCards, locked</string>
     <string name="lock_unlock">Unlock</string>
     <string name="lock_unlock_description">Unlock QuickCards</string>
-    <string name="lock_footer">Encrypted on this phone · v%1$s</string>
-    <string name="lock_unlock_reason">Unlock to see your cards</string>
-    <string name="unlock_window_subtitle">Copies stay instant for %1$s</string>
+    <string name="lock_footer">Encrypted on this phone</string>
+    <string name="unlock_window_subtitle">Instant copy for %1$s</string>
 </resources>

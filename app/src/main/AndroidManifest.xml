@@ -46,6 +46,7 @@
             android:theme="@style/Theme.QuickCards"
             android:launchMode="singleTask"
             android:filterTouchesWhenObscured="true"
+            android:configChanges="uiMode"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -78,6 +79,9 @@
             android:theme="@style/Theme.QuickCards.Transparent" />
         <receiver
             android:name=".core.reminders.ReminderReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".core.notifications.CopyActionReceiver"
             android:exported="false" />
         <receiver
             android:name=".core.reminders.BootReceiver"

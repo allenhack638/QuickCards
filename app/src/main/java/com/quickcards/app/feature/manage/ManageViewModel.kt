@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /** A deleted list item, kept until the Undo action is dismissed. */
 sealed class DeletedEntity(val kind: EntityKind, val name: String) {
@@ -62,7 +63,7 @@ class ManageViewModel(application: Application) : AndroidViewModel(application) 
     }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManageState())
 
-    suspend fun delete(entity: ManagedEntity): DeletedEntity? = when {
+    private suspend fun delete(entity: ManagedEntity): DeletedEntity? = when {
         entity.holder != null && repository.deleteHolder(entity.id) ->
             DeletedEntity.HolderItem(entity.holder)
 
@@ -79,6 +80,14 @@ class ManageViewModel(application: Application) : AndroidViewModel(application) 
             DeletedEntity.TagItem(entity.tag)
 
         else -> null
+    }
+
+    /** Deletes [entity] and restores it when [offerUndo] returns true; outlives the editor. */
+    fun deleteWithUndo(entity: ManagedEntity, offerUndo: suspend (DeletedEntity) -> Boolean) {
+        viewModelScope.launch {
+            val deleted = delete(entity) ?: return@launch
+            if (offerUndo(deleted)) undo(deleted)
+        }
     }
 
     suspend fun undo(deleted: DeletedEntity) {

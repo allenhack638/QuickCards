@@ -25,17 +25,17 @@ class EntityPickerFlowTest : FlowTestBase() {
     fun addCardHolderCreatesAndSelectsIt() {
         openAddCardForm()
 
-        compose.onNodeWithContentDescription("Card holder")
+        compose.onNodeWithContentDescription("Holder")
             .performScrollTo()
             .performClick()
-        waitForText("Choose card holder")
-        compose.onNodeWithText("Add card holder").performClick()
+        waitForContentDescription("Search holders")
+        compose.onNodeWithText("New holder").performClick()
 
-        waitForText("New card holder")
+        awaitField("Name")
         field("Name").performTextInput("Priya Mehta")
         compose.onNodeWithText("Add").performClick()
 
-        waitForContentDescription("Card holder, Priya Mehta")
+        awaitLookup("Holder", "Priya Mehta")
         val holders = runBlocking { app.repository.holders.first() }
         assertTrue(holders.any { it.name == "Priya Mehta" })
     }
@@ -47,14 +47,14 @@ class EntityPickerFlowTest : FlowTestBase() {
         compose.onNodeWithContentDescription("Bank")
             .performScrollTo()
             .performClick()
-        waitForText("Choose bank")
-        compose.onNodeWithText("Add a new bank").performClick()
+        waitForContentDescription("Search banks")
+        compose.onNodeWithText("New bank").performClick()
 
-        waitForText("New bank")
+        awaitField("Name")
         field("Name").performTextInput("Axis Bank")
         compose.onNodeWithText("Add").performClick()
 
-        waitForContentDescription("Bank, Axis Bank")
+        awaitLookup("Bank", "Axis Bank")
         val banks = runBlocking { app.repository.banks.first() }
         assertTrue(banks.any { it.name == "Axis Bank" })
     }
@@ -63,13 +63,13 @@ class EntityPickerFlowTest : FlowTestBase() {
     fun cardTypeSheetSelectsAnExistingType() {
         openAddCardForm()
 
-        compose.onNodeWithContentDescription("Card type (optional)")
+        compose.onNodeWithContentDescription("Type")
             .performScrollTo()
             .performClick()
-        waitForText("Choose card type")
+        waitForContentDescription("Search types")
         compose.onNodeWithText("Credit").performClick()
 
-        waitForContentDescription("Card type (optional), Credit")
+        awaitLookup("Type", "Credit")
     }
 
     private fun openAddCardForm() {

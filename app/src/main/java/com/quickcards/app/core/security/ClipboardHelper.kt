@@ -6,12 +6,15 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.PersistableBundle
+import com.quickcards.app.core.data.settings.AppSettings
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Copies one card value with a clear timer.
@@ -74,6 +77,13 @@ object ClipboardHelper {
         }
     }
 
+    /** [copySensitive] with the Settings › Clear clipboard time; returns that time in seconds (0 = never). */
+    fun copyTimed(context: Context, label: String, text: String): Int {
+        val clearSec = AppSettings.get(context).clipClearSec.value
+        copySensitive(context, label, text, clearSec.takeIf { it > 0 }?.let { it * 1000L })
+        return clearSec
+    }
+
     fun clearNow() {
         clearJob?.cancel()
         clearJob = null
@@ -84,37 +94,47 @@ object ClipboardHelper {
     }
 
     /**
-     * Called when the window gains focus: a copy whose timer was lost to process death is
-     * cleared if it is still the clipboard value. A null read (unfocused) keeps the record so
-     * the next focused read can decide.
+     * Called on the main thread when the window gains focus: a copy whose timer was lost to process
+     * death is cleared if it is still the clipboard value. A null read (unfocused) keeps the record
+     * so the next focused read can decide. [ClipboardManager] is obtained here on the main thread
+     * (on Android 8 its constructor needs a Looper); only the record, the clip read and the hash run
+     * on IO. Any failure keeps the record for the next focus and never reaches the app.
      */
     fun expireIfNeeded(context: Context) {
         val app = context.applicationContext
         appContext = app
+        val clipboard = runCatching { app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
+            .getOrNull() ?: return
+        scope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+            val (expiresAt, action) = runCatching { expiryAction(app, clipboard) }.getOrNull() ?: return@launch
+            withContext(Dispatchers.Main.immediate) {
+                runCatching {
+                    // A copy made since the read owns the record now.
+                    if (prefs(app).getLong(KEY_EXPIRES_AT, 0L) != expiresAt) return@runCatching
+                    if (action == ClipboardExpiryAction.CLEAR_AND_FORGET) {
+                        clearClipboard(clipboard)
+                        lastCopiedText = null
+                        clearJob?.cancel()
+                        clearJob = null
+                    }
+                    forgetCopy(app)
+                }
+            }
+        }
+    }
+
+    /** The overdue record's deadline and what it calls for; null while none is due or the read must wait. */
+    private fun expiryAction(app: Context, clipboard: ClipboardManager): Pair<Long, ClipboardExpiryAction>? {
         val prefs = prefs(app)
         val expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0L)
-        if (expiresAt <= 0L) return
-        if (System.currentTimeMillis() < expiresAt) return
-
-        val expected = prefs.getString(KEY_HASH, null)
-        if (expected == null) {
-            forgetCopy(app)
-            return
-        }
-        val clipboard = app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        if (expiresAt <= 0L || System.currentTimeMillis() < expiresAt) return null
+        val expected = prefs.getString(KEY_HASH, null) ?: return expiresAt to ClipboardExpiryAction.FORGET_RECORD
         val current = runCatching { clipboard.primaryClip?.getItemAt(0)?.text?.toString() }
             .getOrNull()
         val action = ClipboardExpiry.decide(current, expected) { value ->
             runCatching { PanHasher.hashText(value) }.getOrNull()
         }
-        if (action == ClipboardExpiryAction.KEEP_RECORD) return
-        if (action == ClipboardExpiryAction.CLEAR_AND_FORGET) {
-            clearClipboard(clipboard)
-            lastCopiedText = null
-            clearJob?.cancel()
-            clearJob = null
-        }
-        forgetCopy(app)
+        return (expiresAt to action).takeIf { action != ClipboardExpiryAction.KEEP_RECORD }
     }
 
     private fun markSensitive(clip: ClipData) {

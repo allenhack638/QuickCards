@@ -1,115 +1,170 @@
 package com.quickcards.app.core.ui.theme
 
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Every design size; screens read these instead of literal dp values. */
+/** DESIGN.md › Layout: the 4dp grid. Paddings, margins and gaps use only these (or 0). */
+object QcSpacing {
+    val s1 = 4.dp
+    val s2 = 8.dp
+    val s3 = 12.dp
+    val s4 = 16.dp
+    val s5 = 20.dp
+    val s6 = 24.dp
+    val s8 = 32.dp
+    val s10 = 40.dp
+    val s12 = 48.dp
+    val s16 = 64.dp
+}
+
+object QcRadius {
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 20.dp
+    val xl = 28.dp
+}
+
+/** Control, row and icon sizes. Controls use these as minimums so large text grows them. */
+object QcSize {
+    val hit = 48.dp
+    val field = 48.dp
+    val bar = 64.dp
+    val row = 56.dp
+    val row2 = 64.dp
+    val nav = 80.dp
+    val ctlSm = 24.dp
+    val ctl = 32.dp
+    val ctlMd = 36.dp
+    val ctlLg = 44.dp
+    val iconXs = 16.dp
+    val iconSm = 18.dp
+    val icon = 20.dp
+    val iconLg = 24.dp
+    val statusChip = 20.dp
+    val hairline = 1.dp
+    val focus = 2.dp
+    val switchWidth = 44.dp
+    val dialogMaxWidth = 560.dp
+}
+
+/** e1 groups and fields, e2 menus, e3 sheets and dialogs. Shadows draw in the light theme only. */
+object QcElevation {
+    val e1 = 1.dp
+    val e2 = 8.dp
+    val e3 = 24.dp
+}
+
+object QcMotion {
+    const val STATE_MS = 150
+    const val NAV_MS = 200
+    const val TOAST_MS = 3_000L
+    const val TOAST_A11Y_MS = 4_500L
+    val ease = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+}
+
+/** A soft shadow under card art: CSS `0 offsetY blur spread`. */
+data class QcArtShadow(val offsetY: Dp, val blur: Dp, val spread: Dp)
+
+/** Card-art sizes (DESIGN.md › Card Art, Network marks). */
+object QcArtDimens {
+    val CornerTile = QcRadius.lg
+    val CornerSwatch = QcRadius.sm
+    val CornerMini = QcRadius.xs
+    val Padding = QcSpacing.s4
+    val HeroMinHeight = 207.dp
+
+    val SwatchWidth = 64.dp
+    val SwatchHeight = 40.dp
+    val MiniWidth = 40.dp
+    val MiniHeight = 24.dp
+
+    val MarkWidth = 56.dp
+    val MarkHeight = 28.dp
+    val SlotWidth = 40.dp
+    val SlotHeight = 24.dp
+    val MiniMarkWidth = 20.dp
+    val MiniMarkHeight = 12.dp
+
+    val GrainTile = 160.dp
+    /** Art narrower than this drops the fine pattern detail. */
+    val SmallArt = 120.dp
+
+    val GlowTileLight = QcArtShadow(16.dp, 24.dp, (-12).dp)
+    val GlowTileDark = QcArtShadow(16.dp, 32.dp, (-12).dp)
+    val GlowSwatch = QcArtShadow(2.dp, 6.dp, (-2).dp)
+    val GlowMini = QcArtShadow(2.dp, 4.dp, (-1).dp)
+    val ContactShadow = QcArtShadow(2.dp, 4.dp, 0.dp)
+}
+
+/** Legacy names kept so features compile; each resolves to a Daylight token. */
 object QcDimens {
 
     // Spacing
-    val Half = 4.dp
-    val Base = 8.dp
-    val PassGap = 12.dp
-    val ListPassGap = 16.dp
-    /** Material 3 NavigationBar container height (without the system inset). */
-    val NavBarHeight = 80.dp
-    val Gutter = 16.dp
-    val Section = 24.dp
-    val Xl = 32.dp
-    val Touch = 48.dp
+    val Half = QcSpacing.s1
+    val Base = QcSpacing.s2
+    val PassGap = QcSpacing.s3
+    val NavBarHeight = QcSize.nav
+    val Gutter = QcSpacing.s4
+    val Section = QcSpacing.s6
+    val Touch = QcSize.hit
 
     // Rounded
-    val CornerXs = 4.dp
-    val CornerBandFrame = 5.dp
-    val CornerBadge = 6.dp
-    val CornerSm = 8.dp
-    val CornerMd = 12.dp
-    val PassCorner = 18.dp
-    val DialogCorner = 28.dp
+    val PassCorner = QcRadius.lg
 
     // App chrome
-    val AppBar = 64.dp
-    val FooterAction = 52.dp
-    val Divider = 1.dp
+    val AppBar = QcSize.bar
+    val Divider = QcSize.hairline
 
     // Rows, fields and icons
     val LeadSlot = 56.dp
-    /** List row text start after a 24dp leading icon: 16 + 24 + 16 (Material 3 list spec). */
-    val FieldHeight = 56.dp
-    val HelperLine = 20.dp
-    val ListRowOneLine = 56.dp
-    val ListRowTwoLine = 72.dp
-    val Icon = 24.dp
-    val IconSmall = 18.dp
-    val IconTiny = 14.dp
-    val Monogram = 40.dp
-    val NetworkBadgeMinWidth = 56.dp
-    val NetworkBadgeMaxWidth = 128.dp
-    val NetworkBadgeSlot = 96.dp
-    val NetworkBadgeHeight = 28.dp
-    val NetworkMarkBandWidth = 44.dp
-    val NetworkMarkBandHeight = 22.dp
-    val ChipHeight = 32.dp
-    val TagHeight = 24.dp
-    val TypePillHeight = 20.dp
-
-    // Pass
-    val PassBand = 48.dp
-    val PassNotch = 9.dp
-    val PassPerforationInset = 18.dp
-    val PassPerforation = 2.dp
-    val PassFieldCopyTarget = 10.dp
-    val PassStubTarget = 56.dp
-    val PassFieldInset = 8.dp
-    val PassFieldInsetDense = 6.dp
-    val PassFieldTop = 7.dp
-    val PassLabelGap = 2.dp
-    val PassSectionTop = 12.dp
-    val PassSectionBottomNumber = 6.dp
-    val PassDetailsBottom = 12.dp
-    val PassStatusMax = 200.dp
-    /** Gap after a field, whose 20dp supporting line is already reserved. */
-    val FormFieldGap = 16.dp
-    /** Gap after a group without a supporting line; matches field-to-field. */
-    val FormGroupGap = 36.dp
-    val PassFieldBottom = 6.dp
-    val PassRevealLine = 2.dp
+    val Icon = QcSize.iconLg
+    val Monogram = QcSpacing.s10
 
     // Dialogs and sheets
-    val DialogHeaderGap = 16.dp
-    val SheetHandleTop = 16.dp
-    val SheetHandleBottom = 8.dp
-    val SheetHandleWidth = 32.dp
-    val SheetHandleHeight = 4.dp
-    val SheetTitleTop = 8.dp
-    val SheetBottom = 24.dp
-    /** Body to action row in every dialog. */
-    val DialogActionGap = 24.dp
+    val SheetHandleTop = QcSpacing.s3
+    val SheetHandleBottom = QcSpacing.s2
+    val SheetHandleWidth = QcSize.ctl
+    val SheetHandleHeight = QcSpacing.s1
+    val SheetTitleTop = QcSpacing.s2
+    val SheetBottom = QcSpacing.s6
     val SheetMaxHeightFraction = 0.86f
 
-    // Search and settings
-    val SearchBox = 48.dp
-    val SubheadTop = 24.dp
-    val SubheadBottom = 8.dp
-    val SettingsRowVertical = 8.dp
+    // Search
+    val SearchBox = QcSpacing.s10
 
-    // Adaptive layout
-    val CardMinPane = 240.dp
+    // Adaptive layout (DESIGN.md › Adaptive)
+    val MediumWidth = 600.dp
+    val ExpandedWidth = 840.dp
+    val CompactHeight = 480.dp
+    val Rail = QcSize.nav
+    val ListPane = 360.dp
+    val ListPaneMedium = 328.dp
+    val PageMax = 600.dp
+    val DetailMax = 840.dp
+    val HingeZone = QcSpacing.s6
+    /** How far a pushed screen slides in (Material shared axis). */
+    val SharedAxisOffset = QcSpacing.s8
+    /** The hero's design width; narrower panes scale it as one object. */
+    val HeroDesign = 328.dp
+    /** The hero keeps the ISO card ratio (328 x 207) at any width. */
+    const val HeroRatio = 328f / 207f
     val CardMaxWidth = 360.dp
-    val GridBreakpoint = 600.dp
-    val GridBreakpointWide = 840.dp
+    /** Panes narrower than this put each details key above its value. */
+    val NarrowPane = 320.dp
+    /** A loading tile: the height of a tile with a meta line and no note. */
+    val SkeletonTile = 148.dp
 
     // Lock screen
-    val LockMark = 96.dp
-    val LockMarkCompact = 72.dp
-    val NfcSheetIcon = 72.dp
-    val LockGlow = 176.dp
-    val LockGlowCompact = 132.dp
-    val LockButtonHeight = 56.dp
-    val LockButtonMaxWidth = 400.dp
+    val LockMark = 72.dp
+    val LockGlyph = 56.dp
+    val LockMarkTop = QcSpacing.s16 * 2 + QcSpacing.s12
+    val LockMarkTopCompact = QcSpacing.s12
 
     // Interaction
-    val DisabledAlpha = 0.38f
     val RevealDurationMillis = 5_000f
-    val LongPressMillis = 450L
-    val CopyFlashMillis = 180L
+
+    /** How long a row or tile keeps its "Copied" mark. */
+    const val CopiedMillis = 1_600L
 }

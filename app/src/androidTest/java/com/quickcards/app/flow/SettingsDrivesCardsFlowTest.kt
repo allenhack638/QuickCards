@@ -1,10 +1,13 @@
 package com.quickcards.app.flow
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -28,7 +31,7 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
         val bank = runBlocking { app.repository.createBank("HDFC Bank") }
         seedCard("4532778103492211", holder.id, bank.id, expiry = "01/20")
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
 
         openCardListSection()
         choose("Expired cards", "Hide from the list")
@@ -42,7 +45,7 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         awaitSetting { app.settings.expiredCards.value == ExpiredPlacement.KEEP }
 
         openCards()
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
     }
 
     @Test
@@ -52,22 +55,22 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         val inTwoMonths = YearMonth.now().plusMonths(2)
         val expiry = inTwoMonths.format(DateTimeFormatter.ofPattern("MM/yy"))
         seedCard("4532778103492211", holder.id, bank.id, expiry = expiry)
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
 
         openCardListSection()
         choose("Expires soon", "Within 3 months")
         awaitSetting { app.settings.expiresSoonMonths.value == 3 }
 
         openCards()
-        waitForText("EXPIRES SOON", unmerged = true)
+        waitForText("Expires soon", unmerged = true)
 
         openSettingsTab()
         choose("Expires soon", "Within 1 month")
         awaitSetting { app.settings.expiresSoonMonths.value == 1 }
 
         openCards()
-        waitForTextGone("EXPIRES SOON", unmerged = true)
-        waitForContentDescription("More for HDFC Bank")
+        waitForTextGone("Expires soon", unmerged = true)
+        awaitTile("HDFC Bank")
     }
 
     @Test
@@ -78,12 +81,12 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         seedCard("4532778103492211", holder.id, active.id, sortOrder = 0)
         val archived = seedCard("5555555555554444", holder.id, closed.id, sortOrder = 1)
         runBlocking { app.repository.archive(archived.id, "Card closed") }
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
 
         compose.onNodeWithContentDescription("Search").performClick()
         compose.onNodeWithContentDescription("Search cards").performTextInput("Closed")
-        waitForContentDescription("More for Closed Bank")
-        waitForText("ARCHIVED · CARD CLOSED", unmerged = true)
+        awaitTile("Closed Bank")
+        waitForText("Archived · Card closed", unmerged = true)
     }
 
     @Test
@@ -94,13 +97,46 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         waitForText("Renewal due in June")
 
         openCardListSection()
-        compose.onNode(hasText("Show notes on cards") and isToggleable())
+        compose.onNode(hasText("Notes on cards") and isToggleable())
             .performScrollTo()
             .performClick()
         awaitSetting { !app.settings.showNotes.value }
 
         openCards()
         waitForTextGone("Renewal due in June")
+    }
+
+    @Test
+    fun hideCardNumbersOffShowsTheFullNumberOnTheTileAndDetails() {
+        val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
+        val bank = runBlocking { app.repository.createBank("HDFC Bank") }
+        seedCard("4532778103492211", holder.id, bank.id)
+        awaitTile("HDFC Bank")
+
+        tile("HDFC Bank").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithContentDescription(HIDDEN, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onAllNodesWithText(FULL, useUnmergedTree = true).assertCountEquals(0)
+        compose.onNodeWithContentDescription("Back").performClick()
+        awaitTile("HDFC Bank")
+
+        openSettingsTab()
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Hide card numbers"))
+        compose.onNode(hasText("Hide card numbers") and isToggleable()).performClick()
+        awaitSetting { !app.settings.maskNumbers.value }
+
+        openCards()
+        awaitTile("HDFC Bank")
+        waitForText(FULL, unmerged = true)
+        tile("HDFC Bank").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithContentDescription("Number, $FULL", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onAllNodesWithContentDescription(HIDDEN, useUnmergedTree = true).assertCountEquals(0)
     }
 
     private fun openSettingsTab() {
@@ -126,7 +162,6 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
         compose.onNodeWithText(row).performClick()
         waitForText(option)
         compose.onNodeWithText(option).performClick()
-        compose.onNodeWithText("OK").performClick()
         compose.waitUntil(10_000) {
             compose.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty()
         }
@@ -134,5 +169,10 @@ class SettingsDrivesCardsFlowTest : FlowTestBase() {
 
     private fun awaitSetting(predicate: () -> Boolean) {
         compose.waitUntil(10_000, condition = predicate)
+    }
+
+    private companion object {
+        const val FULL = "4532 7781 0349 2211"
+        const val HIDDEN = "Card number ending 2211, hidden"
     }
 }

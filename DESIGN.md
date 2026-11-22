@@ -1,724 +1,601 @@
 ---
 name: QuickCards
-description: Pass Stub, v2. A multi-holder card vault where every card is a boarding pass, private by default, and every value on it is one tap from the clipboard.
+description: Daylight v1.1. A calm, light-first card vault: jewel-colour card art on quiet neutral chrome, one red action per screen, and the card number one tap from the clipboard.
 colors:
-  brand-red: "#C8202B"
-  on-brand-red: "#FFFFFF"
-  dark-ground: "#0B0B0C"
-  dark-container-low: "#121214"
-  dark-container: "#161618"
-  dark-container-high: "#1F1F22"
-  dark-container-highest: "#2A2A2E"
-  dark-on-surface: "#F4F4F5"
-  dark-on-surface-variant: "#A1A1AA"
-  dark-outline: "#6E6E76"
-  dark-outline-variant: "#2A2A2E"
-  dark-inverse-surface: "#F4F4F5"
-  dark-inverse-on-surface: "#18181B"
-  dark-inverse-primary: "#B3161F"
-  dark-selected: "#F4F4F5"
-  dark-on-selected: "#0B0B0C"
-  dark-indicator: "#2A2A2E"
-  dark-error: "#F47C82"
+  brand: "#C8202B"
+  on-brand: "#FFFFFF"
+  on-art-danger: "#FFCBC2"
+  on-art-chip: "rgba(0,0,0,.30)"
+  light-bg: "#F4F6F9"
+  light-surface: "#FFFFFF"
+  light-surface-hi: "#FFFFFF"
+  light-tonal: "#EEF1F5"
+  light-tonal-2: "#E3E7ED"
+  light-line: "#E3E7ED"
+  light-outline: "#7A8392"
+  light-ink: "#0D1117"
+  light-ink-2: "#4F5866"
+  light-ink-3: "#9AA1AC"
+  light-ink-ph: "#6B7482"
+  light-accent: "#1F4FE0"
+  light-danger: "#B42318"
+  light-danger-bg: "#FCEDEB"
+  light-ok: "#1B7F4B"
+  light-warn: "#9A5B00"
+  light-select: "#0D1117"
+  light-on-select: "#FFFFFF"
+  light-inverse: "#151A22"
+  light-on-inverse: "#F2F4F7"
+  light-inverse-accent: "#A9BFFF"
+  light-scrim: "rgba(13,17,23,.36)"
+  light-state: "rgba(13,17,23,.08)"
+  dark-bg: "#0B0D11"
+  dark-surface: "#14171D"
+  dark-surface-hi: "#1A1E25"
+  dark-tonal: "#1C2028"
+  dark-tonal-2: "#262B34"
+  dark-tonal-hi: "#2A2F39"
+  dark-tonal-hi-2: "#343A45"
+  dark-line: "#232831"
+  dark-outline: "#6B7482"
+  dark-ink: "#F2F4F7"
+  dark-ink-2: "#9AA3B0"
+  dark-ink-3: "#4F5764"
+  dark-ink-ph: "#808895"
+  dark-accent: "#8FAEFF"
+  dark-danger: "#FF8A7A"
+  dark-danger-bg: "#3A1714"
+  dark-on-danger: "#1A0503"
+  dark-ok: "#6FD3A0"
+  dark-warn: "#F2B45C"
+  dark-select: "#F2F4F7"
+  dark-on-select: "#0B0D11"
+  dark-inverse: "#E6E9EE"
+  dark-on-inverse: "#0D1117"
+  dark-inverse-accent: "#1F4FE0"
   dark-scrim: "rgba(0,0,0,.6)"
-  dark-perforation: "rgba(244,244,245,.24)"
-  dark-state-hover: "rgba(244,244,245,.08)"
-  dark-state-press: "rgba(244,244,245,.12)"
-  dark-pass-edge-base: "#45454C"
-  dark-pass-expired-band: "#34343A"
-  dark-pass-expired-band-end: "#45454C"
-  dark-pass-expired-sheen: "rgba(255,255,255,.10)"
-  dark-pass-expired-body: "#1B1B1E"
-  dark-pass-expired-edge: "#45454C"
-  dark-pass-expired-tag: "#3F3F46"
-  light-ground: "#F7F7F8"
-  light-container-low: "#FBFBFC"
-  light-container: "#FFFFFF"
-  light-container-high: "#EFEFF2"
-  light-container-highest: "#E4E4E9"
-  light-on-surface: "#18181B"
-  light-on-surface-variant: "#5F5F66"
-  light-outline: "#8A8A93"
-  light-outline-variant: "#E2E2E7"
-  light-inverse-surface: "#2E2E33"
-  light-inverse-on-surface: "#F4F4F5"
-  light-inverse-primary: "#FFB3AE"
-  light-selected: "#18181B"
-  light-on-selected: "#FFFFFF"
-  light-indicator: "#E4E4E9"
-  light-error: "#B3261E"
-  light-scrim: "rgba(0,0,0,.32)"
-  light-perforation: "rgba(24,24,27,.22)"
-  light-state-hover: "rgba(24,24,27,.06)"
-  light-state-press: "rgba(24,24,27,.10)"
-  light-pass-edge-base: "#CFCFD6"
-  light-pass-expired-band: "#4A4A52"
-  light-pass-expired-band-end: "#5A5A63"
-  light-pass-expired-sheen: "rgba(255,255,255,.10)"
-  light-pass-expired-body: "#EDEDF0"
-  light-pass-expired-edge: "#C9C9D1"
-  light-pass-expired-tag: "#52525B"
-  band-navy: "#1E3A8A"
-  band-rust: "#7C2D12"
-  band-forest: "#14532D"
-  band-plum: "#4C1D95"
-  band-graphite: "#3F3F46"
-  band-teal: "#0F5E5A"
-  band-ocean: "#0C4A6E"
-  band-indigo: "#3730A3"
-  band-violet: "#5B21B6"
-  band-magenta: "#86198F"
-  band-wine: "#6B1E3E"
-  band-crimson: "#9F1239"
-  band-burnt-orange: "#9A3412"
-  band-olive: "#4D5D1B"
-  band-moss: "#3F6212"
-  band-slate: "#334155"
+  dark-state: "rgba(242,244,247,.10)"
+  hue-navy: "#0B1D57 → #2B4EC2"
+  hue-ocean: "#04283F → #0F5D8B"
+  hue-teal: "#032F36 → #0A616B"
+  hue-forest: "#04362C → #0B644D"
+  hue-moss: "#172509 → #43611F"
+  hue-olive: "#22240A → #565C1D"
+  hue-burnt-orange: "#3F1A03 → #8C4409"
+  hue-rust: "#3A1208 → #983A1C"
+  hue-crimson: "#3E0709 → #A3202A"
+  hue-wine: "#46081C → #A81A43"
+  hue-magenta: "#3A0A31 → #9B2580"
+  hue-plum: "#2A0E3D → #6E2C9A"
+  hue-violet: "#1F0D45 → #683AC0"
+  hue-indigo: "#140F4A → #4338B8"
+  hue-slate: "#141B26 → #3E4C61"
+  hue-graphite: "#2A2D33 → #535963"
 typography:
-  display:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
+  f5:
+    fontFamily: "Geist"
     fontSize: "24sp"
-    fontWeight: 650
     lineHeight: "32sp"
-    letterSpacing: "-0.01em"
-  pass-number:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "24sp"
-    fontWeight: 560
-    lineHeight: "32sp"
-    letterSpacing: "0.045em"
-    fontFeature: "tnum"
-  headline:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "22sp"
     fontWeight: 600
-    lineHeight: "28sp"
-    letterSpacing: "-0.005em"
-  dialog-title:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "22sp"
-    fontWeight: 500
-    lineHeight: "28sp"
-  notification-value:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
+    letterSpacing: "-0.02em"
+  f4:
+    fontFamily: "Geist"
     fontSize: "20sp"
-    fontWeight: 600
-    lineHeight: "26sp"
-    letterSpacing: "0.03em"
-    fontFeature: "tnum"
-  nested-title:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "20sp"
-    fontWeight: 600
     lineHeight: "28sp"
-  stub-value:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "16sp"
-    fontWeight: 650
-    lineHeight: "26sp"
-    letterSpacing: "0.02em"
-    fontFeature: "tnum"
-  title:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "16sp"
-    fontWeight: 600
-    lineHeight: "24sp"
-  body-large:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "16sp"
-    fontWeight: 500
-    lineHeight: "24sp"
-  menu-item:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
+    fontWeight: "500-600"
+  f3:
+    fontFamily: "Geist"
     fontSize: "15sp"
-    fontWeight: 400
     lineHeight: "20sp"
-  body:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "14sp"
-    fontWeight: 400
+    fontWeight: "400-600"
+  f2:
+    fontFamily: "Geist"
+    fontSize: "13sp"
     lineHeight: "20sp"
-  body-small:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "12sp"
-    fontWeight: 400
-    lineHeight: "16sp"
-  label:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "12sp"
-    fontWeight: 600
-    lineHeight: "16sp"
-  field-label:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
+    fontWeight: "400-600"
+  f1:
+    fontFamily: "Geist"
     fontSize: "11sp"
-    fontWeight: 600
     lineHeight: "16sp"
-    letterSpacing: "0.06em"
-  band-network:
-    fontFamily: "Roboto Flex, Roboto, system-ui, sans-serif"
-    fontSize: "10sp"
-    fontWeight: 800
-    lineHeight: "20sp"
-    letterSpacing: "0.1em"
+    fontWeight: "500-600"
+  mono:
+    fontFamily: "Geist Mono"
+    fontSize: "f4 / f5"
+    fontWeight: 500
+    letterSpacing: "0.04em"
+    fontFeature: "tnum"
 rounded:
   xs: "4dp"
-  band-frame: "5dp"
-  badge: "6dp"
   sm: "8dp"
-  field: "10dp"
   md: "12dp"
-  pass: "18dp"
-  notification: "24dp"
+  lg: "20dp"
   xl: "28dp"
   full: "999dp"
 spacing:
-  half: "4dp"
-  base: "8dp"
-  pass-gap: "12dp"
-  gutter: "16dp"
-  section: "24dp"
-  xl: "32dp"
-  touch: "48dp"
-  lead-slot: "56dp"
+  s1: "4dp"
+  s2: "8dp"
+  s3: "12dp"
+  s4: "16dp"
+  s5: "20dp"
+  s6: "24dp"
+  s8: "32dp"
+  s10: "40dp"
+  s12: "48dp"
+  s16: "64dp"
+  hit: "48dp"
+  field: "48dp"
+  bar: "64dp"
+  row: "56dp"
+  row-2: "64dp"
+  nav: "80dp"
 components:
   button-filled:
-    backgroundColor: "{colors.brand-red}"
-    textColor: "{colors.on-brand-red}"
+    backgroundColor: "{colors.brand}"
+    textColor: "{colors.on-brand}"
     rounded: "{rounded.full}"
-    padding: "0 24dp"
-    height: "40dp"
-  button-filled-large:
-    backgroundColor: "{colors.brand-red}"
-    textColor: "{colors.on-brand-red}"
-    rounded: "{rounded.full}"
-    height: "52dp"
-    width: "100%"
+    minHeight: "36dp (lg 44dp)"
+    elevation: "0"
   button-tonal:
-    backgroundColor: "{colors.dark-container-highest}"
-    textColor: "{colors.dark-on-surface}"
+    backgroundColor: "{colors.light-tonal}"
+    textColor: "{colors.light-ink}"
     rounded: "{rounded.full}"
-    padding: "0 24dp"
-    height: "40dp"
+    minHeight: "36dp (lg 44dp)"
   button-outlined:
-    textColor: "{colors.dark-on-surface}"
+    border: "1dp {colors.light-outline}"
+    textColor: "{colors.light-ink}"
     rounded: "{rounded.full}"
-    padding: "0 24dp"
-    height: "40dp"
+    minHeight: "36dp (lg 44dp)"
   button-text:
-    textColor: "{colors.dark-on-surface}"
+    textColor: "{colors.light-accent}"
     rounded: "{rounded.full}"
-    padding: "0 12dp"
-    height: "40dp"
-  button-text-danger:
-    textColor: "{colors.dark-error}"
-    rounded: "{rounded.full}"
-    padding: "0 12dp"
-    height: "40dp"
-  icon-button:
-    textColor: "{colors.dark-on-surface-variant}"
-    rounded: "{rounded.full}"
-    size: "48dp"
-  chip-lock:
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.sm}"
-    padding: "0 12dp 0 8dp"
-    height: "32dp"
-  chip-unlocked:
-    backgroundColor: "{colors.dark-container-high}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.sm}"
-    padding: "0 12dp 0 8dp"
-    height: "32dp"
-  chip-input:
-    backgroundColor: "{colors.dark-container-high}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.sm}"
-    padding: "0 4dp 0 12dp"
-    height: "32dp"
-  chip-filter-selected:
-    backgroundColor: "{colors.dark-indicator}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.sm}"
-    height: "32dp"
-  chip-add-tag:
-    textColor: "{colors.dark-on-surface-variant}"
-    rounded: "{rounded.sm}"
-    padding: "0 12dp 0 8dp"
-    height: "32dp"
+    minHeight: "36dp"
   text-field:
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.xs}"
-    padding: "0 16dp"
-    height: "56dp"
-  dropdown-menu:
-    backgroundColor: "{colors.dark-container-high}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.xs}"
-    padding: "8dp 0"
-    width: "200dp"
-  dropdown-menu-item:
-    textColor: "{colors.dark-on-surface}"
-    typography: "{typography.menu-item}"
-    padding: "0 16dp"
-    height: "48dp"
-  pass:
-    backgroundColor: "{colors.dark-container}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.pass}"
-  pass-band:
-    backgroundColor: "{colors.band-navy}"
-    textColor: "{colors.on-brand-red}"
-    padding: "0 2dp 0 16dp"
-    height: "48dp"
-  band-swatch:
-    rounded: "{rounded.full}"
-    size: "40dp"
-    target: "48dp"
-  band-custom-sheet:
-    backgroundColor: "{colors.dark-container}"
-    rounded: "{rounded.xl}"
-    titleTypography: "{typography.headline}"
-  pass-network-label:
-    textColor: "{colors.on-brand-red}"
-    typography: "{typography.band-network}"
-    rounded: "{rounded.band-frame}"
-    padding: "0 7dp"
-    height: "22dp"
-  pass-number-field:
-    textColor: "{colors.dark-on-surface}"
-    typography: "{typography.pass-number}"
-    rounded: "{rounded.field}"
-    padding: "7dp 8dp 6dp"
-  pass-type-pill:
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.badge}"
-    padding: "0 8dp"
-    height: "20dp"
-  pass-stub-field:
-    textColor: "{colors.dark-on-surface}"
-    typography: "{typography.stub-value}"
-    rounded: "{rounded.field}"
-    padding: "7dp 8dp 6dp"
-    height: "56dp"
-  pass-tag:
-    textColor: "{colors.dark-on-surface}"
-    typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    padding: "0 10dp"
-    height: "24dp"
-  pass-expired:
-    backgroundColor: "{colors.dark-pass-expired-body}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.pass}"
-  pass-expired-chip:
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.badge}"
-    padding: "0 6dp 0 4dp"
-    height: "18dp"
-  pass-status-label:
-    textColor: "{colors.dark-on-surface-variant}"
-    typography: "{typography.field-label}"
-  pass-note:
-    textColor: "{colors.dark-on-surface-variant}"
-    typography: "{typography.body-small}"
-  pass-note-button:
-    textColor: "{colors.dark-on-surface}"
-    height: "48dp"
-  monogram:
-    backgroundColor: "{colors.dark-container-highest}"
-    textColor: "{colors.dark-on-surface}"
+    backgroundColor: "{colors.light-surface}"
+    border: "1dp {colors.light-outline}"
     rounded: "{rounded.md}"
-    size: "40dp"
-  holder-monogram:
-    backgroundColor: "{colors.dark-container-highest}"
-    textColor: "{colors.dark-on-surface}"
+    minHeight: "48dp"
+  card-tile:
+    width: "328dp (phone)"
+    rounded: "{rounded.lg}"
+    padding: "16dp"
+  card-hero:
+    minHeight: "207dp (ISO ID-1 at 328dp)"
+    rounded: "{rounded.lg}"
+  status-chip:
+    backgroundColor: "{colors.on-art-chip}"
+    textColor: "#FFFFFF"
+    typography: "{typography.f1}"
+    rounded: "{rounded.xs}"
+    minHeight: "20dp"
+  copy-pill:
     rounded: "{rounded.full}"
-    size: "40dp"
-  network-badge:
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.badge}"
-    width: "56dp"
-    height: "28dp"
-  entity-row:
-    textColor: "{colors.dark-on-surface}"
+    minHeight: "32dp"
+    minWidth: "88dp"
+  group:
+    backgroundColor: "{colors.light-surface}"
+    rounded: "{rounded.lg}"
+  list-row:
+    minHeight: "56dp (two-line 64dp)"
     padding: "8dp 16dp"
-    height: "72dp"
-  nav-bar:
-    backgroundColor: "{colors.dark-container-low}"
-    textColor: "{colors.dark-on-surface-variant}"
-    height: "80dp"
-  nav-indicator:
-    backgroundColor: "{colors.dark-indicator}"
-    rounded: "{rounded.full}"
-    width: "64dp"
-    height: "32dp"
-  switch-selected:
-    backgroundColor: "{colors.dark-selected}"
-    textColor: "{colors.dark-on-selected}"
-    rounded: "{rounded.full}"
-    width: "52dp"
-    height: "32dp"
+  banner:
+    rounded: "{rounded.lg}"
+    minHeight: "56dp"
   sheet:
-    backgroundColor: "{colors.dark-container}"
+    backgroundColor: "{colors.light-surface-hi}"
     rounded: "{rounded.xl}"
+    sideInset: "24dp"
   dialog:
-    backgroundColor: "{colors.dark-container-high}"
+    backgroundColor: "{colors.light-surface-hi}"
     rounded: "{rounded.xl}"
     padding: "24dp"
-  copy-notification:
-    backgroundColor: "{colors.dark-container-high}"
-    textColor: "{colors.dark-on-surface}"
-    rounded: "{rounded.notification}"
-    padding: "12dp 8dp 6dp 16dp"
+    maxWidth: "560dp"
   snackbar:
-    backgroundColor: "{colors.dark-inverse-surface}"
-    textColor: "{colors.dark-inverse-on-surface}"
-    rounded: "{rounded.xs}"
-    padding: "0 8dp 0 16dp"
-    height: "48dp"
+    backgroundColor: "{colors.light-inverse}"
+    textColor: "{colors.light-on-inverse}"
+    rounded: "{rounded.md}"
+    minHeight: "48dp"
+  nav-bar:
+    height: "80dp"
+    indicator: "56 × 32dp"
+  nav-rail:
+    width: "80dp"
 ---
 
 # Design System: QuickCards
 
+**Visual spec:** `prototype/inspo/10-daylight.html` (Daylight v1.1, locked). Open one frame with `?shot=<id>&theme=light|dark` (`&fs=2` previews 200% text). Its Foundations, Colour, Adaptive and Components sections are the visual source of truth; this file is the reference summary. Behaviour stays `prototype/v2.html` until the app ships Daylight. Decisions per round: `docs/agents/design/daylight/ROUND2_DECISIONS.md`, `ROUND8_OWNER.md`; strings to change: `docs/agents/design/daylight/STRINGS_PLAN.md` (local).
+
 ## Overview
 
-**Creative North Star: "The Pass Stub"**
+**Daylight.** Quiet neutral chrome, light first, with the card art as the only colour that belongs to content.
 
-Each card is a boarding pass built to be read at a counter. The number is the headline, expiry, CVV and name live on a tear-off stub below a dashed perforation, and every one of those values is a copy target. The pass is the brightest object on any screen and the only one that carries a hue; everything around it is graphite (dark) or paper (light) Material 3 chrome that stays out of the way.
-
-QuickCards is an Operate surface. The user opens it mid-checkout, often one-handed, copies a value and leaves. v2 makes it private by default: the card number shows only its last four digits in the network's own grouping, the CVV shows as dots, a tap copies the real value without revealing it, and a 450ms hold reveals it for 5 seconds with a draining line. One fingerprint opens an unlock window (60 seconds by default) inside which every copy is instant. When the setting is on, copying a number raises a copy notification carrying expiry and CVV with no buttons, so the rest of the checkout needs no return trip.
-
-v2 also makes it a vault for several card holders with every list editable: holders, banks, card networks, card types and tags live in a Manage tab, and nothing that cards use changes silently. Brand lives in tokens and the pass; controls are stock Material 3.
-
-**Key Characteristics:**
-- Graphite or paper ground, tonal surface-container steps, no hue in the chrome.
-- Sixteen saturated pass bands plus a custom hex are the only colour that belongs to content; the pass body carries a faint tint of its own band.
-- Private by default: last-4 numbers in network grouping, dotted CVV, tap copies, hold reveals.
-- At most one red action per screen; selection is always neutral.
-- Roboto Flex throughout, tabular figures on every number.
-- Flat, tonal depth; only transient overlays (menu, notification, snackbar) float with a shadow.
-- Copy feedback is a hard 180ms stepped flash, never a soft fade.
+| Trait | Rule |
+|---|---|
+| Ground | Light: cool grey background, white groups. Dark: near-black with tonal steps. Never a black (OLED) theme. |
+| Colour | Card art carries hue; chrome is neutral ink. Brand red = one filled CTA per screen. Accent blue = text buttons, links, caret, focus. |
+| Copy model | Home tile Copy pill copies the number only; tap a card = Card details (every value + Copy, hold number/CVV to reveal); hold a card = card actions sheet. |
+| Feedback | In-place "Copied" + TalkBack announcement for single-value copies; snackbar only for Undo, Clear, errors and actions without in-place feedback. |
+| Controls | Stock Material 3 shapes on the token scale; filled Material Symbols Rounded icons in lists and rows. |
+| Motion | Three durations; nothing moves on its own. |
 
 ## Colors
 
-A pitch-black graphite field (paper in light), a short ladder of tonal containers, one red action colour, and sixteen pass bands. Both themes carry the same roles; the frontmatter lists each theme's values under `dark-*` and `light-*`.
+### Roles (ratios measured; "vs" = the background it is checked on)
 
-### Primary
-- **Signal Red** (`brand-red`): the single filled action on a screen: the empty-state "Add card", the "Save card" / "Save changes" footer button, the filter sheet's "Show N cards". The tag sheet's "Done" is tonal so it never stacks a second red over the form. Identical in both themes, with white on top. Never used for text in dark, never for selection, never for decoration. It also fills the app icon tile in the copy notification, which stands in for the Android notification accent colour, not an action.
-- **Inverse Red** (`dark-inverse-primary` / `light-inverse-primary`): snackbar action text ("Clear", "Undo") on the inverse surface.
+| Token | Role | Light | Ratio | Dark | Ratio | Check |
+|---|---|---|---|---|---|---|
+| `bg` | App background | #F4F6F9 | · | #0B0D11 | · | |
+| `surface` | Groups, fields, detail rows | #FFFFFF | · | #14171D | · | |
+| `surface-hi` | Sheets, dialogs, menus | #FFFFFF | · | #1A1E25 | · | |
+| `tonal` / `tonal-2` | Tonal buttons, copy discs / pressed, selected | #EEF1F5 / #E3E7ED | · | #1C2028 / #262B34 | · | on raised surfaces dark uses `tonal-hi` #2A2F39 / #343A45 |
+| `line` | Hairlines | #E3E7ED | · | #232831 | · | |
+| `outline` | Field and control borders | #7A8392 | 3.83 | #6B7482 | 3.80 | vs surface ≥ 3 |
+| `ink` | Text, icons | #0D1117 | 17.48 | #F2F4F7 | 17.65 | vs bg ≥ 7 |
+| `ink-2` | Secondary text, row icons | #4F5866 | 7.19 | #9AA3B0 | 7.04 | vs surface ≥ 4.5 |
+| `ink-3` | Disabled (exempt) | #9AA1AC | · | #4F5764 | · | |
+| `ink-ph` | Placeholder text | #6B7482 | 4.72 | #808895 | 5.02 | vs surface ≥ 4.5 |
+| `accent` | Text buttons, links, caret, focus | #1F4FE0 | 6.46 | #8FAEFF | 8.26 | vs surface ≥ 4.5 |
+| `brand` | Filled CTA (white text) | #C8202B | 5.68 | #C8202B | 5.68 | vs on-brand ≥ 4.5 |
+| `danger` / `danger-bg` | Errors, destructive / error banner tint | #B42318 / #FCEDEB | 6.57 | #FF8A7A / #3A1714 | 7.84 | vs surface ≥ 4.5 |
+| `ok` | Success | #1B7F4B | 5.02 | #6FD3A0 | 9.83 | vs surface ≥ 4.5 |
+| `warn` | Warnings (Expired in the form, Not set up) | #9A5B00 | 5.43 | #F2B45C | 9.79 | vs surface ≥ 4.5 |
+| `select` / `on-select` | Switch on, checkbox, radio, selected chip | #0D1117 / #FFFFFF | 17.48 | #F2F4F7 / #0B0D11 | 17.65 | vs bg ≥ 3 |
+| `inverse` / `on-inverse` | Snackbar surface / text | #151A22 / #F2F4F7 | 15.85 | #E6E9EE / #0D1117 | 15.55 | ≥ 7 |
+| `inverse-accent` | Snackbar action | #A9BFFF | 9.63 | #1F4FE0 | 5.30 | vs inverse ≥ 4.5 |
+| `scrim` | Behind sheets and dialogs | rgba(13,17,23,.36) | · | rgba(0,0,0,.6) | · | |
+| `state` | Pressed state layer | ink 8% | · | ink 10% | · | |
 
-### Secondary
-- **Neutral Selection** (`dark-selected` / `light-selected`, near-white in dark, near-black in light): checked switch track, checkbox fill, radio dot, the fingerprint-success disc, and text selection. Its partner `on-selected` is the switch thumb and the checkmark.
-- **Neutral Indicator** (`dark-indicator` / `light-indicator`): navigation indicator pill, selected segment, selected filter chip (holder chips included).
+### On card art
 
-### Neutral
-- **Graphite Ground / Paper Ground** (`dark-ground` / `light-ground`): app background, top app bar, form footer.
-- **Container ladder** (`*-container-low` to `*-container-highest`): low for the navigation bar; container for the pass body base and sheets; high for dialogs, dropdown menus, the copy notification, the search box, the biometric prompt and the unlocked chip; highest for monograms, holder and tag tiles, tonal buttons, the dialog warning panel and the unchecked switch track. In light the container is pure white so the pass separates from paper.
-- **On-surface / On-surface-variant**: primary text, numbers, focus outline, the reveal and notification timer lines / field labels, supporting text, inactive icons, character counters.
-- **Outline** (`*-outline`): text field, outlined and segmented button strokes, the network badge frame in Manage, the sheet handle, unchecked switch border (3:1).
-- **Outline Variant** (`*-outline-variant`): hairlines, chip borders, menu dividers, the dialog card list frame, the vertical divider in the chip row, sheet and form footer dividers.
-- **Perforation** (`*-perforation`, on-surface at 24% dark / 22% light): the dashed stub line only.
-- **Pass edge base** (`dark-pass-edge-base` / `light-pass-edge-base`): mixed with the band to draw the pass's 1px edge (60% band in dark, 35% in light).
-- **Error** (`dark-error` lighter, `light-error`): error text and outlines, destructive text buttons and list items. Dark uses the lighter value so error text holds 4.5:1 on graphite.
+| Token | Value | Use |
+|---|---|---|
+| white | #FFFFFF | Primary text and the network mark on art |
+| `t2` | white 80% | Secondary text on art (≥ 4.5:1 on every hue) |
+| `on-art-chip` | black 30% | The one status-chip fill on art |
+| `on-art-danger` | #FFCBC2 | Expired date and the Expired chip ring (7.78:1 on graphite) |
 
-### Pass bands
-- **Navy, Rust, Forest, Plum, Graphite, Teal, Ocean, Indigo, Violet, Magenta, Wine, Crimson, Burnt orange, Olive, Moss, Slate** (`band-*`): the only saturated colour in the app. The user picks one per card or a custom `#RRGGBB`. Each band renders as a 118° gradient from the solid band (to 45%) toward the band lightened with 28% white, under a soft 105° white sheen at 12%. White text passes 7:1 on every curated band and the custom picker refuses anything under 4.5:1. The band also tints, by mixing into `container`: the pass body (12% dark, 6% light), the pass edge, the type pill (26%) and the pass tags (22%). Bands live outside the Material scheme.
-- **Band swatches** (`band-swatch`): 40dp discs, 48dp targets, eight per row at 412dp and six at 360dp, with the neutral on-surface selected ring outside the disc and a white check inside. The seventeenth swatch is Custom: a conic rainbow outline drawn from the palette and a palette glyph; when a custom colour is active it fills with that colour and shows the check.
-- **Custom colour sheet** (`band-custom-sheet`): a 28dp-top sheet titled "Custom colour" with an HSV wheel, brightness slider, a six-character uppercase Hex field, a live mini pass preview ("Preview" band over its body tint), up to five Recent swatches, a contrast guard ("Too light for white card text. Choose a darker shade.") that disables **Use colour**, and Cancel / Use colour text actions.
-- **Expired pass** (`*-pass-expired-*`): an expired card has no hue at all. Six neutral graphite tokens replace the band, the band gradient's end, the sheen, the body, the 1px edge and the tags: `dark-pass-expired-band` #34343A / `light-pass-expired-band` #4A4A52, `...-band-end` #45454C / #5A5A63, `...-sheen` rgba(255,255,255,.10), `...-body` #1B1B1E / #EDEDF0, `...-edge` #45454C / #C9C9D1, `...-tag` #3F3F46 / #52525B. Text colours do not change, so every value keeps full contrast. The type pill and the tags mix the expired band exactly like a normal pass, and the light-theme hairline shadow stays.
+### Named rules
 
-### Named Rules
-**The One Red Rule.** At most one red (`brand-red`) action per screen. The home list with cards carries none: adding is an app-bar icon action, and there is no FAB, because a FAB at rest covered the third pass's name field. Destructive dialog actions, rename confirmations and blocked-delete dialogs use text buttons, not red fills.
-
-**The Colour Belongs to the Pass Rule.** Only the pass carries a hue: its band, and a faint tint of its body, edge, type pill and tags. Chrome stays graphite or paper so the card is always the brightest object on screen.
-
-**The Readable Band Rule.** Every band — curated or custom — must hold 4.5:1 against the white band header and tag text. The sixteen curated values all exceed 7:1; a custom hex under 4.5:1 shows "Too light for white card text. Choose a darker shade." and **Use colour** stays disabled.
-
-**The Stored Colour Rule.** A card's colour is a curated key or a `#RRGGBB` string in the same TEXT column; no schema change. Curated keys, the custom hex and legacy hexes all resolve through one lookup, and an unknown value falls back to navy. Import keeps a readable legacy hex exactly and snaps an unreadable one to the nearest curated band.
-
-**The Expired Pass Rule.** An expired pass drops its hue entirely (band, sheen, body, edge and tags) but keeps every value at full contrast and every action working. It is the only card without a band colour; never grey out its text, disable its fields or hide it from search.
-
-**The Status Label Rule.** Status flags live on the pass's **bottom row**, right-aligned, with the tags wrapping on the left of the same row (since 2026-10-25: the CARD NUMBER label row became crowded). The label row keeps only the type pill. When a card has no tags the bottom row still shows with the status on the right; with neither tags nor status the row is absent. The status box is 24dp tall (the tag height) and at most 200dp wide, so it lines up with the first line of tags and never overlaps them. One status only, in order Archived → Expired → Check details → Expires soon. Expires soon is plain Field Label text with no icon; Check details uses `info` 16dp; Archived uses `inventory_2` 16dp with the reason after a middot, ellipsised.
-
-**The Neutral Selection Rule.** Switches, checkboxes, radios, segmented buttons, filter and holder chips, the menu checkmark and the navigation indicator use `selected` / `indicator`, never `brand-red`.
+- One filled brand-red button per screen. Destructive confirms use `danger`, and nothing else on that dialog is red.
+- Selection is neutral (`select`), never brand or accent.
+- Placeholders use `ink-ph`, never `ink-3` (which is the exempt disabled tone).
+- Every colour comes from a token; card art may use white and white alphas.
 
 ## Typography
 
-**Display Font:** Roboto Flex (with Roboto, system-ui)
-**Body Font:** Roboto Flex (with Roboto, system-ui)
+Geist 400/500/600 and Geist Mono 500 (numbers only), bundled in `res/font` (no downloadable fonts, AGENTS rule 1). Units are sp. Tracking: −0.02em titles, +0.04em numbers, +0.12em masked dots.
 
-**Character:** One variable family, the Android system face with optical sizing on, so hierarchy comes only from size and weight steps (400 to 800, with an in-between 560 for the number). Every number uses tabular figures so digit groups line up down the list.
-
-### Hierarchy
-- **Display** (650, 24/32, -0.01em): top-level screen titles in the app bar ("Cards", "Manage", "Settings").
-- **Pass Number** (560, 24/32, +0.045em, tabular): the card number on the pass, in the network's grouping (4-4-4-4, Amex 4-6-5, Diners 4-6-4). Masked numbers (dots plus last four) track slightly wider at +0.07em.
-- **Headline** (600, 22/28): empty-state titles and sheet titles ("Choose bank", "Tags", "Filter cards").
-- **Dialog Title** (500, 22/28): dialog and biometric prompt titles.
-- **Notification Value** (600, 20/26, +0.03em, tabular): expiry and CVV in the copy notification.
-- **Nested Title** (600, 20/28): titles of pushed screens beside the back arrow.
-- **Stub Value** (650, 16/26, +0.02em, tabular): expiry, CVV and name on the stub. Masked CVV dots track at +0.18em.
-- **Title** (600, 16/24): no-result headings.
-- **Body Large** (500, 16/24): list item headlines, settings rows.
-- **Menu Item** (400, 15/20): dropdown menu rows; a 13sp on-surface-variant suffix may follow.
-- **Body** (400, 14/20): supporting text, dialog body, snackbar.
-- Settings subheads use **Title** (600, 16/24) in on-surface, flush with the row icons at the 16dp gutter, sentence case.
-- **Body Small** (400, 12/16): the note on the pass, clamped to two lines; the expanded note keeps the same size. Its More/Less control is Label (600, 12/16) inside a 48dp touch target.
-- **Label** (600, 12/16): navigation labels, helper text, pass tags, character counters (tabular).
-- **Field Label** (600, 11/16, +0.06em, uppercase): the name of each value on the pass ("CARD NUMBER", "EXPIRY") and in the notification, plus the status labels in the number row ("EXPIRES SOON", "CHECK DETAILS", "ARCHIVED · CARD CLOSED") and the text inside the Expired chip. On the pass it swaps to a check plus "Copied" for 1.2s after a copy.
-
-Band text has its own small scale: bank name 15/700, network label 10/800 tracked +0.1em inside its frame. The type pill on the number row is 10sp tracked +0.08em, uppercase with the field label it sits in. The Expired chip is 10sp/700 tracked +0.06em with a 16dp `event_busy` icon; the other status labels are Field Label at 11sp with a 16dp icon and on-surface-variant text.
-
-### Named Rules
-**The Tabular Figures Rule.** Every digit the user may read or copy (pass number, stub, notification values, text fields, countdowns, counters, version) is set with `tnum`.
-
-**The Field Label Rule.** Uppercase tracked labels exist only as the name of a copyable value (on the pass and in the notification). They are not section headings, kickers or decoration anywhere else; settings subheads are sentence case.
+| Token | Size / line | Weight | Use | Compose |
+|---|---|---|---|---|
+| `f5` | 24 / 32 | 600 | Screen title, hero number | `headlineSmall` |
+| `f4` | 20 / 28 | 500–600 | Tile number, sheet and dialog title, nested bar title | `titleLarge` |
+| `f3` | 15 / 20 | 400–600 | Body, row title, bank, field value | `bodyLarge` |
+| `f2` | 13 / 20 | 400–600 | Secondary, labels, buttons, chips, group labels | `bodyMedium` |
+| `f1` | 11 / 16 | 500–600 | Captions, nav labels, help, tags, status chips | `labelSmall` |
+| mono | f4 / f5 | 500 | Card number, expiry, CVV, masked dots | Geist Mono, `tnum` |
 
 ## Layout
 
-An 8dp grid with a 4dp half step. Phone layout is a single column: 16dp screen gutters, passes full width and 12dp apart, list sections separated by 24dp, form fields spaced by 10dp plus a reserved 20dp helper line so errors never shift the layout. Touch targets are at least 48dp.
+- **Spacing:** 4dp grid, tokens `s1` 4 · `s2` 8 · `s3` 12 · `s4` 16 · `s5` 20 · `s6` 24 · `s8` 32 · `s10` 40 · `s12` 48 · `s16` 64. Paddings, margins and gaps use only these (or 0).
+- **Defaults:** screen edge `s4` · tile and row inner `s4` · list gap `s3` · section gap `s6` · icon-to-text `s1`–`s2` · sheet side inset `s6` · editor block rhythm `s3`.
+- **Sizes:** touch target 48 (invisible hit areas) · field 48 · top bar 64 · row 56 / two-line 64 · nav bar 80 · icons 24 (bars, rows), 20 (menus, fields, banners), 18 (pills, discs), 16 (pin mark).
+- **Phone frame:** 360 × 780 reference; card tile 328 wide; hero 207 tall (ISO ID-1). On Card details the hero fills the rows' content width (380 on a 412 phone) at the ISO ratio, so card and rows share both edges; the column cap (600) caps it on wider windows.
+- Controls size from content: buttons, chips, segments, pills, status chips and fields use a minimum height, never a fixed one, so 200% text grows them.
 
-The home screen stacks: a 64dp top app bar ("Cards" with search, filter and add in the same row), a chip row (unlock chip; then, when more than one holder has cards, a 1x20dp vertical divider and single-select holder chips "All", "Aarav", "Priya"; then active filter input chips), the scrolling pass list, and an 80dp three-item navigation bar (Cards, Manage, Settings). The navigation bar is persistent: switching tabs swaps only the content beneath it, and toggling a setting keeps the scroll position. Search replaces the app bar with a 48dp pill search box and hides the navigation bar; nested screens (add, edit, list editors) hide it too and pin a full-width 52dp action in a footer above a hairline. At 600dp and wider the navigation bar becomes a navigation rail and the list becomes a multi-column grid; book-fold postures split the grid around the hinge.
+### Alignment rules
 
-Pass height is not fixed in v2: the band, number row and stub are constant; the bottom row (tags and/or status) adds height only when it has content; a note adds a Body Small block under it (two lines, 12/16) plus a 48dp More/Less row only while the note overflows. Spacing (2026-10-25, "slightly more room"): passes 16dp apart in lists (`ListPassGap`); number section 12dp top / 6dp bottom; perforation 8dp below; details row 8dp top / 12dp bottom; bottom row 16dp to the edge, or 8dp to a note; label → value 2dp.
+| Rule | Value |
+|---|---|
+| Group label left edge = the rounded group's outer left edge (Settings, Manage, sub-pages, tablet two-pane) | padding-left 0 |
+| Status chip: one slot on the subtitle line, right-aligned, vertically centred; its right edge = the network mark's artwork right edge = the Copy pill's right edge (tile, hero, form preview, adaptive) | Δ 0 px |
+| Leading checkbox / radio to its label | `s3` 12 · box 20 · hit 48 |
+| Inline field action (e.g. "Add") lives inside the field as a trailing text button; an action outside a field matches its height and radius | field 48 |
+| Masked number: compact surfaces (tile, row, sheet header, dialog, notification, autofill) "••0366"; hero, detail rows and form preview "••••0366". Hide card numbers off: tile shows the grouped number in mono f3, hero in mono f4, the Number row in mono f3; all else stays masked | 2 / 4 dots + last 4 |
+| Pin mark sits after the bank name on the tile and hero | `push_pin` filled 16, white 90% |
+| Editors: one vertical rhythm between every block (preview, field, field row, segmented control, checkbox list, banner); a checkbox group is a plain list of 48 rows with the box on the field edge, no container | `s3` 12 |
 
 ## Elevation & Depth
 
-Surfaces are flat and tonal: depth comes from the surface-container ladder, not shadows. Sheets, dialogs and the biometric prompt sit above a scrim (60% black dark, 32% light) with no shadow. In dark the pass has no shadow; its 1px band-tinted edge separates it from graphite. In light it adds a two-layer hairline drop shadow so a white-ish pass separates from paper. Only transient floating elements carry an ambient shadow: the snackbar, the dropdown menu and the copy notification.
+| Level | Use | Light | Dark |
+|---|---|---|---|
+| `e1` | Groups, fields | 1–2 px soft shadow + 1dp `line` ring | 1dp `line` ring only |
+| `e2` | Menus, autofill | soft 24 px shadow | tone (`surface-hi`) + 6% white ring |
+| `e3` | Sheets, dialogs | soft 48 px shadow | tone + 6% white ring |
+| art glow | Card art | coloured shadow, card hue at 45% | same, deeper |
 
-### Shadow Vocabulary
-- **Pass lift, light only** (`filter: drop-shadow(0 1px 1px rgba(24,24,27,.06)) drop-shadow(0 2px 6px rgba(24,24,27,.06))`): applied to the pass wrapper so the notched mask is followed. Dark is `none`.
-- **Pass edge** (`box-shadow: inset 0 0 0 1px color-mix(band 60%, #45454C)` dark, `35%, #CFCFD6` light): a 1px inset edge in the card's own colour.
-- **Snackbar** (`box-shadow: 0 2px 6px rgba(0,0,0,.25)`).
-- **Dropdown menu** (`box-shadow: 0 2px 6px rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.2)`).
-- **Copy notification** (system surface; no app shadow).
-
-### Named Rules
-**The Tonal Depth Rule.** Raise a surface by stepping it up the container ladder, never by adding a shadow. Shadows belong only to transient elements that float without a scrim (snackbar, menu, notification) and to the light-theme pass hairline.
+Dark theme lifts with tone (`surface` → `surface-hi`); shadows only under floating layers. Filled buttons have no shadow.
 
 ## Shapes
 
-Material 3 shape roles plus product shapes. Extra small (4dp) for text fields, dropdown menus and the snackbar; 5dp for the network label frame on the band; 6dp for the type pill and the network badge in Manage; small (8dp) for chips and pass tags; 10dp for the copy-target state layer inside the pass; medium (12dp) for bank monograms, tag tiles, the dialog card list and the warning panel; the pass at 18dp; 24dp for the copy notification; extra large (28dp) for sheet top corners, dialogs and the biometric prompt; full for buttons, icon buttons, the search box, the navigation indicator, the switch and holder monograms.
+| Token | Value | Use |
+|---|---|---|
+| `r-xs` | 4 | Checkbox, mini art, status chips |
+| `r-sm` | 8 | Tags, colour swatches |
+| `r-md` | 12 | Fields, menus, snackbar |
+| `r-lg` | 20 | Card art, groups, banners |
+| `r-xl` | 28 | Sheets, dialogs, notifications |
+| `r-full` | pill | Buttons, chips, Copy pill |
 
-The pass silhouette is the signature: an 18dp rounded rectangle with two 9dp semicircular notches cut through its left and right edges exactly at the perforation line. The notch position is measured from layout (the perforation's offset) rather than hard-coded, so it stays on the line whatever the content above it.
+## Card Art
+
+### Hues
+
+Sixteen colours, keys = the `form_band_*` keys stored on cards. Each is a 135° gradient from the deep stop `c1` to the light stop `c2`; white text is ≥ 7:1 on `c2` (AAA for digits). A custom colour must pass the same 7:1 guard ("Too light. Pick a darker shade." disables "Use colour").
+
+### Pattern follows colour
+
+Deterministic, never random. Each colour has one pattern, assigned along the palette order so neighbouring hues differ. Same colour = same pattern; changing a card's colour changes its pattern.
+
+| # | Colour | c1 → c2 | White on c2 | Pattern |
+|---|---|---|---|---|
+| 1 | Navy | #0B1D57 → #2B4EC2 | 7.07 | rings |
+| 2 | Ocean | #04283F → #0F5D8B | 7.10 | rosette |
+| 3 | Teal | #032F36 → #0A616B | 7.15 | contours |
+| 4 | Forest | #04362C → #0B644D | 7.13 | lines |
+| 5 | Moss | #172509 → #43611F | 7.07 | weave |
+| 6 | Olive | #22240A → #565C1D | 7.13 | contours |
+| 7 | Burnt orange | #3F1A03 → #8C4409 | 7.13 | rosette |
+| 8 | Rust | #3A1208 → #983A1C | 7.10 | lines |
+| 9 | Crimson | #3E0709 → #A3202A | 7.51 | weave |
+| 10 | Wine | #46081C → #A81A43 | 7.26 | lines |
+| 11 | Magenta | #3A0A31 → #9B2580 | 7.07 | rings |
+| 12 | Plum | #2A0E3D → #6E2C9A | 8.43 | weave |
+| 13 | Violet | #1F0D45 → #683AC0 | 7.11 | rosette |
+| 14 | Indigo | #140F4A → #4338B8 | 8.41 | contours |
+| 15 | Slate | #141B26 → #3E4C61 | 8.71 | rings |
+| · | Graphite (and every expired card) | #2A2D33 → #535963 | 7.05 | lines |
+| · | Custom | from hue + lightness | ≥ 7 | FNV-1a 32-bit of the hex (light stop, upper case, no #) mod 5 over [rings, lines, contours, rosette, weave] |
+
+Compose: `QcCardArt.patternFor(band)` / `patternFor(hex)`.
+
+### Layers
+
+1 linear 135° c1 → c2 · 2 radial white 20% at top-left · 3 stroke pattern 1dp white 4–16%, halved over the lower half (≤ 8% under the digits; on the hero it fades to 25% under the number band) · 4 grain 14% overlay · 5 glow shadow in the hue · 6 inner edge light/dark 1dp.
+
+### Bank default colours
+
+Every bank has a default colour; graphite is never a default. Picking a bank in Add card applies its colour unless the card's colour was chosen by hand; the override stays with the card, and the "Bank colour" chip in the Colour sheet resets it.
+
+| Bank | Colour | Bank | Colour |
+|---|---|---|---|
+| HDFC Bank | Navy | AU Small Finance Bank | Burnt orange |
+| SBI Card | Ocean | Federal Bank | Olive |
+| ICICI Bank | Rust | Bandhan Bank | Moss |
+| Axis Bank | Wine | Punjab National Bank | Forest |
+| Kotak Mahindra Bank | Crimson | Canara Bank | Teal |
+| IndusInd Bank | Plum | Union Bank of India | Slate |
+| RBL Bank | Violet | American Express | Ocean |
+| IDFC FIRST Bank | Magenta | HSBC | Crimson |
+| Bank of Baroda | Rust | Standard Chartered | Teal |
+| Yes Bank | Indigo | Citibank | Navy |
+| Chase | Indigo | Capital One | Slate |
+| Bank of America | Wine | Barclays | Ocean |
+| Wells Fargo | Burnt orange | DBS Bank | Crimson |
+
+Aliases (hdfc, sbi, state bank of india, amex, citi …) resolve to the same bank (`BankCatalog.aliases`).
+
+**Auto-pick for a new bank:** palette order = navy, ocean, teal, forest, moss, olive, burnt orange, rust, crimson, wine, magenta, plum, violet, indigo, slate (graphite excluded). Count the colours used by every bank in the list (built-in and user, one entry per bank). Pick the first colour in that order used by none ("Not used by another bank"); if all are used, pick the least-used colour, ties to the earlier one.
+
+### Expired and empty
+
+- **Expired** (after the last day of the expiry month): the card renders in graphite with its lines pattern, the stripes fade above the digits band, the date turns `on-art-danger`, and the status chip reads "Expired". Text keeps full contrast; every action keeps working.
+- **Empty form preview:** graphite, "New card", "••••0000", "MM/YY".
+- **Empty vault sample:** a faded jewel card (pattern visible), "Your bank", "••0000".
+
+### Network marks
+
+| Rule | Value |
+|---|---|
+| Tone | White on card art (white fills knock out). On surfaces full colour in both themes, except wordmarks unreadable on dark (Visa, RuPay, Diners, Discover, Mir), which go white there. Box marks (Amex, JCB, UnionPay) stay full colour on every surface; Mastercard and Maestro are always full colour, on art too. |
+| On the card | 56 × 28 canvas, logo in 48 × 20; the artwork's right edge sits on the content edge. No plate. |
+| Lists, fields, autofill | Fixed 40 × 24 slot, the logo's own bounds fitted (24 tall, wide marks up to 40 wide), same for all ten |
+| Mini card | 20 × 12 |
+| Never | Bank logos |
+
+Drawables: `net_<key>` (colour) plus `net_<key>_mono` for the eight white-on-art networks (Visa, RuPay, Amex, Diners, Discover, JCB, Mir, UnionPay).
 
 ## Components
 
-Stock Material 3 components themed with these tokens. In Compose, use the M3 component and pass colours through `MaterialTheme`; do not rebuild controls.
+### Card tile (Home)
+
+Header grid: row 1 bank (+ pin) | network mark; row 2 type · holder | status chip. Then the note (Notes on cards on: ≤ 2 lines, ellipsis, nothing else), then the number "••0366" and expiry with the Copy pill on the right. Tap = Card details; hold (500 ms, or the context-menu key) = white 10% pressed layer, then the card actions sheet. The tile and the pill are separate focus targets. A due bill adds a strip "Due in N days" + "Mark paid" under the card.
+
+### Copy pill
+
+Pill, min 32 tall, min 88 wide, 48 hit. Idle: copy icon + "Copy" (`f2`/500) on white 14% with a white 26% inner ring. Copied: white fill, text in the card hue, check + "Copied", polite announcement ("Card number copied"). No snackbar.
+
+### Status chip
+
+One component for Check, Expires soon, Expired, Last used, Archived (and "Archived · reason"; inside Manage › Archived the chip is the reason alone, and the card keeps its own colour): text only, no icon, `f1`/600 white on `on-art-chip`, 1dp white 30% inner ring (Expired: `on-art-danger` ring), `r-xs`, min height 20. One chip per card, priority Archived > Expired > Check > Expires soon > Last used. Same slot and style on tiles, the details hero, Archived, adaptive panes and the gallery. Check reads "Check details" to TalkBack.
+
+### Card details
+
+Hero card (4 dots, status chip, pin) then a group of rows: Number, Expiry, CVV, Holder, Note, each with a Copy disc. Copied row: value tinted in the hue, filled check disc, "Copied" left of the disc (shown only where it costs the value no line; values otherwise run to the disc). Holding Number or CVV reveals it for 5 s with a 2dp draining line under the row (the only timed line). Bar: back, Edit, ⋮ (card actions). Invisible level-1 heading "HDFC Bank card ending 0366".
 
 ### Buttons
-- **Shape:** fully rounded (40dp height, 20dp radius; large 52dp, 26dp radius).
-- **Filled:** `brand-red` with white text, 24dp horizontal padding, 14sp/600. The one red action. Footer actions use the large full-width size.
-- **Tonal:** container-highest fill, on-surface text (for example "Add" beside the new-tag field).
-- **Outlined:** 1dp `outline` stroke, on-surface text.
-- **Text:** 12dp padding, on-surface text; destructive uses `error`. Dialog and notification actions are always text buttons.
-- **States:** 8% hover and 12% press state layers of on-surface; disabled at 38% opacity (filled disabled becomes on-surface at 14%). Focus is a 2dp on-surface outline offset 2dp.
 
-### Chips
-- **Style:** 32dp, 8dp corners, 13sp/600, 18dp leading icon, outline-variant border.
-- **Holder chips:** single-select filter chips after a vertical divider; the selected chip takes `indicator` and a leading check.
-- **Input chips:** active filters and a card's tags in the form, container-high fill with a 24dp remove button.
-- **Add tag chip:** dashed outline-variant border, on-surface-variant text, leading plus. It disappears when the card reaches its tag limit. A right-aligned tabular counter ("2 of 3") sits on the Tags group label.
-- **Expired chip:** the one compact status chip. 18dp high, 6dp corners, 1dp `outline` border (not outline-variant, so it reads on the grey expired body), transparent fill, on-surface 10sp/700 tracked +0.06em, 16dp `event_busy` icon, 4dp left / 6dp right padding, gap 3dp, centred in the bottom row's 24dp status box. It is a status, not an action: never filled, never red, never a tap target.
+| Variant | Look | Use |
+|---|---|---|
+| Filled | Brand red, white text, no shadow | The one primary action per screen |
+| Tonal | `tonal` fill, ink text (steps to `tonal-2` on the app background) | A lone sheet footer action (Done) |
+| Outlined | 1dp `outline` (3.8:1), ink text, transparent | Secondary in sheet footers (Cancel beside a filled primary) |
+| Text | Accent text | Dialog actions, inline actions, banner actions |
+| Text danger | `danger` text | Destructive dialog confirm |
+| Disabled (any variant) | Content ink 38%, container/outline ink 12%, no shadow, no state layer, disabled semantics | Save until valid, Export until rules pass, Erase until ticked, Pin at the limit |
 
-### Cards / Containers
-The pass is the only card. Sheets use `container`, 28dp top corners, a 32x4dp handle, a headline title, and an optional footer above an outline-variant hairline. Dialogs use `container-high`, 28dp corners, 24dp padding, max 360dp wide, actions as right-aligned text buttons.
+Min height 36 (large 44), `r-full`, pressed = currentColor 12% layer. Full-width footer buttons may wrap. A disabled primary in an editor shows one `f2` `ink-2` line above it naming what is missing.
 
-### Inputs / Fields
-- **Tap your card:** on phones with NFC (and the Settings switch on), Add card shows a text button with the NFC icon above the number field. It opens a sheet, "Hold your card to the phone" (Headline), the NFC icon in primary, body copy, "Waiting for a card…" and Cancel; reader mode runs only while the sheet is open. A read fills the number and, when empty, the expiry, closes the sheet and shows the snackbar "Card read. Enter the CVV to finish."; a failed read swaps the body for the retry hint.
-- **Style:** M3 outlined, 56dp, 4dp corners, 1dp `outline`, floating label, 16sp tabular input. The detected network label ("AMEX") is the only trailing element on the number field, 16dp from the outline's end edge; it grows to 128dp for labels up to 15 characters and ellipsises beyond that.
-- **Smart paste:** a single input event that inserts two or more characters — a paste or a keyboard's own scan commit — is parsed for a card number and an expiry. A number goes through the normal field rules (grouping, network detection, length limit and validation); an expiry also fills Expiry when that field is empty. The CVV is never filled from pasted or scanned text and keeps its own filter. Typing one character at a time behaves exactly as before, and junk text falls back to the field's digit filter with no snackbar. Copy: "Card number filled from the pasted text" or "Card number and expiry filled from the pasted text".
-- **Helper line:** always reserved (20dp min), flush with the field's outline: the helper or error starts exactly at the outline's left edge and the counter ends exactly at its right edge (0dp inset, every input). Helper message on the left; an optional right-aligned tabular character counter ("12/30") on fields with a limit (card name, note, list names, tags). The counter stops input at the limit.
-- **Focus:** 2dp `on-surface` stroke and on-surface label, never a coloured glow. Hover strengthens the stroke to on-surface.
-- **Error:** 2dp `error` stroke with error label and helper; the message names the problem and the fix. Fields validate on leave and on save; save moves focus to the first problem. A legacy field that still needs review opens Edit already in error ("Use MM/YY").
-- **Fix row:** a field repaired automatically by the legacy normaliser (number, expiry or CVV) shows a 48dp row directly under its reserved helper line: "Changed from {before}" in Label (12/16, on-surface-variant) on the left and a text button **Undo** on the right, flush with the outline's left and right edges. The row exists only while a repair record is present and disappears as soon as the field is edited. Undo restores the stored before value and removes the record; saving still runs the normal field rules.
-- **Past expiry:** an expiry in the past is valid input (expired cards are real data). Only "Use MM/YY" (format) and "Check the year" (more than 20 years ahead) are errors.
+### Inputs
 
-### Exposed Dropdown Menu
-Used for holder and card type (there is no network field; the network follows the number). The field is a read-only outlined text field with a 48dp trailing caret. The menu is `container-high`, 4dp corners, 8dp vertical padding, min 200dp wide, max 336dp tall, with the menu shadow; it scales down from its field over 180ms. Rows are 48dp, 16dp side padding, Menu Item type. The current choice carries a trailing on-surface check (neutral, never red). A divider then a final "Add …" row (leading plus) creates a new entry without leaving the form. Banks use a searchable sheet instead, because the list is long.
+Outlined field, min 48, `r-md`, 1dp `outline`; focus 2dp accent; error = `danger` outline + help line tied to the field; warning = help in `warn` only (never blocks). Placeholders in `ink-ph`, mono for number, expiry and CVV. Password, CVV and PIN fields mask with real bullets (Geist Mono, same size as masked digits). Picker fields (Holder, Bank, Type, Colour) are buttons that open the picker sheet ("Holder, Diya Mehta, double-tap to choose"). Search field: only the outer pill shows state; no inner border or ring. Keyboard: number, expiry, CVV and due day show Next (number → expiry → CVV → due day → note); the note shows Done.
 
-### Copy Notification
-Raised after a card number is copied, when "Show expiry and CVV after copying" is on (off by default; turning it on asks to unlock). It appears in the notification shade, silent, on a low-importance channel; it is not a heads-up and never covers another app. It uses the platform notification layout: the app's small icon, the card title and last four as the title, and one line of text with expiry and CVV separated by " · ". No custom layout, no action buttons, no in-notification countdown and no drain bar; Android dismisses it after the notification time (30s default). The public lock-screen version says "Card details hidden"; the private version is shown after the device is unlocked. No app shadow or corner radius applies: the system draws the notification surface.
+### Lists and groups
 
-### Lists and Entity Rows
-- **List items:** 56dp one-line, 72dp two-line, 16dp padding, 16dp gap, 24dp leading icon, Body Large headline over Body supporting text. Destructive rows use `error`.
-- **Entity rows (Manage):** two-line rows with a lead slot at least 56dp wide: a 40dp tile centred with 8dp margins (bank monogram 12dp corners; holder initials fully round; tag tile 12dp corners); network rows use a lead column that is exactly the 56dp logo when every row has a mark, or the width of the widest custom text badge in that list (measured from its 9sp/800 label plus 8dp side padding and the 1dp frame), capped at 96dp. The badge is 28dp high, 56 to 96dp wide, grows to fit the label and ellipsises past 96dp (6dp corners, 1dp outline frame, 8dp side padding, 9sp/800 label). Every network row's text starts at the same x: gutter + column + 16dp, so a 56dp column puts it at 88dp and a 96dp column at 128dp. In the light theme a built-in mark is drawn bare at 56x28dp with no plate or frame; the dark theme keeps the plate for contrast. Supporting text gives usage ("2 cards", "15 digits · CVV 4 · 1 card", "Not used"). Trailing: 48dp edit and delete icon buttons. The card form's number field shows a 44x22dp plate as its trailing element.
-
-### Rename-Confirm and Delete-Blocked Dialogs
-- **Rename confirm** ("Update 2 cards?"): a container-highest warning panel (12dp corners, 12dp padding, leading warning icon) states the change, then a framed card list (1dp outline-variant, 12dp corners, rows 10x12dp with hairlines) shows each affected card as a 22x14dp band swatch, card name and tabular last four, and the holder at the trailing edge. Actions: "Cancel" and "Update N cards", both text buttons.
-- **Delete blocked** ("Delete the cards first"): body names the item and its usage, the same card list, actions "Show cards" (opens the card list filtered to exactly those cards) and "OK".
-- Deleting an unused item asks first and offers Undo in the snackbar.
-
-### Navigation
-- **Top app bar:** 64dp, ground colour; Display title on top-level screens, back arrow plus 20sp title on nested ones. Actions are 48dp icon buttons (on-surface-variant; add and active filter in on-surface).
-- **Navigation bar:** 80dp, container-low with a top hairline, three destinations (Cards, Manage, Settings), persistent across tabs. The 64x32dp neutral indicator grows in from 30% width over 350ms; the selected label turns on-surface and bold, its icon stroke heavier. Hidden on nested screens and in search. Rail at 600dp+.
-
-### Selection Controls
-Filter and holder chips are 32dp pills (8dp corners) inside a 48dp touch target; the press ripple is drawn by the pill itself and clipped to it, never by the 48dp target. Settings rows that open a picker or dialog end in a chevron; switch rows end in the switch; immediate actions (Lock now, Export, Import, Erase) have no trailing icon.
-
-Switch (52x32dp; selected track `selected`, thumb `on-selected` 24dp), checkbox (18dp, 2dp corners), radio (20dp) and segmented button (40dp, outline stroke, selected segment `indicator` with a check) all select in neutral.
-
-### App Lock Screen
-A full-screen `bg` surface above the app (below the biometric prompt) shown on launch, after the inactivity time with no touch, key or scroll, when the user leaves the app, and from Lock now; the shortest inactivity time is 10 seconds and Never turns the timer off. Centered: the 96dp app mark (72dp under 600dp tall) over a 176dp radial red glow at 30%, "QuickCards is locked" (Screen Title) and "Use your fingerprint or screen lock to see your cards" (Body, on-surface-variant). Bottom: a full-width primary **Unlock** button (56dp tall, max 400dp, fingerprint icon) and, 24dp below, a quiet shield line "Encrypted on this phone · v{version}". The system prompt opens on its own once per lock, as soon as the app is in the foreground; Unlock re-opens it after a cancel. Entrance: the mark scales 0.92 → 1 over 420ms, the copy and the button rise 12dp and fade in at 90ms and 160ms (emphasized decelerate). Locking closes every overlay, re-masks revealed values, ends the copy window; the clipboard and the notification keep their own timers so the user can paste in another app. Back does nothing here, and touches never reach the app underneath. One successful BiometricPrompt unlocks the app and starts the instant copy window.
-
-### Logo
-The **Stub Lock** mark: a white landscape card split into a card body (left) and a torn-off stub (right) by a thin red gap; two red number bars are cut into the body and a padlock into the stub. It sits on solid brand red `#C8202B` at the approved **Compact** weight (0.9 scale around the canvas centre, 54,54); the mark spans x 27.9–80.1 and y 38.7–71.1 on the 108dp adaptive canvas, inside the 66dp safe circle. The 72dp lock-screen tile adds a 16-unit (16dp) corner radius. Masters live in `docs/brand/stub-lock/`: `pathdata.txt` (the whole mark as one even-odd path), `foreground.svg`, `monochrome.svg`, `icon-fullbleed.svg`, `icon-play-512.svg`, `notification.svg`, `mark-red.svg`. The app ships VectorDrawables only: `ic_launcher_background`, `ic_launcher_foreground`, `ic_launcher_monochrome`, `ic_stat_quickcards` and `qc_app_mark`; the store raster is `docs/brand/stub-lock/play-store-512.png`. Used on the launcher, themed icons, the copy notification, the Android 12+ splash screen (`qc_splash_mark`: the rounded red tile at two-thirds of the icon circle, never a full square), the 96dp lock-screen tile and as the favicon of the prototypes. Never recolour the tile, add gradients to the mark, place the glyph on a band colour, add card art or network logos, rotate it or use it below 24dp. The geometry is locked by `BrandAssetsTest`.
+`group` = `surface`, `r-lg`, `e1`; rows min 56 (two-line 64), 16 side padding, hairline between rows, leading icon 24 `ink-2`, chevron on rows that open a sheet or page. Group labels `f2`/600 `ink-2` on the group's outer edge. Danger row (Erase all data) stands alone in `danger`.
 
 ### Icons
-Material Symbols Rounded throughout (the Android system family), 24dp at weight 400, unfilled. The selected navigation icon fills (FILL 1, weight 500). Small confirmations (field "Copied" check, checkbox, segmented check, swatch check) use weight 600 at optical size 20. The fingerprint and lock-screen glyphs use weight 300 at optical size 48. Never mix in hand-drawn or other-library icons.
 
-### Snackbar and Biometric Prompt
-One snackbar host above the navigation bar: inverse surface, 4dp corners, 48dp min, action text in inverse-primary; 3s, or 4.5s with an action. Copy snackbars state when the clipboard clears ("Card number copied · clears in 1 min" with Clear). The biometric prompt is the system `BiometricPrompt`, bottom-anchored with 28dp corners; its 72dp fingerprint disc turns `selected` on success. Its subtitle states the reason or the window ("Copies stay instant for 1 minute").
+Material Symbols Rounded, weight 400, grade 0, optical size 24, one family. **Filled (FILL 1)** for every list, row and leading icon in Settings, Manage, sheets, dialogs, banners and pickers; outlined for top-bar actions and in-field icons. Navigation bar per M3: selected filled, unselected outlined. Row icons `ink-2`.
 
-### Pass Colour
-- **Group:** "Card colour" group label (Body 600, on-surface-variant) 10dp above a grid of fifteen 40dp discs in 48dp targets plus the Custom disc as the sixteenth: exactly two rows of eight at 412dp, six per row at 360dp. Slate left the grid (too close to Graphite) but stored slate cards still render. The selected disc gets the neutral on-surface ring 1dp outside it and a white check inside. Every content description is "{name} colour"; a custom disc reads "Custom colour, {hex}".
-- **Custom sheet:** `QcModalBottomSheet`, 28dp top corners, title "Custom colour" (Headline). An HSV wheel (200dp) over a brightness slider, then an M3 Hex field (label "Hex", 6 uppercase characters, counter 6/6, helper line reserved). The field validates live: an incomplete value disables **Use colour** with no message; a valid value under 4.5:1 against white shows "Too light for white card text. Choose a darker shade." in the error colour and keeps **Use colour** disabled. Below: a live mini pass — the 48dp band with "Preview" in white over the body tint and 1px edge — then up to five 24dp Recent swatches in 48dp targets. Footer: text actions **Cancel** / **Use colour**.
-- **Storage and import:** the existing TEXT band column holds a curated key or `#RRGGBB`; no migration. `PassColors.band(key)` parses the hex and falls back to navy. Import keeps a readable legacy hex exactly and snaps an unreadable one to the nearest of the sixteen; a custom hex round-trips in format 2.
+| Row | Icon | Row | Icon |
+|---|---|---|---|
+| Theme | contrast | Instant copy | touch_app |
+| Hide card numbers | visibility_off | Expiry reminders | event_upcoming |
+| Notes on cards | notes | Payment reminders | payments |
+| Tags on cards | sell | Export backup | upload |
+| Add cards by tapping | contactless | Import cards | download |
+| Expired cards | event_busy | Version | info |
+| Expires soon | hourglass_empty | Privacy policy | shield |
+| Clear clipboard | content_paste_off | Erase all data | delete |
+| Expiry and CVV notification | notifications | Holders | person |
+| Autofill | password | Banks | account_balance |
+| App lock | lock | Networks | credit_card |
+| Lock now | lock_clock | Types | style |
+| Auto-lock | timer | Tags | sell |
+| Lock when you leave | phonelink_lock | Archived | inventory_2 |
 
-### The Pass (signature)
-- **Band (48dp):** the card's band gradient with sheen. Bank (15/700, truncates first), then the network mark: built-in networks show their official full-colour acceptance mark on a white 44x22dp plate (5dp corners, 12% black hairline) whose vertical centre sits on the bank name's centre; every mark is authored on the same fixed 56x28 canvas with the logo fitted into a centred 48x20 box and scales cleanly to the 2:1 plate (see `prototype/network-marks.html`). Custom networks show the network label framed in a 22dp, 5dp-corner box with a 1dp 55%-white border, 56 to 128dp wide with 8dp side padding so it grows to fit (hidden when no network is known), then a 48dp More button (copy number, expiry and name; edit; move to top; delete).
-- **Number row:** the Pass Number field, masked to the last four in the network's grouping by default. The label row's trailing end holds only the type pill (20dp, 6dp corners, band mixed 26% into container, 10sp tracked), blank when no type is set. Status flags moved to the bottom row (see the Status Label Rule). Expired cards replace band, sheen, body, edge and tags with the `pass-expired-*` tokens.
-- **Perforation:** 2dp dashed `perforation` inset 18dp, with the 9dp notches measured from layout.
-- **Stub:** a three-column grid at 1 : 1 : 1.45 holding expiry, CVV (3 or 4 dots, from the network) and name, each its own copy target of at least 56dp. The expiry field's content description names its status: "Expiry, 05/24. Expired. Tap to copy." or "Expiry, 11/26. Expires soon. Tap to copy."
-- **Tags row (optional):** 24dp tags, 8dp corners, 12/600 white text on the solid band colour (same as the header band), 6dp apart, inset `0 16dp 14dp`. Shown only when "Show tags on cards" is on. The expired pass uses the expired tag token.
-- **Note (optional):** when "Show notes on cards" is on, the note sits under the tags at the same 16dp inset: Body Small (400, 12/16), on-surface-variant, up to two lines, clamped in the prototype with `-webkit-line-clamp: 2`. A 48dp **More** / **Less** text button appears only while the note overflows, left-aligned under the clamp; accessible names "Show full note" / "Show less", `aria-expanded`; expanding affects that card only and resets when leaving the screen. A 500ms hold on the note copies the full note and shows "Note copied". Cards with a note tighten the tags row to 6dp bottom padding.
-- **Body and edge:** container mixed with the band (12% dark, 6% light), 18dp corners, a 1px band-tinted inset edge, light-theme hairline shadow only.
-- **Field states:** rest; pressed (12% state layer, 10dp corners); copied (stepped 180ms inversion, label becomes a check plus "Copied" for 1.2s, one snackbar); masked (number dots plus last four, CVV dots); revealed (a 450ms hold shows the full number or CVV with a 2dp on-surface line draining left to right over 5s, then it re-masks).
-- **Behaviour:** tap copies the full value whether or not it is masked. Tapping while locked opens BiometricPrompt; on success the value is copied and the unlock window starts (30s, 1 min default, 2 min). The window counts idle time only: any touch, scroll or typing restarts it, and nothing on screen shows it (no lock chip, no countdown). When it lapses the next copy prompts again and any revealed value re-masks. Edit always shows the number in full. Copying a number raises the copy notification when the setting is on.
-- **Card menu:** Copy details, **Share**, Edit card, Pin/Unpin, **Archive**, Delete card. Archive sits above Delete and opens the archive dialog. An archived card's menu is **Restore**, Edit card, Copy details, Share, Delete card. Share asks for the unlock first, then opens the "Share this card?" dialog: body copy, an "Include CVV" switch row (off by default), Cancel / Share text actions; Share hands bank, formatted number, expiry, name and (only if chosen) CVV as plain text to the system share sheet. The share sheet gets the same no-lock grace as the file picker. Archiving unpins; restoring leaves the card unpinned.
+### Overlays
 
-### Archived Cards
-- **Manage row:** the list-of-lists screen ends with a standard 72dp two-line row: `inventory_2` in the 56dp lead slot, "Archived cards", supporting text "{n} cards" or "None yet", trailing chevron. Always present, even at zero. Its passes never appear in the main list.
-- **Screen:** nested app bar with back, 20sp "Archived cards" and a 48dp search action (hidden when empty). The same pass list, ordered most recently archived first. Search replaces the app bar with the standard 48dp search box, placeholder and accessible name "Search archived cards"; it matches the last four digits, bank, holder, network, type, tags, note and reason. Empty: "No archived cards" with "Archive a card from its ⋮ menu to keep it out of your list." No results: `No archived cards match “{q}”`.
-- **Archive dialog:** Dialog Title "Archive this card?", body "It moves to Manage › Archived cards. You can copy, edit or restore it there.", one outlined **Reason (optional)** field (40 characters, counter 0/40, helper "For example: Card closed", helper line reserved), text actions **Cancel** / **Archive**. Archive with an empty reason stores no reason.
-- **Snackbars:** "Card archived" with Undo (restores the previous pin as well), "Card restored" with no action.
-- **Archived search:** archived cards also join the main search, shown with the Archived label and with Restore in their ⋮; they never join the main list.
-
-### Repair Banner and Fix Row
-- **Banner (Cards, once):** a dismissible panel at the top of the pass list: container-high, 12dp corners, 12dp padding, 24dp `auto_fix_high` leading, Body copy "Fixed the format of {n} cards from your earlier version. {m} need a quick check." (the second sentence only when m > 0) and right-aligned text actions **Review** (only when m > 0) / **Dismiss**. Review also clears every filter and turns on the **Needs check ({m})** input chip in the chip row. Dismissal is persisted; the banner never repeats.
-- **Fix row:** see Inputs / Fields. The field's before value is kept encrypted for 30 days; after that the row is pruned.
-- **Check details:** a card that still needs review shows the neutral `info` 16dp label at the right of its bottom row and opens Edit with that field already in error. The Review filter chip is the only other place it is counted.
-
-### Filter Sheet
-The bottom sheet keeps Card holder, Bank, Network, Type and Tag and adds a final **Status** group with **Expired** and **Expires soon**, each with a tabular count. Groups appear only when they have matching cards. Status choices combine with OR inside the group; a selected Status filter always shows matching cards even when the Expired cards setting is "Hide from the list". The footer still reads "Show {n} cards" and disables at zero. The active Status chip is a removable input chip in the home chip row; the Needs check review chip sits after it.
-
-### Card List Settings
-Settings gains one section between Cards and Copying, exactly three standard two-line rows with 24dp icons in the 56dp lead slot:
-1. `event_busy` **Expired cards** — Keep in place / Move to the end (default) / Hide from the list; radio dialog.
-2. `hourglass_bottom` **Expires soon** — Within 1 month (default) / Within 2 months / Within 3 months; radio dialog.
-3. `notes` **Show notes on cards** — switch, on by default; supporting text "Up to 2 lines on each card".
-
-### Card List Glossary
-Copy is part of the contract; use these words exactly. Never "inactive", "old", "deleted" or "hidden card".
-
-| Where | Text | Icon |
+| Overlay | Use it for | Examples |
 |---|---|---|
-| Expired chip on pass | Expired | `event_busy` 16dp |
-| Expires soon label on pass | Expires soon | none |
-| Expiry content description | "Expiry, 05/24. Expired. Tap to copy." / "Expiry, 11/26. Expires soon. Tap to copy." | — |
-| Needs-review label on pass | Check details | `info` 16dp |
-| Repair banner (Cards, once) | "Fixed the format of {n} cards from your earlier version." + if any: " {m} need a quick check." Actions: **Review** (only if m > 0), **Dismiss** | `auto_fix_high` |
-| Edit field after an automatic fix | "Changed from {before}" + text button **Undo** (30 days) | — |
-| Review filter chip | Needs check ({m}) | — |
-| Import review line | "Formats fixed: {n} · Need a check: {m}" | — |
-| Card menu | **Archive** / **Restore** | `inventory_2` / `unarchive` |
-| Archive dialog | Title "Archive this card?" · Body "It moves to Manage › Archived cards. You can copy, edit or restore it there." · Field "Reason (optional)", helper "For example: Card closed", 40 chars · Buttons **Archive** / **Cancel** | — |
-| Snackbars | "Card archived" + **Undo** · "Card restored" · "Note copied" | — |
-| Pass label for archived | "Archived · {reason}" (or "Archived") | `inventory_2` 16dp |
-| Manage row | **Archived cards** · "{n} cards" / "None yet" | `inventory_2` |
-| Archived screen | Title "Archived cards" · search placeholder "Search archived cards" · empty title "No archived cards" · empty body "Archive a card from its ⋮ menu to keep it out of your list." · no-results "No archived cards match “{q}”" | — |
-| Notes on pass | 2 lines then text button **More** / **Less** (accessible names "Show full note" / "Show less") | — |
-| Filter group | **Status** · Expired · Expires soon | — |
-| Import row subtitle | "Restore from a QuickCards backup" | — |
+| Bottom sheet | Choosing or acting: picking from a list, acting on an object | Card actions, holder/bank/type/colour pickers, filters, tags, import choice, every single choice (Theme, Expired cards, Expires soon, Clear clipboard, Notification time, Auto-lock, Instant copy), Help |
+| Dialog | Interrupting to confirm or acknowledge; the decision blocks the flow | Delete, erase, discard changes, NFC off, key unavailable, not a backup, missing columns, share, archive, export/import password |
+| Snackbar | Transient feedback after an action, at most one action | Undo, Clear, Try again |
+| Inline banner | A persistent screen state the user can fix | No screen lock, formats repaired, custom network rules |
 
-### Card Networks
-A network is a name, a 2-15 character label (uppercase letters, digits or spaces), starting digits (single prefixes and ranges such as `51-55, 2221-2720`), allowed lengths within 12-19, a CVV length of 3 or 4, a Luhn flag, and an optional grouping (`4-6-5`). Detection picks the network whose matching prefix is longest and is never overridden by hand; a number with no match shows no network badge and uses the generic rule (12-19 digits, Luhn). Without a custom grouping the length decides it (16 = 4-4-4-4, 15 = 4-6-5, 14 = 4-6-4, 19 = 4-4-4-4-3). While typing, numbers group 4-4-4-4 and settle into the exact grouping when the field loses focus. Ten networks ship (Visa, Mastercard, American Express, RuPay, Diners Club, Discover, JCB, Maestro, UnionPay with Luhn off, Mir) and users can edit them or add more in Manage.
+- **Sheet:** handle zone · 24 side inset · text-only title block (bank + "••0366", then type · holder; never a card image) · content · footer via `QcSheetActions`: full-width tonal when alone, filled primary + outlined secondary when paired, 24 below the content, 16 above the gesture area. Sheets hug their content: no fixed or min heights, no spacers. Single-choice sheets are radio rows that apply on tap and close (no footer). Every sheet closes by handle drag, scrim and Back.
+- **Dialog:** 24 padding · title · 16 · body · 24 · text actions right; no icon; destructive confirm in `danger`; checkbox lines follow the 12 gap. Max height = window − 2 × (status bar + 24); title and actions fixed, body scrolls with hairlines. Expanded windows: 560 wide.
+- All overlays go through `QcDialog` / `QcOverlays` (AGENTS rule 4).
 
-### Managed Lists and Validation
-Holders, banks, networks, types and tags each have a list editor in Manage. Names are trimmed, repeated spaces collapsed, required, at least 2 characters, unique per list ignoring case, and limited with a counter (holders and banks 40, networks 24, types 20, tags 16; a leading # is removed from tags). Network labels are unique, up to 15 uppercase letters, digits or spaces; starting digits accept digits, ranges and commas; lengths stay within 12-19. Renaming an item that cards use (or changing a network's rules) opens the rename-confirm dialog; deleting one is blocked by the delete-blocked dialog until those cards are gone. The card form validates holder, number (length per detected network, or 12-19 with Luhn when no network matches; unique across holders), expiry (MM/YY or MM/YYYY, stored MM/YY; past dates are valid because expired cards are real data; at most 20 years ahead), CVV (the network's length, 3 when unknown) and bank as required; type, tags (up to 10) and note (80) are optional.
+### Banner
 
-### Backup and Restore
-Export (Settings, Backup) needs the unlock window, offers **Include settings** (on by default) and a backup password of at least 8 characters entered twice; the file (`quickcards-backup-YYYY-MM-DD.qcb`, AES-256-GCM, PBKDF2-HMAC-SHA256 600k) holds a header (app, format 2, version, date), every card with all fields including the archive state and reason and the needs-check flags, the five managed lists including custom networks, and optionally all settings including the Card list choices. Unlock state, clipboard, filters, the repair log and Keystore keys are never included. Import is two steps in one dialog: choose the file and enter its backup password (**Open**; a wrong one shows "That backup password doesn't open this backup"), then **Review backup** lists cards as new, changed and same, **Formats fixed: {n} · Need a check: {m}**, and how many list items are new, with a radio for saved cards (**Update with the backup's details**, default, or **Keep what's on this phone**) and a **Restore settings** checkbox (on) when settings are present. Every import runs the legacy normaliser before the review; anything it cannot fix is flagged, never rejected. Cards match by number (digits, across holders); lists match by name ignoring case and reuse the phone's item; networks keep the phone's rules; restored settings take effect at once. Removed settings keys in older files are ignored silently. The result snackbar counts added, updated, kept and unchanged, plus "settings restored". Format 1 backups from the current app (no settings) stay importable.
+One component for every inline banner: tonal container (`danger-bg` for errors, where only the icon is tinted and the text stays ink), `r-lg`, min 56, one row vertically centred: icon 20 · one line `f3`/600 · trailing text-button action(s) or a 48 close icon button ("Dismiss"). At 200% text the actions drop below, right-aligned; text never wraps away from its icon.
 
-### Import Cards (spreadsheet)
-Settings › Backup › **Import cards** opens a choice dialog: Dialog Title "Import cards", then two standard two-line list rows (`description` icon "QuickCards backup" / `table_chart` "Cards from a spreadsheet", Body Large title, Body supporting text, trailing chevron) that run edge to edge of the dialog surface so the ripple spans it, with the text at the dialog's 24dp inset; the only action is **Cancel**. Hairline boxes are never used for choices: on the container-high dialog they disappear.
+| Banner | Text | Actions |
+|---|---|---|
+| No screen lock | "Set a screen lock to copy" | "Settings" (TalkBack "Open screen lock settings") |
+| Repair | "3 fixed · 1 to check" | "Review" + close icon "Dismiss" |
+| Custom network rules | "Custom rules" | "Reset" (TalkBack "Reset Visa to standard rules") |
 
-**Get the sheet:** the same dialog becomes "Cards from a spreadsheet": two Body paragraphs (what happens, the rules), three option rows (`download` "Download the Excel sheet", `open_in_new` "Open in Google Sheets" because it leaves the app, `download` "Download the simple CSV"), the line "Already filled in? Tap Proceed and choose the file (.xlsx or .csv)." and pinned **Cancel** / **Proceed** text actions, so Proceed stays reachable while the content scrolls on large fonts. A refused file appears under that line in the warning panel (container-highest, 12dp corners, `warning` icon in `error`, file name in Body 600 over the message in Body on-surface) and the dialog scrolls to it.
+### Snackbar
 
-**Check your cards:** the backup file row (file icon, file name, "N rows checked", **Change** re-opens the picker), then the framed count list used by Review backup: "Ready to import", "Need fixing", "Already in QuickCards" and, when present, "New card holders" with the names at the trailing edge. With nothing ready a Body line says why ("No row is ready to import yet…" or "Every card in this sheet is already in QuickCards. Nothing to import."). Failing rows sit under the group label "What to fix": "Row 6" (Body 600, on-surface, 56dp column) beside one Body line per problem in on-surface-variant, 8dp between rows, the first 25 rows shown and the rest counted; then the outlined **Save rows to fix** (download icon). Actions are pinned: **Cancel** and the filled brand-red **Import N cards** (the screen's one red action), disabled at zero.
+M3 snackbar on `inverse`: one line of text, left-aligned, no icon, no image, optional text action in `inverse-accent`. Min 48, 16 inset, `r-md`, full width − 16 each side, 8 above the nav bar or gesture area. Shown 3 s (4.5 s with TalkBack); one with an action (Undo, Clear, Restart) always 4.5 s so the action can be reached. Used for Undo (Card deleted, Card archived, Card restored, Paid), Clear (Details copied, Note copied), errors (Try again), "Number pasted", "Update ready" + Restart, "Copying locked". Never for a single-value copy.
 
-**Cards added:** "N cards added." in on-surface Body, the warning panel "Delete the sheet now: it holds your card numbers.", the outlined **Delete file** (delete icon, only while the file is known) and **Done**.
+### Notifications
 
-### Settings
-**Bill due strip:** from 3 days before a card's payment due day until that day (unless paid, and only while Payment reminders is on), the pass ends in a full-width strip inside the 16dp gutters and 16dp above the bottom edge: 48dp min height, 12dp corners, the band mixed 26% into the container (the type pill's tint), an 18dp payments icon, "Bill due in 2 days" / "Bill due tomorrow" / "Bill due today" (Body 500, on-surface, up to two lines, "in 2 days" never splits) and a "Mark paid" text button (Label, 48dp target, accessible name "Mark this payment as paid"). It is separate from the single status slot (Archived > Expired > Check details > Expires soon), so a bill never hides a status; it sits last, below tags and note, so the copy targets never move. Mark paid hides it with the snackbar "Marked as paid" + Undo and also silences the notification. Expiry and CVV columns keep their natural width when their weighted share is too small (large font on narrow phones); only the name ellipsises. **Autofill:** the system dropdown lists "Search all N cards…" first (search icon on a 40x20 tile), then up to five cards, each one line: the network mark on a 40x20 white tile (5dp corners, 12% hairline; the app mark for custom networks) and "Bank Network ···1234" in 14sp, the network name dropped when the bank already says it. The search list after unlock reuses Home's search bar (suggestions off), a "To fill in <app or site>" label, and two-line rows: 56dp mark column, Body Large title (bank + type), Body subtitle (holder · ···last four · tags), an Expired label at the end when it applies; empty state "No cards match" with a hint. A Reminders section (after Card list, before Copying) holds "Expiry reminders" (event-busy icon) and "Payment reminders" (payments icon) switches; a payment reminder notification carries one "Paid" action that silences it for that month without opening the app. The "Choose QuickCards for autofill" row uses the open-in-new icon because it leaves the app. The card form has "Payment due day (optional)" (number keyboard, 1-31, helper "Day of the month your bill is due, 1 to 31") above the note. Copying also holds "Fill cards in other apps" (switch; when on but QuickCards is not yet Android's autofill service, a "Choose QuickCards for autofill" row follows it and opens the system picker). Cards holds "Add cards by tapping" (switch), shown only on phones with NFC. Settings rows are list items with switches or a trailing value, grouped under sentence-case subheads: Appearance (theme), Cards (hide card numbers, on), **Card list** (expired cards: keep in place / move to the end default / hide; expires soon: within 1, 2 or 3 months, default 1; show notes on cards, on, "Up to 2 lines on each card"), Copying (clear clipboard: never, 30s, 1 min default, 2 min; show expiry and CVV after copying, off by default (turning it on asks to unlock), "Hidden on the lock screen"; notification time: 15s, 30s default, 1 min), Tags (show on cards, on), Security (app lock, on; lock after inactivity 10s, 30s, 1 min default, 2, 5, 10, 30 min or Never; lock when you leave the app, on; instant copy window 30s / 1 min default / 2 min; lock now; screenshots blocked), Backup and About (version, privacy policy, works offline). When Google Play has an update the Version row swaps the info icon for system-update and its supporting text for "2.5.0 · Update available" (tap starts Play's sheet), "· Downloading update" (static) or "· Restart to update" (tap installs); a finished download also shows the indefinite snackbar "Update downloaded" with Restart. **Changed network rules:** in a built-in network's editor, while the rules differ from the standard ones, one row sits under the Luhn checkbox: "Not the standard Visa rules" (Body, on-surface-variant, fills the row) and a "Reset to standard" text button whose text is flush with the field edge (8dp content padding, offset 8dp; the 48dp target stays). A second checkbox in the same style, "Cards may have no CVV", sits under Luhn (on for Maestro), and the Manage row then reads "CVV 3 or none". Saving a new difference first shows "Change Visa rules?" with the warning panel and two text buttons, Cancel and Change anyway (no filled button, so the safe choice is not the loud one); the older "Update N cards?" confirmation follows only when the name or label changed too. The card form shows the same one-line row under Expiry and CVV naming the exact rule ("Visa is set to a 4-digit CVV." or "Visa number rules were changed." + Reset to standard), only when that changed built-in rule is what fails the field; a typo or duplicate never shows it. Both rows are the shared `RulesResetRow`. A Maestro card saved without a CVV shows "None" in the CVV column in the muted placeholder tone, with no copy or reveal. Dependent rows disable at 38% when their parent is off. The Import backup row's supporting text is "Restore from a QuickCards backup".
+Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons. No card thumbnails. Copy notification: masked "Expiry ••/•• · CVV •••" (the values are never displayed) with "Copy expiry" and "Copy CVV" actions; it is hidden entirely on the lock screen. Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days"; on the lock screen "QuickCards" / "Card reminder"; a tap opens that card's details once the app is unlocked. Small icon tinted brand red.
+
+### Navigation and bars
+
+Top bar 64: screen title `f5` (level-1 heading) or back + `f4` title for nested screens; actions are 48 icon buttons. Home bar: title, search, filter, +. Bottom bar 80 with three items (Cards, Manage, Settings), 56 × 32 indicator. Settings bar has an ⓘ that opens Help.
+
+### Selection controls
+
+Switch, checkbox, radio in `select` / `on-select`; the whole row toggles; 48 hit. Filter chips lead with a check 18 when selected; holder chips are single-select (no check).
+
+### Colour picker
+
+Bottom sheet "Colour": live preview card on top, "Bank colour" chip in the header (on while the card follows its bank), 4-column grid of 64 × 40 card swatches (`r-sm`, pattern hint, name `f1` `ink-2` below), selected = 2dp gap + 2dp ink ring + check; the bank's default swatch carries a white bank glyph; last tile "Custom" opens hue and lightness strips (a tick marks the 7:1 limit), Hex and Recent, with "Use colour"; its ← and system Back return to the grid. Footer "Done".
+
+### Empty states and tips
+
+Empty vault: faded sample card, "Add your first card", one line, full-width filled "Add card" at the content bottom, "Import" and "Tap a card" (NFC phones) as equal tonal buttons in one row; search hidden, + kept, nav kept. First-run tips: 3 pages with Skip and page dots, last page filled "Add card". No matches: title, "Try a bank, holder, tag or digits", "Clear search". Loading: Home keeps its chrome (title, search, +, nav) over three static `tonal` blocks in the tile shape (`r-lg`, no shimmer); Add/Edit shows the form labels over `tonal` field blocks and the Save footer, off, until the form is ready. Never an empty-vault look while loading.
 
 ### Motion
-| Moment | Duration | Easing | Notes |
-|---|---|---|---|
-| Push / pop screen | 50ms out, 160ms in after 50ms | Emphasized decelerate `cubic-bezier(.05,.7,.1,1)` | Fade-through: the old screen is gone before the new one fades in, plus a 240ms shared-axis X slide; text from two screens never overlaps |
-| Switch tab | 50ms out, 160ms in after 50ms | Emphasized decelerate | Fade-through; the bar stays put |
-| Card → Edit card | Spring, medium-low stiffness, no bounce | — | Container transform: the tapped pass morphs into the form's preview (shared bounds, clipped to the 18dp pass corners) and back on pop |
-| Pin, unpin, archive | Default item placement spring | — | Cards slide to their new place in the list (`animateItem`) |
-| Copy press | Spring, medium-low stiffness | — | The field scales to 0.97 while pressed; a successful copy plays the confirm haptic (keyboard tap before Android 11) |
-| Lock screen entrance | 420ms / 360ms | Emphasized decelerate | Mark scales 0.92 → 1; copy and Unlock rise 12dp at 90ms and 160ms |
-| Navigation indicator | 350ms | Emphasized decelerate | Grows from 30% width |
-| Sheet, biometric prompt | 300ms | Emphasized decelerate | Slide up from the bottom edge |
-| Copy notification | — | system | Appears in the shade; no custom entrance |
-| Dialog | 220ms | Emphasized decelerate | Scale 0.96 to 1 with fade |
-| Dropdown menu | 180ms | Emphasized decelerate | Scales from 85% height, anchored to its field |
-| Copy confirmation | 180ms | Stepped, no easing | Field inverts (on-surface fill, surface text) for one step |
-| Reveal (number or CVV) | 5s | Linear | 2dp line drains, then the value re-masks |
-| Notification timer | Notification time (30s default) | Linear | 3dp bar drains, then the notification dismisses |
-| State layers | 150ms | Standard | Hover and press overlays |
 
-With Remove animations on, every transition becomes an instant cut except the reveal drain, which still shows how long is left.
+| Token | Value | Use |
+|---|---|---|
+| `dur-state` | 150 ms | Copy → check + "Copied", press layers, switch |
+| `dur-nav` | 200 ms | Screen fade + 16dp slide, sheet and dialog in |
+| `dur-toast` | 3000 ms | Snackbar on screen (4.5 s with TalkBack, and always for a snackbar with an action) |
+| `ease` | cubic-bezier(.2, 0, 0, 1) | Emphasized decelerate |
 
-### Compose mapping
-`darkColorScheme` / `lightColorScheme` with: `primary` = brand-red, `onPrimary` = white; `secondary` = selected, `onSecondary` = on-selected; `secondaryContainer` = indicator, `onSecondaryContainer` = on-surface; `background` and `surface` = ground; `surfaceContainerLow/–/High/Highest` = the container ladder; `onSurface`, `onSurfaceVariant`, `outline`, `outlineVariant`, `inverseSurface`, `inverseOnSurface`, `inversePrimary`, `error` = the matching theme values; `scrim` = black. Pass bands live outside the scheme in a `PassColors` object with `bodyTint(band, dark) = lerp(surfaceContainer, band, if (dark) 0.12f else 0.06f)` and an edge colour mixed from the edge base. An `ExpiredPass` token set per theme (band, band end, sheen, body, edge, tag) sits beside `PassColors`; never derive it from the card's band. Shapes: `extraSmall` 4dp, `small` 8dp, `medium` 12dp, `large` 18dp, `extraLarge` 28dp. Custom text styles `PassNumber`, `StubValue`, `NotificationValue` and `FieldLabel` carry `fontFeatureSettings = "tnum"` (FieldLabel uppercased at the call site); the pass note uses `MaterialTheme.typography.bodySmall` and the fix row uses Label. Networks are a `CardNetwork(name, label, prefixes: List<IntRange>, lengths: Set<Int>, cvvLength, luhn = true, groups: List<Int>? = null)` with longest-prefix detection. The dropdown is `ExposedDropdownMenuBox`. Switch, Checkbox, RadioButton, SegmentedButton, FilterChip, DropdownMenuItem checks and NavigationBarItem colours are set explicitly from `secondary` / `onSecondary` / `secondaryContainer`, because their M3 defaults read `primary`; never leave a selection control on primary.
+Nothing moves on its own: no tilt, particles, rolling digits or flips. Reduced motion (targeted, not a global kill): no slides, no switch-thumb travel, crossfades stay. Masking is instant.
+
+### Accessibility
+
+- Every screen title is a level-1 heading; sheet and dialog titles and section labels level 2 (labels inside a sheet level 3).
+- Copy announces "Card number copied" / "Expiry copied" / "CVV copied" (polite). The pill is named "Copy HDFC Bank card number ending 0366".
+- Tile: "HDFC Bank, ending 0366, Due in 2 days"; long-press label "Card actions"; TalkBack custom action for card actions; note custom action "Copy note".
+- Every switch, chip and icon target ≥ 48 × 48. A disabled row says why in its own line.
+
+## Adaptive
+
+| Class | Width | Navigation | Cards | Card details | Add / Edit | Settings |
+|---|---|---|---|---|---|---|
+| Compact | < 600 | Bottom bar | 1 column of tiles | Full screen, stacked | Full screen | 1 pane, sub-pages push |
+| Medium | 600–839 | Rail | 2-lane staggered grid | List-detail: list pane 328 \| detail | Dialog 560 | 1 pane, max 600 |
+| Expanded | ≥ 840 | Rail | List pane 360 of tiles | Detail pane: card \| rows, max 840 | Dialog 560 | Two-pane: groups 360 \| page |
+| Height < 480 | phone landscape | Rail | Holder chips move into the top bar | Card left, rows right (56) | Full screen, column max 600; Save rides on the keyboard | 1 pane |
+
+- One navigation at a time: never bar + rail. Rail 80 wide, items top-aligned, same 56 × 32 indicator; + stays in the list pane's top bar.
+- Staggered grids keep list order in reading and focus order; each tile goes to the shorter lane.
+- Foldables: book posture = list | detail, each pane ends at the hinge; tabletop = card on the top half, rows and actions below; hinge zone 24, nothing crosses it. Read the hinge from the window, never the device model; a separating hinge forces two panes even at medium width.
+- Max widths (Dimens): rail 80 · list 360 · list (medium, fold) 328 · page 600 · dialog 560 · detail 840.
+- With the keyboard open, Save rides on the IME and the focused field, its help line and the next field row scroll into view above it (re-checked as the keyboard settles; a short viewport keeps the focused field's top).
+
+## Compose mapping
+
+| Design | Compose |
+|---|---|
+| `bg` / `surface` / `surface-hi` | `colorScheme.background` / `surface` / `surfaceContainerHigh` |
+| `tonal` / `tonal-2` | `surfaceContainer` / `surfaceContainerHighest` |
+| `ink` / `ink-2` | `onSurface` / `onSurfaceVariant` |
+| `outline` / `line` | `outline` / `outlineVariant` |
+| `accent` | `primary` (text buttons, focus, caret) |
+| `brand` | `QcColors.brand` (filled CTA only) |
+| `danger` / `danger-bg` | `error` / `errorContainer` |
+| `inverse` / `on-inverse` / `inverse-accent` | `inverseSurface` / `inverseOnSurface` / `inversePrimary` |
+| `select` / `on-select` | `QcColors.select` (Switch, Checkbox, RadioButton colors) |
+| `warn` | `QcColors.warn` (supportingText, `isError = false`) |
+| `ink-ph` | TextField placeholder colour |
+| `f1` … `f5` | `labelSmall`, `bodyMedium`, `bodyLarge`, `titleLarge`, `headlineSmall` (Geist via `res/font`) |
+| `s1` … `s16` | `QcSpacing.s1` … `s16` (Dp) in `Dimens.kt` |
+| `r-xs` … `r-xl`, `r-full` | `Shapes` extraSmall … extraLarge, `CircleShape` |
+| `e1` / `e2` / `e3` | tonalElevation 0 / 2 / 3 dp + `Modifier.shadow` (light only) |
+| Card hues | `QcCardArt.hues` (c1, c2, glow, pattern); `QcCardArt.patternFor(band \| hex)` |
+| Pattern strokes | Canvas `drawCircle` / `drawPath`, 1.dp |
+| Grain | Bundled 160 × 160 noise bitmap, `BlendMode.Overlay` 14% |
+| Network mark tone | `Image(net_x)` or `Image(net_x_mono, colorFilter = ColorFilter.tint(White))`; list slot `Box(40 × 24.dp)` + `ContentScale.Fit` |
+| Icons | Material Symbols Rounded, filled (`Icons.Rounded.*`) via `QcIcons.kt` |
+| Snackbar | `SnackbarHost` + `Snackbar` (no icon), shape `r-md`, inverse colours |
+| Sheet / dialog / menu | `QcModalBottomSheet` / `QcDialog` / `QcDropdownMenu` |
+| Sheet footer | `QcSheetActions`: full-width `FilledTonalButton` / `Button` + `OutlinedButton`, 24.dp sides (screens 16.dp) |
+| Durations | `tween(150)` / `tween(200, EmphasizedDecelerate)` |
+| Long-press tile | `Modifier.combinedClickable(onLongClick, onLongClickLabel = "Card actions")` + `HapticFeedbackType.LongPress` |
+| Copy announcement | `announceForAccessibility` or `LiveRegionMode.Polite` |
+| Headings | `Modifier.semantics { heading() }`; details `paneTitle` |
+| Picker fields | `Modifier.clickable(role = Role.DropdownList, onClickLabel = "Choose")` opening `QcPickerSheet` |
+| Min sizes | `defaultMinSize` / `heightIn(min = …)`, `minimumInteractiveComponentSize()` |
+| Last used / Recent | `CardEntity.lastCopiedAt`; Recent = top 3 by `lastCopiedAt` |
+| Launcher shortcuts | Add card, Search: static `res/xml/shortcuts.xml`; Tap to add: dynamic via `ShortcutManagerCompat`, NFC phones only |
+| Tips | `HorizontalPager(3)` + DataStore flag `tipsSeen` |
+| Window class | `core/ui/adaptive/QcWindow.of(width, height, hinge)`: 600 / 840 width, 480 height (no adaptive library; minSdk 26) |
+| Bar ↔ rail | `QcApp`: `NavigationBar` below 600, `NavigationRail` (80, on `bg`) from 600 |
+| List-detail, two-pane Settings | `ListDetailPanes(listWidth, hinge)`; medium opens `card/details` beside the list, so Back pops the detail pane; `SettingsScreen(twoPane)` |
+| Hinge | `rememberHinge()`: WindowManager `FoldingFeature` (vertical, separating); panes end at a zone of max(24, hinge) |
+| Staggered grid | `LazyVerticalStaggeredGrid` |
+| Insets | `WindowInsets.safeDrawing`, `imePadding()`, `bringIntoViewRequester` |
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** mask the card number to its last four digits in the network's grouping by default, and the CVV to 3 or 4 dots; let a tap copy the full value, a 450ms hold reveal it for 5s, and Edit show it in full.
-- **Do** make number, expiry, CVV and name each a 48dp-plus copy target on the home list, so no screen has to be opened to copy.
-- **Do** open one unlock window per fingerprint (60s default, measured as idle time) and make every copy inside it instant; never show a countdown.
-- **Do** tint the pass body with its own band (12% dark, 6% light) and draw its 1px band-tinted edge.
-- **Do** leave the type pill blank when a card has no type; never show a placeholder.
-- **Do** measure the perforation notches from layout so they always sit on the dashed line.
-- **Do** set every digit in tabular figures.
-- **Do** confirm a copy with the 180ms stepped flash and the "Copied" label, plus one snackbar that says when the clipboard clears.
-- **Do** list the affected cards and ask before renaming anything cards use, and block deleting it with a "Show cards" way out.
-- **Do** reserve every field's helper line and put the character counter at its right end.
-- **Do** parse pasted or keyboard-scanned card text through the normal field rules, and never fill the CVV from it.
-- **Do** keep the detected network badge as the number field's only trailing element, 16dp from the outline's end edge, growing to 128dp for long labels.
-- **Do** grey an expired pass through the `pass-expired-*` tokens only, and keep every value at full contrast, copyable and revealable.
-- **Do** put status flags on the CARD NUMBER label row inside the existing 16dp row; one flag at a time, Archived → Expired → Expires soon → Check details.
-- **Do** clamp a pass note to two lines and show the 48dp More/Less control only while it overflows; long-press copies it.
-- **Do** unpin a card when it is archived, and keep archive state and reason in the backup.
-- **Do** use the glossary words: Expired, Expires soon, Archive, Archived, Restore, Check details, Note.
+
+- Take every colour, size, radius, type style and icon from the tokens and `core/ui/theme`.
+- Keep one filled brand-red button per screen; make destructive confirms `danger`.
+- Derive status, order, Last used and pattern from data; never pass them by hand.
+- Put status in the one status-chip slot, by priority.
+- Use a bottom sheet for every choice and every action on an object; use a dialog only to confirm or acknowledge.
+- Give every error a fixing action and every sheet, step and editor a way out.
+- Check both themes, 200% text and the adaptive classes against the visual spec.
 
 ### Don't:
-- **Don't** put more than one red action on a screen, and don't put any on the home list with cards.
-- **Don't** use a FAB on the pass list; add lives in the app bar so nothing covers a pass.
-- **Don't** colour selection controls, holder and filter chips, menu checks or the navigation indicator with `brand-red`; they use `secondary` / `secondaryContainer`.
-- **Don't** add hue to the chrome; colour belongs to the pass.
-- **Don't** show focus as a coloured glow; focus is a 2dp on-surface outline.
-- **Don't** ask for a fingerprint on every copy inside the unlock window.
-- **Don't** rename or delete anything cards use without the listing dialog.
-- **Don't** reload or re-animate the navigation bar when switching tabs; only the content changes.
-- **Don't** leave any band colour on an expired pass, and don't dim or disable its values.
-- **Don't** show "Expires soon" as a chip, an icon or a grey pass; it is a plain label and nothing else changes.
-- **Don't** hide an expired card from search or from a selected Expired filter when the setting is "Hide from the list".
-- **Don't** let a status flag wrap, add a row or push the type pill off the pass.
-- **Don't** put "Archived" cards back in the main list; only the main search may find them when "Also in search results" is on.
-- **Don't** call a card inactive, old, deleted or hidden.
 
-
-## Card form spacing (2026-10-25)
-
-Every input block on Add/Edit card has the same visible gap to the next one (36dp box to box). Fields reserve their 20dp supporting line even when it is empty and are followed by `FormFieldGap` (16dp); groups without a supporting line (Tags, Card colour) are followed by `FormGroupGap` (36dp). A repaired field's supporting line reads "Changed from {before}" with a text-button **Undo** right-aligned on the same line, flush with the outline's end edge like the counter. Unencrypted old-app backup files skip the backup password field in Import.
-
-## Sheets and dialogs (spacing contract)
-
-- **Sheets** (`QcModalBottomSheet`): compact drag handle (16dp above, 32×4dp pill, 8dp below), title 8dp below the handle, content ends 24dp above the navigation bar. The navigation-bar height is read in the activity window, because the sheet's popup window does not receive it on older Android. The sheet surface reaches the screen edge and rises above the keyboard.
-- **Dialogs**: title → body 16dp (`DialogHeaderGap`), body → action row 24dp (`DialogActionGap`), buttons 8dp apart. `DialogActions` owns the 24dp gap; no dialog adds its own spacer before its buttons.
-- **Tabs and the navigation bar**: each tab reserves the bar's fixed height itself (80dp + divider + system inset), so a pushed screen hiding the bar never resizes the outgoing tab mid-transition. The bar slides and fades with the 280ms screen transition.
+- Don't add a black (OLED) theme, a plate behind network marks, or bank logos.
+- Don't show a snackbar for a single-value copy, or an icon or image in a snackbar.
+- Don't put an icon in a status chip or in a dialog, or a card image in a sheet header.
+- Don't use random patterns, or a pattern that ignores the colour.
+- Don't use radio dialogs, bare "Done" text, fixed sheet heights or spacers.
+- Don't mix filled and outlined icons within rows.
+- Don't fix a control's height; use minimum heights.
+- Don't draw a ⋮ on the tile; hold opens card actions.

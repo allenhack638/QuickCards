@@ -1,10 +1,7 @@
 package com.quickcards.app.feature.backup
 
 import com.quickcards.app.core.data.model.toDomain
-import android.app.NotificationManager
 import com.quickcards.app.core.autofill.CardUsage
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import com.quickcards.app.core.reminders.Reminders
 import android.content.Context
 import android.content.ContextWrapper
@@ -15,6 +12,8 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -35,9 +34,11 @@ import com.quickcards.app.core.data.backup.BackupImporter
 import com.quickcards.app.core.data.backup.BackupNormalizer
 import com.quickcards.app.core.data.backup.BackupSnapshot
 import com.quickcards.app.core.data.database.QuickCardsDatabase
+import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.data.repository.VaultRepository
 import com.quickcards.app.core.data.sheet.SheetImporter
+import com.quickcards.app.core.data.sheet.SheetFileMessage
 import com.quickcards.app.core.data.sheet.SheetMessages
 import com.quickcards.app.core.data.sheet.SheetOpenResult
 import com.quickcards.domain.sheet.CsvWriter
@@ -53,8 +54,9 @@ import com.quickcards.app.core.security.ExportCrypto
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.SnackbarController
+import com.quickcards.app.core.ui.components.HelpTopic
 import com.quickcards.domain.BackupContent
-import com.quickcards.domain.BackupFormatException
+import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.BackupPlan
 import com.quickcards.domain.BackupPlanner
 import com.quickcards.domain.BackupSection
@@ -71,10 +73,13 @@ import java.io.IOException
 import java.io.InputStreamReader
 
 private const val MAX_IMPORT_BYTES = 10_000_000
+private const val FAN_SIZE = 3
+private const val MIN_PASSWORD = 8
 
 internal enum class ImportStep {
     PICK,
-    REVIEW
+    REVIEW,
+    RESULT
 }
 
 internal enum class SheetStep {
@@ -99,7 +104,6 @@ internal data class ImportFile(
 )
 
 internal data class ImportReview(
-    val fileName: String,
     val content: BackupContent,
     val sourceContent: BackupContent,
     val plan: BackupPlan,
@@ -109,6 +113,11 @@ internal data class ImportReview(
     val needCheck: Int
 )
 
+/** One imported card in the result fan: its colour and network, nothing secret. */
+internal data class FanCard(val band: String, val networkId: String?)
+
+internal data class ImportOutcome(val result: BackupImportResult, val fan: List<FanCard>)
+
 /** Export, Import and Erase flows from Settings and the Home empty state. */
 @Stable
 class BackupHostState internal constructor(
@@ -117,7 +126,7 @@ class BackupHostState internal constructor(
     private val repository: VaultRepository,
     private val database: QuickCardsDatabase,
     private val settings: AppSettings,
-    private val snackbar: SnackbarController,
+    internal val snackbar: SnackbarController,
     private val scope: CoroutineScope,
     private val launchCreateDocument: (String) -> Unit,
     private val launchOpenDocument: () -> Unit,
@@ -125,6 +134,9 @@ class BackupHostState internal constructor(
     private val launchCreateCsv: (String) -> Unit = {},
     private val launchOpenSheet: () -> Unit = {}
 ) {
+
+    /** Opens a Help row's target picked from the spreadsheet's help sheet; set by [BackupHost]. */
+    internal var onHelpTopic: (HelpTopic) -> Unit = {}
 
     private val version: String = BuildConfig.VERSION_NAME
 
@@ -147,15 +159,18 @@ class BackupHostState internal constructor(
     internal var importMode by mutableStateOf(MergeMode.UPDATE)
     internal var importRestore by mutableStateOf(true)
     internal var importReview by mutableStateOf<ImportReview?>(null)
+    internal var importOutcome by mutableStateOf<ImportOutcome?>(null)
+    internal var importBadFile by mutableStateOf(false)
 
     internal var importChoiceOpen by mutableStateOf(false)
     internal var sheetOpen by mutableStateOf(false)
     internal var sheetStep by mutableStateOf(SheetStep.GET)
     internal var sheetBusy by mutableStateOf(false)
-    internal var sheetError by mutableStateOf<String?>(null)
-    internal var sheetFileName by mutableStateOf<String?>(null)
+    internal var sheetProblem by mutableStateOf<SheetFileMessage?>(null)
+    internal var sheetHelpOpen by mutableStateOf(false)
     internal var sheetReport by mutableStateOf<SheetReport?>(null)
     internal var sheetAdded by mutableIntStateOf(0)
+    internal var sheetFan by mutableStateOf<List<FanCard>>(emptyList())
     private var sheetUri: Uri? = null
     internal val sheetHasFile: Boolean get() = sheetUri != null
     private var pendingSheetDownload: SheetDownload? = null
@@ -165,20 +180,12 @@ class BackupHostState internal constructor(
     internal var eraseBusy by mutableStateOf(false)
 
     private var pendingExport: String? = null
-    private var pendingExportWithSettings = false
 
-    internal val exportPasswordError: String?
-        get() {
-            val confirm = exportConfirm.text
-            return if (confirm.isNotEmpty() && exportPassphrase.text != confirm) {
-                text(R.string.backup_password_mismatch)
-            } else {
-                null
-            }
-        }
+    internal val exportLongEnough: Boolean
+        get() = exportPassphrase.text.length >= MIN_PASSWORD
 
     internal val exportReady: Boolean
-        get() = exportPassphrase.text.length >= 8 && exportPassphrase.text == exportConfirm.text
+        get() = exportLongEnough && exportPassphrase.text == exportConfirm.text
 
     fun requestExport() {
         requireUnlocked(text(R.string.backup_reason_export)) {
@@ -188,7 +195,7 @@ class BackupHostState internal constructor(
         }
     }
 
-    /** Import cards: one dialog, two sources. Both re-ask for the fingerprint first. */
+    /** Import cards: one sheet, two sources. Both re-ask for the fingerprint first. */
     fun requestImport() {
         requireUnlocked(text(R.string.backup_reason_import)) {
             resetImport()
@@ -201,10 +208,11 @@ class BackupHostState internal constructor(
         importChoiceOpen = false
     }
 
+    /** The backup source goes straight to the file picker; the dialog opens on the picked file. */
     internal fun chooseBackupImport() {
         importChoiceOpen = false
         resetImport()
-        importOpen = true
+        launchOpenDocument()
     }
 
     internal fun chooseSheetImport() {
@@ -239,7 +247,7 @@ class BackupHostState internal constructor(
                         SheetDownload.VALUES -> SheetTemplate.valuesCsv(currentLists()).toByteArray(Charsets.UTF_8)
                         SheetDownload.FIX -> {
                             val report = sheetReport ?: return@withContext ByteArray(0)
-                            CsvWriter.write(report.fixRows { SheetMessages.row(appContext.resources, it) })
+                            CsvWriter.write(report.fixRows { SheetMessages.rowSentence(appContext.resources, it) })
                                 .toByteArray(Charsets.UTF_8)
                         }
                     }
@@ -277,24 +285,34 @@ class BackupHostState internal constructor(
 
     internal fun chooseSheetFile() {
         if (sheetBusy) return
+        sheetProblem = null
         launchOpenSheet()
+    }
+
+    /** "Save blank sheet" on a refused file: the bundled template, generated on the phone. */
+    internal fun saveBlankSheet() {
+        sheetProblem = null
+        downloadSheet(SheetDownload.XLSX)
+    }
+
+    internal fun closeSheetProblem() {
+        sheetProblem = null
     }
 
     internal fun onSheetPicked(uri: Uri?) {
         if (uri == null) return
         sheetBusy = true
-        sheetError = null
+        sheetProblem = null
         scope.launch {
             try {
                 val bytes = withContext(Dispatchers.IO) { readBytes(uri, ImportSchema.MAX_FILE_BYTES.toInt() + 1) }
-                sheetFileName = withContext(Dispatchers.IO) { displayName(uri) }
                 when (val opened = SheetImporter.open(bytes)) {
-                    is SheetOpenResult.Refused -> sheetError = SheetMessages.open(appContext.resources, opened.problem)
+                    is SheetOpenResult.Refused -> sheetProblem = SheetMessages.open(appContext.resources, opened.problem)
                     is SheetOpenResult.Opened -> {
                         val report = withContext(Dispatchers.IO) { SheetImporter.check(database, opened.grid) }
                         val problem = report.fileProblem
                         if (problem != null) {
-                            sheetError = SheetMessages.file(appContext.resources, problem)
+                            sheetProblem = SheetMessages.file(appContext.resources, problem)
                         } else {
                             sheetReport = report
                             sheetUri = uri
@@ -303,7 +321,7 @@ class BackupHostState internal constructor(
                     }
                 }
             } catch (_: Exception) {
-                sheetError = text(R.string.import_file_unreadable)
+                sheetProblem = SheetMessages.unreadable(appContext.resources)
             } finally {
                 sheetBusy = false
             }
@@ -316,8 +334,11 @@ class BackupHostState internal constructor(
         sheetBusy = true
         scope.launch {
             try {
-                val result = withContext(Dispatchers.IO) { SheetImporter.import(database, report) }
-                sheetAdded = result.added
+                val added = withContext(Dispatchers.IO) { SheetImporter.import(database, report).added }
+                sheetFan = withContext(Dispatchers.IO) {
+                    fanOf(repository.cards.first().sortedByDescending { it.createdAt }.take(minOf(added, FAN_SIZE)))
+                }
+                sheetAdded = added
                 sheetStep = SheetStep.DONE
             } catch (_: Exception) {
                 snackbar.show(text(R.string.import_snack_import_failed))
@@ -343,19 +364,39 @@ class BackupHostState internal constructor(
         }
     }
 
+    /** Back from the check step returns to step 1 to pick another file; elsewhere it closes. */
+    internal fun backFromSheet() {
+        if (sheetBusy) return
+        if (sheetStep == SheetStep.CHECK) {
+            sheetStep = SheetStep.GET
+            sheetReport = null
+            sheetUri = null
+        } else {
+            closeSheet()
+        }
+    }
+
     internal fun closeSheet() {
         if (sheetBusy) return
         sheetOpen = false
         resetSheet()
     }
 
+    internal fun openHelpTopic(topic: HelpTopic) {
+        sheetHelpOpen = false
+        if (topic == HelpTopic.SPREADSHEET) return
+        closeSheet()
+        onHelpTopic(topic)
+    }
+
     private fun resetSheet() {
         sheetStep = SheetStep.GET
         sheetBusy = false
-        sheetError = null
-        sheetFileName = null
+        sheetProblem = null
+        sheetHelpOpen = false
         sheetReport = null
         sheetAdded = 0
+        sheetFan = emptyList()
         sheetUri = null
         pendingSheetDownload = null
     }
@@ -371,7 +412,6 @@ class BackupHostState internal constructor(
         if (exportBusy) return
         exportOpen = false
         pendingExport = null
-        pendingExportWithSettings = false
         resetExport()
     }
 
@@ -392,7 +432,6 @@ class BackupHostState internal constructor(
                     ExportCrypto.encrypt(BackupCodec.encode(content), passphrase)
                 }
                 pendingExport = encrypted
-                pendingExportWithSettings = includeSettings
                 exportOpen = false
                 resetExport()
                 launchCreateDocument(BackupSnapshot.fileName())
@@ -407,30 +446,22 @@ class BackupHostState internal constructor(
 
     internal fun onExportFileCreated(uri: Uri?) {
         val payload = pendingExport
-        val withSettings = pendingExportWithSettings
         pendingExport = null
-        pendingExportWithSettings = false
         if (uri == null || payload == null) return
         scope.launch {
             try {
                 withContext(Dispatchers.IO) { writeText(uri, payload) }
-                snackbar.show(
-                    text(
-                        if (withSettings) {
-                            R.string.backup_snack_saved_settings
-                        } else {
-                            R.string.backup_snack_saved
-                        }
-                    )
-                )
+                snackbar.show(text(R.string.backup_snack_saved))
             } catch (_: Exception) {
                 snackbar.show(text(R.string.backup_error_save))
             }
         }
     }
 
+    /** Change, or Choose another file after a refused one. */
     internal fun chooseImportFile() {
         if (importBusy) return
+        importBadFile = false
         launchOpenDocument()
     }
 
@@ -439,13 +470,24 @@ class BackupHostState internal constructor(
         scope.launch {
             try {
                 val file = withContext(Dispatchers.IO) { readImportFile(uri) }
+                if (file == null) {
+                    importOpen = false
+                    importBadFile = true
+                    return@launch
+                }
                 importFile = file
                 importPassphrase = TextFieldValue("")
                 importError = null
+                importOpen = true
             } catch (_: Exception) {
                 snackbar.show(text(R.string.backup_error_read))
             }
         }
+    }
+
+    internal fun closeBadFile() {
+        importBadFile = false
+        resetImport()
     }
 
     internal fun openImport() {
@@ -475,7 +517,6 @@ class BackupHostState internal constructor(
                 }
                 val plan = BackupPlanner.plan(normalized.content, snapshot)
                 importReview = ImportReview(
-                    fileName = file.name,
                     content = normalized.content,
                     sourceContent = decoded.content,
                     plan = plan,
@@ -490,12 +531,9 @@ class BackupHostState internal constructor(
                 importStep = ImportStep.REVIEW
             } catch (_: WrongPassphraseException) {
                 importError = text(R.string.backup_wrong_password)
-            } catch (_: BackupFormatException) {
-                importError = null
-                snackbar.show(text(R.string.backup_error_format))
             } catch (_: Exception) {
-                importError = null
-                snackbar.show(text(R.string.backup_error_format))
+                importOpen = false
+                importBadFile = true
             } finally {
                 importBusy = false
             }
@@ -528,9 +566,12 @@ class BackupHostState internal constructor(
                         )
                     }
                 }
-                importOpen = false
-                resetImport()
-                snackbar.show(importMessage(result))
+                val numbers = review.content.cards.map { it.number }.toSet()
+                val fan = withContext(Dispatchers.IO) {
+                    fanOf(repository.cards.first().filter { it.number in numbers }.take(FAN_SIZE))
+                }
+                importOutcome = ImportOutcome(result, fan)
+                importStep = ImportStep.RESULT
             } catch (_: Exception) {
                 snackbar.show(text(R.string.backup_error_import))
             } finally {
@@ -556,7 +597,7 @@ class BackupHostState internal constructor(
                 }
                 UnlockSession.lockNow()
                 ClipboardHelper.clearNow()
-                cancelCopyNotification()
+                CopyCompanionNotifier.cancel(appContext)
                 Reminders.clearAll(appContext)
                 CardUsage.clear(appContext)
                 eraseOpen = false
@@ -585,7 +626,6 @@ class BackupHostState internal constructor(
         eraseOpen = false
         resetSheet()
         pendingExport = null
-        pendingExportWithSettings = false
         resetExport()
         resetImport()
         resetErase()
@@ -619,6 +659,17 @@ class BackupHostState internal constructor(
         importMode = MergeMode.UPDATE
         importRestore = true
         importReview = null
+        importOutcome = null
+        importBadFile = false
+    }
+
+    /** Colour and network only; an auto network is detected from the number, as on Home. */
+    private suspend fun fanOf(cards: List<VaultCard>): List<FanCard> {
+        val networks = repository.networks.first().map { it.toDomain() }
+        return cards.map { card ->
+            val networkId = if (card.networkAuto) CardNumberRules.detect(card.number, networks)?.id else card.networkId
+            FanCard(card.bandColor, networkId)
+        }
     }
 
     private fun resetErase() {
@@ -626,27 +677,8 @@ class BackupHostState internal constructor(
         eraseBusy = false
     }
 
-    private fun importMessage(result: BackupImportResult): String {
-        val parts = buildList {
-            if (result.added > 0) add(quantity(R.plurals.backup_result_added, result.added))
-            if (result.updated > 0) add(quantity(R.plurals.backup_result_updated, result.updated))
-            if (result.kept > 0) add(quantity(R.plurals.backup_result_kept, result.kept))
-            if (result.same > 0) add(quantity(R.plurals.backup_result_unchanged, result.same))
-        }
-        val separator = text(R.string.backup_value_separator)
-        val base = if (parts.isEmpty()) {
-            text(R.string.backup_result_nothing)
-        } else {
-            parts.joinToString(separator)
-        }
-        return if (result.settingsRestored) {
-            text(R.string.backup_result_with_settings, base)
-        } else {
-            base
-        }
-    }
-
-    private fun readImportFile(uri: Uri): ImportFile {
+    /** The picked file, or null when it is not a QuickCards backup at all. */
+    private fun readImportFile(uri: Uri): ImportFile? {
         val text = appContext.contentResolver.openInputStream(uri)?.use { stream ->
             val reader = BufferedReader(InputStreamReader(stream, Charsets.UTF_8))
             val builder = StringBuilder()
@@ -667,7 +699,7 @@ class BackupHostState internal constructor(
         val cardCount = if (encrypted) {
             null
         } else {
-            runCatching { BackupCodec.decodePayload(text).content.cards.size }.getOrNull()
+            runCatching { BackupCodec.decodePayload(text).content.cards.size }.getOrNull() ?: return null
         }
         return ImportFile(
             name = name,
@@ -723,18 +755,8 @@ class BackupHostState internal constructor(
         } ?: throw IOException("Could not open the selected file")
     }
 
-    private fun cancelCopyNotification() {
-        runCatching {
-            val manager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.cancel(CopyCompanionNotifier.NOTIFICATION_ID)
-        }
-    }
-
     private fun text(resourceId: Int, vararg args: Any): String =
         appContext.getString(resourceId, *args)
-
-    private fun quantity(resourceId: Int, count: Int): String =
-        appContext.resources.getQuantityString(resourceId, count, count)
 }
 
 @Composable
@@ -804,27 +826,26 @@ fun rememberBackupHostState(): BackupHostState {
 }
 
 @Composable
-fun BackupHost(state: BackupHostState) {
+fun BackupHost(state: BackupHostState, onHelpTopic: (HelpTopic) -> Unit) {
+    SideEffect { state.onHelpTopic = onHelpTopic }
     val locked by AppLockController.isLocked.collectAsState()
     LaunchedEffect(locked) {
         if (locked) state.dismissForLock()
     }
+    if (locked) return
 
-    if (!locked && state.exportOpen) {
-        ExportBackupDialog(state)
+    if (state.sheetOpen) SpreadsheetScreen(state)
+    if (state.importOpen) {
+        when (state.importStep) {
+            ImportStep.PICK -> ImportBackupDialog(state)
+            ImportStep.REVIEW -> state.importReview?.let { ImportReviewScreen(state, it) }
+            ImportStep.RESULT -> state.importOutcome?.let { ImportResultScreen(state, it) }
+        }
     }
-    if (!locked && state.importChoiceOpen) {
-        ImportChoiceDialog(state)
-    }
-    if (!locked && state.importOpen) {
-        ImportBackupDialog(state)
-    }
-    if (!locked && state.sheetOpen) {
-        SheetImportDialog(state)
-    }
-    if (!locked && state.eraseOpen) {
-        EraseAllDataDialog(state)
-    }
+    if (state.importBadFile) NotABackupDialog(state)
+    if (state.importChoiceOpen) ImportChoiceSheet(state)
+    if (state.exportOpen) ExportBackupDialog(state)
+    if (state.eraseOpen) EraseAllDataDialog(state)
 }
 
 private fun Context.findFragmentActivity(): FragmentActivity? {

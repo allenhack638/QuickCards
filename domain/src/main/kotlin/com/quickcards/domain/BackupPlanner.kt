@@ -32,6 +32,7 @@ data class PhoneCard(
     val cvv: String = "",
     val nameOnCard: String = "",
     val color: String = "navy",
+    val colorManual: Boolean = true,
     val note: String = "",
     val dueDay: Int? = null,
     val tagIds: List<String> = emptyList(),
@@ -66,6 +67,7 @@ data class ResolvedCard(
     val color: String,
     val note: String,
     val dueDay: Int?,
+    val colorManual: Boolean = true,
     val pinned: Boolean = false,
     val pinnedAt: Long? = null,
     val archived: Boolean = false,
@@ -186,6 +188,7 @@ object BackupPlanner {
             color = card.color,
             note = card.note,
             dueDay = card.dueDay,
+            colorManual = card.colorManual,
             pinned = card.pinned,
             pinnedAt = if (card.pinned) card.pinnedAt else null,
             archived = card.archived,
@@ -205,6 +208,7 @@ object BackupPlanner {
         if (existing.cvv != resolved.cvv) return true
         if (existing.nameOnCard != resolved.nameOnCard) return true
         if (existing.color != resolved.color) return true
+        if (existing.colorManual != resolved.colorManual) return true
         if (existing.note != resolved.note) return true
         if (existing.dueDay != resolved.dueDay) return true
         if (existing.pinned != resolved.pinned) return true

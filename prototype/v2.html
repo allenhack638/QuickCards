@@ -139,14 +139,15 @@
   <h2>Try</h2>
   <ul>
     <li>Tap the masked number, expiry, CVV or name to copy it. Hold the number or CVV to see it for 5 seconds.</li>
-    <li>If enabled, after copying a number a silent notification shows expiry and CVV for 30 seconds.</li>
+    <li>If enabled, after copying a number a silent notification offers Copy expiry and Copy CVV for 30 seconds; it shows both masked.</li>
+    <li>The first number copy asks for the notification permission (Android 13 and later), never at install or launch.</li>
     <li>Use the holder chips to switch between card holders.</li>
     <li>Pin a card from its More sheet to keep it at the top of the list.</li>
     <li>Manage holders, banks, networks, types and tags from the Manage tab. Try renaming or deleting one that cards use.</li>
     <li>Archive a card from its ⋮ sheet and find it again in Manage › Archived cards; restore it from the same menu.</li>
     <li>Long-press a note on a card to copy it, or use More to read the whole note. Notes, expired cards and archived search are set in Settings › Card list.</li>
     <li>Tune masking, notifications, tags and more in Settings.</li>
-    <li>The app opens locked. Leave it untouched for the time set in Settings and it locks again.</li>
+    <li>The app opens locked. Leave it untouched for the time set in Settings and it locks again. Share always asks to confirm it’s you; coming back from the share sheet within 60 seconds skips the lock.</li>
     <li>Swipe in from the left edge or press Esc to go back.</li>
   </ul>
   <h2>Clipboard</h2>
@@ -270,12 +271,12 @@ const PINNED_MAX = 10, TAGS_MAX = 10, TAGS_LEN = 16;
 
 /* ---------- Data ---------- */
 const BANK_NAMES = ['American Express', 'AU Small Finance Bank', 'Axis Bank', 'Bank of Baroda', 'Federal Bank', 'HDFC Bank', 'ICICI Bank', 'IDFC FIRST Bank', 'IndusInd Bank', 'Kotak Mahindra Bank', 'State Bank of India', 'Yes Bank'];
-const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: false, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
+const CFG0 = () => ({ theme: 'dark', autofill: true, nfc: true, expiryReminders: true, paymentReminders: true, windowSec: 60, clipSec: 60, mask: true, expiredCards: 'end', expiresSoonMonths: 1, showNotes: true, notif: { on: true, sec: 30 }, tags: { show: true }, appLock: { on: true, after: 60, onLeave: true } });
 const cleanCfg = c => ({
   theme: c.theme ?? 'dark', windowSec: c.windowSec ?? 60,
   clipSec: c.clipSec ?? 60, mask: c.mask ?? true, expiredCards: c.expiredCards ?? 'end',
   expiresSoonMonths: c.expiresSoonMonths ?? 1, showNotes: c.showNotes ?? true,
-  notif: { on: c.notif?.on ?? false, sec: c.notif?.sec ?? 30 },
+  notif: { on: c.notif?.on ?? true, sec: c.notif?.sec ?? 30 },
   tags: { show: c.tags?.show ?? true },
   appLock: { on: c.appLock?.on ?? true, after: c.appLock?.after ?? 60, onLeave: c.appLock?.onLeave ?? true }
 });
@@ -426,13 +427,15 @@ function renderClip() { const el = $('#clip'); if (el) el.innerHTML = S.clip ? `
 /* ---------- Heads-up notification ---------- */
 let hunT, hunI;
 /* Content preview only: the app posts this as a silent system notification in the shade
-   (off by default), not as an in-app heads-up. */
+   (on by default, hidden on the lock screen), not as an in-app heads-up. It never shows a value:
+   expiry and CVV are masked and leave only through its Copy actions. */
 function showHun(c) {
   const n = S.cfg.notif; if (!n.on) return;
   const last4 = c.number.slice(-4);
   hun.innerHTML = `<div class="app"><span class="logo">${LOGO('22 28 64 52')}</span>QuickCards · <span class="tnum" id="hunT">${fmtT(n.sec)}</span><button class="x" data-hun="x" aria-label="Dismiss notification">${I('close', 'sm')}</button></div>
-    <div class="t">${esc(cardTitle(c))} · <span class="tnum">${last4}</span></div>
-    <div class="vals"><div><div class="l">Expiry</div><div class="v">${esc(c.exp)}</div></div><div><div class="l">CVV</div><div class="v">${esc(c.cvv)}</div></div></div>
+    <div class="t">${esc(cardTitle(c))} ••<span class="tnum">${last4}</span></div>
+    <div class="vals"><div class="v">${[c.exp && 'Expiry ••/••', c.cvv && 'CVV •••'].filter(Boolean).join(' · ')}</div></div>
+    <div class="acts">${c.exp ? '<button class="btn text sl" data-hun="exp">Copy expiry</button>' : ''}${c.cvv ? '<button class="btn text sl" data-hun="cvv">Copy CVV</button>' : ''}</div>
 <div class="bar" id="hunBar"></div>`;
   hun._card = c; hun.classList.add('show');
   const bar = $('#hunBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth; bar.style.transition = `transform ${n.sec}s linear`; bar.style.transform = 'scaleX(0)';
@@ -443,7 +446,20 @@ function hideHun() { hun.classList.remove('show'); clearInterval(hunI); clearTim
 hun.addEventListener('click', e => {
   const b = e.target.closest('[data-hun]'); if (!b) return;
   if (b.dataset.hun === 'x') return hideHun();
+  const c = hun._card, key = b.dataset.hun;
+  if (c) setClip(`${cardTitle(c)} · ${LABEL[key]}`, c[key]);
 });
+/* Android 13+: the first number copy asks for the notification permission (never at install or
+   launch), and only while the copy notification or a reminder is on. After that one ask, a denial
+   changes only in system settings; copying still works. */
+function afterNumberCopy(c) {
+  if (S.notifPerm === 'granted') return showHun(c);
+  if (S.notifPerm || !(S.cfg.notif.on || S.cfg.expiryReminders || S.cfg.paymentReminders)) return;
+  openDialog(`<h2>Allow QuickCards to send you notifications?</h2>
+    <div class="acts"><button class="btn text sl" data-d="deny">Don’t allow</button><button class="btn text sl" data-d="allow">Allow</button></div>`, () => {
+    dialog.onclick = e => { const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; closeDialog(); S.notifPerm = d === 'allow' ? 'granted' : 'denied'; if (d === 'allow') showHun(c); };
+  });
+}
 
 /* ---------- Share ---------- */
 function shareDialog(c) {
@@ -454,6 +470,7 @@ function shareDialog(c) {
     dialog.onclick = e => { const cb = e.target.closest('#shareCvv'); if (cb) { cb.setAttribute('aria-checked', cb.getAttribute('aria-checked') !== 'true'); return; }
       const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return; const cvv = $('#shareCvv', dialog)?.getAttribute('aria-checked') === 'true'; closeDialog(); if (d !== 'share') return;
       const text = [cardTitle(c), `Card number: ${fmt(c.number, net, false)}`, `Expiry: ${c.exp}`, holderName(c) ? `Name: ${holderName(c)}` : null, cvv && c.cvv ? `CVV: ${c.cvv}` : null].filter(Boolean).join('\n');
+      S.shareGraceUntil = Date.now() + 60000;
       if (navigator.share) navigator.share({ text }).catch(() => {}); else snackbar('Share sheet opens here on the phone'); };
   });
 }
@@ -484,7 +501,7 @@ When you choose to send data somewhere
 - Autofill: when you tap a QuickCards suggestion in another app’s payment form, QuickCards fills the fields you selected. It reads that form’s field labels only to fill it and does not save or transmit the form.
 - Export backup: you choose a file location. The backup is encrypted with the password you enter. Where the file goes, including a cloud provider you pick, is your choice.
 - Clipboard: copying a card value places it on the Android clipboard for the time you chose, then QuickCards clears it. On Android 13 and later the clip is marked sensitive.
-- Notifications: if you turn on “Show expiry and CVV after copying”, the copy notification is silent and private on the lock screen. It is off by default. Reminders show only the bank and the last four digits.
+- Notifications: after you copy a card number, a silent notification lets you copy that card’s expiry and CVV for a short time. It does not display them (they are masked), it is on by default for new installs, it never shows on the lock screen, and you can turn it off in Settings › Copying. Reminders show only the bank and the last four digits.
 
 Permissions and why
 - Biometric or device credential: unlock the app and sensitive actions.
@@ -509,7 +526,7 @@ function back() {
   if (!bio.hidden) return closeBio();
   if (isAppLocked()) return;
   if (!dialog.hidden) return closeDialog();
-  if (!sheet.hidden) return closeSheet();
+  if (!sheet.hidden) return closeSheet(); // Back from Custom colour returns to the swatches, never out of the form
   if (S.search.on) { S.search = { on: false, q: '' }; return render('back'); }
   if (top().name === 'archived' && S.archSearch.on) { S.archSearch = { on: false, q: '' }; return render('back'); }
   if (top().name === 'form' && formDirty()) return discardDialog();
@@ -652,6 +669,10 @@ function syncNav() {
   $$('button', nav).forEach(b => b.dataset.tab === S.tab ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
 }
 
+/* On the phone, while the vault loads at cold start, Home keeps the nav bar and the search and
+   filter bar and shows three art-free placeholder tiles, never the empty state. Add and Edit draw
+   the preview and field skeleton at once and fill the values when the session loads. This
+   prototype's data is synchronous, so it never shows them. */
 function homeHTML() {
   if (!S.cards.length) return `<header class="appbar"><h1 class="t-display">Cards</h1></header>
     <div class="empty"><svg class="art" viewBox="0 0 168 120" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -717,7 +738,7 @@ function archivedHTML() {
     : `<header class="appbar nested"><button class="iconbtn on-surface" data-act="back" aria-label="Back">${I('back')}</button><h1>Archived cards</h1>
         ${all.length ? `<button class="iconbtn" data-act="archsearch" aria-label="Search archived cards">${I('search')}</button>` : ''}</header>`;
   const body = !all.length
-    ? `<div class="noresult"><div class="t-title">No archived cards</div><div class="t-body t-muted">Archive a card from its ⋮ menu to keep it out of your list.</div></div>`
+    ? `<div class="noresult"><div class="t-title">No archived cards</div><div class="t-body t-muted">Hold a card to archive it</div></div>`
     : (q && !list.length)
       ? `<div class="noresult"><div class="t-title">No archived cards match “${esc(S.archSearch.q.trim())}”</div></div>`
       : `<div class="list">${list.map(c => passHTML(c)).join('')}</div>`;
@@ -858,7 +879,7 @@ function settingsHTML() {
     ${sw('paymentrem', C.paymentReminders, 'payments', 'Payment reminders', '3 days before a card’s due day')}
     <div class="subhead">Copying</div>
     ${row('clipsec', 'clip', 'Clear clipboard', C.clipSec ? `After ${secText(C.clipSec)}` : 'Never')}
-    ${sw('notif', C.notif.on, 'bell', 'Show expiry and CVV after copying', 'Hidden on the lock screen')}
+    ${sw('notif', C.notif.on, 'bell', 'Expiry and CVV notification', 'Hidden on lock screen')}
     ${row('notifsec', 'timer', 'Notification time', `Disappears after ${secText(C.notif.sec)}`, !C.notif.on)}
     ${sw('autofill', C.autofill, 'keyboard', 'Fill cards in other apps', C.autofill ? 'On, cards appear in checkout forms' : 'Fill cards after your fingerprint')}
     <div class="subhead">Tags</div>
@@ -918,9 +939,9 @@ function formHTML() {
     ${passHTML({ ...F, id: '', needsReview: F.review }, true)}
     ${tf('holder', 'Card holder', byId('holders', F.holderId)?.name, { ro: 'holders', trail: caret })}
     ${F.mode === 'add' && S.cfg.nfc ? `<button class="btn text sl" data-act="nfc" style="margin:0 0 8px -12px">${I('nfc')}Tap your card</button>` : ''}
-    ${tf('number', 'Card number', fmt(F.number, net, false, false), { trail: `<span class="tag" id="f-net">${esc(net?.code || '')}</span>`, attrs: 'inputmode="numeric" autocomplete="off"', fix: F.repairs?.number?.before })}
-    <div class="row2">${tf('exp', 'Expiry', F.exp, { help: 'MM/YY', attrs: 'inputmode="numeric" autocomplete="off" maxlength="7"', fix: F.repairs?.exp?.before })}
-      ${tf('cvv', 'CVV', F.cvv, { help: cvvHelp(net), attrs: 'inputmode="numeric" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
+    ${tf('number', 'Card number', fmt(F.number, net, false, false), { trail: `<span class="tag" id="f-net">${esc(net?.code || '')}</span>`, attrs: 'inputmode="numeric" enterkeyhint="next" autocomplete="off"', fix: F.repairs?.number?.before })}
+    <div class="row2">${tf('exp', 'Expiry', F.exp, { help: 'MM/YY', attrs: 'inputmode="numeric" enterkeyhint="next" autocomplete="off" maxlength="7"', fix: F.repairs?.exp?.before })}
+      ${tf('cvv', 'CVV', F.cvv, { help: cvvHelp(net), attrs: 'inputmode="numeric" enterkeyhint="next" autocomplete="new-password" type="password" maxlength="4"', fix: F.repairs?.cvv?.before })}</div>
     <div class="stdrow" id="f-std" style="display:none;align-items:center;justify-content:space-between;margin-top:4px"><span class="t-body t-muted" id="f-std-t"></span><button class="btn text sl" data-act="f-std" style="margin-right:-8px">Reset to standard</button></div>
     ${tf('bank', 'Bank', byId('banks', F.bankId)?.name, { ro: 'banks', trail: caret })}
     ${tf('type', 'Card type', byId('types', F.typeId)?.name, { ro: 'types', trail: caret })}
@@ -930,8 +951,8 @@ function formHTML() {
       ${isCurated(F.color)
         ? `<button type="button" class="swatch custom" role="radio" aria-label="Custom" aria-checked="false" data-act="fcustom">${I('palette')}</button>`
         : `<button type="button" class="swatch custom" role="radio" aria-label="Custom colour, ${esc(F.color)}" aria-checked="true" data-act="fcustom" style="--sw:${esc(F.color)}">${I('check')}</button>`}</div></div>
-    ${tf('dueDay', 'Payment due day (optional)', F.dueDay || '', 'Day of the month your bill is due, 1 to 31', { attrs: 'inputmode="numeric" maxlength="2"' })}
-    ${tf('note', 'Note (optional)', F.note, { max: 80, help: 'For example Everyday spending', attrs: 'maxlength="80"' })}
+    ${tf('dueDay', 'Payment due day (optional)', F.dueDay || '', 'Day of the month your bill is due, 1 to 31', { attrs: 'inputmode="numeric" enterkeyhint="next" maxlength="2"' })}
+    ${tf('note', 'Note (optional)', F.note, { max: 80, help: 'For example Everyday spending', attrs: 'maxlength="80" enterkeyhint="done"' })}
   </div></div>
   <div class="footer"><button class="btn filled lg" data-act="save" ${edit && !formDirty() ? 'disabled' : ''}>${edit ? 'Save changes' : 'Save card'}</button></div>`;
 }
@@ -995,6 +1016,13 @@ function updatePreview() {
 }
 function mountForm() {
   const F = S.form;
+  // Next walks number → expiry → CVV → due day → note; the note's Done closes the keyboard.
+  const chain = ['number', 'exp', 'cvv', 'dueDay', 'note'];
+  chain.forEach((key, i) => $('#f-' + key)?.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    const next = chain[i + 1] && $('#f-' + chain[i + 1]);
+    if (next) { next.focus(); next.scrollIntoView({ block: 'center' }); } else e.target.blur();
+  }));
   const onIn = (key, fn, noVal) => { const el = $('#f-' + key); el.addEventListener('input', () => {
     if (F.repairs && F.repairs[key]) { delete F.repairs[key]; const fx = $(`[data-fix="${key}"]`); if (fx) fx.remove(); }
     F.review = (F.review || []).filter(x => x !== key);
@@ -1213,7 +1241,8 @@ function actionsSheet(id) {
     </div>`, () => {
     sheet.onclick = e => { const b = e.target.closest('[data-sa]'); if (!b) return; const a = b.dataset.sa; closeSheet();
       if (a === 'copyall') requireUnlock(() => { setClip(`${cardTitle(c)} details`, `${fmt(c.number, net, false)}\n${c.exp}\n${holderName(c)}`); snackbar('Number, expiry and name copied', 'Clear', clearClip); });
-      if (a === 'share') requireUnlock(() => shareDialog(c), 'Confirm it’s you to share this card');
+      // Share always asks again, even inside the unlock window.
+      if (a === 'share') openBio(() => shareDialog(c), 'Confirm it’s you to share this card');
       if (a === 'edit') requireUnlock(() => startForm('edit', id), 'Confirm it’s you to edit this card');
       if (a === 'pin') togglePin(c);
       if (a === 'archive') archiveDialog(c);
@@ -1477,9 +1506,11 @@ function copyField(el) {
     if (!t._lab) t._lab = lab.innerHTML;
     t.classList.remove('flash', 'copied'); void t.offsetWidth; t.classList.add('flash', 'copied');
     lab.innerHTML = `${I('check')}Copied`;
+    // The word shows only where it fits; otherwise the check alone, so copying never reflows the row.
+    if (lab.scrollWidth > lab.clientWidth) lab.innerHTML = I('check');
     clearTimeout(t._t); t._t = setTimeout(() => { t.classList.remove('flash', 'copied'); lab.innerHTML = t._lab; }, 1200);
     snackbar(`${LABEL[key]} copied${S.cfg.clipSec ? ` · clears in ${secText(S.cfg.clipSec).replace(' seconds', 's').replace(' minutes', ' min').replace(' minute', ' min')}` : ''}`, S.cfg.clipSec ? 'Clear' : '', clearClip);
-    if (key === 'number') showHun(c);
+    if (key === 'number') afterNumberCopy(c);
   });
 }
 function reveal(el) {
@@ -1522,8 +1553,8 @@ app.addEventListener('click', e => {
   if (cp && screens.contains(cp)) { if (longFired) { longFired = false; return; } return copyField(cp); }
   const t = e.target.closest('[data-act]'); if (!t) return;
   const a = t.dataset.act, C = S.cfg;
-  // Showing the CVV in notifications always re-asks, like turning a protection off.
-  if (a === 'notif' && !C.notif.on) return openBio(() => { C.notif.on = true; render(); }, 'Confirm it’s you to show the CVV in notifications');
+  // Turning on the copy notification always re-asks, like turning a protection off.
+  if (a === 'notif' && !C.notif.on) return openBio(() => { C.notif.on = true; render(); }, 'Confirm it’s you to turn on the copy notification');
   if (CFG_TOGGLES[a]) { CFG_TOGGLES[a](C); return render(); }
   switch (a) {
     case 'back': return back();
@@ -1607,7 +1638,8 @@ app.addEventListener('pointermove', e => { if (sx == null) return; const dx = Ma
 app.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; edge.style.opacity = 0; edge.style.transform = ''; if (dx > 60) back(); });
 
 /* ---------- Panel ---------- */
-$('#leave').onclick = () => { closeBio(); if (S.cfg.appLock.on && S.cfg.appLock.onLeave) lockApp('leave'); else { lockNow(); snackbar('Copying locked when you left'); } };
+// Back from the share sheet within 60 s skips the lock; later, it locks as usual.
+$('#leave').onclick = () => { closeBio(); if (Date.now() < (S.shareGraceUntil || 0)) { S.shareGraceUntil = 0; return; } if (S.cfg.appLock.on && S.cfg.appLock.onLeave) lockApp('leave'); else { lockNow(); snackbar('Copying locked when you left'); } };
 $('#reset').onclick = () => { try { localStorage.removeItem(KEY); } catch (_) {} Object.assign(S, seed(), { stack: [{ name: 'home' }], tab: 'cards', search: { on: false, q: '' }, archSearch: { on: false, q: '' }, filters: emptyFilters(), noteOpen: new Set(), lastExport: null, form: null }); lockNow(); clearClip(); hideHun(); if (!sheet.hidden) closeSheet(); if (!dialog.hidden) closeDialog(); applyTheme(); render('fade'); };
 
 applyTheme(); render();

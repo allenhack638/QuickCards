@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class ArchivedCardsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -59,12 +58,6 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
         val expiresSoonMonths: Int
     )
 
-    private data class CopyOptions(
-        val clipClearSec: Int,
-        val notifEnabled: Boolean,
-        val notifSec: Int
-    )
-
     private val lists = combine(
         repository.observeArchived(),
         repository.holders,
@@ -93,22 +86,12 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
         ListOptions(maskNumbers, tagsShow, showNotes, expiresSoonMonths)
     }
 
-    private val copyOptions = combine(
-        settings.clipClearSec,
-        settings.notifEnabled,
-        settings.notifSec
-    ) { clipClearSec, notifEnabled, notifSec ->
-        CopyOptions(clipClearSec, notifEnabled, notifSec)
-    }
-
-    private val options = combine(listOptions, copyOptions) { list, copy ->
+    private val options = combine(listOptions, settings.clipClearSec) { list, clipClearSec ->
         ArchivedCardsOptions(
             maskNumbers = list.maskNumbers,
             tagsShow = list.tagsShow,
             showNotes = list.showNotes,
-            clipClearSec = copy.clipClearSec,
-            notifEnabled = copy.notifEnabled,
-            notifSec = copy.notifSec,
+            clipClearSec = clipClearSec,
             expiresSoonMonths = list.expiresSoonMonths
         )
     }
@@ -133,18 +116,6 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
 
     fun setQuery(value: String) {
         query.value = value
-    }
-
-    fun restore(cardId: String) {
-        viewModelScope.launch { repository.restore(cardId) }
-    }
-
-    fun deleteCard(item: ArchivedCardItem) {
-        viewModelScope.launch { repository.deleteCard(item.card.id) }
-    }
-
-    fun restoreDeleted(card: VaultCard) {
-        viewModelScope.launch { repository.restoreCard(card) }
     }
 
     private fun buildState(

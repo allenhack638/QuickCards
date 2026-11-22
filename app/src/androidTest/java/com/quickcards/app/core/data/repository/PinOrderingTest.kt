@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -80,22 +79,5 @@ class PinOrderingTest {
 
         val ordered = repository.cards.first().map { it.id }
         assertEquals(listOf(second, third, first), ordered)
-    }
-
-    @Test
-    fun loweringTheLimitUnpinsTheMostRecentlyPinnedExtras() = runBlocking {
-        val (first, second, third) = seed()
-
-        repository.pin(first)
-        repository.pin(second)
-        repository.pin(third)
-
-        assertEquals(2, repository.trimPinned(1))
-
-        val ordered = repository.cards.first()
-        assertEquals(first, ordered.first().id)
-        assertTrue(ordered.first().pinned)
-        assertFalse(ordered.first { it.id == second }.pinned)
-        assertFalse(ordered.first { it.id == third }.pinned)
     }
 }

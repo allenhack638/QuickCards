@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Card details -->
+    <string name="details_back">Back</string>
+    <string name="details_edit">Edit card</string>
+    <string name="details_more">More</string>
+    <string name="details_pane_title">%1$s card ending %2$s</string>
+    <string name="details_row_number">Number</string>
+    <string name="details_row_holder">Holder</string>
+    <string name="details_row_note">Note</string>
+    <string name="details_copy_number">Copy card number</string>
+    <string name="details_copy_expiry">Copy expiry</string>
+    <string name="details_copy_cvv">Copy CVV</string>
+    <string name="details_copy_holder">Copy holder</string>
+    <string name="details_copied_number">Card number copied</string>
+    <string name="details_copied_expiry">Expiry copied</string>
+    <string name="details_copied_cvv">CVV copied</string>
+    <string name="details_copied_name">Name copied</string>
+    <string name="details_card_not_found">Card not found</string>
+    <string name="details_number_hidden">Card number ending %1$s, hidden</string>
+    <string name="details_cvv_hidden">CVV, hidden</string>
+
+    <!-- Card actions sheet -->
+</resources>

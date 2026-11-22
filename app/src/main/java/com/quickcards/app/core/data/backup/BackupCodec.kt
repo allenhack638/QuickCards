@@ -53,6 +53,7 @@ object BackupCodec {
                     addProperty("id", bank.id)
                     addProperty("name", bank.name)
                     addProperty("mono", bank.mono)
+                    bank.color?.let { addProperty("color", it) }
                 })
             }
         })
@@ -88,6 +89,7 @@ object BackupCodec {
                     addProperty("cvv", card.cvv)
                     addProperty("nameOnCard", card.nameOnCard)
                     addProperty("color", card.color)
+                    addProperty("colorManual", card.colorManual)
                     addProperty("note", card.note)
                     card.dueDay?.let { addProperty("dueDay", it) }
                     add("tagIds", JsonArray().apply { card.tagIds.forEach(::add) })
@@ -175,7 +177,8 @@ object BackupCodec {
             banks += BackupBank(
                 id = item.stringOrNull("id") ?: "bank-$index",
                 name = name,
-                mono = item.stringOrNull("mono").orEmpty()
+                mono = item.stringOrNull("mono").orEmpty(),
+                color = BandColor.bankValue(item.stringOrNull("color"))
             )
         }
 
@@ -238,6 +241,7 @@ object BackupCodec {
                 note = item.string("note"),
                 dueDay = item.intOrNull("dueDay")?.takeIf { it in 1..31 },
                 color = normalizeBand(item.stringOrNull("color")),
+                colorManual = item.booleanOrNull("colorManual") ?: true,
                 tagIds = tagIds.distinct(),
                 sortOrder = item.intOrNull("sortOrder") ?: index,
                 pinned = item.booleanOrNull("pinned") ?: false,

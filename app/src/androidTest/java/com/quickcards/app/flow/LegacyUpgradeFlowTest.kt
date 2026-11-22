@@ -1,6 +1,7 @@
 package com.quickcards.app.flow
 
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -52,27 +53,19 @@ class LegacyUpgradeFlowTest : FlowTestBase() {
         assertEquals("12a3", flagged.cvv)
         assertEquals(setOf(CardField.CVV), flagged.needsReview)
 
-        waitForText(
-            "Fixed the format of 2 cards. " +
-                "1 needs a quick check."
-        )
-        waitForContentDescription("Expiry, 11/22. Expired. Tap to copy.")
-        compose.waitUntil(10_000) {
-            compose.onAllNodes(
-                hasText("CHECK DETAILS", substring = true),
-                useUnmergedTree = true
-            ).fetchSemanticsNodes().isNotEmpty()
-        }
+        waitForText("2 fixed · 1 to check")
+        waitForContentDescription("HDFC Bank, ending 1111, Expired", substring = true)
+        waitForContentDescription("HDFC Bank, ending 4444, Check details", substring = true)
 
         compose.onNodeWithText("Review").performClick()
 
-        waitForText("Needs check (1)")
+        waitForContentDescription("Needs check (1)", substring = true)
         compose.waitUntil(10_000) {
-            compose.onAllNodesWithContentDescription("More for HDFC Bank")
+            compose.onAllNodes(hasContentDescription("HDFC Bank, ending", substring = true) and hasClickAction())
                 .fetchSemanticsNodes().size == 1
         }
         assertTrue(
-            compose.onAllNodesWithContentDescription("More for HDFC Bank")
+            compose.onAllNodesWithContentDescription("HDFC Bank, ending 4444", substring = true)
                 .fetchSemanticsNodes().isNotEmpty()
         )
     }

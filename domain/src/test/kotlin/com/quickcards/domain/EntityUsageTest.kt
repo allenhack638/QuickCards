@@ -229,11 +229,4 @@ class EntityUsageTest {
             )
         )
     }
-
-    @Test
-    fun deletingAnInUseEntityIsBlocked() {
-        assertEquals(EntityDeleteDecision.BLOCKED, EntityUsage.deleteDecision(1))
-        assertEquals(EntityDeleteDecision.BLOCKED, EntityUsage.deleteDecision(9))
-        assertEquals(EntityDeleteDecision.ALLOWED, EntityUsage.deleteDecision(0))
-    }
 }

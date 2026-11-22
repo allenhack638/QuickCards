@@ -8,9 +8,6 @@ import kotlinx.coroutines.flow.Flow
 interface CardDao {
     
     @Query("SELECT * FROM cards ORDER BY updatedAt DESC")
-    fun getAllCards(): Flow<List<Card>>
-    
-    @Query("SELECT * FROM cards ORDER BY updatedAt DESC")
     suspend fun getAllCardsSync(): List<Card>
 
     @Query(
@@ -40,9 +37,6 @@ interface CardDao {
     )
     suspend fun unarchive(id: String, at: Long)
 
-    @Query("SELECT * FROM cards WHERE pinned = 1 ORDER BY pinnedAt ASC")
-    suspend fun getPinnedCardsSync(): List<Card>
-
     @Query("SELECT COALESCE(MAX(pinnedAt), 0) FROM cards WHERE pinned = 1")
     suspend fun maxPinnedAt(): Long
 
@@ -63,6 +57,12 @@ interface CardDao {
 
     @Query("UPDATE cards SET needsReview = :mask WHERE id = :id")
     suspend fun setNeedsReview(id: String, mask: Int)
+
+    @Query(
+        "UPDATE cards SET bandColor = :band, cardColor = :hex " +
+            "WHERE bankId = :bankId AND bandColorManual = 0"
+    )
+    suspend fun applyBankColour(bankId: String, band: String, hex: String)
 
     @Query("SELECT * FROM cards WHERE panHash = :hash LIMIT 1")
     suspend fun getCardByPanHash(hash: String): Card?

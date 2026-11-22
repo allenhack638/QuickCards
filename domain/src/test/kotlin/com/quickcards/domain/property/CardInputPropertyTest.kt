@@ -84,7 +84,7 @@ class CardInputPropertyTest {
             if (month in 1..12) {
                 assertNull(expiry, error)
             } else {
-                assertEquals(expiry, CardError.ExpiryFormat, error)
+                assertEquals(expiry, CardError.ExpiryMonth, error)
             }
         }
     }

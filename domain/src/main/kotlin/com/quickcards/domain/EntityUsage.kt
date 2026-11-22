@@ -41,11 +41,6 @@ data class EntityBefore(
     val cvvOptional: Boolean = false
 )
 
-enum class EntityDeleteDecision {
-    ALLOWED,
-    BLOCKED
-}
-
 /** Usage counts, list subtitles and the update/delete guards for Manage. */
 object EntityUsage {
 
@@ -101,9 +96,6 @@ object EntityUsage {
             before.cvvLength != draft.cvvLength ||
             before.cvvOptional != draft.cvvOptional
     }
-
-    fun deleteDecision(usedCount: Int): EntityDeleteDecision =
-        if (usedCount > 0) EntityDeleteDecision.BLOCKED else EntityDeleteDecision.ALLOWED
 
     private val WHITESPACE = Regex("""\s+""")
 }

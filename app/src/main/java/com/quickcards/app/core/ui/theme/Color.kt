@@ -3,193 +3,185 @@ package com.quickcards.app.core.ui.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
+import com.quickcards.domain.ArtPattern
+import com.quickcards.domain.ArtRules
 import java.util.Locale
 
 val BrandRed = Color(0xFFC8202B)
 val BrandOnRed = Color(0xFFFFFFFF)
 
-// Network marks sit on a white plate so brand colours read on every band and theme.
-val NetworkPlate = Color(0xFFFFFFFF)
-val NetworkPlateEdge = Color(0x1F000000)
-
-val DarkBackground = Color(0xFF0B0B0C)
-val DarkSurfaceContainerLow = Color(0xFF121214)
-val DarkSurfaceContainer = Color(0xFF161618)
-val DarkSurfaceContainerHigh = Color(0xFF1F1F22)
-val DarkSurfaceContainerHighest = Color(0xFF2A2A2E)
-val DarkOnSurface = Color(0xFFF4F4F5)
-val DarkOutline = Color(0xFF6E6E76)
-val DarkOutlineVariant = Color(0xFF2A2A2E)
-val DarkInverseSurface = Color(0xFFF4F4F5)
-val DarkInverseOnSurface = Color(0xFF18181B)
-val DarkInversePrimary = Color(0xFFB3161F)
-val DarkError = Color(0xFFF47C82)
-val DarkSelected = Color(0xFFF4F4F5)
-val DarkOnSelected = Color(0xFF0B0B0C)
-val DarkIndicator = Color(0xFF2A2A2E)
-val DarkPassEdgeBase = Color(0xFF45454C)
-
-val DarkPassExpiredBand = Color(0xFF34343A)
-val DarkPassExpiredBandEnd = Color(0xFF45454C)
-val DarkPassExpiredSheen = Color(0x1AFFFFFF)
-val DarkPassExpiredBody = Color(0xFF1B1B1E)
-val DarkPassExpiredEdge = Color(0xFF45454C)
-val DarkPassExpiredTag = Color(0xFF3F3F46)
-
-val LightBackground = Color(0xFFF7F7F8)
-val LightSurfaceContainerLow = Color(0xFFFBFBFC)
-val LightSurfaceContainer = Color(0xFFFFFFFF)
-val LightSurfaceContainerHigh = Color(0xFFEFEFF2)
-val LightSurfaceContainerHighest = Color(0xFFE4E4E9)
-val LightOnSurface = Color(0xFF18181B)
-val LightOutline = Color(0xFF8A8A93)
-val LightOutlineVariant = Color(0xFFE2E2E7)
-val LightInverseSurface = Color(0xFF2E2E33)
-val LightInverseOnSurface = Color(0xFFF4F4F5)
-val LightInversePrimary = Color(0xFFFFB3AE)
-val LightError = Color(0xFFB3261E)
-val LightSelected = Color(0xFF18181B)
-val LightOnSelected = Color(0xFFFFFFFF)
-val LightIndicator = Color(0xFFE4E4E9)
-val LightPassEdgeBase = Color(0xFFCFCFD6)
-
-val LightPassExpiredBand = Color(0xFF4A4A52)
-val LightPassExpiredBandEnd = Color(0xFF5A5A63)
-val LightPassExpiredSheen = Color(0x1AFFFFFF)
-val LightPassExpiredBody = Color(0xFFEDEDF0)
-val LightPassExpiredEdge = Color(0xFFC9C9D1)
-val LightPassExpiredTag = Color(0xFF52525B)
-
+/** Daylight chrome roles (DESIGN.md › Colors). Material roles are mapped from these in Theme.kt. */
 @Immutable
 data class QcColors(
-    val selected: Color,
-    val onSelected: Color,
-    val indicator: Color,
-    val perfLine: Color
-)
-
-val DarkQcColors = QcColors(
-    selected = DarkSelected,
-    onSelected = DarkOnSelected,
-    indicator = DarkIndicator,
-    perfLine = DarkOnSurface.copy(alpha = 0.24f)
+    val dark: Boolean,
+    val bg: Color,
+    val surface: Color,
+    val surfaceHi: Color,
+    val tonal: Color,
+    val tonal2: Color,
+    /** Tonal steps on raised surfaces (sheets, dialogs, menus). */
+    val tonalHi: Color,
+    val tonalHi2: Color,
+    val line: Color,
+    val outline: Color,
+    val ink: Color,
+    val ink2: Color,
+    /** Disabled tone only; exempt from contrast. */
+    val ink3: Color,
+    val inkPh: Color,
+    val accent: Color,
+    val brand: Color,
+    val onBrand: Color,
+    val danger: Color,
+    val dangerBg: Color,
+    val onDanger: Color,
+    val ok: Color,
+    val warn: Color,
+    val select: Color,
+    val onSelect: Color,
+    val inverse: Color,
+    val onInverse: Color,
+    val inverseAccent: Color,
+    val scrim: Color,
+    val state: Color,
+    val shadow: Color
 )
 
 val LightQcColors = QcColors(
-    selected = LightSelected,
-    onSelected = LightOnSelected,
-    indicator = LightIndicator,
-    perfLine = LightOnSurface.copy(alpha = 0.22f)
+    dark = false,
+    bg = Color(0xFFF4F6F9),
+    surface = Color(0xFFFFFFFF),
+    surfaceHi = Color(0xFFFFFFFF),
+    tonal = Color(0xFFEEF1F5),
+    tonal2 = Color(0xFFE3E7ED),
+    tonalHi = Color(0xFFEEF1F5),
+    tonalHi2 = Color(0xFFE3E7ED),
+    line = Color(0xFFE3E7ED),
+    outline = Color(0xFF7A8392),
+    ink = Color(0xFF0D1117),
+    ink2 = Color(0xFF4F5866),
+    ink3 = Color(0xFF9AA1AC),
+    inkPh = Color(0xFF6B7482),
+    accent = Color(0xFF1F4FE0),
+    brand = BrandRed,
+    onBrand = BrandOnRed,
+    danger = Color(0xFFB42318),
+    dangerBg = Color(0xFFFCEDEB),
+    onDanger = Color(0xFFFFFFFF),
+    ok = Color(0xFF1B7F4B),
+    warn = Color(0xFF9A5B00),
+    select = Color(0xFF0D1117),
+    onSelect = Color(0xFFFFFFFF),
+    inverse = Color(0xFF151A22),
+    onInverse = Color(0xFFF2F4F7),
+    inverseAccent = Color(0xFFA9BFFF),
+    scrim = Color(0x5C0D1117),
+    state = Color(0x140D1117),
+    shadow = Color(0xFF182440)
+)
+
+val DarkQcColors = QcColors(
+    dark = true,
+    bg = Color(0xFF0B0D11),
+    surface = Color(0xFF14171D),
+    surfaceHi = Color(0xFF1A1E25),
+    tonal = Color(0xFF1C2028),
+    tonal2 = Color(0xFF262B34),
+    tonalHi = Color(0xFF2A2F39),
+    tonalHi2 = Color(0xFF343A45),
+    line = Color(0xFF232831),
+    outline = Color(0xFF6B7482),
+    ink = Color(0xFFF2F4F7),
+    ink2 = Color(0xFF9AA3B0),
+    ink3 = Color(0xFF4F5764),
+    inkPh = Color(0xFF808895),
+    accent = Color(0xFF8FAEFF),
+    brand = BrandRed,
+    onBrand = BrandOnRed,
+    danger = Color(0xFFFF8A7A),
+    dangerBg = Color(0xFF3A1714),
+    onDanger = Color(0xFF1A0503),
+    ok = Color(0xFF6FD3A0),
+    warn = Color(0xFFF2B45C),
+    select = Color(0xFFF2F4F7),
+    onSelect = Color(0xFF0B0D11),
+    inverse = Color(0xFFE6E9EE),
+    onInverse = Color(0xFF0D1117),
+    inverseAccent = Color(0xFF1F4FE0),
+    scrim = Color(0x99000000),
+    state = Color(0x1AF2F4F7),
+    shadow = Color(0xFF000000)
 )
 
 val LocalQcColors = staticCompositionLocalOf { LightQcColors }
 
+/** A card-art hue: the 135° gradient from the deep stop [c1] to the light stop [c2]. */
 @Immutable
-data class ExpiredPassColors(
-    val band: Color,
-    val bandEnd: Color,
-    val sheen: Color,
-    val body: Color,
-    val edge: Color,
-    val tag: Color
-)
+data class ArtHue(val c1: Color, val c2: Color, val pattern: ArtPattern) {
+    val glow: Color get() = c2.copy(alpha = 0.45f)
+}
 
+/** Daylight card art: the 16 jewel hues keyed by the stored `cardColor`, plus the on-art inks. */
 object PassColors {
-    val Navy = Color(0xFF1E3A8A)
-    val Rust = Color(0xFF7C2D12)
-    val Forest = Color(0xFF14532D)
-    val Plum = Color(0xFF4C1D95)
-    val Graphite = Color(0xFF3F3F46)
-    val Teal = Color(0xFF0F5E5A)
-    val Ocean = Color(0xFF0C4A6E)
-    val Indigo = Color(0xFF3730A3)
-    val Violet = Color(0xFF5B21B6)
-    val Magenta = Color(0xFF86198F)
-    val Wine = Color(0xFF6B1E3E)
-    val Crimson = Color(0xFF9F1239)
-    val BurntOrange = Color(0xFF9A3412)
-    val Olive = Color(0xFF4D5D1B)
-    val Moss = Color(0xFF3F6212)
-    val Slate = Color(0xFF334155)
-
-    /** The conic outline of the Custom swatch, drawn from the palette itself. */
-    val CustomRing: List<Color> = listOf(
-        Crimson, BurntOrange, Olive, Teal, Ocean, Indigo, Violet, Magenta, Crimson
+    private val hues: Map<String, Pair<Color, Color>> = mapOf(
+        "navy" to (Color(0xFF0B1D57) to Color(0xFF2B4EC2)),
+        "ocean" to (Color(0xFF04283F) to Color(0xFF0F5D8B)),
+        "teal" to (Color(0xFF032F36) to Color(0xFF0A616B)),
+        "forest" to (Color(0xFF04362C) to Color(0xFF0B644D)),
+        "moss" to (Color(0xFF172509) to Color(0xFF43611F)),
+        "olive" to (Color(0xFF22240A) to Color(0xFF565C1D)),
+        "burnt-orange" to (Color(0xFF3F1A03) to Color(0xFF8C4409)),
+        "rust" to (Color(0xFF3A1208) to Color(0xFF983A1C)),
+        "crimson" to (Color(0xFF3E0709) to Color(0xFFA3202A)),
+        "wine" to (Color(0xFF46081C) to Color(0xFFA81A43)),
+        "magenta" to (Color(0xFF3A0A31) to Color(0xFF9B2580)),
+        "plum" to (Color(0xFF2A0E3D) to Color(0xFF6E2C9A)),
+        "violet" to (Color(0xFF1F0D45) to Color(0xFF683AC0)),
+        "indigo" to (Color(0xFF140F4A) to Color(0xFF4338B8)),
+        "slate" to (Color(0xFF141B26) to Color(0xFF3E4C61)),
+        ArtRules.GRAPHITE to (Color(0xFF2A2D33) to Color(0xFF535963))
     )
 
-    fun band(key: String): Color {
-        val normalized = key.trim().lowercase(Locale.ROOT)
-        return when (normalized) {
-            "navy" -> Navy
-            "rust" -> Rust
-            "forest" -> Forest
-            "plum" -> Plum
-            "graphite" -> Graphite
-            "teal" -> Teal
-            "ocean" -> Ocean
-            "indigo" -> Indigo
-            "violet" -> Violet
-            "magenta" -> Magenta
-            "wine" -> Wine
-            "crimson" -> Crimson
-            "burnt-orange" -> BurntOrange
-            "olive" -> Olive
-            "moss" -> Moss
-            "slate" -> Slate
-            else -> customColor(key) ?: Navy
-        }
-    }
+    val OnArt = Color(0xFFFFFFFF)
+    val OnArtSecondary = OnArt.copy(alpha = 0.80f)
+    val OnArtDanger = Color(0xFFFFCBC2)
+    val OnArtChip = Color(0x4D000000)
+    val OnArtChipRing = OnArt.copy(alpha = 0.30f)
+    val OnArtFill = OnArt.copy(alpha = 0.14f)
+    val OnArtFillRing = OnArt.copy(alpha = 0.26f)
+    val OnArtPressed = OnArt.copy(alpha = 0.10f)
+    val Sheen = OnArt.copy(alpha = 0.20f)
+    val EdgeLight = OnArt.copy(alpha = 0.22f)
+    val EdgeDark = Color(0x40000000)
+    val ExpiredShade = Color(0x3D000000)
+    val ContactShadowLight = Color(0x1A0D1117)
+    val ContactShadowDark = Color(0x66000000)
+    val EmvLight = Color(0xFFF3DFA6)
+    val EmvDeep = Color(0xFFC9A24E)
+    val EmvEnd = Color(0xFFE8CF8A)
+    val EmvLine = Color(0x735A3E0A)
+    val EmvShadow = Color(0x40000000)
 
-    private fun customColor(key: String): Color? {
-        val value = key.trim().removePrefix("#")
-        if (!value.matches(Regex("[0-9a-fA-F]{6}"))) return null
-        return Color(0xFF000000L or value.toLong(16))
-    }
-
-    fun bodyTint(band: Color, dark: Boolean): Color = lerp(
-        if (dark) DarkSurfaceContainer else LightSurfaceContainer,
-        band,
-        if (dark) 0.12f else 0.06f
-    )
-
-    /** color-mix(band N%, surface container) from quickcards-v2.css. */
-    fun mix(band: Color, fraction: Float, dark: Boolean): Color = lerp(
-        if (dark) DarkSurfaceContainer else LightSurfaceContainer,
-        band,
-        fraction
-    )
-
-    fun edge(band: Color, dark: Boolean): Color = if (dark) {
-        lerp(DarkPassEdgeBase, band, 0.60f)
-    } else {
-        lerp(LightPassEdgeBase, band, 0.35f)
-    }
-
-    fun perforation(dark: Boolean): Color = if (dark) {
-        DarkOnSurface.copy(alpha = 0.24f)
-    } else {
-        LightOnSurface.copy(alpha = 0.22f)
-    }
-
-    /** The six neutral tokens that replace every hue on an expired pass. */
-    fun expired(dark: Boolean): ExpiredPassColors = if (dark) {
-        ExpiredPassColors(
-            band = DarkPassExpiredBand,
-            bandEnd = DarkPassExpiredBandEnd,
-            sheen = DarkPassExpiredSheen,
-            body = DarkPassExpiredBody,
-            edge = DarkPassExpiredEdge,
-            tag = DarkPassExpiredTag
-        )
-    } else {
-        ExpiredPassColors(
-            band = LightPassExpiredBand,
-            bandEnd = LightPassExpiredBandEnd,
-            sheen = LightPassExpiredSheen,
-            body = LightPassExpiredBody,
-            edge = LightPassExpiredEdge,
-            tag = LightPassExpiredTag
+    /** The art for a stored key or custom `#RRGGBB` (its light stop); expired cards are graphite. */
+    fun hue(stored: String, expired: Boolean = false): ArtHue {
+        val key = if (expired) ArtRules.GRAPHITE else stored.trim().lowercase(Locale.ROOT)
+        hues[key]?.let { (c1, c2) -> return ArtHue(c1, c2, ArtRules.patternFor(key)) }
+        val custom = customRgb(key) ?: return hue("navy")
+        return ArtHue(
+            c1 = opaque(ArtRules.customDeepStop(custom)),
+            c2 = opaque(custom),
+            pattern = ArtRules.patternFor(key)
         )
     }
+
+    /** The light stop: the colour a flat swatch or chip shows for this key. */
+    fun band(stored: String): Color = hue(stored).c2
+
+    private fun customRgb(key: String): Int? {
+        val value = key.removePrefix("#")
+        if (!value.matches(Regex("[0-9a-f]{6}"))) return null
+        return value.toInt(16)
+    }
+
+    private fun opaque(rgb: Int): Color = Color(0xFF000000.toInt() or rgb)
 }

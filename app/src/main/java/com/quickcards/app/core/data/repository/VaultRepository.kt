@@ -155,8 +155,9 @@ class VaultRepository(
         return runCatching { card.toDomain(tagIds) }.getOrNull()
     }
 
-    suspend fun insertCard(card: VaultCard): Result<VaultCard> {
+    suspend fun insertCard(input: VaultCard): Result<VaultCard> {
         return try {
+            val card = withBankColour(input)
             val duplicate = findDuplicate(card.number)
             if (duplicate != null) {
                 return Result.failure(DuplicateCardException(duplicate.id))
@@ -194,8 +195,9 @@ class VaultRepository(
         }
     }
 
-    suspend fun updateCard(card: VaultCard): Result<VaultCard> {
+    suspend fun updateCard(input: VaultCard): Result<VaultCard> {
         return try {
+            val card = withBankColour(input)
             val existing = cardDao.getCardById(card.id)
                 ?: return Result.failure(IllegalArgumentException("Unknown card"))
             val duplicate = findDuplicate(card.number, card.id)
@@ -283,7 +285,27 @@ class VaultRepository(
         }
     }
 
-    suspend fun getBank(id: String): Bank? = bankDao.getBankById(id)
+    /** The bank's colour (stored, else built-in default), or null when it has none. */
+    private suspend fun bankColour(bankId: String?): String? =
+        bankId?.let { bankDao.getBankById(it) }?.let(BankColourRules::colourOf)
+
+    /**
+     * Renames the bank and stores [colour] (null = its built-in default) in one transaction, then
+     * repaints every card that follows the bank; cards with a colour of their own keep it.
+     */
+    suspend fun updateBank(id: String, name: String, colour: String?) = database.withTransaction {
+        val bank = bankDao.getBankById(id) ?: return@withTransaction
+        val updated = bank.copy(name = normalizeName(name), color = colour)
+        bankDao.updateBank(updated)
+        BankColourRules.colourOf(updated)?.let { band ->
+            cardDao.applyBankColour(id, band, BandColor.hexFor(band))
+        }
+    }
+
+    private suspend fun withBankColour(card: VaultCard): VaultCard =
+        card.copy(
+            bandColor = BankColourRules.cardColour(card.bandColorManual, card.bandColor, bankColour(card.bankId))
+        )
 
     data class CardPinState(
         val id: String,
@@ -308,17 +330,6 @@ class VaultRepository(
 
     suspend fun unpin(id: String) {
         cardDao.setPinned(id, false, null, System.currentTimeMillis())
-    }
-
-    /** Unpins the most recently pinned cards above [limit]; returns how many. */
-    suspend fun trimPinned(limit: Int): Int {
-        val pinned = cardDao.getPinnedCardsSync()
-        val extras = pinned
-            .sortedByDescending { it.pinnedAt ?: 0L }
-            .take((pinned.size - limit).coerceAtLeast(0))
-        val now = System.currentTimeMillis()
-        extras.forEach { cardDao.setPinned(it.id, false, null, now) }
-        return extras.size
     }
 
     /** Counted in Kotlin: networkAuto cards use the detected network, which SQL cannot see. */
@@ -361,18 +372,17 @@ class VaultRepository(
         return true
     }
 
-    suspend fun createBank(name: String): Bank {
+    /** A new bank without a [colour] gets its built-in default or the auto-picked one. */
+    suspend fun createBank(name: String, colour: String? = null): Bank {
         val displayName = normalizeName(name)
         val existing = bankDao.findBankByName(displayName)
         if (existing != null) return existing
-        val bank = Bank(name = displayName)
+        val bank = Bank(
+            name = displayName,
+            color = colour ?: BankColourRules.pickFor(displayName, bankDao.getAllBanksSync())
+        )
         bankDao.insertBank(bank)
         return bank
-    }
-
-    suspend fun renameBank(id: String, name: String) {
-        val bank = bankDao.getBankById(id) ?: return
-        bankDao.updateBank(bank.copy(name = normalizeName(name)))
     }
 
     suspend fun deleteBank(id: String): Boolean {
@@ -516,6 +526,7 @@ class VaultRepository(
         note = encryption.decryptMetadata(description),
         dueDay = dueDay,
         bandColor = bandColor,
+        bandColorManual = bandColorManual,
         sortOrder = sortOrder,
         createdAt = createdAt,
         updatedAt = updatedAt,
@@ -565,6 +576,7 @@ class VaultRepository(
             typeId = typeId,
             nameOnCard = encryption.encryptMetadata(nameOnCard.trim().uppercase(Locale.ROOT)),
             bandColor = bandColor,
+            bandColorManual = bandColorManual,
             sortOrder = sortOrder,
             pinned = pinned,
             pinnedAt = if (pinned) pinnedAt else null,

@@ -4,6 +4,8 @@ import android.app.Application
 import java.time.Duration
 import java.time.LocalDateTime
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import java.time.temporal.ChronoUnit
 import com.quickcards.domain.ReminderRules
@@ -13,6 +15,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
+import com.quickcards.app.core.autofill.CardUsage
 import com.quickcards.app.core.data.model.Bank
 import com.quickcards.app.core.data.model.CardNetwork
 import com.quickcards.app.core.data.model.CardType
@@ -20,9 +23,9 @@ import com.quickcards.app.core.data.model.Holder
 import com.quickcards.app.core.data.model.Tag
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.data.model.toDomain
+import com.quickcards.app.core.ui.CardUseStatus
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.data.repository.RepairSummary
-import com.quickcards.app.core.data.repository.VaultRepository
 import com.quickcards.app.core.data.settings.AppSettingsDefaults
 import com.quickcards.domain.CardFilters
 import com.quickcards.domain.CardNumberRules
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -48,8 +52,6 @@ data class HomeOptions(
     val maskNumbers: Boolean = AppSettingsDefaults.MASK_NUMBERS,
     val tagsShow: Boolean = AppSettingsDefaults.TAGS_SHOW,
     val clipClearSec: Int = AppSettingsDefaults.CLIP_CLEAR_SEC,
-    val notifEnabled: Boolean = AppSettingsDefaults.NOTIF_ENABLED,
-    val notifSec: Int = AppSettingsDefaults.NOTIF_SEC,
     val expiredCards: ExpiredPlacement = AppSettingsDefaults.EXPIRED_CARDS,
     val expiresSoonMonths: Int = AppSettingsDefaults.EXPIRES_SOON_MONTHS,
     val showNotes: Boolean = AppSettingsDefaults.SHOW_NOTES
@@ -58,6 +60,8 @@ data class HomeOptions(
 data class HomeUiState(
     val loading: Boolean = true,
     val hasAnyCards: Boolean = false,
+    /** Every card, archived ones included: what Card details and the actions sheet can open. */
+    val allCards: List<HomeCard> = emptyList(),
     val cards: List<HomeCard> = emptyList(),
     val visibleCards: List<HomeCard> = emptyList(),
     val holderChips: List<NamedRef> = emptyList(),
@@ -69,10 +73,15 @@ data class HomeUiState(
     val needsCheckCount: Int = 0,
     val emptyNote: CardsEmptyNote = CardsEmptyNote.NONE,
     val repairSummary: RepairSummary? = null,
+    /** The last three copied cards, newest first; the first one is "Last used". */
+    val recentCards: List<HomeCard> = emptyList(),
+    val showTips: Boolean = false,
     val searchOn: Boolean = false,
     val query: String = "",
     val options: HomeOptions = HomeOptions()
 ) {
+    val lastUsedId: String? get() = recentCards.firstOrNull()?.id
+
     fun filterLabel(group: FilterGroup, id: String): String {
         val option = filterGroups.firstOrNull { it.group == group }
             ?.options?.firstOrNull { it.id == id }
@@ -93,9 +102,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val searchOn = MutableStateFlow(false)
     private val query = MutableStateFlow("")
 
-    val searchActive: StateFlow<Boolean> = searchOn.asStateFlow()
+    /** Null until read from disk; Home stays loading until it and the copy times are known. */
+    private val tipsSeen = MutableStateFlow<Boolean?>(null)
 
-    private val keySentinel = app.keySentinel
     private val _keyUnavailable = MutableStateFlow(false)
 
     /** True when the Keystore key can no longer open the vault. */
@@ -103,11 +112,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         retryKeyCheck()
+        viewModelScope.launch(Dispatchers.IO) {
+            val seen = FirstRunTips.seen(application)
+            tipsSeen.value = seen
+            if (!seen) {
+                repository.cards.first { it.isNotEmpty() }
+                finishTips()
+            }
+        }
     }
 
     fun retryKeyCheck() {
         viewModelScope.launch(Dispatchers.IO) {
-            _keyUnavailable.value = !keySentinel.isKeyAvailable()
+            _keyUnavailable.value = !app.keySentinel.isKeyAvailable()
         }
     }
 
@@ -122,12 +139,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private data class CoreOptions(
         val maskNumbers: Boolean,
         val tagsShow: Boolean
-    )
-
-    private data class CopyOptions(
-        val clipClearSec: Int,
-        val notifEnabled: Boolean,
-        val notifSec: Int
     )
 
     private data class ListOptions(
@@ -155,14 +166,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         CoreOptions(mask, tagsShow)
     }
 
-    private val copyOptions = combine(
-        settings.clipClearSec,
-        settings.notifEnabled,
-        settings.notifSec
-    ) { clipClearSec, notifEnabled, notifSec ->
-        CopyOptions(clipClearSec, notifEnabled, notifSec)
-    }
-
     private val listOptions = combine(
         settings.expiredCards,
         settings.expiresSoonMonths,
@@ -173,15 +176,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val options = combine(
         coreOptions,
-        copyOptions,
+        settings.clipClearSec,
         listOptions
-    ) { core, copy, list ->
+    ) { core, clipClearSec, list ->
         HomeOptions(
             maskNumbers = core.maskNumbers,
             tagsShow = core.tagsShow,
-            clipClearSec = copy.clipClearSec,
-            notifEnabled = copy.notifEnabled,
-            notifSec = copy.notifSec,
+            clipClearSec = clipClearSec,
             expiredCards = list.expiredCards,
             expiresSoonMonths = list.expiresSoonMonths,
             showNotes = list.showNotes
@@ -189,6 +190,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private val searchState = combine(searchOn, query) { on, text -> SearchState(on, text) }
+
+    private data class Extras(val usage: Map<String, Long>, val tipsSeen: Boolean)
+
+    private val extras = combine(CardUsage.observe(application), tipsSeen.filterNotNull()) { used, seen -> Extras(used, seen) }
 
     private data class UiFilters(
         val cardFilters: CardFilters,
@@ -223,11 +228,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dueInputs = combine(
         settings.paymentReminders,
-        PaidStore.paid(application),
+        flow { emitAll(PaidStore.paid(application)) }.flowOn(Dispatchers.IO),
         today
     ) { enabled, paid, day -> DueInputs(enabled, paid, day) }
 
-    private val listsWithDue = combine(lists, dueInputs) { l, d -> l to d }
+    private val listsWithDue = combine(lists, dueInputs, extras) { l, d, e -> Triple(l, d, e) }
 
     val uiState: StateFlow<HomeUiState> = combine(
         listsWithDue,
@@ -235,10 +240,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         options,
         repository.repairSummary,
         uiFilters
-    ) { (lists, due), tags, options, repair, ui ->
-        buildState(lists, due, tags, options, repair, ui)
+    ) { (lists, due, extras), tags, options, repair, ui ->
+        buildState(lists, due, extras, tags, options, repair, ui)
     }.flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_AFTER_MS), HomeUiState())
+
+    /** Search and the first-run tips take the whole window, so the navigation bar hides. */
+    val hidesNavBar: StateFlow<Boolean> = combine(searchOn, uiState) { on, state -> on || state.showTips }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_AFTER_MS), false)
+
+    fun finishTips() {
+        tipsSeen.value = true
+        viewModelScope.launch(Dispatchers.IO) { FirstRunTips.markSeen(getApplication()) }
+    }
 
     fun setSearchActive(active: Boolean) {
         searchOn.value = active
@@ -303,57 +317,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { repository.dismissRepairSummary() }
     }
 
-    fun deleteCard(card: HomeCard) {
-        viewModelScope.launch { repository.deleteCard(card.card.id) }
-    }
-
-    fun restoreCard(card: HomeCard) {
-        viewModelScope.launch { repository.restoreCard(card.card) }
-    }
-
-    data class ArchiveOutcome(
-        val cardId: String,
-        val previousPin: VaultRepository.CardPinState?
-    )
-
-    suspend fun archive(card: HomeCard, reason: String?): ArchiveOutcome {
-        val previous = repository.pinState(card.id)
-        repository.archive(card.id, reason)
-        return ArchiveOutcome(card.id, previous)
-    }
-
-    suspend fun undoArchive(outcome: ArchiveOutcome) {
-        repository.restore(outcome.cardId)
-        outcome.previousPin?.let { repository.setPinned(it) }
-    }
-
-    suspend fun restoreArchived(card: HomeCard) {
-        repository.restore(card.id)
-    }
-
-    data class PinUndo(val states: List<VaultRepository.CardPinState>)
-
-    data class PinOutcome(val pinned: Boolean, val undo: PinUndo)
-
-    suspend fun pin(cardId: String): PinOutcome? {
-        val target = repository.pinState(cardId) ?: return null
-        repository.pin(cardId)
-        return PinOutcome(pinned = true, undo = PinUndo(listOf(target)))
-    }
-
-    suspend fun unpin(cardId: String): PinOutcome? {
-        val target = repository.pinState(cardId) ?: return null
-        repository.unpin(cardId)
-        return PinOutcome(pinned = false, undo = PinUndo(listOf(target)))
-    }
-
-    suspend fun undoPin(undo: PinUndo) {
-        undo.states.forEach { repository.setPinned(it) }
-    }
-
     private fun buildState(
         lists: Lists,
         due: DueInputs,
+        extras: Extras,
         tags: List<Tag>,
         options: HomeOptions,
         repair: RepairSummary?,
@@ -418,6 +385,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         return HomeUiState(
             loading = false,
             hasAnyCards = allCards.isNotEmpty(),
+            allCards = allCards,
             cards = cards,
             visibleCards = visibleCards,
             holderChips = CardQuery.holdersWithCards(holderRefs, entries),
@@ -436,9 +404,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     ui.reviewOnly
             ),
             repairSummary = repair,
+            recentCards = CardUseStatus.recentCards(cards, extras.usage),
+            showTips = !extras.tipsSeen && allCards.isEmpty(),
             searchOn = ui.search.on,
             query = ui.search.query,
             options = options
         )
+    }
+
+    private companion object {
+        /** Long enough to ride out a rotation; after that the list stops decrypting in the background. */
+        const val STOP_AFTER_MS = 5_000L
     }
 }

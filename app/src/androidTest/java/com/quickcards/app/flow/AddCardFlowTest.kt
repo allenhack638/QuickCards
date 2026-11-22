@@ -1,6 +1,13 @@
 package com.quickcards.app.flow
 
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -49,10 +56,8 @@ class AddCardFlowTest : FlowTestBase() {
         assertEquals(bank.id, saved.bankId)
         assertTrue(saved.networkAuto)
 
-        waitForContentDescription("More for HDFC Bank", substring = true)
-        compose.onNodeWithContentDescription("Card number", substring = true)
-            .assertExists()
-        compose.onNodeWithText("HDFC Bank").assertExists()
+        awaitTile("HDFC Bank")
+        compose.onNodeWithContentDescription("Copy HDFC Bank card number ending 2211").assertExists()
     }
 
     @Test
@@ -71,11 +76,8 @@ class AddCardFlowTest : FlowTestBase() {
         field("CVV").performTextInput("123")
         selectBank("HDFC Bank")
 
-        compose.onNodeWithText("Save card").performClick()
-
-        waitForText("This number doesn’t look right. Check the digits.")
-        compose.onNodeWithText("This number doesn’t look right. Check the digits.")
-            .assertExists()
+        waitForText("Check the digits")
+        compose.onNode(hasText("Save card") and hasClickAction()).assertIsNotEnabled()
         assertTrue(cardsNow().isEmpty())
     }
 
@@ -85,7 +87,7 @@ class AddCardFlowTest : FlowTestBase() {
         val bank = runBlockingSeed { app.repository.createBank("HDFC Bank") }
         seedCard(visa, holderId = holder.id, bankId = bank.id)
 
-        waitForContentDescription("More for HDFC Bank")
+        awaitTile("HDFC Bank")
         compose.onNodeWithContentDescription("Add card").performClick()
         waitForText("Save card")
 
@@ -94,10 +96,8 @@ class AddCardFlowTest : FlowTestBase() {
         field("CVV").performTextInput("381")
         selectBank("HDFC Bank")
 
-        compose.onNodeWithText("Save card").performClick()
-
-        waitForText("Already saved as HDFC Bank for Aarav Mehta")
-        compose.onNodeWithText("Already saved as HDFC Bank for Aarav Mehta").assertExists()
+        waitForText("Already saved as HDFC Bank •• 2211")
+        compose.onNode(hasText("Save card") and hasClickAction()).assertIsNotEnabled()
         assertEquals(1, cardsNow().size)
     }
 
@@ -113,17 +113,16 @@ class AddCardFlowTest : FlowTestBase() {
         waitForText("Save card")
 
         typeNumber(amex)
-        waitForText("4 digits")
         field("CVV").performTextInput("48211")
         assertEquals("••••", editableText("CVV"))
 
         field("Card number").performTextClearance()
         typeNumber(mastercard)
-        waitForText("3 digits")
         assertEquals("•••", editableText("CVV"))
 
         field("Expiry").performTextInput("1229")
         selectBank("HDFC Bank")
+        selectType("Credit")
         compose.onNodeWithText("Save card").performClick()
 
         val saved = awaitCards(1).single()
@@ -131,6 +130,27 @@ class AddCardFlowTest : FlowTestBase() {
         assertEquals("482", saved.cvv)
         assertEquals(holder.id, saved.holderId)
         assertEquals(bank.id, saved.bankId)
+    }
+
+    @Test
+    fun keyboardNextWalksTheTextFieldsAndTheNoteEndsWithDone() {
+        runBlockingSeed { app.repository.createHolder("Aarav Mehta") }
+
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithText("Add your first card").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Add card").performClick()
+        waitForText("Save card")
+
+        val chain = listOf("Card number", "Expiry", "CVV", "Due day (optional)", "Note (optional)")
+        chain.zipWithNext().forEach { (from, to) ->
+            assertEquals(ImeAction.Next, field(from).fetchSemanticsNode().config[SemanticsProperties.ImeAction])
+            field(from).performClick().performImeAction()
+            field(to).assertIsFocused()
+        }
+        assertEquals(ImeAction.Done, field("Note (optional)").fetchSemanticsNode().config[SemanticsProperties.ImeAction])
+        field("Note (optional)").performImeAction()
+        field("Note (optional)").assertIsNotFocused()
     }
 
     /** One character per event so the field sees typing, not a paste. */
@@ -147,18 +167,18 @@ class AddCardFlowTest : FlowTestBase() {
         compose.onNodeWithContentDescription("Bank")
             .performScrollTo()
             .performClick()
-        waitForText("Choose bank")
+        waitForContentDescription("Search banks")
         compose.onNodeWithText(name).performClick()
-        waitForContentDescription("Bank, $name")
+        awaitLookup("Bank", name)
     }
 
     private fun selectType(name: String) {
-        compose.onNodeWithContentDescription("Card type (optional)")
+        compose.onNodeWithContentDescription("Type")
             .performScrollTo()
             .performClick()
-        waitForText("Choose card type")
+        waitForContentDescription("Search types")
         compose.onNodeWithText(name).performClick()
-        waitForContentDescription("Card type (optional), $name")
+        awaitLookup("Type", name)
     }
 
     private fun <T> runBlockingSeed(block: suspend () -> T): T =

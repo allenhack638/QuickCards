@@ -274,6 +274,17 @@ class BackupPlannerTest {
     }
 
     @Test
+    fun `switching a saved card to its bank colour counts as a change`() {
+        val content = backupContent()
+        val following = content.cards[0].copy(colorManual = false)
+
+        val card = BackupPlanner.plan(content.copy(cards = listOf(following)), phone).cards.single()
+
+        assertTrue(card.changed)
+        assertFalse(card.resolved.colorManual)
+    }
+
+    @Test
     fun `backups from before archiving stay active and unreviewed`() {
         val plan = BackupPlanner.plan(backupContent(), phone)
         val card = plan.cards.first { !it.isNew && !it.changed }.resolved

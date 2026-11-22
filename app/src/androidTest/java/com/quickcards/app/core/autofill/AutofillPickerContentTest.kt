@@ -1,15 +1,29 @@
 package com.quickcards.app.core.autofill
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToKey
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,19 +34,40 @@ class AutofillPickerContentTest {
     @get:Rule val compose = createComposeRule()
 
     private val cards = listOf(
-        PickerCard("1", "HDFC Bank", "Credit", "Aarav Mehta", "4532778103492211", "12/29", listOf("Travel"), "visa", false),
-        PickerCard("2", "ICICI Bank", "", "Priya Sharma", "5555555555554444", "11/26", listOf("Groceries"), "mc", false),
-        PickerCard("3", "Kotak Bank", "", "Aarav Mehta", "3530111333300000", "03/25", emptyList(), "jcb", true)
+        PickerCard("1", "HDFC Bank", "Credit", "Aarav Mehta", "4532778103492211", listOf("Travel"), "visa", false, "navy"),
+        PickerCard("2", "ICICI Bank", "", "Priya Sharma", "5555555555554444", listOf("Groceries"), "mc", false, "wine"),
+        PickerCard("3", "Kotak Bank", "", "Aarav Mehta", "3530111333300000", emptyList(), "jcb", true, "navy")
     )
 
-    private fun show(onPick: (String) -> Unit = {}) = compose.setContent {
+    private fun show(shown: List<PickerCard> = cards, onPick: (String) -> Unit = {}) = compose.setContent {
         QuickCardsTheme(darkTheme = true) {
-            AutofillPickerContent(cards = cards, requester = "shop.example", onPick = onPick, onCancel = {})
+            AutofillPickerContent(cards = shown, requester = "shop.example", onPick = onPick, onCancel = {})
         }
     }
 
-    private fun search(text: String) =
-        compose.onNodeWithContentDescription("Search cards").performTextInput(text)
+    @Test
+    fun lightRowsMeetWithoutGapsAtTheSeams() {
+        var surface = Color.Unspecified
+        var inset = 0
+        compose.setContent {
+            QuickCardsTheme(darkTheme = false) {
+                surface = QcTheme.colors.surface
+                inset = with(LocalDensity.current) { QcSpacing.s2.roundToPx() }
+                Box(Modifier.background(QcTheme.colors.bg)) {
+                    AutofillPickerContent(cards = cards, requester = "shop.example", onPick = {}, onCancel = {})
+                }
+            }
+        }
+        val pixels = compose.onAllNodesWithTag(PICKER_ROW)[1].captureToImage().toPixelMap()
+        val x = pixels.width - inset
+        assertEquals(surface, pixels[x, inset / 2 + 1])
+        assertEquals(surface, pixels[x, pixels.height - inset / 2])
+    }
+
+    private fun search(text: String) {
+        compose.onNodeWithContentDescription("Search cards").performClick()
+        compose.onNode(hasSetTextAction() and hasContentDescription("Search cards")).performTextInput(text)
+    }
 
     @Test
     fun everyCardIsListed() {
@@ -44,14 +79,14 @@ class AutofillPickerContentTest {
     fun searchingATagNarrows() {
         show(); search("groc")
         compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(1)
-        compose.onNodeWithText("ICICI Bank").assertExists()
+        compose.onNodeWithText("ICICI Bank", substring = true).assertExists()
     }
 
     @Test
     fun searchingTheFirstDigitsNarrows() {
         show(); search("4532")
         compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(1)
-        compose.onNodeWithText("HDFC Bank Credit").assertExists()
+        compose.onNodeWithText("HDFC Bank •• 2211").assertExists()
     }
 
     @Test
@@ -64,14 +99,31 @@ class AutofillPickerContentTest {
     fun noMatchShowsTheEmptyState() {
         show(); search("zzzz")
         compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(0)
-        compose.onNodeWithText("No cards match").assertExists()
+        compose.onNodeWithText("No matches").assertExists()
+        compose.onNodeWithText("Clear search").performClick()
+        compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(3)
     }
 
     @Test
     fun tappingACardPicksIt() {
         var picked: String? = null
-        show { picked = it }
-        compose.onNodeWithText("ICICI Bank").performClick()
+        show(onPick = { picked = it })
+        compose.onNodeWithText("ICICI Bank", substring = true).performClick()
         assertEquals("2", picked)
+    }
+
+    @Test
+    fun aLongListComposesOnlyVisibleRowsAndReachesTheLast() {
+        val many = (1..60).map { n ->
+            PickerCard("$n", "Bank $n", "", "Aarav Mehta", "453277810349${n.toString().padStart(4, '0')}", emptyList(), "visa", false, "navy")
+        }
+        var picked: String? = null
+        show(shown = many, onPick = { picked = it })
+        val composed = compose.onAllNodesWithTag(PICKER_ROW).fetchSemanticsNodes().size
+        assertTrue("composed $composed of 60", composed in 1 until 60)
+
+        compose.onNode(hasScrollAction()).performScrollToKey("60")
+        compose.onNodeWithText("Bank 60", substring = true).performClick()
+        assertEquals("60", picked)
     }
 }

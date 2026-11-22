@@ -9,18 +9,17 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
-import android.os.Build
-import androidx.core.content.ContextCompat
+import android.text.format.DateFormat
 import com.quickcards.app.MainActivity
 import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
+import com.quickcards.app.core.notifications.NotificationPermission
 import com.quickcards.domain.ReminderRules
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Calendar
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +30,8 @@ import kotlinx.coroutines.launch
  * Local reminders: a card expiring within 30 days, and a payment due day 3 days ahead.
  * A daily inexact alarm and every app start run the same check. An expiry reminder is posted
  * once; a payment reminder repeats daily inside its window until Paid. Notifications carry only
- * the bank and last four digits and are private on the lock screen.
+ * the bank and last four digits and are private on the lock screen; a tap opens the card's
+ * details (the intent holds only the card id) after the app is unlocked.
  */
 object Reminders {
 
@@ -63,7 +63,7 @@ object Reminders {
         val expiryOn = settings.expiryReminders.value
         val dueOn = settings.paymentReminders.value
         if (!expiryOn && !dueOn) return
-        if (!notificationsAllowed(context)) return
+        if (!NotificationPermission.canPost(context)) return
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         // 2.2 builds keyed expiry reminders on the plaintext expiry; drop those entries.
         prefs.all.keys.filter { it.startsWith("exp:") }.takeIf { it.isNotEmpty() }?.let { stale ->
@@ -81,7 +81,7 @@ object Reminders {
                     val key = ReminderRules.expiryKey(card.id, PanHasher.hash("exp:" + card.expiry).take(16))
                     if (!prefs.contains(key)) {
                         val text = context.resources.getQuantityString(R.plurals.reminder_expiry_text, days.toInt(), days.toInt())
-                        post(context, manager, key, title, text)
+                        post(context, manager, key, card.id, title, text)
                         prefs.edit().putLong(key, System.currentTimeMillis()).apply()
                     }
                 }
@@ -93,9 +93,9 @@ object Reminders {
                     if (!PaidStore.isPaid(context, period) && !prefs.contains(todayKey)) {
                         val text = context.getString(
                             R.string.reminder_due_text,
-                            due.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+                            due.format(dayMonth())
                         )
-                        post(context, manager, period, title, text, paidAction = true)
+                        post(context, manager, period, card.id, title, text, paidAction = true)
                         prefs.edit().putLong(todayKey, System.currentTimeMillis()).apply()
                     }
                 }
@@ -107,25 +107,28 @@ object Reminders {
         context: Context,
         manager: NotificationManager,
         key: String,
+        cardId: String,
         title: String,
         text: String,
         paidAction: Boolean = false
     ) {
+        val openCard = Intent(context, MainActivity::class.java).putExtra(OpenCardRequest.EXTRA_CARD_ID, cardId)
         val open = PendingIntent.getActivity(
-            context, key.hashCode(), Intent(context, MainActivity::class.java),
+            context, key.hashCode(), openCard,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val publicVersion = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_quickcards)
             .setContentTitle(context.getString(R.string.app_name))
+            .setColor(context.getColor(R.color.primary_brand))
             .setContentText(context.getString(R.string.reminder_public_text))
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .build()
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_quickcards)
             .setContentTitle(title)
+            .setColor(context.getColor(R.color.primary_brand))
             .setContentText(text)
-            .setStyle(Notification.BigTextStyle().bigText(text))
             .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setPublicVersion(publicVersion)
             .setLocalOnly(true)
@@ -171,10 +174,11 @@ object Reminders {
         context.getSystemService(NotificationManager::class.java)?.cancel(key.hashCode())
     }
 
-    private fun notificationsAllowed(context: Context): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
+    /** "22 Nov" (or the locale's own day-month order), matching the in-app Due strip. */
+    private fun dayMonth(): DateTimeFormatter {
+        val locale = Locale.getDefault()
+        return DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dMMM"), locale)
+    }
 
     private fun ensureChannel(context: Context, manager: NotificationManager) {
         if (manager.getNotificationChannel(CHANNEL_ID) != null) return

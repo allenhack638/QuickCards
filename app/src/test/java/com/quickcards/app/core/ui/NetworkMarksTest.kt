@@ -35,4 +35,17 @@ class NetworkMarksTest {
             assertTrue("$id over 96 KB", file.length() < 96 * 1024)
         }
     }
+
+    @Test
+    fun artworkBoundsStartWhereEachDrawablePlacesItsLogo() {
+        for (id in NetworkMarks.ids) {
+            val group = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
+                .newDocumentBuilder().parse(File("src/main/res/drawable/net_$id.xml"))
+                .getElementsByTagName("group").item(0) as org.w3c.dom.Element
+            val bounds = NetworkMarks.bounds(id)
+            assertEquals("$id x", group.getAttributeNS(androidNamespace, "translateX").toFloat(), bounds.left, 0.15f)
+            assertEquals("$id y", group.getAttributeNS(androidNamespace, "translateY").toFloat(), bounds.top, 1f)
+            assertTrue("$id inside the canvas", bounds.right <= 56f && bounds.bottom <= 28f)
+        }
+    }
 }

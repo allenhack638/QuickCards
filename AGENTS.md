@@ -72,7 +72,7 @@ not use them; pick one test device or emulator and target it explicitly:
 adb devices                                   # find the serial of your test device
 export ANDROID_SERIAL=<serial>
 ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
-adb -s "$ANDROID_SERIAL" install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s "$ANDROID_SERIAL" install -r app/build/outputs/apk/debug/QuickCards-debug.apk
 adb -s "$ANDROID_SERIAL" install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb -s "$ANDROID_SERIAL" shell am instrument -w -r \
   com.quickcards.app.test/androidx.test.runner.AndroidJUnitRunner
@@ -85,7 +85,9 @@ set, never a personal phone with real card data.
 
 - `docs/MAINTAINING.md` — architecture, security model, craft rules, current
   DB/backup/settings/network facts, and step-by-step recipes.
-- `prototype/v2.html` — the behaviour source of truth.
+- `prototype/v2.html` — the behaviour source of truth (until the app ships Daylight).
+- `prototype/inspo/10-daylight.html` — the Daylight visual source of truth
+  (`?shot=<id>&theme=light|dark`); `DESIGN.md` summarises it.
 - `prototype/reference/` — target screenshots (layout, spacing, type, colour).
 
 ## Before finishing
