@@ -689,7 +689,7 @@ private class HashPrefix(private val hash: String) : VisualTransformation {
     }
 }
 
-/** A 48-tall strip: 12dp gradient track, 24dp thumb with a white ring, an optional 7:1 limit tick. */
+/** A 48-tall strip: 12dp gradient track, 24dp thumb inside a 3dp white ring and a hairline, an optional 7:1 limit tick. */
 @Composable
 private fun ColourStrip(
     label: String,
@@ -744,12 +744,12 @@ private fun ColourStrip(
         }
         Box(
             modifier = Modifier
-                .offset(x = position(full, value, QcSize.ctlSm))
-                .size(QcSize.ctlSm)
+                .offset(x = position(full, value, QcSize.ctl))
+                .size(QcSize.ctl)
                 .border(QcSize.hairline, colors.ink.copy(alpha = THUMB_RING_ALPHA), QcShapes.full)
                 .padding(QcSize.hairline)
                 .background(PassColors.OnArt, QcShapes.full)
-                .padding(QcSize.focus)
+                .padding(QcSize.focus + QcSize.hairline)
                 .background(thumb, QcShapes.full)
         )
     }

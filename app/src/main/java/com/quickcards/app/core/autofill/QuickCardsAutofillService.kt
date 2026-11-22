@@ -1,7 +1,6 @@
 package com.quickcards.app.core.autofill
 
 import android.app.PendingIntent
-import com.quickcards.app.core.ui.components.NetworkMarks
 import com.quickcards.domain.AutofillChoice
 import com.quickcards.domain.AutofillCandidate
 import java.util.regex.Pattern
@@ -18,7 +17,6 @@ import android.service.autofill.SaveCallback
 import android.service.autofill.SaveRequest
 import android.view.autofill.AutofillId
 import android.view.View
-import android.widget.RemoteViews
 import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.BuildConfig
 import com.quickcards.app.R
@@ -72,6 +70,7 @@ class QuickCardsAutofillService : AutofillService() {
         val cards = app.repository.cards.first().filterNot { it.archived }
         if (cards.isEmpty()) return null
         val banks = app.repository.banks.first().associateBy { it.id }
+        val holders = app.repository.holders.first().associateBy { it.id }
         val networks = app.repository.networks.first().map { it.toDomain() }
         val used = CardUsage.lastUsed(this)
         val byId = cards.associateBy { it.id }
@@ -84,12 +83,12 @@ class QuickCardsAutofillService : AutofillService() {
         val builder = FillResponse.Builder()
         // First, so it is visible without scrolling the system's short dropdown, and never
         // filtered away: opens a searchable list of every card.
-        val search = Dataset.Builder(searchRow(cards.size))
+        val search = Dataset.Builder(AutofillRows.search(this, cards.size))
         form.fields.values.forEach { id ->
             if (id == numberId && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                search.setValue(id, null, Pattern.compile(".*"), searchRow(cards.size))
+                search.setValue(id, null, Pattern.compile(".*"), AutofillRows.search(this, cards.size))
             } else {
-                search.setValue(id, null, searchRow(cards.size))
+                search.setValue(id, null, AutofillRows.search(this, cards.size))
             }
         }
         search.setAuthentication(pending(AutofillPickerActivity.intent(this, target), SEARCH_REQUEST))
@@ -97,40 +96,22 @@ class QuickCardsAutofillService : AutofillService() {
         top.forEachIndexed { index, card ->
             val network = if (card.networkAuto) CardNumberRules.detect(card.number, networks) else networks.firstOrNull { it.id == card.networkId }
             val bank = card.bankId?.let { banks[it]?.name }.orEmpty().ifBlank { getString(R.string.app_name) }
-            val title = getString(
-                R.string.autofill_suggestion,
-                // "American Express ···0005", not "American Express American Express ···0005".
-                listOfNotNull(
-                    bank,
-                    network?.name?.takeIf { it.isNotBlank() && !bank.contains(it, ignoreCase = true) }
-                ).joinToString(" "),
-                card.number.takeLast(4)
-            )
-            val mark = NetworkMarks.drawable(network?.id)
-            val dataset = Dataset.Builder(row(title, mark))
+            val holder = card.holderId?.let { holders[it]?.name }.orEmpty()
+            val row = AutofillRows.card(this, bank, card.number.takeLast(4), holder, network?.id)
+            val dataset = Dataset.Builder(row)
             // Placeholders only: the real values arrive from the auth activity after the prompt.
             form.fields.values.forEach { id ->
                 if (id == numberId && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     // Typing the first digits or the last four in the number field narrows the list.
-                    dataset.setValue(id, null, Pattern.compile(AutofillChoice.typeFilter(card.number)), row(title, mark))
+                    dataset.setValue(id, null, Pattern.compile(AutofillChoice.typeFilter(card.number)), row)
                 } else {
-                    dataset.setValue(id, null, row(title, mark))
+                    dataset.setValue(id, null, row)
                 }
             }
             dataset.setAuthentication(pending(AutofillAuthActivity.intent(this, card.id, target), index))
             builder.addDataset(dataset.build())
         }
         return builder.build()
-    }
-
-    private fun searchRow(count: Int) = RemoteViews(packageName, R.layout.autofill_search).apply {
-        setTextViewText(R.id.autofill_title, resources.getQuantityString(R.plurals.autofill_search_all, count, count))
-    }
-
-    /** Each card shows its own network mark on a white tile; unknown networks show the app mark. */
-    private fun row(title: String, mark: Int?) = RemoteViews(packageName, R.layout.autofill_suggestion).apply {
-        setTextViewText(R.id.autofill_title, title)
-        if (mark != null) setImageViewResource(R.id.autofill_icon, mark)
     }
 
     private fun appLabel(pkg: String?): String? = pkg?.let {

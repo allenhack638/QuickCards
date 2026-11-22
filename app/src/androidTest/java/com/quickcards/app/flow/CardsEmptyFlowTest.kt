@@ -45,7 +45,7 @@ class CardsEmptyFlowTest : FlowTestBase() {
 
         compose.onNodeWithText("View archived").performClick()
 
-        waitForText("Archived cards")
+        waitForContentDescription("Search archived cards")
         waitForText("Archived · Card closed", unmerged = true)
         assertEquals(1, cardsNow().count { it.archived })
     }

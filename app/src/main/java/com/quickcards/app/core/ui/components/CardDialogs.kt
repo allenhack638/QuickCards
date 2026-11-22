@@ -19,7 +19,7 @@ fun QcDeleteCardDialog(
 ) {
     QcDialog(
         onDismissRequest = onDismiss,
-        title = stringResource(R.string.cards_delete_title, card.bankName, card.card.number.takeLast(4)),
+        title = maskedNumberText(stringResource(R.string.cards_delete_title, card.bankName, card.card.number.takeLast(4))),
         actions = {
             QcTextButton(stringResource(R.string.cards_cancel), onDismiss, tone = QcTextTone.Neutral)
             QcTextButton(stringResource(R.string.cards_delete), onConfirm, tone = QcTextTone.Danger)

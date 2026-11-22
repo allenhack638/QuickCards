@@ -11,7 +11,7 @@
     <string name="details_copy_number">Copy card number</string>
     <string name="details_copy_expiry">Copy expiry</string>
     <string name="details_copy_cvv">Copy CVV</string>
-    <string name="details_copy_name">Copy name</string>
+    <string name="details_copy_holder">Copy holder</string>
     <string name="details_copied_number">Card number copied</string>
     <string name="details_copied_expiry">Expiry copied</string>
     <string name="details_copied_cvv">CVV copied</string>

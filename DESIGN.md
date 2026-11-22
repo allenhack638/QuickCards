@@ -483,7 +483,7 @@ M3 snackbar on `inverse`: one line of text, left-aligned, no icon, no image, opt
 
 ### Notifications
 
-Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons. No card thumbnails. Copy notification: "Expiry 12/29 · CVV 482" with "Copy expiry" and "Copy CVV" actions; on the lock screen "Card details hidden". Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days".
+Android template only: small app icon, app · time, title "HDFC Bank ••0366", text, action buttons. No card thumbnails. Copy notification: masked "Expiry ••/•• · CVV •••" (the values are never displayed) with "Copy expiry" and "Copy CVV" actions; it is hidden entirely on the lock screen. Reminders: "Due 22 Nov" with a "Paid" action; "Expires in 30 days"; on the lock screen "QuickCards" / "Card reminder". Small icon tinted brand red.
 
 ### Navigation and bars
 
@@ -570,10 +570,10 @@ Nothing moves on its own: no tilt, particles, rolling digits or flips. Reduced m
 | Last used / Recent | `CardEntity.lastCopiedAt`; Recent = top 3 by `lastCopiedAt` |
 | Launcher shortcuts | Add card, Search: static `res/xml/shortcuts.xml`; Tap to add: dynamic via `ShortcutManagerCompat`, NFC phones only |
 | Tips | `HorizontalPager(3)` + DataStore flag `tipsSeen` |
-| Window class | `currentWindowAdaptiveInfo().windowSizeClass`, `isWidthAtLeastBreakpoint(600 \| 840)` |
-| Bar ↔ rail | `NavigationSuiteScaffold` + `NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(info)` |
-| List-detail, two-pane Settings | `ListDetailPaneScaffold` + `rememberListDetailPaneScaffoldNavigator()`; Back pops the detail pane |
-| Hinge | `calculatePaneScaffoldDirective(info, HingePolicy.AvoidSeparating)`, `info.windowPosture`, WindowManager `FoldingFeature` |
+| Window class | `core/ui/adaptive/QcWindow.of(width, height, hinge)`: 600 / 840 width, 480 height (no adaptive library; minSdk 26) |
+| Bar ↔ rail | `QcApp`: `NavigationBar` below 600, `NavigationRail` (80, on `bg`) from 600 |
+| List-detail, two-pane Settings | `ListDetailPanes(listWidth, hinge)`; medium opens `card/details` beside the list, so Back pops the detail pane; `SettingsScreen(twoPane)` |
+| Hinge | `rememberHinge()`: WindowManager `FoldingFeature` (vertical, separating); panes end at a zone of max(24, hinge) |
 | Staggered grid | `LazyVerticalStaggeredGrid` |
 | Insets | `WindowInsets.safeDrawing`, `imePadding()`, `bringIntoViewRequester` |
 

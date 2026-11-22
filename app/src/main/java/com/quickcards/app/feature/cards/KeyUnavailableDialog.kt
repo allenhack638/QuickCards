@@ -1,22 +1,14 @@
 package com.quickcards.app.feature.cards
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.quickcards.app.R
 import com.quickcards.app.core.ui.components.QcDialog
-import com.quickcards.app.core.ui.theme.QcDimens
-import com.quickcards.app.core.ui.theme.QcType
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTextButton
+import com.quickcards.app.core.ui.theme.QcTextTone
+import com.quickcards.app.core.ui.theme.QcTheme
 
 /** Shown when the Keystore key is gone; it offers no destructive action. */
 @Composable
@@ -24,35 +16,18 @@ internal fun KeyUnavailableDialog(
     onRetry: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    QcDialog(onDismissRequest = onDismiss) {
-        Text(
-            text = stringResource(R.string.cards_key_unavailable_title),
-            style = QcType.DialogTitle,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
+    QcDialog(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.cards_key_unavailable_title),
+        actions = {
+            QcTextButton(stringResource(R.string.cards_key_unavailable_dismiss), onDismiss, tone = QcTextTone.Neutral)
+            QcTextButton(stringResource(R.string.cards_key_unavailable_retry), onRetry)
+        }
+    ) {
         Text(
             text = stringResource(R.string.cards_key_unavailable_body),
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = QcText.F2,
+            color = QcTheme.colors.ink2
         )
-        Spacer(modifier = Modifier.height(QcDimens.DialogActionGap))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(QcDimens.Base, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
-            ) {
-                Text(stringResource(R.string.cards_key_unavailable_dismiss))
-            }
-            TextButton(onClick = onRetry) {
-                Text(stringResource(R.string.cards_key_unavailable_retry))
-            }
-        }
     }
 }

@@ -117,7 +117,7 @@
     <string name="cards_due_mark_paid">Mark paid</string>
     <string name="cards_due_mark_paid_a11y">Mark this payment as paid</string>
     <string name="cards_due_marked_paid">Paid</string>
-    <string name="cards_delete_title">Delete %1$s ••%2$s?</string>
+    <string name="cards_delete_title">Delete %1$s •• %2$s?</string>
     <string name="cards_delete_body">You can undo this for a few seconds.</string>
     <string name="cards_delete">Delete</string>
     <string name="cards_deleted">Card deleted</string>
@@ -142,9 +142,9 @@
 
     <!-- Encryption key unavailable -->
     <string name="cards_key_unavailable_title">Cards unavailable</string>
-    <string name="cards_key_unavailable_body">Your cards can’t be opened because the encryption key is unavailable on this device. The data is still stored but can’t be decrypted.</string>
-    <string name="cards_key_unavailable_retry">Retry key check</string>
-    <string name="cards_key_unavailable_dismiss">Dismiss</string>
+    <string name="cards_key_unavailable_body">The encryption key on this phone is unavailable. Your data is still stored.</string>
+    <string name="cards_key_unavailable_retry">Try again</string>
+    <string name="cards_key_unavailable_dismiss">Close</string>
 
     <!-- Home (Daylight) -->
     <string name="cards_copy">Copy</string>

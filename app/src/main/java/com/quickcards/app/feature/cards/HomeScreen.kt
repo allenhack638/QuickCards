@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
@@ -37,6 +38,7 @@ import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.LockGate
 import com.quickcards.app.core.ui.components.LocalSnackbar
 import com.quickcards.app.core.ui.components.SearchTopBar
+import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.domain.ExpiredPlacement
 import com.quickcards.domain.TimeText
 import kotlinx.coroutines.delay
@@ -51,7 +53,9 @@ fun HomeScreen(
     onOpenArchived: () -> Unit = {},
     onOpenCard: (String) -> Unit,
     onCardActions: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectedId: String? = null,
+    chipsInBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
     val keyUnavailable by viewModel.keyUnavailable.collectAsState()
@@ -164,7 +168,8 @@ fun HomeScreen(
         options = state.options,
         lastUsedId = state.lastUsedId,
         copiedId = copiedId,
-        copyEnabled = screenLockSet
+        copyEnabled = screenLockSet,
+        selectedId = selectedId
     )
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -175,21 +180,25 @@ fun HomeScreen(
                 onBack = { viewModel.setSearchActive(false) }
             )
         } else {
-            HomeTopBar(
-                showSearch = state.hasAnyCards || state.loading,
-                onSearch = { viewModel.setSearchActive(true) },
-                onAdd = { navController.navigate("card/add") }
-            )
-            if (state.hasAnyCards) {
+            val chips: @Composable (Modifier) -> Unit = { chipModifier ->
                 ChipRow(
                     state = state,
                     onHolder = viewModel::selectHolder,
                     onRemoveFilter = viewModel::removeFilter,
                     onRemoveStatus = viewModel::removeStatusFilter,
                     onRemoveReview = viewModel::removeReviewFilter,
-                    onFilter = { filterSheetOpen = true }
+                    onFilter = { filterSheetOpen = true },
+                    modifier = chipModifier
                 )
             }
+            val chipsUp = chipsInBar && state.hasAnyCards
+            HomeTopBar(
+                showSearch = state.hasAnyCards || state.loading,
+                onSearch = { viewModel.setSearchActive(true) },
+                onAdd = { navController.navigate("card/add") },
+                chips = if (chipsUp) ({ chips(Modifier.weight(1f).padding(start = QcSpacing.s2)) }) else null
+            )
+            if (state.hasAnyCards && !chipsUp) chips(Modifier.fillMaxWidth())
         }
 
         val contentModifier = Modifier

@@ -8,7 +8,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** The import review's repair line and its exact copy. */
+/** The import review's Formats row and its exact copy. */
 @RunWith(AndroidJUnit4::class)
 class ImportFormatsSummaryTest {
 
@@ -19,21 +19,22 @@ class ImportFormatsSummaryTest {
     fun showsBothCountsWithTheAgreedCopy() {
         compose.setContent {
             QuickCardsTheme(darkTheme = true) {
-                ImportFormatsSummary(formatsFixed = 12, needCheck = 3)
+                ImportFormatsRow(formatsFixed = 12, needCheck = 3)
             }
         }
 
-        compose.onNodeWithText("Formats fixed: 12 · Need a check: 3").assertExists()
+        compose.onNodeWithText("Formats").assertExists()
+        compose.onNodeWithText("12 fixed · 3 to check").assertExists()
     }
 
     @Test
     fun hiddenWhenNothingChanged() {
         compose.setContent {
             QuickCardsTheme(darkTheme = true) {
-                ImportFormatsSummary(formatsFixed = 0, needCheck = 0)
+                ImportFormatsRow(formatsFixed = 0, needCheck = 0)
             }
         }
 
-        compose.onNodeWithText("Formats fixed", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("Formats").assertDoesNotExist()
     }
 }

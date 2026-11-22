@@ -1,98 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Import cards from a spreadsheet: every message a person can see, in plain words. -->
-    <string name="import_file_too_large">This file is bigger than 5 MB. A card sheet is much smaller; check you picked the right file.</string>
-    <string name="import_file_not_sheet">QuickCards imports .xlsx or .csv sheets only. In your spreadsheet app choose Download or Export as Excel (.xlsx) or CSV.</string>
-    <string name="import_file_unreadable">This file could not be read. Download it again from your spreadsheet app and try once more.</string>
-    <string name="import_file_missing_columns">The sheet is missing these columns: %1$s. Download a fresh sheet and copy your rows across.</string>
-    <string name="import_file_unknown_columns">The sheet has columns QuickCards does not know: %1$s. Download a fresh sheet and copy your rows across.</string>
-    <string name="import_file_no_header">This does not look like the QuickCards sheet: the headings row is missing. Download a fresh sheet.</string>
-    <string name="import_file_no_rows">The sheet has no cards in it. Fill in the Cards tab, starting on row 3.</string>
-    <string name="import_file_too_many_rows">This sheet has %1$d cards. QuickCards imports up to %2$d at a time; split it into smaller sheets.</string>
-
-    <string name="import_problem_missing">%1$s is empty.</string>
-    <string name="import_problem_number_not_digits">Card number: digits only, no spaces. 12 to 19 digits.</string>
-    <string name="import_problem_number_changed">Your spreadsheet changed this card number (it shows as %1$s). Format the column as plain text and type the number again.</string>
-    <string name="import_problem_number_length">%1$s numbers have %2$s digits.</string>
-    <string name="import_problem_number_luhn">This card number does not look right. Check the digits.</string>
-    <string name="import_problem_number_unknown_network">This number does not belong to any network in the list.</string>
-    <string name="import_problem_network_unknown">Network \"%1$s\" is not in the list. Pick one from the list.</string>
-    <string name="import_problem_network_mismatch">This number looks like %1$s, but Network says %2$s.</string>
-    <string name="import_problem_month_invalid">Expiry month must be 1 to 12.</string>
-    <string name="import_problem_year_invalid">Expiry year must be a year, like 2029.</string>
-    <string name="import_problem_expired">This card has expired.</string>
-    <string name="import_problem_expiry_too_far">Check the expiry year: it is more than 20 years away.</string>
-    <plurals name="import_problem_cvv_length">
-        <item quantity="one">CVV must be %1$d digit. If it starts with 0, type the 0 too.</item>
-        <item quantity="other">CVV must be %1$d digits. If it starts with 0, type the 0 too.</item>
+    <!-- A refused file: the problem as the dialog title, the fix as its body. -->
+    <string name="import_file_too_large">Over 5 MB</string>
+    <string name="import_file_too_large_fix">Check it’s the right file.</string>
+    <string name="import_file_not_sheet">Use an .xlsx or .csv file.</string>
+    <string name="import_file_unreadable">Can’t read this file</string>
+    <string name="import_file_unreadable_fix">Export it again.</string>
+    <string name="import_file_missing_columns">Missing columns: %1$s</string>
+    <string name="import_file_unknown_columns">Unknown columns: %1$s</string>
+    <string name="import_file_no_header">No headings row</string>
+    <string name="import_file_fresh_sheet">Use a fresh sheet.</string>
+    <string name="import_file_no_rows">No cards</string>
+    <string name="import_file_no_rows_fix">Start on row 3.</string>
+    <plurals name="import_file_too_many_rows">
+        <item quantity="one">%1$d card</item>
+        <item quantity="other">%1$d cards</item>
     </plurals>
-    <string name="import_problem_bank_unknown">Bank \"%1$s\" is not in the list. Pick one from the list, or add this card in the app.</string>
-    <string name="import_problem_type_unknown">Card type \"%1$s\" is not in the list. Pick one from the list.</string>
-    <string name="import_problem_holder_too_long">Card holder can be up to %1$d characters.</string>
-    <string name="import_problem_due_day_invalid">Payment due day must be 1 to 31.</string>
-    <string name="import_problem_note_too_long">Notes can be up to %1$d characters.</string>
-    <string name="import_problem_repeated_in_file">The same card number is already on row %1$d of this sheet.</string>
-    <string name="import_problem_already_different">Already in QuickCards with a different expiry or CVV. Update it in the app instead.</string>
+    <string name="import_file_too_many_rows_fix">Import up to %1$d at a time.</string>
+
+    <string name="import_problem_missing">%1$s is empty</string>
+    <string name="import_problem_number_not_digits">Number: 12 to 19 digits, no spaces</string>
+    <string name="import_problem_number_changed">Your spreadsheet changed this number (%1$s). Format as plain text and retype.</string>
+    <string name="import_problem_number_length">%1$s numbers have %2$s digits</string>
+    <string name="import_problem_number_luhn">Check the digits</string>
+    <string name="import_problem_number_unknown_network">No network matches this number</string>
+    <string name="import_problem_network_unknown">Network “%1$s” isn’t in the list</string>
+    <string name="import_problem_network_mismatch">Number looks like %1$s, not %2$s</string>
+    <string name="import_problem_month_invalid">Month: 1 to 12</string>
+    <string name="import_problem_year_invalid">Year: 4 digits, like 2029</string>
+    <string name="import_problem_expired">Expired</string>
+    <string name="import_problem_expiry_too_far">Year is over 20 years away</string>
+    <plurals name="import_problem_cvv_length">
+        <item quantity="one">CVV: %1$d digit, keep a leading 0</item>
+        <item quantity="other">CVV: %1$d digits, keep a leading 0</item>
+    </plurals>
+    <string name="import_problem_bank_unknown">Bank “%1$s” isn’t in the list. Add this card in the app.</string>
+    <string name="import_problem_type_unknown">Type “%1$s” isn’t in the list</string>
+    <string name="import_problem_holder_too_long">Holder: up to %1$d characters</string>
+    <string name="import_problem_due_day_invalid">Due day: 1 to 31</string>
+    <string name="import_problem_note_too_long">Note: up to %1$d characters</string>
+    <string name="import_problem_repeated_in_file">Same number as row %1$d</string>
+    <string name="import_problem_already_different">Saved with a different expiry or CVV. Edit it in the app.</string>
 
     <string name="import_row_label">Row %1$d</string>
 
-    <!-- Import cards dialog -->
-    <string name="import_cards_title">Import cards</string>
+    <string name="import_cards_title">Import</string>
     <string name="import_choice_backup">QuickCards backup</string>
-    <string name="import_choice_backup_sub">Choose the backup file you exported from QuickCards.</string>
-    <string name="import_choice_sheet">Cards from a spreadsheet</string>
-    <string name="import_choice_sheet_sub">Add many cards at once from a sheet you fill in.</string>
+    <string name="import_choice_sheet">Spreadsheet</string>
+    <string name="import_choice_sheet_sub">.xlsx or .csv</string>
+    <string name="import_choose_another">Choose another file</string>
+    <string name="import_save_blank">Save blank sheet</string>
 
-    <string name="import_sheet_title">Cards from a spreadsheet</string>
-    <string name="import_sheet_intro">Get the sheet, fill in one card per row, then come back and choose the file. Every row is checked before anything is saved.</string>
-    <string name="import_sheet_rules">Do not change the column names. Network, Bank and Card type must come from their lists; a card whose bank, network or type is not listed is added in the app by hand.</string>
-    <string name="import_download_xlsx">Download the Excel sheet</string>
-    <string name="import_download_xlsx_sub">Dropdowns for every list. Opens in Excel, Google Sheets and WPS.</string>
+    <string name="import_sheet_title">Spreadsheet</string>
+    <string name="import_sheet_intro">Fill in 1 card per row, then choose the file.</string>
+    <string name="import_download_xlsx">Excel sheet</string>
+    <string name="import_download_xlsx_sub">With dropdowns</string>
     <string name="import_open_google">Open in Google Sheets</string>
-    <string name="import_open_google_sub">Make a copy, fill it in, then download it as .xlsx. The copy stays in your Google Drive until you delete it.</string>
-    <string name="import_download_csv">Download the simple CSV</string>
-    <string name="import_download_csv_sub">Headings only, plus a second file with every allowed value.</string>
-    <string name="import_already_filled">Already filled in? Tap Proceed and choose the file (.xlsx or .csv).</string>
-    <string name="import_action_proceed">Proceed</string>
+    <string name="import_open_google_sub">Copy, fill, download as .xlsx. Then delete the copy.</string>
+    <string name="import_download_csv">CSV file</string>
+    <string name="import_download_csv_sub">Headings and allowed values</string>
+    <string name="import_help_link">Spreadsheet columns</string>
+    <string name="import_action_choose_file">Choose file</string>
+    <string name="import_a11y_steps">Step %1$d of %2$d</string>
 
-    <string name="import_check_title">Check your cards</string>
-    <string name="import_check_nothing_ready">No row is ready to import yet. Fix the rows below and choose the file again.</string>
-    <string name="import_check_all_already">Every card in this sheet is already in QuickCards. Nothing to import.</string>
+    <string name="import_check_nothing_ready">Fix the rows below, then choose the file again.</string>
+    <string name="import_check_all_already">All cards are already saved.</string>
     <plurals name="import_check_rows">
         <item quantity="one">%1$d row checked</item>
         <item quantity="other">%1$d rows checked</item>
     </plurals>
-    <string name="import_check_ready">Ready to import</string>
-    <string name="import_check_fixing">Need fixing</string>
-    <string name="import_check_already">Already in QuickCards</string>
-    <string name="import_check_holders">New card holders</string>
+    <string name="import_check_ready">Ready</string>
+    <string name="import_check_fixing">To fix</string>
+    <string name="import_check_already">Already saved</string>
+    <string name="import_check_holders">New holders</string>
     <plurals name="import_fixing_more">
-        <item quantity="one">%1$d more row. Save rows to fix lists every one.</item>
-        <item quantity="other">%1$d more rows. Save rows to fix lists every one.</item>
+        <item quantity="one">%1$d more. Save the list to see all.</item>
+        <item quantity="other">%1$d more. Save the list to see all.</item>
     </plurals>
     <string name="import_fixing_heading">What to fix</string>
-    <string name="import_save_fix">Save rows to fix</string>
+    <string name="import_save_fix">Save fix list</string>
     <plurals name="import_action_import">
         <item quantity="one">Import %1$d card</item>
         <item quantity="other">Import %1$d cards</item>
     </plurals>
 
-    <string name="import_done_title">Cards added</string>
-    <plurals name="import_done_body">
-        <item quantity="one">%1$d card added.</item>
-        <item quantity="other">%1$d cards added.</item>
+    <plurals name="import_done_title">
+        <item quantity="one">%1$d card added</item>
+        <item quantity="other">%1$d cards added</item>
     </plurals>
-    <string name="import_done_delete_hint">Delete the sheet now: it holds your card numbers.</string>
+    <string name="import_done_delete_hint">This file has card numbers. Delete it.</string>
     <string name="import_action_delete_file">Delete file</string>
-    <string name="import_action_done">Done</string>
 
-    <string name="import_snack_sheet_saved">Sheet saved. Fill it in, then come back here.</string>
-    <string name="import_snack_values_saved">Allowed values saved next to the sheet.</string>
-    <string name="import_snack_fix_saved">Rows to fix saved. Fix them, then choose that file.</string>
+    <string name="import_snack_sheet_saved">Sheet saved</string>
+    <string name="import_snack_values_saved">Allowed values saved</string>
+    <string name="import_snack_fix_saved">Fix list saved</string>
     <string name="import_snack_deleted">File deleted</string>
-    <string name="import_snack_delete_failed">Couldn’t delete the file. Delete it in your Files app.</string>
-    <string name="import_snack_save_failed">Couldn’t save the file</string>
-    <string name="import_snack_import_failed">Couldn’t import these cards</string>
+    <string name="import_snack_delete_failed">Couldn’t delete. Use your Files app.</string>
+    <string name="import_snack_save_failed">Couldn’t save file</string>
+    <string name="import_snack_import_failed">Couldn’t import</string>
     <string name="import_fix_file_name">QuickCards - rows to fix.csv</string>
     <string name="import_google_sheet_url" translatable="false">https://surety.money/quickcards/sheet</string>
 </resources>

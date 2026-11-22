@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -48,7 +49,8 @@ import com.quickcards.domain.FilterGroup
 internal fun HomeTopBar(
     showSearch: Boolean,
     onSearch: () -> Unit,
-    onAdd: () -> Unit
+    onAdd: () -> Unit,
+    chips: (@Composable RowScope.() -> Unit)? = null
 ) {
     val colors = QcTheme.colors
     Row(
@@ -65,9 +67,10 @@ internal fun HomeTopBar(
             color = colors.ink,
             maxLines = 1,
             modifier = Modifier
-                .weight(1f)
+                .then(if (chips == null) Modifier.weight(1f) else Modifier)
                 .semantics { heading() }
         )
+        chips?.invoke(this)
         if (showSearch) {
             BarIcon(QcIcons.search, stringResource(R.string.cards_search), onSearch)
         }
@@ -90,12 +93,12 @@ internal fun ChipRow(
     onRemoveFilter: (FilterGroup, String) -> Unit,
     onRemoveStatus: (String) -> Unit,
     onRemoveReview: () -> Unit,
-    onFilter: () -> Unit
+    onFilter: () -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth()
 ) {
     val filterCount = state.filters.activeCount + state.statusFilter.size + if (state.reviewOnly) 1 else 0
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .heightIn(min = QcSize.hit)
             .padding(start = QcSpacing.s4, end = QcSpacing.s1),
         verticalAlignment = Alignment.CenterVertically

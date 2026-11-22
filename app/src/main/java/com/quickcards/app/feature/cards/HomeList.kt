@@ -10,21 +10,21 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.ui.semantics.selected
+import com.quickcards.app.core.ui.adaptive.selectionRing
+import com.quickcards.app.core.ui.art.ArtDimens
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,13 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -57,7 +52,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.window.layout.FoldingFeature
 import com.quickcards.app.R
 import com.quickcards.app.core.data.repository.RepairSummary
 import com.quickcards.app.core.ui.HomeCard
@@ -71,7 +65,6 @@ import com.quickcards.app.core.ui.components.QcGroup
 import com.quickcards.app.core.ui.components.QcGroupLabel
 import com.quickcards.app.core.ui.components.QcSkeleton
 import com.quickcards.app.core.ui.components.markTone
-import com.quickcards.app.core.ui.rememberSeparatingFold
 import com.quickcards.app.core.ui.sharedPass
 import com.quickcards.app.core.ui.theme.PassColors
 import com.quickcards.app.core.ui.theme.QcDimens
@@ -98,7 +91,8 @@ internal data class TileState(
     val options: HomeOptions,
     val lastUsedId: String?,
     val copiedId: String?,
-    val copyEnabled: Boolean
+    val copyEnabled: Boolean,
+    val selectedId: String? = null
 )
 
 /** Banners and Recent sit above the tiles, spanning every lane. */
@@ -120,96 +114,60 @@ internal fun CardList(
     bottomInset: Dp,
     modifier: Modifier
 ) {
-    val configuration = LocalConfiguration.current
-    val density = LocalDensity.current
-    val fold = rememberSeparatingFold()
-    var originInWindow by remember { mutableStateOf<Offset?>(null) }
-
-    BoxWithConstraints(modifier = modifier.onGloballyPositioned { originInWindow = it.positionInWindow() }) {
-        val contentWidthPx = constraints.maxWidth.toFloat()
-        val origin = originInWindow
-        val verticalFold = fold?.takeIf { it.orientation == FoldingFeature.Orientation.VERTICAL && it.isSeparating }
-        val minPanePx = with(density) { QcDimens.CardMinPane.toPx() }
-        val foldLeftPx = if (verticalFold != null && origin != null) verticalFold.bounds.left - origin.x else 0f
-        val foldRightPx = if (verticalFold != null && origin != null) verticalFold.bounds.right - origin.x else 0f
-        val splitGrid = verticalFold != null && origin != null &&
-            foldLeftPx >= minPanePx && foldRightPx <= contentWidthPx - minPanePx
-
-        if (splitGrid) {
-            val half = (cards.size + 1) / 2
-            Row(modifier = Modifier.fillMaxSize()) {
-                val left = with(density) { foldLeftPx.toDp() }
-                val right = with(density) { (contentWidthPx - foldRightPx).coerceAtLeast(0f).toDp() }
-                Box(modifier = Modifier.width(left).fillMaxHeight()) {
-                    CardGrid(cards.subList(0, half), tile, header, actions, columnsFor(left), bottomInset)
-                }
-                Spacer(modifier = Modifier.width(with(density) { (foldRightPx - foldLeftPx).coerceAtLeast(0f).toDp() }))
-                Box(modifier = Modifier.width(right).fillMaxHeight()) {
-                    CardGrid(cards.drop(half), tile, null, actions, columnsFor(right), bottomInset)
-                }
-            }
-        } else {
-            CardGrid(cards, tile, header, actions, columnsFor(configuration.screenWidthDp.dp), bottomInset)
-        }
+    BoxWithConstraints(modifier = modifier) {
+        CardGrid(cards, tile, header, actions, lanes = if (maxWidth >= QcDimens.MediumWidth) 2 else 1, bottomInset)
     }
 }
 
-private fun columnsFor(paneWidth: Dp): Int = when {
-    paneWidth >= QcDimens.GridBreakpointWide -> 3
-    paneWidth >= QcDimens.GridBreakpoint -> 2
-    else -> 1
-}
-
+/** One column, or two staggered lanes from 600 wide: each tile goes to the shorter lane, list order kept. */
 @Composable
 private fun CardGrid(
     cards: List<HomeCard>,
     tile: TileState,
-    header: ListHeader?,
+    header: ListHeader,
     actions: TileActions,
-    columns: Int,
+    lanes: Int,
     bottomInset: Dp
 ) {
-    val gridState = rememberLazyGridState()
-    val showsRecent = header?.recent?.isNotEmpty() == true
+    val gridState = rememberLazyStaggeredGridState()
+    val showsRecent = header.recent.isNotEmpty()
     // Items are keyed, so a new top item would otherwise open below the fold.
     var shownRecent by remember { mutableStateOf(showsRecent) }
     LaunchedEffect(showsRecent) {
         if (showsRecent != shownRecent) gridState.scrollToItem(0)
         shownRecent = showsRecent
     }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(lanes),
         state = gridState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = QcSpacing.s4,
             end = QcSpacing.s4,
-            top = if (header?.repair != null && !header.noLock) 0.dp else QcSpacing.s2,
+            top = if (header.repair != null && !header.noLock) 0.dp else QcSpacing.s2,
             bottom = QcSpacing.s8 + bottomInset
         ),
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),
-        verticalArrangement = Arrangement.spacedBy(QcSpacing.s3)
+        verticalItemSpacing = QcSpacing.s3
     ) {
-        if (header != null) {
-            if (header.noLock) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "banner") {
-                    NoLockBanner(onSettings = header.onScreenLock)
-                }
+        if (header.noLock) {
+            item(span = StaggeredGridItemSpan.FullLine, contentType = "banner") {
+                NoLockBanner(onSettings = header.onScreenLock)
             }
-            header.repair?.let { summary ->
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "banner") {
-                    RepairBanner(
-                        summary = summary,
-                        onReview = header.onReviewRepair,
-                        onDismiss = header.onDismissRepair,
-                        modifier = Modifier.padding(bottom = QcSpacing.s2)
-                    )
-                }
+        }
+        header.repair?.let { summary ->
+            item(span = StaggeredGridItemSpan.FullLine, contentType = "banner") {
+                RepairBanner(
+                    summary = summary,
+                    onReview = header.onReviewRepair,
+                    onDismiss = header.onDismissRepair,
+                    modifier = Modifier.padding(bottom = QcSpacing.s2)
+                )
             }
-            if (header.recent.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent") {
-                    RecentGroup(header.recent, tile, actions)
-                }
+        }
+        if (header.recent.isNotEmpty()) {
+            item(span = StaggeredGridItemSpan.FullLine, contentType = "recent") {
+                RecentGroup(header.recent, tile, actions)
             }
         }
         items(cards, key = { it.id }) { card ->
@@ -218,7 +176,7 @@ private fun CardGrid(
                     card = card,
                     tile = tile,
                     actions = actions,
-                    modifier = if (columns > 1) Modifier.widthIn(max = QcDimens.CardMaxWidth) else Modifier
+                    modifier = if (lanes > 1) Modifier.widthIn(max = QcDimens.CardMaxWidth) else Modifier
                 )
             }
         }
@@ -228,9 +186,13 @@ private fun CardGrid(
 @Composable
 internal fun HomeTile(card: HomeCard, tile: TileState, actions: TileActions, modifier: Modifier = Modifier) {
     val status = CardsListState.status(card, tile.lastUsedId)
+    val selected = tile.selectedId == card.id
     PassCard(
         card = card,
-        modifier = modifier.sharedPass(card.id),
+        modifier = modifier
+            .selectionRing(selected, ArtDimens.CornerTile, QcTheme.colors.ink)
+            .semantics { this.selected = selected }
+            .sharedPass(card.id),
         status = status,
         archiveReason = card.card.archiveReason,
         note = card.card.note.takeIf { tile.options.showNotes && it.isNotBlank() },

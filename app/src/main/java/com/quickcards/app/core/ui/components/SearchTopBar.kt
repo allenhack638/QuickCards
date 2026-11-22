@@ -38,16 +38,17 @@ import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.app.core.ui.theme.qcElevation1
 
-/** The pill search bar shared by Home and the autofill card list. */
+/** The pill search bar shared by Home, Archived and the autofill card list; [label] is its TalkBack name. */
 @Composable
 fun SearchTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    placeholder: String = stringResource(R.string.cards_search_placeholder),
+    label: String = placeholder
 ) {
     val focusRequester = remember { FocusRequester() }
     var value by remember { mutableStateOf(TextFieldValue(query, TextRange(query.length))) }
-    val searchContentDescription = stringResource(R.string.cards_search_placeholder)
     val colors = QcTheme.colors
 
     LaunchedEffect(Unit) {
@@ -86,7 +87,7 @@ fun SearchTopBar(
             Box(modifier = Modifier.weight(1f)) {
                 if (value.text.isEmpty()) {
                     Text(
-                        text = stringResource(R.string.cards_search_placeholder),
+                        text = placeholder,
                         style = QcText.F3,
                         color = colors.inkPh,
                         maxLines = 1
@@ -109,7 +110,7 @@ fun SearchTopBar(
                         .fillMaxWidth()
                         .focusRequester(focusRequester)
                         .semantics {
-                            contentDescription = searchContentDescription
+                            contentDescription = label
                         }
                 )
             }

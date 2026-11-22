@@ -18,7 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/** What the copy notification shows for one card; held in memory only, never saved state. */
+/** What the copy notification can copy for one card; held in memory only, never saved state. */
 internal class CopiedCard(val bank: String, val last4: String, val expiry: String, val cvv: String)
 
 /**

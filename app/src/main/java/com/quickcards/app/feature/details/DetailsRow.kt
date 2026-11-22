@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,12 +26,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import com.quickcards.app.core.ui.theme.PassColors
 import com.quickcards.app.core.ui.theme.QcIcons
@@ -56,8 +59,21 @@ internal class DetailsRowSpec(
 )
 
 /**
- * Key, value and a right-aligned copy disc. The value wraps under the key when its longest word
- * no longer fits beside it (large text). Copied tints the value in the card hue and fills the
+ * True when any of [labels] outgrows the key column (large text): then every row puts its key
+ * above its value, so the list keeps one alignment.
+ */
+@Composable
+internal fun rememberKeysStacked(labels: List<String>): Boolean {
+    val measurer = rememberTextMeasurer()
+    val column = with(LocalDensity.current) { KeyColumn.roundToPx() }
+    return remember(labels, measurer, column) {
+        labels.any { measurer.measure(it, QcText.F2).size.width > column }
+    }
+}
+
+/**
+ * Key, value and a right-aligned copy disc. The value sits under the key when [keyStacked] or
+ * when the value's longest word no longer fits beside it (large text). Copied tints the value in the card hue and fills the
  * disc; [drain] (1 → 0) draws the reveal line under the row.
  */
 @Composable
@@ -67,7 +83,8 @@ internal fun DetailsRow(
     hueInk: Color,
     hueFill: Color,
     copiedWord: String,
-    drain: Float?
+    drain: Float?,
+    keyStacked: Boolean
 ) {
     val colors = QcTheme.colors
     val lineColor = colors.ink
@@ -108,6 +125,7 @@ internal fun DetailsRow(
             else -> colors.ink
         }
         KeyValueAct(
+            keyStacked = keyStacked,
             key = {
                 Text(text = spec.label, style = QcText.F2, color = colors.ink2, modifier = Modifier.clearAndSetSemantics { })
             },
@@ -174,6 +192,7 @@ private fun CopyDisc(spec: DetailsRowSpec, copied: Boolean, hueFill: Color) {
  */
 @Composable
 private fun KeyValueAct(
+    keyStacked: Boolean,
     key: @Composable () -> Unit,
     value: @Composable () -> Unit,
     act: @Composable () -> Unit,
@@ -187,13 +206,12 @@ private fun KeyValueAct(
         val discWidth = actPlaceable?.width ?: 0
         val key = keys.first()
         val value = values.first()
-        val keyMin = KeyMinWidth.roundToPx()
+        val keyColumn = KeyColumn.roundToPx()
 
         fun fit(reserved: Int): ValueFit {
             val textMax = (width - discWidth - reserved - if (actPlaceable != null) gap else 0).coerceAtLeast(0)
-            val keyWidth = key.maxIntrinsicWidth(Constraints.Infinity).coerceIn(keyMin.coerceAtMost(textMax), textMax)
-            val besideMax = textMax - keyWidth - gap
-            val inline = besideMax > 0 && value.minIntrinsicWidth(Constraints.Infinity) <= besideMax
+            val besideMax = textMax - keyColumn - gap
+            val inline = !keyStacked && besideMax > 0 && value.minIntrinsicWidth(Constraints.Infinity) <= besideMax
             val valueMax = if (inline) besideMax else textMax
             return ValueFit(textMax, inline, valueMax, value.minIntrinsicHeight(valueMax))
         }
@@ -205,10 +223,10 @@ private fun KeyValueAct(
         // The word only shows where it costs the value no line, so copying never moves the row.
         val chosen = narrow?.takeIf { it.inline == full.inline && it.height == full.height } ?: full
         val wordPlaceable = if (chosen !== full) wordMeasurable?.measure(Constraints()) else null
-        val keyPlaceable = key.measure(
-            Constraints(minWidth = keyMin.coerceAtMost(chosen.textMax), maxWidth = chosen.textMax)
-        )
         val inline = chosen.inline
+        val keyPlaceable = key.measure(
+            if (inline) Constraints.fixedWidth(keyColumn) else Constraints(maxWidth = chosen.textMax)
+        )
         val valuePlaceable = value.measure(Constraints(maxWidth = chosen.valueMax))
         val textHeight = if (inline) {
             maxOf(keyPlaceable.height, valuePlaceable.height)
@@ -234,5 +252,5 @@ private fun KeyValueAct(
 
 private class ValueFit(val textMax: Int, val inline: Boolean, val valueMax: Int, val height: Int)
 
-private val KeyMinWidth = QcSpacing.s16 + QcSpacing.s2
+private val KeyColumn = QcSpacing.s16 + QcSpacing.s2
 private val RevealLine = QcSize.focus

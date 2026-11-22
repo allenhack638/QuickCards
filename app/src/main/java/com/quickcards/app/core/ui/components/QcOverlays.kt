@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -147,7 +148,8 @@ private fun QcSheetDragHandle() {
 /**
  * Sheet footer, 24 below the content and 16 above the gesture area. A lone [primary] is a
  * full-width tonal button (Done); with a [secondary] (Cancel, outlined) the primary is filled
- * brand. [note] names what a disabled primary is missing, in one line above it.
+ * brand. [note] names what a disabled primary is missing, in one line above it. [primaryIcon]
+ * leads the primary's label (Choose file, Delete file).
  */
 @Composable
 fun QcSheetActions(
@@ -160,7 +162,8 @@ fun QcSheetActions(
     filled: Boolean = secondary != null,
     note: String? = null,
     stack: Boolean = false,
-    sideInset: Dp = QcSpacing.s6
+    sideInset: Dp = QcSpacing.s6,
+    primaryIcon: ImageVector? = null
 ) {
     Column(
         modifier = modifier
@@ -180,9 +183,9 @@ fun QcSheetActions(
         val primaryButton: @Composable (Modifier) -> Unit = { buttonModifier ->
             if (primary != null) {
                 if (filled) {
-                    QcFilledButton(primary, onPrimary, buttonModifier, primaryEnabled, large = true)
+                    QcFilledButton(primary, onPrimary, buttonModifier, primaryEnabled, large = true, icon = primaryIcon)
                 } else {
-                    QcTonalButton(primary, onPrimary, buttonModifier, primaryEnabled, large = true)
+                    QcTonalButton(primary, onPrimary, buttonModifier, primaryEnabled, large = true, icon = primaryIcon)
                 }
             }
         }

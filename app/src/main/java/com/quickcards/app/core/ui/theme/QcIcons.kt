@@ -90,6 +90,9 @@ object QcIcons {
     val error: ImageVector by lazy { symbol("error", QcSymbolPaths.errorFill) }
     val palette: ImageVector by lazy { symbol("palette", QcSymbolPaths.palette) }
     val checkCircle: ImageVector by lazy { symbol("checkCircle", QcSymbolPaths.checkCircleFill) }
+    val encrypted: ImageVector by lazy { symbol("encrypted", QcSymbolPaths.encryptedFill) }
+    val doneAll: ImageVector by lazy { symbol("doneAll", QcSymbolPaths.doneAll) }
+    val folderOpen: ImageVector by lazy { symbol("folderOpen", QcSymbolPaths.folderOpen) }
 
     /** Navigation items when selected. */
     object Selected {

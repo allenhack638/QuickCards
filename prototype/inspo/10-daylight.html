@@ -924,7 +924,7 @@ QC.details = (c, o={}) => { c=QC.card(c);
     ${QC.drow("Number",numV,{mono:1,copy:"Card number copied",copyName:"card number",copied:o.copied==="number",revealed:o.revealed==="number",drain:o.drain})}
     ${QC.drow("Expiry",c.exp,{mono:1,copy:"Expiry copied",copyName:"expiry",copied:o.copied==="expiry"})}
     ${QC.drow("CVV",cvvV,{mono:1,copy:"CVV copied",copyName:"CVV",copied:o.copied==="cvv",revealed:o.revealed==="cvv",drain:o.drain})}
-    ${QC.drow("Holder",c.holder,{copy:"Name copied",copyName:"name",copied:o.copied==="name"})}
+    ${QC.drow("Holder",c.holder,{copy:"Name copied",copyName:"holder",copied:o.copied==="name"})}
     ${c.note?QC.drow("Note",QC.esc(c.note),{copy:"Note copied",copyName:"note",copied:o.copied==="note"}):""}
   </div>`; };
 /* app bars */
@@ -2084,8 +2084,8 @@ const manage = topBar("Manage") + `<div class="content pad-top"><div class="p40-
   `<div class="p40-gap"></div>` + group(row(ic("inventory_2"),"Archived","",count(QC.ARCHIVED.length))) +
   `</div></div>` + QC.navbar("manage");
 const NETS = [["visa","13, 16 or 19 digits · CVV 3"],["mc","16 digits · CVV 3"],["rupay","16 digits · CVV 3"],
-  ["amex","15 digits · CVV 4"],["diners","14-19 digits · CVV 3"],["discover","16-19 digits · CVV 3"],
-  ["jcb","16-19 digits · CVV 3"],["maestro","12-19 digits · CVV 3 or none"],["mir","16-19 digits · CVV 3"],["unionpay","16-19 digits · CVV 3"]].map(([n, r]) => [n, netSub(n, r)]);
+  ["amex","15 digits · CVV 4"],["diners","14 to 19 digits · CVV 3"],["discover","16 to 19 digits · CVV 3"],
+  ["jcb","16 to 19 digits · CVV 3"],["maestro","12 to 19 digits · CVV 3 or none"],["mir","16 to 19 digits · CVV 3"],["unionpay","16 to 19 digits · CVV 3"]].map(([n, r]) => [n, netSub(n, r)]);
 const networks = QC.nestedBar("Networks", QC.ibtn("add","Add network")) + `<div class="content pad-top">` +
   group(NETS.map(([n,s]) => row(QC.net(n,"slot"), QC.NETNAME[n], s, "", "", "button")).join("")) + `</div>`;
 const holders = QC.nestedBar("Holders", QC.ibtn("add","Add holder")) + `<div class="content pad-top">` +
@@ -2250,8 +2250,6 @@ QC.addScreens("#shots-backup", [
 .p60-fail .empty-ic{background:var(--danger-bg);color:var(--danger)}
 .p60-fail .p60-why{color:var(--danger)}
 /* an icon named inside a sentence (the More options menu): drawn icon with a label, on the text baseline */
-.p60-inl{display:inline-flex;vertical-align:middle}
-.p60-inl .ic{width:var(--ic-xs);height:var(--ic-xs)}
 /* launcher (system surface, drawn for context): wallpaper from the card-art hues, the app icon, and its long-press shortcuts */
 .p60-wall{position:absolute;inset:0;z-index:1;background:radial-gradient(120% 70% at 20% 10%,var(--c2),transparent 70%),linear-gradient(160deg,var(--c1),var(--c2))}
 .phone:has(.p60-wall) .sb{z-index:3;color:#fff}
@@ -2313,12 +2311,14 @@ QC.addScreens("#shots-archive", [
   ["archive-search", "Search · reason", archSearch + `<div class="content">${archived(QC.ARCHIVED.filter(id => (QC.CARDS[id].reason||"").toLowerCase().includes("closed")))}</div>`],
   ["archive-actions", "Restore, edit, delete", archBar + `<div class="content">${archived()}</div>`, QC.actionsSheet("axisOld", {archived:true})],
   ["archive-restored", "Card restored", archBar + `<div class="content">${archived(QC.ARCHIVED.filter(id => id !== "axisOld"))}</div>`, QC.toast("Card restored","Undo")],
-  ["archive-empty", "None archived", QC.nestedBar("Archived") + `<div class="content"><div class="empty"><div class="empty-ic">${ic("inventory_2")}</div><div class="empty-title">No archived cards</div><div class="empty-body">Archive cards from their <span class="p60-inl" role="img" aria-label="More options">${ic("more_vert","xs")}</span> menu.</div></div></div>`]
+  ["archive-empty", "None archived", QC.nestedBar("Archived") + `<div class="content"><div class="empty"><div class="empty-ic">${ic("inventory_2")}</div><div class="empty-title">No archived cards</div><div class="empty-body">Hold a card to archive it</div></div></div>`]
 ]);
 
 /* ---------- Notifications ---------- */
 const badge = `<span class="notif-badge">${QC.MARK}</span>`;
-/* P: Android template: small app icon + app · time, title, text, then action buttons. No card thumbnail. */
+/* P: Android template: small app icon + app · time, title, text, then action buttons. No card thumbnail.
+   M2 (owner): the copy notification shows expiry and CVV masked; the values leave only through Copy expiry / Copy CVV.
+   It is VISIBILITY_SECRET, so the lock screen shows nothing of it. */
 const notif = (when, title, text, actions="") => `<div class="notif"><div class="notif-app">${badge}QuickCards · ${when}</div>
   <div class="notif-body"><div class="notif-title">${title}</div><div class="notif-text">${text}</div></div>${actions?`<div class="notif-actions">${actions}</div>`:""}</div>`;
 /* Round 6: the reminders are derived: bills inside their window ("Due 22 Nov"), and each expiry reminder with its fire date (it fires once,
@@ -2326,10 +2326,9 @@ const notif = (when, title, text, actions="") => `<div class="notif"><div class=
 const today = `Fri, ${QC.fmtDay(QC.todayN)}`, H = C.hdfc, REM = QC.expiryReminders();
 const dueNotes = QC.ORDER.map(id => C[id]).filter(c => QC.dueText(c)).map(c => notif("9:00",`${c.bank} ${QC.masked(c.last)}`,`Due ${QC.fmtDay(QC.dueN(c))}`,`<button class="btn btn-tonal">Paid</button>`)).join("");
 const shade = `<div class="shade p60-shade" role="region" aria-label="Notification shade"><div class="p60-date"><span>${today}</span></div>
-  ${notif("now",`${H.bank} ${QC.masked(H.last)}`,`Expiry <span class="num">${H.exp}</span> · CVV <span class="num">${H.cvv}</span>`)}
+  ${notif("now",`${H.bank} ${QC.masked(H.last)}`,`Expiry ••/•• · CVV •••`,`<button class="btn btn-tonal">Copy expiry</button><button class="btn btn-tonal">Copy CVV</button>`)}
   ${dueNotes}${REM.map(r => notif(r.when,`${r.c.bank} ${QC.masked(r.c.last)}`,r.text)).join("")}</div>`;
 const lockscr = `<div class="shade p60-shade" role="region" aria-label="Lock screen"><div class="p60-clock"><b>9:41</b><span>${today}</span></div>
-  ${notif("now","QuickCards","Card details hidden")}
   ${notif("9:00","QuickCards","Card reminder")}</div>`;
 const dueList = tileList(QC.ORDER);   /* the bill strip and "Expires soon" come from the dates; the order never changes */
 QC.addScreens("#shots-notif", [

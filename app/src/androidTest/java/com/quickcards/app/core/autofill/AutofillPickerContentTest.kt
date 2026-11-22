@@ -1,6 +1,8 @@
 package com.quickcards.app.core.autofill
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -20,9 +22,9 @@ class AutofillPickerContentTest {
     @get:Rule val compose = createComposeRule()
 
     private val cards = listOf(
-        PickerCard("1", "HDFC Bank", "Credit", "Aarav Mehta", "4532778103492211", "12/29", listOf("Travel"), "visa", false),
-        PickerCard("2", "ICICI Bank", "", "Priya Sharma", "5555555555554444", "11/26", listOf("Groceries"), "mc", false),
-        PickerCard("3", "Kotak Bank", "", "Aarav Mehta", "3530111333300000", "03/25", emptyList(), "jcb", true)
+        PickerCard("1", "HDFC Bank", "Credit", "Aarav Mehta", "4532778103492211", listOf("Travel"), "visa", false, "navy"),
+        PickerCard("2", "ICICI Bank", "", "Priya Sharma", "5555555555554444", listOf("Groceries"), "mc", false, "wine"),
+        PickerCard("3", "Kotak Bank", "", "Aarav Mehta", "3530111333300000", emptyList(), "jcb", true, "navy")
     )
 
     private fun show(onPick: (String) -> Unit = {}) = compose.setContent {
@@ -31,8 +33,10 @@ class AutofillPickerContentTest {
         }
     }
 
-    private fun search(text: String) =
-        compose.onNodeWithContentDescription("Search cards").performTextInput(text)
+    private fun search(text: String) {
+        compose.onNodeWithContentDescription("Search cards").performClick()
+        compose.onNode(hasSetTextAction() and hasContentDescription("Search cards")).performTextInput(text)
+    }
 
     @Test
     fun everyCardIsListed() {
@@ -44,14 +48,14 @@ class AutofillPickerContentTest {
     fun searchingATagNarrows() {
         show(); search("groc")
         compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(1)
-        compose.onNodeWithText("ICICI Bank").assertExists()
+        compose.onNodeWithText("ICICI Bank", substring = true).assertExists()
     }
 
     @Test
     fun searchingTheFirstDigitsNarrows() {
         show(); search("4532")
         compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(1)
-        compose.onNodeWithText("HDFC Bank Credit").assertExists()
+        compose.onNodeWithText("HDFC Bank •• 2211").assertExists()
     }
 
     @Test
@@ -64,14 +68,16 @@ class AutofillPickerContentTest {
     fun noMatchShowsTheEmptyState() {
         show(); search("zzzz")
         compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(0)
-        compose.onNodeWithText("No cards match").assertExists()
+        compose.onNodeWithText("No matches").assertExists()
+        compose.onNodeWithText("Clear search").performClick()
+        compose.onAllNodesWithTag(PICKER_ROW).assertCountEquals(3)
     }
 
     @Test
     fun tappingACardPicksIt() {
         var picked: String? = null
         show { picked = it }
-        compose.onNodeWithText("ICICI Bank").performClick()
+        compose.onNodeWithText("ICICI Bank", substring = true).performClick()
         assertEquals("2", picked)
     }
 }

@@ -108,7 +108,6 @@ object QcDimens {
     val SheetTitleTop = QcSpacing.s2
     val SheetBottom = QcSpacing.s6
     /** Body to action row in every dialog. */
-    val DialogActionGap = QcSpacing.s6
     val SheetMaxHeightFraction = 0.86f
 
     // Search and settings
@@ -117,21 +116,27 @@ object QcDimens {
     val SubheadBottom = QcSpacing.s2
     val SettingsRowVertical = QcSpacing.s2
 
-    // Adaptive layout
-    val CardMinPane = 240.dp
+    // Adaptive layout (DESIGN.md › Adaptive)
+    val MediumWidth = 600.dp
+    val ExpandedWidth = 840.dp
+    val CompactHeight = 480.dp
+    val Rail = QcSize.nav
+    val ListPane = 360.dp
+    val ListPaneMedium = 328.dp
+    val PageMax = 600.dp
+    val DetailMax = 840.dp
+    val HingeZone = QcSpacing.s6
+    /** The hero's design width; narrower panes scale it as one object. */
+    val HeroDesign = 328.dp
     val CardMaxWidth = 360.dp
     /** A loading tile: the height of a tile with a meta line and no note. */
     val SkeletonTile = 148.dp
-    val GridBreakpoint = 600.dp
-    val GridBreakpointWide = 840.dp
 
     // Lock screen
-    val LockMark = 96.dp
-    val LockMarkCompact = 72.dp
-    val LockGlow = 176.dp
-    val LockGlowCompact = 132.dp
-    val LockButtonHeight = 56.dp
-    val LockButtonMaxWidth = 400.dp
+    val LockMark = 72.dp
+    val LockGlyph = 56.dp
+    val LockMarkTop = QcSpacing.s16 * 2 + QcSpacing.s12
+    val LockMarkTopCompact = QcSpacing.s12
 
     // Interaction
     val DisabledAlpha = 0.38f

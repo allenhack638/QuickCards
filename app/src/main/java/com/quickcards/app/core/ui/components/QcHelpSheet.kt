@@ -1,5 +1,6 @@
-package com.quickcards.app.feature.settings
+package com.quickcards.app.core.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,21 +26,25 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import com.quickcards.app.R
-import com.quickcards.app.core.ui.components.QcChevron
-import com.quickcards.app.core.ui.components.QcModalBottomSheet
-import com.quickcards.app.core.ui.components.QcSheetActions
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTheme
 
-enum class SettingsHelpTopic { INSTANT_COPY, AUTOFILL, SPREADSHEET, CHECK }
+enum class HelpTopic { INSTANT_COPY, AUTOFILL, SPREADSHEET, CHECK }
 
-/** The ⓘ sheet: the four hardest concepts, each opening its setting or screen. */
+/**
+ * The Help sheet (Settings ⓘ, Spreadsheet step 1): the four hardest concepts, each opening its setting or screen. [highlight] marks
+ * the row a deep link landed on (Spreadsheet step 1's "Spreadsheet columns").
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SettingsHelpSheet(onDismiss: () -> Unit, onOpen: (SettingsHelpTopic) -> Unit) {
+fun QcHelpSheet(
+    onDismiss: () -> Unit,
+    onOpen: (HelpTopic) -> Unit,
+    highlight: HelpTopic? = null
+) {
     QcModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Text(
@@ -50,7 +55,7 @@ internal fun SettingsHelpSheet(onDismiss: () -> Unit, onOpen: (SettingsHelpTopic
                     .padding(start = QcSpacing.s6, end = QcSpacing.s6, top = QcSpacing.s2, bottom = QcSpacing.s3)
                     .semantics { heading() }
             )
-            fun open(topic: SettingsHelpTopic) {
+            fun open(topic: HelpTopic) {
                 onDismiss()
                 onOpen(topic)
             }
@@ -59,28 +64,29 @@ internal fun SettingsHelpSheet(onDismiss: () -> Unit, onOpen: (SettingsHelpTopic
                 title = stringResource(R.string.settings_copy_window_title),
                 body = stringResource(R.string.settings_help_instant_body),
                 target = stringResource(R.string.settings_app_lock_title),
-                onClick = { open(SettingsHelpTopic.INSTANT_COPY) }
+                onClick = { open(HelpTopic.INSTANT_COPY) }
             )
             HelpRow(
                 icon = QcIcons.password,
                 title = stringResource(R.string.settings_help_autofill_title),
                 body = stringResource(R.string.settings_help_autofill_body),
                 target = stringResource(R.string.settings_autofill_title),
-                onClick = { open(SettingsHelpTopic.AUTOFILL) }
+                onClick = { open(HelpTopic.AUTOFILL) }
             )
             HelpRow(
                 icon = QcIcons.table,
                 title = stringResource(R.string.settings_help_sheet_title),
                 body = stringResource(R.string.settings_help_sheet_body),
                 target = stringResource(R.string.settings_help_sheet_target),
-                onClick = { open(SettingsHelpTopic.SPREADSHEET) }
+                highlighted = highlight == HelpTopic.SPREADSHEET,
+                onClick = { open(HelpTopic.SPREADSHEET) }
             )
             HelpRow(
                 icon = QcIcons.info,
                 title = stringResource(R.string.settings_help_check_title),
                 body = stringResource(R.string.settings_help_check_body),
                 target = stringResource(R.string.settings_help_check_target),
-                onClick = { open(SettingsHelpTopic.CHECK) }
+                onClick = { open(HelpTopic.CHECK) }
             )
             QcSheetActions(primary = stringResource(R.string.settings_help_done), onPrimary = onDismiss)
         }
@@ -88,13 +94,21 @@ internal fun SettingsHelpSheet(onDismiss: () -> Unit, onOpen: (SettingsHelpTopic
 }
 
 @Composable
-private fun HelpRow(icon: ImageVector, title: String, body: String, target: String, onClick: () -> Unit) {
+private fun HelpRow(
+    icon: ImageVector,
+    title: String,
+    body: String,
+    target: String,
+    onClick: () -> Unit,
+    highlighted: Boolean = false
+) {
     val colors = QcTheme.colors
     val spoken = "$title. $body ${stringResource(R.string.settings_help_opens, target)}"
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = QcSize.row2)
+            .then(if (highlighted) Modifier.background(colors.tonal) else Modifier)
             .clickable(onClick = onClick)
             .clearAndSetSemantics {
                 contentDescription = spoken

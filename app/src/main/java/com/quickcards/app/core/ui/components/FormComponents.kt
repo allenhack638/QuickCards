@@ -262,6 +262,7 @@ private val NextRowLookahead = QcSize.field + QcSpacing.s12
  * Outlined text field with its label above (DESIGN.md › Inputs). [placeholder] shows in
  * `ink-ph`; [mono] sets number, expiry and CVV in Geist Mono; a [PasswordVisualTransformation]
  * draws real bullets. [trailing] sits inside the box (inline action, eye, network mark).
+ * [maxLines] above 1 lets the value wrap instead of scrolling sideways (card number at large text).
  */
 @Composable
 fun FormTextField(
@@ -282,7 +283,8 @@ fun FormTextField(
     warn: String? = null,
     mono: Boolean = false,
     labelAction: (@Composable () -> Unit)? = null,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    maxLines: Int = 1
 ) {
     val colors = QcTheme.colors
     val interaction = remember { MutableInteractionSource() }
@@ -321,7 +323,8 @@ fun FormTextField(
                     contentDescription = label
                     if (error != null) semanticsError(error)
                 },
-            singleLine = true,
+            singleLine = maxLines == 1,
+            maxLines = maxLines,
             textStyle = textStyle.copy(color = colors.ink),
             cursorBrush = SolidColor(if (error != null) colors.danger else colors.accent),
             keyboardOptions = keyboardOptions,
@@ -341,7 +344,7 @@ fun FormTextField(
                                 text = placeholder,
                                 style = if (mono) QcText.MonoF3 else FormInputText,
                                 color = colors.inkPh,
-                                maxLines = 1
+                                maxLines = maxLines
                             )
                         }
                         inner()

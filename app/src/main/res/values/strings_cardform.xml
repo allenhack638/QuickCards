@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="form_back">Back</string>
+    <string name="form_close">Close</string>
     <string name="form_title_add">Add card</string>
     <string name="form_title_edit">Edit card</string>
 

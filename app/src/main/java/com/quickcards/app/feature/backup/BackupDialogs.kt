@@ -1,8 +1,12 @@
 package com.quickcards.app.feature.backup
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,362 +15,203 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import com.quickcards.app.R
-import com.quickcards.app.core.ui.entity.DialogActions
-import com.quickcards.app.core.ui.entity.ManageDialogFrame
-import com.quickcards.app.core.ui.theme.QcDimens
-import com.quickcards.app.core.ui.theme.QcType
-import com.quickcards.domain.BackupSection
-import com.quickcards.domain.MergeMode
+import com.quickcards.app.core.ui.components.CheckRow
+import com.quickcards.app.core.ui.components.QcDialog
+import com.quickcards.app.core.ui.components.QcModalBottomSheet
+import com.quickcards.app.core.ui.components.dialogEdgeToEdge
+import com.quickcards.app.core.ui.theme.QcIcons
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcText
+import com.quickcards.app.core.ui.theme.QcTextButton
+import com.quickcards.app.core.ui.theme.QcTextTone
+import com.quickcards.app.core.ui.theme.QcTheme
 import kotlinx.coroutines.delay
 
+/** Export: two password rules gate the button live; the backup is encrypted with that password. */
 @Composable
 internal fun ExportBackupDialog(state: BackupHostState) {
-    val focus = remember { FocusRequester() }
-
+    val password = remember { FocusRequester() }
+    val confirm = remember { FocusRequester() }
     LaunchedEffect(Unit) {
-        delay(80)
-        state.exportPassphrase = state.exportPassphrase.copy(
-            selection = TextRange(state.exportPassphrase.text.length)
-        )
-        runCatching { focus.requestFocus() }
+        delay(FOCUS_DELAY_MS)
+        runCatching { password.requestFocus() }
     }
-
-    ManageDialogFrame(onDismissRequest = state::closeExport) {
-        Text(
-            text = stringResource(R.string.backup_export_title),
-            style = QcType.DialogTitle,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        Text(
-            text = pluralStringResource(
-                R.plurals.backup_export_body,
-                state.exportCardCount,
-                state.exportCardCount
-            ),
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(QcDimens.Base))
-        BackupCheckRow(
+    QcDialog(
+        onDismissRequest = state::closeExport,
+        title = stringResource(R.string.backup_export_title),
+        actions = {
+            QcTextButton(stringResource(R.string.backup_action_cancel), state::closeExport, tone = QcTextTone.Neutral)
+            QcTextButton(
+                stringResource(R.string.backup_action_export),
+                state::confirmExport,
+                enabled = state.exportReady && !state.exportBusy
+            )
+        }
+    ) {
+        DialogBody(pluralStringResource(R.plurals.backup_export_body, state.exportCardCount, state.exportCardCount))
+        Column(
+            modifier = Modifier.padding(top = QcSpacing.s4),
+            verticalArrangement = Arrangement.spacedBy(QcSpacing.s2)
+        ) {
+            BackupPasswordField(
+                value = state.exportPassphrase,
+                onValueChange = { state.exportPassphrase = it },
+                label = stringResource(R.string.backup_password),
+                visible = state.exportShowPassphrase,
+                onToggleVisible = { state.exportShowPassphrase = !state.exportShowPassphrase },
+                rule = stringResource(R.string.backup_password_helper),
+                ruleMet = state.exportLongEnough,
+                focusRequester = password,
+                imeAction = ImeAction.Next,
+                onImeAction = { runCatching { confirm.requestFocus() } }
+            )
+            BackupPasswordField(
+                value = state.exportConfirm,
+                onValueChange = { state.exportConfirm = it },
+                label = stringResource(R.string.backup_confirm_password),
+                visible = state.exportShowConfirm,
+                onToggleVisible = { state.exportShowConfirm = !state.exportShowConfirm },
+                rule = stringResource(if (state.exportReady) R.string.backup_password_match else R.string.backup_password_must_match),
+                ruleMet = state.exportReady,
+                focusRequester = confirm,
+                onImeAction = state::confirmExport
+            )
+        }
+        CheckRow(
             label = stringResource(R.string.backup_include_settings),
             checked = state.exportWithSettings,
-            onCheckedChange = { state.exportWithSettings = it }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        BackupPasswordField(
-            value = state.exportPassphrase,
-            onValueChange = { state.exportPassphrase = it },
-            label = stringResource(R.string.backup_password),
-            helper = stringResource(R.string.backup_password_helper),
-            error = null,
-            visible = state.exportShowPassphrase,
-            onToggleVisible = { state.exportShowPassphrase = !state.exportShowPassphrase },
-            focusRequester = focus,
-            enabled = !state.exportBusy
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        BackupPasswordField(
-            value = state.exportConfirm,
-            onValueChange = { state.exportConfirm = it },
-            label = stringResource(R.string.backup_confirm_password),
-            helper = "",
-            error = state.exportPasswordError,
-            visible = state.exportShowConfirm,
-            onToggleVisible = { state.exportShowConfirm = !state.exportShowConfirm },
-            enabled = !state.exportBusy
-        )
-        DialogActions(
-            onCancel = state::closeExport,
-            cancelLabel = stringResource(R.string.backup_action_cancel),
-            confirmLabel = stringResource(R.string.backup_action_export),
-            onConfirm = state::confirmExport,
-            confirmEnabled = state.exportReady && !state.exportBusy,
-            confirmPrimary = true
+            onCheckedChange = { state.exportWithSettings = it },
+            modifier = Modifier
+                .padding(top = QcSpacing.s3)
+                .dialogEdgeToEdge()
         )
     }
 }
 
+/** The picked backup, and its password when it is encrypted. */
 @Composable
 internal fun ImportBackupDialog(state: BackupHostState) {
-    val review = state.importReview
-    if (state.importStep == ImportStep.REVIEW && review != null) {
-        ImportReviewDialog(state, review)
-        return
-    }
-
+    val file = state.importFile ?: return
     val focus = remember { FocusRequester() }
-    val fileName = state.importFile?.name
-
-    LaunchedEffect(fileName) {
-        if (fileName != null && state.importFile?.encrypted == true) {
-            delay(80)
-            state.importPassphrase = state.importPassphrase.copy(
-                selection = TextRange(state.importPassphrase.text.length)
-            )
+    LaunchedEffect(file.name) {
+        if (file.encrypted) {
+            delay(FOCUS_DELAY_MS)
             runCatching { focus.requestFocus() }
         }
     }
-
-    ManageDialogFrame(onDismissRequest = state::closeImport) {
-        Text(
-            text = stringResource(R.string.backup_import_title),
-            style = QcType.DialogTitle,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        Text(
-            text = stringResource(R.string.backup_import_body),
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-
-        val file = state.importFile
-        if (file == null) {
-            BackupOutlinedButton(
-                label = stringResource(R.string.backup_choose_file),
-                onClick = state::chooseImportFile,
-                enabled = !state.importBusy
-            )
-            Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        } else {
-            val count = file.cardCount
-            BackupFileRow(
-                fileName = file.name,
-                meta = when {
-                    file.encrypted -> stringResource(R.string.backup_file_encrypted)
-                    count != null -> pluralStringResource(
-                        R.plurals.backup_file_card_count,
-                        count,
-                        count
-                    )
-                    else -> stringResource(R.string.backup_file_quickcards)
+    QcDialog(
+        onDismissRequest = state::closeImport,
+        title = stringResource(R.string.backup_import_title),
+        actions = {
+            QcTextButton(stringResource(R.string.backup_action_cancel), state::closeImport, tone = QcTextTone.Neutral)
+            QcTextButton(stringResource(R.string.backup_action_open), state::openImport, enabled = !state.importBusy)
+        }
+    ) {
+        val count = file.cardCount
+        BackupFileRow(
+            title = stringResource(if (file.encrypted) R.string.backup_file_encrypted else R.string.backup_file_quickcards),
+            icon = if (file.encrypted) QcIcons.encrypted else QcIcons.file,
+            subtitle = if (count != null) pluralStringResource(R.plurals.backup_file_card_count, count, count) else file.name
+        ) {
+            QcTextButton(stringResource(R.string.backup_action_change), state::chooseImportFile, enabled = !state.importBusy)
+        }
+        // Older files are plain JSON; only encrypted backups ask for a password.
+        if (file.encrypted) {
+            BackupPasswordField(
+                value = state.importPassphrase,
+                onValueChange = {
+                    state.importPassphrase = it
+                    state.importError = null
                 },
-                onChange = state::chooseImportFile
+                label = stringResource(R.string.backup_password),
+                visible = state.importShowPassphrase,
+                onToggleVisible = { state.importShowPassphrase = !state.importShowPassphrase },
+                error = state.importError,
+                focusRequester = focus,
+                onImeAction = state::openImport,
+                modifier = Modifier.padding(top = QcSpacing.s4)
             )
-            Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-            // Older files are plain JSON; only encrypted backups ask for a passphrase.
-            if (file.encrypted) {
-                BackupPasswordField(
-                    value = state.importPassphrase,
-                    onValueChange = {
-                        state.importPassphrase = it
-                        state.importError = null
-                    },
-                    label = stringResource(R.string.backup_password),
-                    helper = "",
-                    error = state.importError,
-                    visible = state.importShowPassphrase,
-                    onToggleVisible = { state.importShowPassphrase = !state.importShowPassphrase },
-                    focusRequester = focus,
-                    enabled = !state.importBusy
-                )
-            } else {
-                state.importError?.let { error ->
-                    Text(
-                        text = error,
-                        style = QcType.Body,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
         }
-
-        DialogActions(
-            onCancel = state::closeImport,
-            cancelLabel = stringResource(R.string.backup_action_cancel),
-            confirmLabel = stringResource(R.string.backup_action_open),
-            onConfirm = state::openImport,
-            confirmEnabled = state.importFile != null && !state.importBusy
-        )
     }
 }
 
+/** A picked file that isn't a QuickCards backup: the fix is one tap. */
 @Composable
-internal fun ImportReviewDialog(state: BackupHostState, review: ImportReview) {
-    val content = review.content
-    val plan = review.plan
-    val sections = review.sections
-
-    val rows = mutableListOf<Pair<String, String>>()
-    rows.add(
-        pluralStringResource(
-            R.plurals.backup_card_count,
-            content.cards.size,
-            content.cards.size
-        ) to stringResource(
-            R.string.backup_review_cards_summary,
-            plan.newCards,
-            plan.changedCards,
-            plan.sameCards
-        )
+internal fun NotABackupDialog(state: BackupHostState) {
+    QcDialog(
+        onDismissRequest = state::closeBadFile,
+        title = stringResource(R.string.backup_error_format),
+        actions = {
+            QcTextButton(stringResource(R.string.backup_action_cancel), state::closeBadFile, tone = QcTextTone.Neutral)
+            QcTextButton(stringResource(R.string.import_choose_another), state::chooseImportFile)
+        }
     )
-    if (plan.duplicateCards > 0) {
-        rows.add(
-            stringResource(R.string.backup_review_duplicates_label) to pluralStringResource(
-                R.plurals.backup_review_duplicates,
-                plan.duplicateCards,
-                plan.duplicateCards
-            )
-        )
-    }
-    if (BackupSection.HOLDERS in sections && content.holders.isNotEmpty()) {
-        rows.add(
-            pluralStringResource(
-                R.plurals.backup_holder_count,
-                content.holders.size,
-                content.holders.size
-            ) to listSuffix(plan.newCount(BackupSection.HOLDERS))
-        )
-    }
-    if (BackupSection.BANKS in sections && content.banks.isNotEmpty()) {
-        rows.add(
-            pluralStringResource(
-                R.plurals.backup_bank_count,
-                content.banks.size,
-                content.banks.size
-            ) to listSuffix(plan.newCount(BackupSection.BANKS))
-        )
-    }
-    if (BackupSection.NETWORKS in sections && content.networks.isNotEmpty()) {
-        rows.add(
-            pluralStringResource(
-                R.plurals.backup_network_count,
-                content.networks.size,
-                content.networks.size
-            ) to listSuffix(plan.newCount(BackupSection.NETWORKS))
-        )
-    }
-    if (BackupSection.TYPES in sections && content.types.isNotEmpty()) {
-        rows.add(
-            pluralStringResource(
-                R.plurals.backup_type_count,
-                content.types.size,
-                content.types.size
-            ) to listSuffix(plan.newCount(BackupSection.TYPES))
-        )
-    }
-    if (BackupSection.TAGS in sections && content.tags.isNotEmpty()) {
-        rows.add(
-            pluralStringResource(
-                R.plurals.backup_tag_count,
-                content.tags.size,
-                content.tags.size
-            ) to listSuffix(plan.newCount(BackupSection.TAGS))
-        )
-    }
-    val settingsRowValue = if (content.settings != null) {
-        stringResource(R.string.backup_review_settings_included)
-    } else {
-        stringResource(R.string.backup_review_settings_missing)
-    }
-    rows.add(stringResource(R.string.backup_review_settings_label) to settingsRowValue)
-
-    val exportedAt = review.exportedAt
-    val meta = if (exportedAt.isNullOrBlank()) {
-        review.fileName
-    } else {
-        stringResource(R.string.backup_review_exported, review.fileName, exportedAt)
-    }
-
-    ManageDialogFrame(onDismissRequest = state::closeImport) {
-        Text(
-            text = stringResource(R.string.backup_review_title),
-            style = QcType.DialogTitle,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        Text(
-            text = meta,
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        BackupReviewList(rows)
-        ImportFormatsSummary(
-            formatsFixed = review.formatsFixed,
-            needCheck = review.needCheck
-        )
-
-        if (plan.changedCards > 0) {
-            Spacer(modifier = Modifier.height(QcDimens.PassGap))
-            Text(
-                text = stringResource(R.string.backup_review_saved_title),
-                style = BackupGroupLabel,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(QcDimens.Half))
-            BackupRadioRow(
-                label = stringResource(R.string.backup_review_update),
-                selected = state.importMode == MergeMode.UPDATE,
-                onClick = { state.importMode = MergeMode.UPDATE }
-            )
-            BackupRadioRow(
-                label = stringResource(R.string.backup_review_keep),
-                selected = state.importMode == MergeMode.KEEP,
-                onClick = { state.importMode = MergeMode.KEEP }
-            )
-        }
-
-        if (content.settings != null) {
-            Spacer(modifier = Modifier.height(QcDimens.Half))
-            BackupCheckRow(
-                label = stringResource(R.string.backup_review_restore),
-                checked = state.importRestore,
-                onCheckedChange = { state.importRestore = it }
-            )
-        }
-
-        DialogActions(
-            onCancel = state::closeImport,
-            cancelLabel = stringResource(R.string.backup_action_cancel),
-            confirmLabel = stringResource(R.string.backup_action_import),
-            onConfirm = state::confirmImport,
-            confirmEnabled = !state.importBusy,
-            confirmPrimary = true
-        )
-    }
 }
 
+/** Erase starts unticked; Erase stays off until "This can't be undone" is ticked. */
 @Composable
 internal fun EraseAllDataDialog(state: BackupHostState) {
-    ManageDialogFrame(onDismissRequest = state::closeErase) {
-        Text(
-            text = stringResource(R.string.backup_erase_title),
-            style = QcType.DialogTitle,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        Text(
-            text = stringResource(R.string.backup_erase_body),
-            style = QcType.Body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(QcDimens.DialogHeaderGap))
-        BackupCheckRow(
+    QcDialog(
+        onDismissRequest = state::closeErase,
+        title = stringResource(R.string.backup_erase_title),
+        actions = {
+            QcTextButton(stringResource(R.string.backup_action_cancel), state::closeErase, tone = QcTextTone.Neutral)
+            QcTextButton(
+                stringResource(R.string.backup_action_erase),
+                state::confirmErase,
+                enabled = state.eraseAcknowledged && !state.eraseBusy,
+                tone = QcTextTone.Danger
+            )
+        }
+    ) {
+        DialogBody(stringResource(R.string.backup_erase_body))
+        CheckRow(
             label = stringResource(R.string.backup_erase_ack),
             checked = state.eraseAcknowledged,
-            onCheckedChange = { state.eraseAcknowledged = it }
-        )
-        DialogActions(
-            onCancel = state::closeErase,
-            cancelLabel = stringResource(R.string.backup_action_cancel),
-            confirmLabel = stringResource(R.string.backup_action_erase),
-            onConfirm = state::confirmErase,
-            confirmDanger = true,
-            confirmEnabled = state.eraseAcknowledged && !state.eraseBusy
+            onCheckedChange = { state.eraseAcknowledged = it },
+            modifier = Modifier
+                .padding(top = QcSpacing.s3)
+                .dialogEdgeToEdge()
         )
     }
 }
 
+/** "Import": a QuickCards backup or a spreadsheet, two visually distinct sources. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun listSuffix(newCount: Int): String =
-    if (newCount > 0) {
-        pluralStringResource(R.plurals.backup_review_new_count, newCount, newCount)
-    } else {
-        stringResource(R.string.backup_review_all_exist)
+internal fun ImportChoiceSheet(state: BackupHostState) {
+    QcModalBottomSheet(onDismissRequest = state::closeImportChoice) {
+        Text(
+            text = stringResource(R.string.import_cards_title),
+            style = QcText.F4,
+            color = QcTheme.colors.ink,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = QcSpacing.s6, end = QcSpacing.s6, top = QcSpacing.s2, bottom = QcSpacing.s3)
+                .semantics { heading() }
+        )
+        SourceRow(
+            title = stringResource(R.string.import_choice_backup),
+            subtitle = null,
+            onClick = state::chooseBackupImport
+        ) { BackupSourceTile() }
+        SourceRow(
+            title = stringResource(R.string.import_choice_sheet),
+            subtitle = stringResource(R.string.import_choice_sheet_sub),
+            onClick = state::chooseSheetImport
+        ) { SheetSourceTile() }
+        Spacer(modifier = Modifier.height(QcSpacing.s4))
     }
+}
+
+@Composable
+internal fun DialogBody(text: String) {
+    Text(text = text, style = QcText.F2, color = QcTheme.colors.ink2)
+}
+
+// The dialog window must be attached before a field can take focus and raise the keyboard.
+private const val FOCUS_DELAY_MS = 60L

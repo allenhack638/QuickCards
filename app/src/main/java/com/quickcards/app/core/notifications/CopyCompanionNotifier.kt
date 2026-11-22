@@ -17,9 +17,9 @@ import com.quickcards.app.core.data.settings.AppSettings
 import com.quickcards.app.core.security.ClipboardHelper
 
 /**
- * The Expiry and CVV notification posted after an unlocked card number copy. Its "Copy expiry"
- * and "Copy CVV" actions copy without a second unlock because the notification only exists
- * after one.
+ * The Expiry and CVV notification posted after an unlocked card number copy. It shows both
+ * masked; its "Copy expiry" and "Copy CVV" actions copy without a second unlock because the
+ * notification only exists after one.
  *
  * Silent and never heads-up (low-importance channel). VISIBILITY_SECRET rather than PRIVATE:
  * PRIVATE still shows the content on a lock screen set to "show all notification content".
@@ -47,11 +47,8 @@ object CopyCompanionNotifier {
         cvv: String,
         seconds: Int
     ) {
-        val values = buildList {
-            if (expiry.isNotBlank()) add(context.getString(R.string.notif_expiry_value, expiry))
-            if (cvv.isNotBlank()) add(context.getString(R.string.notif_cvv_value, cvv))
-        }
-        if (values.isEmpty()) return
+        val fields = CopyNotificationText.fields(expiry, cvv)
+        if (fields.isEmpty()) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         ensureChannel(context, manager)
 
@@ -63,8 +60,15 @@ object CopyCompanionNotifier {
 
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_quickcards)
+            .setColor(context.getColor(R.color.primary_brand))
             .setContentTitle(title)
-            .setContentText(values.joinToString(context.getString(R.string.notif_value_separator)))
+            .setContentText(
+                CopyNotificationText.text(
+                    fields,
+                    { context.getString(if (it == CopyField.EXPIRY) R.string.notif_expiry_masked else R.string.notif_cvv_masked) },
+                    context.getString(R.string.notif_value_separator)
+                )
+            )
             .setVisibility(Notification.VISIBILITY_SECRET)
             .setOnlyAlertOnce(true)
             // Card values stay on this phone: no bridging to watches.
@@ -73,12 +77,7 @@ object CopyCompanionNotifier {
             .setCategory(Notification.CATEGORY_STATUS)
             .setContentIntent(openAppIntent(context))
             .setTimeoutAfter(ttl)
-        if (expiry.isNotBlank()) {
-            builder.addAction(copyAction(context, token, CopyField.EXPIRY, R.string.notif_action_copy_expiry))
-        }
-        if (cvv.isNotBlank()) {
-            builder.addAction(copyAction(context, token, CopyField.CVV, R.string.notif_action_copy_cvv))
-        }
+        fields.forEach { builder.addAction(copyAction(context, token, it)) }
         // No system smart replies or suggested actions built from the card values.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setAllowSystemGeneratedContextualActions(false)
         manager.notify(NOTIFICATION_ID, builder.build())
@@ -89,7 +88,8 @@ object CopyCompanionNotifier {
         context.getSystemService(NotificationManager::class.java)?.cancel(NOTIFICATION_ID)
     }
 
-    private fun copyAction(context: Context, token: String, field: CopyField, label: Int): Notification.Action {
+    private fun copyAction(context: Context, token: String, field: CopyField): Notification.Action {
+        val label = if (field == CopyField.EXPIRY) R.string.notif_action_copy_expiry else R.string.notif_action_copy_cvv
         val intent = Intent(context, CopyActionReceiver::class.java)
             .setAction(ACTION_COPY)
             .putExtra(EXTRA_TOKEN, token)

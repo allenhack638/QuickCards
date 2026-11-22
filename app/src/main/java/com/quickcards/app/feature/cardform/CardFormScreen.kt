@@ -48,7 +48,8 @@ import com.quickcards.app.core.ui.theme.QcTheme
 fun CardFormScreen(
     navController: NavController,
     onOpenCard: (cardId: String) -> Unit,
-    viewModel: CardFormViewModel = viewModel()
+    viewModel: CardFormViewModel = viewModel(),
+    asDialog: Boolean = false
 ) {
     val session by viewModel.session.collectAsState()
     val saving by viewModel.saving.collectAsState()
@@ -97,7 +98,8 @@ fun CardFormScreen(
         FormTopBar(
             title = stringResource(if (mode == CardFormMode.EDIT) R.string.form_title_edit else R.string.form_title_add),
             scrolled = scrollState.value > 0,
-            onBack = ::requestBack
+            onBack = ::requestBack,
+            asDialog = asDialog
         )
         val current = session
         if (editReady && current != null) {
@@ -138,9 +140,9 @@ fun CardFormScreen(
     }
 }
 
-/** Nested bar (64): back and the `f4` title; a hairline shows once the form scrolls under it. */
+/** Nested bar (64): back (close in a dialog) and the `f4` title; a hairline shows once the form scrolls under it. */
 @Composable
-private fun FormTopBar(title: String, scrolled: Boolean, onBack: () -> Unit) {
+private fun FormTopBar(title: String, scrolled: Boolean, onBack: () -> Unit, asDialog: Boolean) {
     val colors = QcTheme.colors
     Column {
         Row(
@@ -152,8 +154,8 @@ private fun FormTopBar(title: String, scrolled: Boolean, onBack: () -> Unit) {
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(QcSize.hit)) {
                 Icon(
-                    imageVector = QcIcons.back,
-                    contentDescription = stringResource(R.string.form_back),
+                    imageVector = if (asDialog) QcIcons.close else QcIcons.back,
+                    contentDescription = stringResource(if (asDialog) R.string.form_close else R.string.form_back),
                     tint = colors.ink,
                     modifier = Modifier.size(QcSize.iconLg)
                 )

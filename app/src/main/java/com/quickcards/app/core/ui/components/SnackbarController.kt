@@ -32,7 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class SnackbarController(
-    private val host: SnackbarHostState,
+    internal val host: SnackbarHostState,
     private val scope: CoroutineScope
 ) {
     fun show(message: String, long: Boolean = false) {

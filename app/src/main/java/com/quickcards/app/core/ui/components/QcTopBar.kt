@@ -42,11 +42,12 @@ fun QcIconButton(
 
 /**
  * Nested screen bar (64): back, an optional `f4` title, trailing icon actions. Without a visible
- * title, [paneTitle] names the screen to TalkBack as its level-1 heading.
+ * title, [paneTitle] names the screen to TalkBack as its level-1 heading. A pane shown beside its
+ * list passes no [onBack]; its title then starts on the 24 content edge.
  */
 @Composable
 fun QcNestedTopBar(
-    onBack: () -> Unit,
+    onBack: (() -> Unit)?,
     backLabel: String,
     modifier: Modifier = Modifier,
     title: String? = null,
@@ -57,11 +58,11 @@ fun QcNestedTopBar(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = QcSize.bar)
-            .padding(horizontal = QcSpacing.s1),
+            .padding(start = if (onBack == null) QcSpacing.s6 else QcSpacing.s1, end = QcSpacing.s1),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s1)
     ) {
-        QcIconButton(QcIcons.back, backLabel, onBack)
+        if (onBack != null) QcIconButton(QcIcons.back, backLabel, onBack)
         val name = title ?: paneTitle
         Text(
             text = title.orEmpty(),

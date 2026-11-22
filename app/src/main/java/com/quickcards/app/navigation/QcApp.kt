@@ -104,7 +104,24 @@ import com.quickcards.app.feature.settings.AppLockScreen
 import com.quickcards.app.feature.settings.SettingsScreen
 import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcIcons
+import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcType
+import androidx.annotation.StringRes
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.compose.LocalOwnersProvider
+import com.quickcards.app.core.ui.adaptive.FormPanel
+import com.quickcards.app.core.ui.adaptive.ListDetailPanes
+import com.quickcards.app.core.ui.adaptive.QcWindow
+import com.quickcards.app.core.ui.adaptive.WidthClass
+import com.quickcards.app.core.ui.adaptive.rememberHinge
+import com.quickcards.app.feature.archive.ArchivedCardsViewModel
+import com.quickcards.app.feature.details.DetailsLayout
 import kotlinx.coroutines.launch
 
 private const val ROUTE_CARDS = "cards"
@@ -119,22 +136,27 @@ private const val ROUTE_APP_LOCK = "settings/lock"
 private const val ROUTE_MANAGE_EDIT = "manage/{kind}/edit?id={id}"
 
 private val RootRoutes = setOf(ROUTE_CARDS, ROUTE_MANAGE, ROUTE_SETTINGS)
+
+/** Card and rows side by side only when the rows get at least the card's width. */
+private val SplitDetailMin = QcDimens.HeroDesign * 2 + QcSpacing.s6 * 3
 private val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
 
 private data class NavItem(
     val route: String,
-    val label: String,
+    @StringRes val label: Int,
     val icon: ImageVector,
     val selectedIcon: ImageVector
 )
 
 private val NavigationItems = listOf(
-    NavItem(ROUTE_CARDS, "Cards", QcIcons.card, QcIcons.Selected.card),
-    NavItem(ROUTE_MANAGE, "Manage", QcIcons.manage, QcIcons.Selected.manage),
-    NavItem(ROUTE_SETTINGS, "Settings", QcIcons.settings, QcIcons.Selected.settings)
+    NavItem(ROUTE_CARDS, R.string.cards_title, QcIcons.card, QcIcons.Selected.card),
+    NavItem(ROUTE_MANAGE, R.string.manage_title, QcIcons.manage, QcIcons.Selected.manage),
+    NavItem(ROUTE_SETTINGS, R.string.settings_title, QcIcons.settings, QcIcons.Selected.settings)
 )
 
 private fun isRoot(route: String?): Boolean = route in RootRoutes
+
+private fun isForm(route: String?): Boolean = route == ROUTE_CARD_ADD || route == ROUTE_CARD_EDIT
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -146,13 +168,18 @@ fun QcApp() {
     }
     val homeViewModel: HomeViewModel = viewModel()
     val homeState by homeViewModel.uiState.collectAsState()
-    val openableCards = remember(homeState) { (homeState.cards + homeState.visibleCards).distinctBy { it.id } }
+    val archivedViewModel: ArchivedCardsViewModel = viewModel()
+    val archivedState by archivedViewModel.uiState.collectAsState()
+    val openableCards = remember(homeState, archivedState) {
+        (homeState.cards + homeState.visibleCards + archivedState.cards.map { it.card }).distinctBy { it.id }
+    }
+    var selectedCardId by rememberSaveable { mutableStateOf<String?>(null) }
+    val formHolder = rememberSaveableStateHolder()
     val cardActions = rememberCardActionsState()
     val manageViewModel: ManageViewModel = viewModel()
     val homeFullWindow by homeViewModel.hidesNavBar.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
-    val showBar = isRoot(route) && !homeFullWindow
 
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
@@ -194,13 +221,18 @@ fun QcApp() {
                 )
                 .then(if (locked) Modifier.clearAndSetSemantics {} else Modifier)
         ) {
-        val useRail = maxWidth >= 600.dp
+        val hinge = rememberHinge()
+        val window = remember(maxWidth, maxHeight, hinge) { QcWindow.of(maxWidth, maxHeight, hinge) }
+        val useRail = window.rail
+        val formOverlay = window.formDialog && isForm(route)
+        val detailPane = window.detailBesideList && route == ROUTE_CARD_DETAILS
+        val showBar = (isRoot(route) && !homeFullWindow) || (useRail && (formOverlay || detailPane))
         val bottomBarVisible = showBar && !useRail
         val contentBottomInset = if (bottomBarVisible) 0.dp else systemBarBottom
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize().then(if (formOverlay) Modifier.clearAndSetSemantics {} else Modifier)) {
             if (showBar && useRail) {
                 QcNavigationRail(
-                    selectedRoute = route ?: ROUTE_CARDS,
+                    selectedRoute = route?.takeIf(::isRoot) ?: ROUTE_CARDS,
                     onSelect = { target ->
                         if (target != route) {
                             homeViewModel.clearSearch()
@@ -259,7 +291,12 @@ fun QcApp() {
                         // Material fade-through: the old screen is gone (90 ms) before the new one
                         // fades in, so text from two screens never overlaps.
                         enterTransition = {
-                            if (isRoot(initialState.destination.route) && isRoot(targetState.destination.route)) {
+                            if (window.formDialog && isForm(targetState.destination.route)) {
+                                EnterTransition.None
+                            } else if (
+                                (isRoot(initialState.destination.route) && isRoot(targetState.destination.route)) ||
+                                (window.detailBesideList && targetState.destination.route == ROUTE_CARD_DETAILS)
+                            ) {
                                 fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate))
                             } else {
                                 fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate)) +
@@ -268,28 +305,80 @@ fun QcApp() {
                                     ) { sharedAxisOffset }
                             }
                         },
-                        exitTransition = { fadeOut(tween(50)) },
-                        popEnterTransition = {
-                            fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate)) +
-                                slideInHorizontally(
-                                    animationSpec = tween(240, easing = EmphasizedDecelerate)
-                                ) { -sharedAxisOffset }
+                        exitTransition = {
+                            if (window.formDialog && isForm(targetState.destination.route)) ExitTransition.None else fadeOut(tween(50))
                         },
-                        popExitTransition = { fadeOut(tween(50)) }
+                        popEnterTransition = {
+                            if (window.formDialog && isForm(initialState.destination.route)) {
+                                EnterTransition.None
+                            } else if (window.detailBesideList && initialState.destination.route == ROUTE_CARD_DETAILS) {
+                                fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate))
+                            } else {
+                                fadeIn(tween(160, delayMillis = 50, easing = EmphasizedDecelerate)) +
+                                    slideInHorizontally(
+                                        animationSpec = tween(240, easing = EmphasizedDecelerate)
+                                    ) { -sharedAxisOffset }
+                            }
+                        },
+                        popExitTransition = {
+                            if (window.formDialog && isForm(initialState.destination.route)) ExitTransition.None else fadeOut(tween(50))
+                        }
                     ) {
-                    composable(ROUTE_CARDS) {
-                        CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                            Box(modifier = tabModifier) {
-                                HomeScreen(
-                                    navController = navController,
-                                    viewModel = homeViewModel,
-                                    bottomInset = tabBottomInset,
-                                    onImport = { backupHostState.requestImport() },
-                                    onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) },
-                                    onOpenCard = { cardId -> navController.navigate("card/details/$cardId") },
-                                    onCardActions = cardActions::open
+                    val home: @Composable (selectedId: String?, onOpen: (String) -> Unit) -> Unit = { selectedId, onOpen ->
+                        HomeScreen(
+                            navController = navController,
+                            viewModel = homeViewModel,
+                            bottomInset = tabBottomInset,
+                            onImport = { backupHostState.requestImport() },
+                            onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) },
+                            onOpenCard = onOpen,
+                            onCardActions = cardActions::open,
+                            selectedId = selectedId,
+                            chipsInBar = window.compactHeight
+                        )
+                    }
+                    val openDetails: (String) -> Unit = { cardId -> navController.navigate("card/details/$cardId") }
+                    val swapDetails: (String) -> Unit = { cardId ->
+                        navController.navigate("card/details/$cardId") {
+                            popUpTo(ROUTE_CARD_DETAILS) { inclusive = true }
+                        }
+                    }
+                    // Cards list | the open card. Without a card yet (loading, tips, empty vault) Home keeps the window.
+                    val cardsWithDetail: @Composable (selectedId: String?, onOpen: (String) -> Unit, onGone: () -> Unit) -> Unit =
+                        { selectedId, onOpen, onGone ->
+                            val card = openableCards.firstOrNull { it.id == selectedId }
+                                ?: homeState.visibleCards.firstOrNull().takeIf { selectedId == null }
+                            if (card == null || homeState.showTips) {
+                                home(null, onOpen)
+                            } else {
+                                ListDetailPanes(
+                                    listWidth = if (window.width == WidthClass.EXPANDED) QcDimens.ListPane else QcDimens.ListPaneMedium,
+                                    hinge = window.hinge,
+                                    list = { home(card.id, onOpen) },
+                                    detail = { paneWidth ->
+                                        CardDetailsScreen(
+                                            card = card,
+                                            bottomInset = contentBottomInset,
+                                            onBack = onGone,
+                                            onEdit = { id -> navController.navigate("card/edit/$id") },
+                                            onActions = cardActions::open,
+                                            layout = if (paneWidth >= SplitDetailMin) DetailsLayout.SPLIT else DetailsLayout.STACKED,
+                                            showBack = false
+                                        )
+                                    }
                                 )
                             }
+                        }
+                    val cardsRoot: @Composable () -> Unit = {
+                        if (window.twoPane) {
+                            cardsWithDetail(selectedCardId, { selectedCardId = it }, { selectedCardId = null })
+                        } else {
+                            home(null, openDetails)
+                        }
+                    }
+                    composable(ROUTE_CARDS) {
+                        CompositionLocalProvider(LocalNavAnimatedScope provides this) {
+                            Box(modifier = tabModifier) { cardsRoot() }
                         }
                     }
                     composable(ROUTE_MANAGE) {
@@ -354,13 +443,15 @@ fun QcApp() {
                             }
                         )
                     }
-                    composable(ROUTE_ARCHIVED) {
+                    val archived: @Composable () -> Unit = {
                         ArchivedCardsScreen(
                             onBack = { navController.popBackStack() },
-                            onEdit = { cardId -> navController.navigate("card/edit/$cardId") },
-                            bottomInset = contentBottomInset
+                            onCardActions = cardActions::open,
+                            bottomInset = contentBottomInset,
+                            viewModel = archivedViewModel
                         )
                     }
+                    composable(ROUTE_ARCHIVED) { archived() }
                     composable(ROUTE_APP_LOCK) {
                         AppLockScreen(onBack = { navController.popBackStack() })
                     }
@@ -388,7 +479,8 @@ fun QcApp() {
                                 },
                                 updateState = updateState,
                                 onUpdate = { AppUpdates.startFromSettings(updateLauncher) },
-                                onCompleteUpdate = AppUpdates::completeUpdate
+                                onCompleteUpdate = AppUpdates::completeUpdate,
+                                twoPane = window.settingsTwoPane
                             )
                         }
                     }
@@ -397,23 +489,49 @@ fun QcApp() {
                         arguments = listOf(navArgument("cardId") { type = NavType.StringType })
                     ) { entry ->
                         val cardId = entry.arguments?.getString("cardId")
-                        CardDetailsScreen(
-                            card = openableCards.firstOrNull { it.id == cardId },
-                            bottomInset = contentBottomInset,
-                            onBack = { navController.popBackStack() },
-                            onEdit = { id -> navController.navigate("card/edit/$id") },
-                            onActions = cardActions::open
-                        )
+                        if (window.detailBesideList) {
+                            LaunchedEffect(cardId) { if (window.twoPane) selectedCardId = cardId }
+                            cardsWithDetail(cardId, swapDetails) { navController.popBackStack() }
+                        } else {
+                            CardDetailsScreen(
+                                card = openableCards.firstOrNull { it.id == cardId },
+                                bottomInset = contentBottomInset,
+                                onBack = { navController.popBackStack() },
+                                onEdit = { id -> navController.navigate("card/edit/$id") },
+                                onActions = cardActions::open,
+                                layout = if (window.sideBySideDetails) DetailsLayout.SIDE else DetailsLayout.STACKED
+                            )
+                        }
                     }
-                    composable(ROUTE_CARD_ADD) {
-                        CardFormScreen(navController = navController, onOpenCard = openDuplicate)
+                    // On medium and expanded windows the form is a dialog (drawn below, over the rail);
+                    // the destination then keeps the screen it opened from underneath.
+                    val formUnderlay: @Composable (NavBackStackEntry) -> Unit = { entry ->
+                        val below = remember(entry) { navController.previousBackStackEntry }
+                        Box(modifier = Modifier.fillMaxSize().clearAndSetSemantics {}) {
+                            when (below?.destination?.route) {
+                                ROUTE_ARCHIVED -> archived()
+                                ROUTE_CARD_DETAILS -> cardsWithDetail(below.arguments?.getString("cardId"), {}, {})
+                                else -> cardsRoot()
+                            }
+                        }
+                    }
+                    composable(ROUTE_CARD_ADD) { entry ->
+                        if (window.formDialog) {
+                            formUnderlay(entry)
+                        } else {
+                            CardFormScreen(navController = navController, onOpenCard = openDuplicate)
+                        }
                     }
                     composable(
                         route = ROUTE_CARD_EDIT,
                         arguments = listOf(navArgument("cardId") { type = NavType.StringType })
-                    ) {
-                        CompositionLocalProvider(LocalNavAnimatedScope provides this) {
-                            CardFormScreen(navController = navController, onOpenCard = openDuplicate)
+                    ) { entry ->
+                        if (window.formDialog) {
+                            formUnderlay(entry)
+                        } else {
+                            CompositionLocalProvider(LocalNavAnimatedScope provides this) {
+                                CardFormScreen(navController = navController, onOpenCard = openDuplicate)
+                            }
                         }
                     }
                     }
@@ -459,6 +577,14 @@ fun QcApp() {
                 }
             }
         }
+        val formEntry = backStackEntry?.takeIf { formOverlay }
+        if (formEntry != null) {
+            FormPanel {
+                formEntry.LocalOwnersProvider(formHolder) {
+                    CardFormScreen(navController = navController, onOpenCard = openDuplicate, asDialog = true)
+                }
+            }
+        }
         }
         BackupHost(state = backupHostState)
         CardActionsHost(
@@ -469,7 +595,7 @@ fun QcApp() {
         fun promptUnlock() {
             val host = context as? FragmentActivity ?: return
             unlockScope.launch {
-                if (UnlockSession.requireUnlock(host, host.getString(R.string.lock_unlock_reason))) {
+                if (UnlockSession.requireUnlock(host)) {
                     AppLockController.unlock()
                 }
             }
@@ -500,49 +626,41 @@ private fun QcNavigationRail(
     selectedRoute: String,
     onSelect: (String) -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxHeight()) {
-        NavigationRail(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(80.dp)
-        ) {
-            NavigationItems.forEach { item ->
-                val selected = item.route == selectedRoute
-                NavigationRailItem(
-                    selected = selected,
-                    onClick = { onSelect(item.route) },
-                    icon = {
-                        Icon(
-                            imageVector = if (selected) item.selectedIcon else item.icon,
-                            contentDescription = null
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = item.label,
-                            style = QcType.Label.copy(
-                                fontWeight = if (selected) FontWeight(700) else FontWeight(500)
-                            )
-                        )
-                    },
-                    alwaysShowLabel = true,
-                    colors = NavigationRailItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.onSurface,
-                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                        indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    NavigationRail(
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(QcDimens.Rail)
+    ) {
+        NavigationItems.forEach { item ->
+            val selected = item.route == selectedRoute
+            NavigationRailItem(
+                selected = selected,
+                onClick = { onSelect(item.route) },
+                icon = {
+                    Icon(
+                        imageVector = if (selected) item.selectedIcon else item.icon,
+                        contentDescription = null
                     )
+                },
+                label = {
+                    Text(
+                        text = stringResource(item.label),
+                        style = QcType.Label.copy(
+                            fontWeight = if (selected) FontWeight(700) else FontWeight(500)
+                        )
+                    )
+                },
+                alwaysShowLabel = true,
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
+            )
         }
-        Box(
-            modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.outlineVariant)
-        )
     }
 }
 
@@ -574,7 +692,7 @@ private fun QcNavigationBar(
                     },
                     label = {
                         Text(
-                            text = item.label,
+                            text = stringResource(item.label),
                             style = QcType.Label.copy(
                                 fontWeight = if (selected) FontWeight(700) else FontWeight(500)
                             )

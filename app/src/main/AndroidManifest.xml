@@ -46,6 +46,7 @@
             android:theme="@style/Theme.QuickCards"
             android:launchMode="singleTask"
             android:filterTouchesWhenObscured="true"
+            android:configChanges="uiMode"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

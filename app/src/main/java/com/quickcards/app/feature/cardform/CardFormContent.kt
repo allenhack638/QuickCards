@@ -79,6 +79,7 @@ import com.quickcards.app.core.ui.entity.EntityDialog
 import com.quickcards.app.core.ui.theme.QcFilledButton
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSize
+import com.quickcards.app.core.ui.theme.QcDimens
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTextButton
@@ -266,9 +267,11 @@ internal fun CardFormContent(
     val typeName = lists.typeName(form.typeId)
     val saveIssue = session.saveIssue()
 
-    Column(modifier = Modifier.fillMaxSize().background(colors.bg)) {
+    Column(modifier = Modifier.fillMaxSize().background(colors.bg), horizontalAlignment = Alignment.CenterHorizontally) {
         Column(
             modifier = Modifier
+                .widthIn(max = QcDimens.PageMax)
+                .fillMaxWidth()
                 .weight(1f)
                 .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }
                 .verticalScroll(scrollState)
@@ -322,6 +325,7 @@ internal fun CardFormContent(
                 error = numberError,
                 keyboardOptions = DigitsKeyboard,
                 keyboardActions = nextTo(expiryFocus),
+                maxLines = 2,
                 fieldTag = "form_number",
                 focusRequester = numberFocus,
                 labelAction = if (form.mode == CardFormMode.ADD && nfcAvailable && nfcAddEnabled) {
@@ -653,6 +657,7 @@ internal fun FormFooter(label: String, enabled: Boolean, note: String?, noteIsEr
     val colors = QcTheme.colors
     Column(
         modifier = Modifier
+            .widthIn(max = QcDimens.PageMax)
             .fillMaxWidth()
             .background(colors.bg)
             .imePadding()

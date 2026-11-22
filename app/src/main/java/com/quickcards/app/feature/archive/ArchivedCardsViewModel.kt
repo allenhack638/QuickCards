@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class ArchivedCardsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -117,18 +116,6 @@ class ArchivedCardsViewModel(application: Application) : AndroidViewModel(applic
 
     fun setQuery(value: String) {
         query.value = value
-    }
-
-    fun restore(cardId: String) {
-        viewModelScope.launch { repository.restore(cardId) }
-    }
-
-    fun deleteCard(item: ArchivedCardItem) {
-        viewModelScope.launch { repository.deleteCard(item.card.id) }
-    }
-
-    fun restoreDeleted(card: VaultCard) {
-        viewModelScope.launch { repository.restoreCard(card) }
     }
 
     private fun buildState(

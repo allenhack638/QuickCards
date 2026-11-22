@@ -1,5 +1,6 @@
 package com.quickcards.app.flow
 
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
@@ -9,6 +10,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.quickcards.app.core.data.backup.BackupCodec
 import com.quickcards.app.core.data.backup.BackupImporter
@@ -65,6 +67,32 @@ class BackupEraseImportFlowTest : FlowTestBase() {
     }
 
     @Test
+    fun exportStaysOffUntilBothPasswordRulesAreMet() {
+        compose.onNode(hasText("Settings") and isSelectable()).performClick()
+        compose.waitForIdle()
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Export backup"))
+        UnlockSession.testAuthenticator = { true }
+        compose.onNodeWithText("Export backup").performClick()
+
+        awaitField("Password")
+        compose.onNodeWithText("Must match").assertExists()
+        compose.onNodeWithText("Export").assertIsNotEnabled()
+
+        field("Password").performTextInput("correcthorse")
+        field("Confirm password").performTextInput("correcth")
+        compose.onNodeWithText("Must match").assertExists()
+        compose.onNodeWithText("Export").assertIsNotEnabled()
+
+        field("Confirm password").performTextInput("orse")
+        waitForText("Passwords match")
+        compose.onNodeWithText("Export").assertIsEnabled()
+        compose.onNodeWithText("Cancel").performClick()
+    }
+
+    @Test
     fun eraseDialogEmptiesTheVaultAndImportRestoresIt() {
         val holder = runBlocking { app.repository.createHolder("Aarav Mehta") }
         val bank = runBlocking { app.repository.createBank("HDFC Bank") }
@@ -95,13 +123,10 @@ class BackupEraseImportFlowTest : FlowTestBase() {
         compose.onNodeWithText("Erase all data").performClick()
 
         waitForText("Erase all data?")
-        compose.onNodeWithText(
-            "Every card, holder, bank, type and tag will be erased from this phone. " +
-                "Card networks go back to the defaults. Export a backup first if you might need them."
-        ).assertExists()
+        compose.onNodeWithText("Every card and list will be erased. Export a backup first.").assertExists()
         compose.onNodeWithText("Erase").assertIsNotEnabled()
 
-        compose.onNode(hasText("I understand this can’t be undone") and isToggleable())
+        compose.onNode(hasText("This can’t be undone") and isToggleable())
             .performClick()
         compose.onNodeWithText("Erase").performClick()
 

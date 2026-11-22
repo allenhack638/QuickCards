@@ -50,7 +50,9 @@ class ArchivedCardsFlowTest : FlowTestBase() {
         waitForContentDescription("Search archived cards")
         compose.onNodeWithContentDescription("Search archived cards").performClick()
 
-        waitForText("Search archived cards")
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasSetTextAction() and hasContentDescription("Search archived cards")).fetchSemanticsNodes().isNotEmpty()
+        }
         waitForContentDescription("Archived · Card closed", substring = true)
         waitForContentDescription("Archived · Replaced", substring = true)
 
@@ -67,7 +69,7 @@ class ArchivedCardsFlowTest : FlowTestBase() {
         waitForText("Card restored")
         compose.waitUntil(10_000) { archivedNow() == 1 }
         awaitDescriptionGone("Archived · Replaced")
-        waitForText("No archived cards match", substring = true)
+        waitForText("No matches")
 
         compose.onNodeWithContentDescription("Close search").performClick()
         compose.onNodeWithContentDescription("Back").performClick()

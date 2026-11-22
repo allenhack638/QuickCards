@@ -25,10 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.quickcards.app.R
@@ -40,9 +37,11 @@ import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.components.LocalSnackbar
+import com.quickcards.app.core.ui.components.MASK_DOTS
 import com.quickcards.app.core.ui.components.QcDeleteCardDialog
 import com.quickcards.app.core.ui.components.QcListRow
 import com.quickcards.app.core.ui.components.QcModalBottomSheet
+import com.quickcards.app.core.ui.components.maskedNumberText
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
@@ -191,7 +190,7 @@ fun CardActionsHost(
     }
 }
 
-/** Text-only header (bank ••last 4, type · holder, note), then the actions; Delete sits apart. */
+/** Text-only header (bank •• last 4, type · holder, note), then the actions; Delete sits apart. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CardActionsSheet(
@@ -253,16 +252,7 @@ private fun SheetHeader(card: HomeCard) {
             .padding(start = QcSpacing.s6, end = QcSpacing.s6, top = QcSpacing.s2, bottom = QcSpacing.s3)
     ) {
         Text(
-            text = buildAnnotatedString {
-                append(card.bankName)
-                append(" ")
-                withStyle(SpanStyle(fontFamily = QcText.MonoF3.fontFamily, letterSpacing = QcText.MonoDotsF3.letterSpacing)) {
-                    append(COMPACT_MASK)
-                }
-                withStyle(SpanStyle(fontFamily = QcText.MonoF3.fontFamily, fontFeatureSettings = QcText.MonoF3.fontFeatureSettings)) {
-                    append(card.card.number.takeLast(4))
-                }
-            },
+            text = maskedNumberText("${card.bankName} $MASK_DOTS ${card.card.number.takeLast(4)}"),
             style = QcText.F3Semibold,
             color = colors.ink,
             modifier = Modifier.semantics { heading() }
@@ -305,5 +295,3 @@ private fun share(context: Context, card: HomeCard, includeCvv: Boolean) {
     AppLockController.beginShareSheet()
     context.startActivity(Intent.createChooser(send, context.getString(R.string.cards_share_chooser)))
 }
-
-private const val COMPACT_MASK = "••"

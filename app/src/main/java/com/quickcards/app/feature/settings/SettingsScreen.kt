@@ -6,6 +6,25 @@ import android.net.Uri
 import android.provider.Settings
 import android.view.autofill.AutofillManager
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.selected
+import com.quickcards.app.core.ui.components.QcNestedTopBar
+import com.quickcards.app.core.ui.components.HelpTopic
+import com.quickcards.app.core.ui.components.QcHelpSheet
+import com.quickcards.app.core.ui.theme.QcDimens
+import com.quickcards.app.core.ui.theme.QcSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,7 +94,8 @@ fun SettingsScreen(
     onHelpCheck: () -> Unit = {},
     updateState: AppUpdates.State = AppUpdates.State.None,
     onUpdate: () -> Unit = {},
-    onCompleteUpdate: () -> Unit = {}
+    onCompleteUpdate: () -> Unit = {},
+    twoPane: Boolean = false
 ) {
     val context = LocalContext.current
     val settings = remember(context) { AppSettings.get(context) }
@@ -85,6 +105,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val autofillRow = remember { BringIntoViewRequester() }
     var helpOpen by remember { mutableStateOf(false) }
+    var openSection by rememberSaveable { mutableStateOf(SettingsSection.CARDS) }
 
     val theme by settings.theme.collectAsState()
     val maskNumbers by settings.maskNumbers.collectAsState()
@@ -110,198 +131,283 @@ fun SettingsScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        QcScreenBar(title = stringResource(R.string.settings_title)) {
-            QcIconButton(QcIcons.infoOutline, stringResource(R.string.settings_help), { helpOpen = true })
+    val themeGroup: @Composable () -> Unit = {
+        QcGroup {
+            QcListRow(
+                title = stringResource(R.string.settings_theme_title),
+                icon = QcIcons.contrast,
+                subtitle = themeLabel(context, theme),
+                onClick = { choices.open = themeChoice(context, settings, theme) },
+                trailing = { QcChevron() }
+            )
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = QcSpacing.s4)
-                .padding(top = QcSpacing.s2)
-        ) {
-            QcGroup {
-                QcListRow(
-                    title = stringResource(R.string.settings_theme_title),
-                    icon = QcIcons.contrast,
-                    subtitle = themeLabel(context, theme),
-                    onClick = { choices.open = themeChoice(context, settings, theme) },
-                    trailing = { QcChevron() }
-                )
-            }
-
-            QcGroupLabel(stringResource(R.string.settings_section_cards))
-            QcGroup {
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_mask_title),
-                    icon = QcIcons.hideNumbers,
-                    checked = maskNumbers,
-                    onCheckedChange = settings::setMaskNumbers
-                )
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_notes_title),
-                    icon = QcIcons.notes,
-                    checked = showNotes,
-                    onCheckedChange = settings::setShowNotes
-                )
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_tags_show_title),
-                    icon = QcIcons.tag,
-                    checked = tagsShow,
-                    onCheckedChange = settings::setTagsShow
-                )
-                if (hasNfc) {
+    }
+    val eraseGroup: @Composable () -> Unit = {
+        QcGroup {
+            QcListRow(
+                title = stringResource(R.string.settings_backup_erase_title),
+                icon = QcIcons.delete,
+                danger = true,
+                onClick = onErase
+            )
+        }
+    }
+    val sectionGroup: @Composable (SettingsSection) -> Unit = { section ->
+        when (section) {
+            SettingsSection.CARDS -> {
+                QcGroup {
                     QcSwitchRow(
-                        title = stringResource(R.string.settings_nfc_title),
-                        icon = QcIcons.contactless,
-                        checked = nfcAddEnabled,
-                        onCheckedChange = settings::setNfcAddEnabled
+                        title = stringResource(R.string.settings_mask_title),
+                        icon = QcIcons.hideNumbers,
+                        checked = maskNumbers,
+                        onCheckedChange = settings::setMaskNumbers
                     )
-                }
-                QcListRow(
-                    title = stringResource(R.string.settings_expired_title),
-                    icon = QcIcons.eventBusy,
-                    subtitle = expiredLabel(context, expiredCards),
-                    onClick = { choices.open = expiredChoice(context, settings, expiredCards) },
-                    trailing = { QcChevron() }
-                )
-                QcListRow(
-                    title = stringResource(R.string.settings_expires_soon_title),
-                    icon = QcIcons.hourglassBottom,
-                    subtitle = soonLabel(context, expiresSoonMonths),
-                    onClick = { choices.open = soonChoice(context, settings, expiresSoonMonths) },
-                    trailing = { QcChevron() }
-                )
-            }
-
-            QcGroupLabel(stringResource(R.string.settings_section_copying))
-            QcGroup {
-                QcListRow(
-                    title = stringResource(R.string.settings_clipboard_title),
-                    icon = QcIcons.clipboard,
-                    subtitle = clipboardLabel(context, clipClearSec),
-                    onClick = { choices.open = clipboardChoice(context, settings, clipClearSec) },
-                    trailing = { QcChevron() }
-                )
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_notification_title),
-                    icon = QcIcons.bell,
-                    subtitle = stringResource(R.string.settings_notification_subtitle),
-                    checked = notifEnabled,
-                    onCheckedChange = { on ->
-                        guard(securityReason(context, SecurityConfirmation.reasonForNotificationCvv(on))) {
-                            settings.setNotifEnabled(on)
-                            if (on) notifications.settingTurnedOn() else CopyCompanionNotifier.cancel(context)
-                        }
+                    QcSwitchRow(
+                        title = stringResource(R.string.settings_notes_title),
+                        icon = QcIcons.notes,
+                        checked = showNotes,
+                        onCheckedChange = settings::setShowNotes
+                    )
+                    QcSwitchRow(
+                        title = stringResource(R.string.settings_tags_show_title),
+                        icon = QcIcons.tag,
+                        checked = tagsShow,
+                        onCheckedChange = settings::setTagsShow
+                    )
+                    if (hasNfc) {
+                        QcSwitchRow(
+                            title = stringResource(R.string.settings_nfc_title),
+                            icon = QcIcons.contactless,
+                            checked = nfcAddEnabled,
+                            onCheckedChange = settings::setNfcAddEnabled
+                        )
                     }
-                )
-                if (notifEnabled) {
                     QcListRow(
-                        title = stringResource(R.string.settings_notification_time_title),
-                        icon = QcIcons.timer,
-                        subtitle = TimeText.seconds(notifSec),
-                        onClick = { choices.open = notificationTimeChoice(context, settings, notifSec) },
+                        title = stringResource(R.string.settings_expired_title),
+                        icon = QcIcons.eventBusy,
+                        subtitle = expiredLabel(context, expiredCards),
+                        onClick = { choices.open = expiredChoice(context, settings, expiredCards) },
+                        trailing = { QcChevron() }
+                    )
+                    QcListRow(
+                        title = stringResource(R.string.settings_expires_soon_title),
+                        icon = QcIcons.hourglassBottom,
+                        subtitle = soonLabel(context, expiresSoonMonths),
+                        onClick = { choices.open = soonChoice(context, settings, expiresSoonMonths) },
                         trailing = { QcChevron() }
                     )
                 }
-                AutofillRow(settings, Modifier.bringIntoViewRequester(autofillRow))
             }
-
-            QcGroupLabel(stringResource(R.string.settings_section_security))
-            QcGroup {
-                QcListRow(
-                    title = stringResource(R.string.settings_app_lock_title),
-                    icon = QcIcons.lock,
-                    subtitle = if (appLockEnabled) {
-                        autoLockLabel(context, appLockAfterSec)
-                    } else {
-                        stringResource(R.string.settings_app_lock_off)
-                    },
-                    onClick = onAppLock,
-                    trailing = { QcChevron() }
-                )
-                LockNowRow(appLockEnabled = appLockEnabled)
-            }
-
-            QcGroupLabel(stringResource(R.string.settings_section_reminders))
-            QcGroup {
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_expiry_reminders_title),
-                    icon = QcIcons.eventUpcoming,
-                    subtitle = stringResource(R.string.settings_expiry_reminders_subtitle),
-                    checked = expiryReminders,
-                    onCheckedChange = { on ->
-                        settings.setExpiryReminders(on)
-                        if (on) notifications.settingTurnedOn()
+            SettingsSection.COPYING -> {
+                QcGroup {
+                    QcListRow(
+                        title = stringResource(R.string.settings_clipboard_title),
+                        icon = QcIcons.clipboard,
+                        subtitle = clipboardLabel(context, clipClearSec),
+                        onClick = { choices.open = clipboardChoice(context, settings, clipClearSec) },
+                        trailing = { QcChevron() }
+                    )
+                    QcSwitchRow(
+                        title = stringResource(R.string.settings_notification_title),
+                        icon = QcIcons.bell,
+                        subtitle = stringResource(R.string.settings_notification_subtitle),
+                        checked = notifEnabled,
+                        onCheckedChange = { on ->
+                            guard(securityReason(context, SecurityConfirmation.reasonForNotificationCvv(on))) {
+                                settings.setNotifEnabled(on)
+                                if (on) notifications.settingTurnedOn() else CopyCompanionNotifier.cancel(context)
+                            }
+                        }
+                    )
+                    if (notifEnabled) {
+                        QcListRow(
+                            title = stringResource(R.string.settings_notification_time_title),
+                            icon = QcIcons.timer,
+                            subtitle = TimeText.seconds(notifSec),
+                            onClick = { choices.open = notificationTimeChoice(context, settings, notifSec) },
+                            trailing = { QcChevron() }
+                        )
                     }
-                )
-                QcSwitchRow(
-                    title = stringResource(R.string.settings_payment_reminders_title),
-                    icon = QcIcons.payments,
-                    subtitle = stringResource(R.string.settings_payment_reminders_subtitle),
-                    checked = paymentReminders,
-                    onCheckedChange = { on ->
-                        settings.setPaymentReminders(on)
-                        if (on) notifications.settingTurnedOn()
+                    AutofillRow(settings, Modifier.bringIntoViewRequester(autofillRow))
+                }
+            }
+            SettingsSection.SECURITY -> {
+                QcGroup {
+                    QcListRow(
+                        title = stringResource(R.string.settings_app_lock_title),
+                        icon = QcIcons.lock,
+                        subtitle = if (appLockEnabled) {
+                            autoLockLabel(context, appLockAfterSec)
+                        } else {
+                            stringResource(R.string.settings_app_lock_off)
+                        },
+                        onClick = onAppLock,
+                        trailing = { QcChevron() }
+                    )
+                    LockNowRow(appLockEnabled = appLockEnabled)
+                }
+            }
+            SettingsSection.REMINDERS -> {
+                QcGroup {
+                    QcSwitchRow(
+                        title = stringResource(R.string.settings_expiry_reminders_title),
+                        icon = QcIcons.eventUpcoming,
+                        subtitle = stringResource(R.string.settings_expiry_reminders_subtitle),
+                        checked = expiryReminders,
+                        onCheckedChange = { on ->
+                            settings.setExpiryReminders(on)
+                            if (on) notifications.settingTurnedOn()
+                        }
+                    )
+                    QcSwitchRow(
+                        title = stringResource(R.string.settings_payment_reminders_title),
+                        icon = QcIcons.payments,
+                        subtitle = stringResource(R.string.settings_payment_reminders_subtitle),
+                        checked = paymentReminders,
+                        onCheckedChange = { on ->
+                            settings.setPaymentReminders(on)
+                            if (on) notifications.settingTurnedOn()
+                        }
+                    )
+                }
+            }
+            SettingsSection.BACKUP -> {
+                QcGroup {
+                    QcListRow(
+                        title = stringResource(R.string.settings_backup_export_title),
+                        icon = QcIcons.upload,
+                        onClick = onExport
+                    )
+                    QcListRow(
+                        title = stringResource(R.string.settings_backup_import_title),
+                        icon = QcIcons.download,
+                        subtitle = stringResource(R.string.settings_backup_import_subtitle),
+                        onClick = onImport
+                    )
+                }
+            }
+            SettingsSection.ABOUT -> {
+                QcGroup {
+                    VersionRow(updateState, onUpdate, onCompleteUpdate)
+                    QcListRow(
+                        title = stringResource(R.string.settings_privacy_title),
+                        icon = QcIcons.shield,
+                        onClick = onPrivacy,
+                        trailing = { QcChevron() }
+                    )
+                }
+            }
+        }
+    }
+    val helpButton: @Composable RowScope.() -> Unit = {
+        QcIconButton(QcIcons.infoOutline, stringResource(R.string.settings_help), { helpOpen = true })
+    }
+
+    if (twoPane) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.width(QcDimens.ListPane).fillMaxHeight()) {
+                QcScreenBar(title = stringResource(R.string.settings_title), actions = helpButton)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = QcSpacing.s4)
+                        .padding(top = QcSpacing.s2)
+                ) {
+                    themeGroup()
+                    Spacer(Modifier.height(QcSpacing.s6))
+                    QcGroup {
+                        SettingsSection.entries.forEach { section ->
+                            val selected = section == openSection
+                            QcListRow(
+                                title = stringResource(section.title),
+                                icon = section.icon,
+                                onClick = { openSection = section },
+                                modifier = Modifier
+                                    .background(if (selected) QcTheme.colors.tonal2 else Color.Transparent)
+                                    .semantics { this.selected = selected }
+                            )
+                        }
                     }
-                )
+                    Spacer(Modifier.height(QcSpacing.s6))
+                    eraseGroup()
+                    Spacer(Modifier.height(QcSpacing.s6 + bottomInset))
+                }
             }
-
-            QcGroupLabel(stringResource(R.string.settings_section_backup))
-            QcGroup {
-                QcListRow(
-                    title = stringResource(R.string.settings_backup_export_title),
-                    icon = QcIcons.upload,
-                    onClick = onExport
-                )
-                QcListRow(
-                    title = stringResource(R.string.settings_backup_import_title),
-                    icon = QcIcons.download,
-                    subtitle = stringResource(R.string.settings_backup_import_subtitle),
-                    onClick = onImport
-                )
+            Box(modifier = Modifier.width(QcSize.hairline).fillMaxHeight().background(QcTheme.colors.line))
+            Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                QcNestedTopBar(onBack = null, backLabel = "", title = stringResource(openSection.title))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = QcSpacing.s6)
+                        .padding(top = QcSpacing.s2, bottom = QcSpacing.s6 + bottomInset)
+                ) {
+                    Column(modifier = Modifier.widthIn(max = QcDimens.PageMax)) { sectionGroup(openSection) }
+                }
             }
-
-            QcGroupLabel(stringResource(R.string.settings_section_about))
-            QcGroup {
-                VersionRow(updateState, onUpdate, onCompleteUpdate)
-                QcListRow(
-                    title = stringResource(R.string.settings_privacy_title),
-                    icon = QcIcons.shield,
-                    onClick = onPrivacy,
-                    trailing = { QcChevron() }
-                )
+        }
+    } else {
+        Column(modifier = Modifier.fillMaxSize()) {
+            QcScreenBar(title = stringResource(R.string.settings_title), actions = helpButton)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column(
+                    modifier = Modifier
+                        .widthIn(max = QcDimens.PageMax)
+                        .fillMaxWidth()
+                        .padding(horizontal = QcSpacing.s4)
+                        .padding(top = QcSpacing.s2)
+                ) {
+                    themeGroup()
+                    SettingsSection.entries.forEach { section ->
+                        QcGroupLabel(stringResource(section.title))
+                        sectionGroup(section)
+                    }
+                    Spacer(Modifier.height(QcSpacing.s6))
+                    eraseGroup()
+                    Spacer(Modifier.height(QcSpacing.s6 + bottomInset))
+                }
             }
-
-            Spacer(Modifier.height(QcSpacing.s6))
-            QcGroup {
-                QcListRow(
-                    title = stringResource(R.string.settings_backup_erase_title),
-                    icon = QcIcons.delete,
-                    danger = true,
-                    onClick = onErase
-                )
-            }
-            Spacer(Modifier.height(QcSpacing.s6 + bottomInset))
         }
     }
 
     choices.Sheet()
     if (helpOpen) {
-        SettingsHelpSheet(
+        QcHelpSheet(
             onDismiss = { helpOpen = false },
             onOpen = { topic ->
                 when (topic) {
-                    SettingsHelpTopic.INSTANT_COPY -> onAppLock()
-                    SettingsHelpTopic.AUTOFILL -> scope.launch { autofillRow.bringIntoView() }
-                    SettingsHelpTopic.SPREADSHEET -> onHelpSpreadsheet()
-                    SettingsHelpTopic.CHECK -> onHelpCheck()
+                    HelpTopic.INSTANT_COPY -> onAppLock()
+                    HelpTopic.AUTOFILL -> scope.launch {
+                        openSection = SettingsSection.COPYING
+                        withFrameNanos { }
+                        autofillRow.bringIntoView()
+                    }
+                    HelpTopic.SPREADSHEET -> onHelpSpreadsheet()
+                    HelpTopic.CHECK -> onHelpCheck()
                 }
             }
         )
     }
+}
+
+/** The groups of the page; on an expanded window each opens beside the group list. */
+private enum class SettingsSection(@StringRes val title: Int, val icon: ImageVector) {
+    CARDS(R.string.settings_section_cards, QcIcons.card),
+    COPYING(R.string.settings_section_copying, QcIcons.copy),
+    SECURITY(R.string.settings_section_security, QcIcons.lock),
+    REMINDERS(R.string.settings_section_reminders, QcIcons.bell),
+    BACKUP(R.string.settings_section_backup, QcIcons.upload),
+    ABOUT(R.string.settings_section_about, QcIcons.info)
 }
 
 /**

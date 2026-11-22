@@ -2,8 +2,10 @@ package com.quickcards.app.flow
 
 import com.quickcards.app.core.security.UnlockSession
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -31,24 +33,24 @@ class LockFlowTest : FlowTestBase() {
         waitForText("Unpin")
 
         compose.runOnUiThread { AppLockController.lock() }
-        waitForText("QuickCards is locked")
+        waitForContentDescription(LOCKED)
         compose.onAllNodesWithText("Unpin").assertCountEquals(0)
         compose.onAllNodesWithText("Delete").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
-        waitForTextGone("QuickCards is locked")
+        waitForLockGone()
 
         openCardActions("Axis Bank")
         UnlockSession.unlockFor(60)
         compose.onNodeWithText("Delete").performClick()
-        waitForText("Delete Axis Bank ••4444?")
+        waitForText("Delete Axis Bank •• 4444?")
 
         compose.runOnUiThread { AppLockController.lock() }
-        waitForText("QuickCards is locked")
-        compose.onAllNodesWithText("Delete Axis Bank ••4444?").assertCountEquals(0)
+        waitForContentDescription(LOCKED)
+        compose.onAllNodesWithText("Delete Axis Bank •• 4444?").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
-        waitForTextGone("QuickCards is locked")
+        waitForLockGone()
     }
 
     @Test
@@ -63,11 +65,11 @@ class LockFlowTest : FlowTestBase() {
         waitForText("Archive card?")
 
         compose.runOnUiThread { AppLockController.lock() }
-        waitForText("QuickCards is locked")
+        waitForContentDescription(LOCKED)
         compose.onAllNodesWithText("Archive card?").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
-        waitForTextGone("QuickCards is locked")
+        waitForLockGone()
 
         runBlockingSeed { app.repository.archive(card.id, "Card closed") }
         compose.onNode(hasText("Manage") and isSelectable()).performClick()
@@ -77,15 +79,25 @@ class LockFlowTest : FlowTestBase() {
         waitForText("Archived · Card closed", unmerged = true)
 
         compose.runOnUiThread { AppLockController.lock() }
-        waitForText("QuickCards is locked")
-        compose.onAllNodesWithText("Archived cards").assertCountEquals(0)
+        waitForContentDescription(LOCKED)
+        compose.onAllNodesWithContentDescription("Search archived cards").assertCountEquals(0)
         compose.onAllNodesWithText("Archived · Card closed").assertCountEquals(0)
 
         compose.runOnUiThread { AppLockController.unlock() }
-        waitForTextGone("QuickCards is locked")
+        waitForLockGone()
         waitForText("Archived · Card closed", unmerged = true)
+    }
+
+    private fun waitForLockGone() {
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasContentDescription(LOCKED)).fetchSemanticsNodes().isEmpty()
+        }
     }
 
     private fun <T> runBlockingSeed(block: suspend () -> T): T =
         kotlinx.coroutines.runBlocking { block() }
+
+    private companion object {
+        const val LOCKED = "QuickCards, locked"
+    }
 }

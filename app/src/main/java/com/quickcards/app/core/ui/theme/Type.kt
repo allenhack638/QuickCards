@@ -64,6 +64,7 @@ object QcText {
     val MonoF5 = style(24, 32, FontWeight.Medium, GeistMono, 0.04f, "tnum")
     val MonoF4 = style(20, 28, FontWeight.Medium, GeistMono, 0.04f, "tnum")
     val MonoF3 = style(15, 20, FontWeight.Medium, GeistMono, 0.04f, "tnum")
+    val MonoF1 = style(11, 16, FontWeight.Medium, GeistMono, 0.04f, "tnum")
     val MonoDotsF5 = MonoF5.copy(letterSpacing = 0.12f.em)
     val MonoDotsF4 = MonoF4.copy(letterSpacing = 0.12f.em)
     val MonoDotsF3 = MonoF3.copy(letterSpacing = 0.12f.em)

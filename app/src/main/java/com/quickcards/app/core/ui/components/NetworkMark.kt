@@ -55,7 +55,8 @@ object NetworkMarks {
         "unionpay" to Rect(12f, 4f, 44f, 24f)
     )
 
-    private val canvas = Rect(0f, 0f, CANVAS_WIDTH, CANVAS_HEIGHT)
+    /** The 56x28 canvas every mark drawable is authored on. */
+    val canvas = Rect(0f, 0f, CANVAS_WIDTH, CANVAS_HEIGHT)
 
     val ids: Set<String> get() = marks.keys
 
@@ -63,6 +64,14 @@ object NetworkMarks {
     fun drawable(networkId: String?): Int? = networkId?.let { marks[it] }
 
     fun bounds(networkId: String): Rect = artwork[networkId] ?: canvas
+
+    /** White fills knock out, every other fill paints white (alpha = 3A - R - G - B, unpremultiplied). */
+    val whiteTone: FloatArray get() = floatArrayOf(
+        0f, 0f, 0f, 0f, 255f,
+        0f, 0f, 0f, 0f, 255f,
+        0f, 0f, 0f, 0f, 255f,
+        -1f, -1f, -1f, 3f, 0f
+    )
 }
 
 private const val CANVAS_WIDTH = 56f
@@ -108,17 +117,7 @@ enum class MarkFit(val width: Dp, val height: Dp) {
     MINI(ArtDimens.MiniMarkWidth, ArtDimens.MiniMarkHeight)
 }
 
-// White fills knock out, every other fill paints white (alpha = 3A - R - G - B, unpremultiplied).
-private val WhiteTone = ColorFilter.colorMatrix(
-    ColorMatrix(
-        floatArrayOf(
-            0f, 0f, 0f, 0f, 255f,
-            0f, 0f, 0f, 0f, 255f,
-            0f, 0f, 0f, 0f, 255f,
-            -1f, -1f, -1f, 3f, 0f
-        )
-    )
-)
+private val WhiteTone = ColorFilter.colorMatrix(ColorMatrix(NetworkMarks.whiteTone))
 
 @Composable
 fun NetworkMark(

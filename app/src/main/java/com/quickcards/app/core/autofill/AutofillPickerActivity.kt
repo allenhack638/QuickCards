@@ -87,10 +87,10 @@ class AutofillPickerActivity : BaseActivity() {
                 typeName = card.typeId?.let { types[it]?.name }.orEmpty(),
                 holderName = card.holderId?.let { holders[it]?.name }.orEmpty(),
                 number = card.number,
-                expiry = card.expiry,
                 tagNames = card.tagIds.mapNotNull { tags[it]?.name },
                 networkId = network?.id,
                 expired = ExpiryStatus.expiryState(card.expiry, today, 1) == ExpiryState.EXPIRED,
+                band = card.bandColor,
                 networkName = network?.name.orEmpty(),
                 networkCode = network?.code.orEmpty(),
                 note = card.note

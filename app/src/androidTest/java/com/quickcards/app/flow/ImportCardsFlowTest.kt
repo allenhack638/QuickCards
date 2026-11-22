@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -26,7 +27,7 @@ import org.junit.runner.RunWith
 import java.io.File
 
 /**
- * Settings > Import cards > Cards from a spreadsheet > Proceed > the system picker (stubbed to
+ * Settings > Import cards > Spreadsheet > Choose file > the system picker (stubbed to
  * return the fixture) > check screen > Import > cards in the vault. The picker is the only
  * part a test cannot drive for real.
  */
@@ -58,30 +59,30 @@ class ImportCardsFlowTest : FlowTestBase() {
         waitForText("Import cards")
         UnlockSession.testAuthenticator = { true }
         compose.onNodeWithText("Import cards").performClick()
-        waitForText("Cards from a spreadsheet")
+        waitForText("Spreadsheet")
     }
 
     @Test
     fun aFilledSheetIsCheckedThenImported() {
         stubPickerWith("generated-rows.xlsx")
         openImportCards()
-        compose.onNodeWithText("Cards from a spreadsheet").performClick()
-        waitForText("Download the Excel sheet")
-        compose.onNodeWithText("Proceed").performClick()
+        compose.onNodeWithText("Spreadsheet").performClick()
+        waitForText("Excel sheet")
+        compose.onNodeWithText("Choose file").performClick()
 
-        waitForText("Check your cards")
         waitForText("6 rows checked")
-        compose.onNodeWithText("Ready to import").assertExists()
-        compose.onNodeWithText("Need fixing").assertExists()
-        compose.onNodeWithText("Priya S, Arjun").assertExists()
+        compose.onNodeWithText("Ready").assertExists()
+        compose.onNodeWithText("To fix").assertExists()
+        compose.onNodeWithText("New holders").assertExists()
         compose.onNodeWithText("Row 6").assertExists()
-        compose.onNodeWithText("This card number does not look right. Check the digits.").assertExists()
+        compose.onNodeWithText("Check the digits").assertExists()
         compose.onNodeWithText("Row 7").assertExists()
-        compose.onNodeWithText("This number looks like Visa, but Network says RuPay.").assertExists()
-        compose.onNodeWithText("Save rows to fix").assertExists()
+        compose.onNodeWithText("Number looks like Visa, not RuPay").assertExists()
+        compose.onNodeWithText("Save fix list").assertExists()
 
         compose.onNodeWithText("Import 3 cards").performClick()
-        waitForText("3 cards added.")
+        waitForText("3 cards added")
+        compose.onNodeWithText("This file has card numbers. Delete it.").assertExists()
         compose.onNodeWithText("Done").performClick()
 
         compose.waitUntil(10_000) { cardsNow().size == 3 }
@@ -95,22 +96,24 @@ class ImportCardsFlowTest : FlowTestBase() {
     fun importingTheSameSheetAgainAddsNothing() {
         stubPickerWith("filled-semicolon.csv")
         openImportCards()
-        compose.onNodeWithText("Cards from a spreadsheet").performClick()
-        waitForText("Proceed")
-        compose.onNodeWithText("Proceed").performClick()
+        compose.onNodeWithText("Spreadsheet").performClick()
+        waitForText("Choose file")
+        compose.onNodeWithText("Choose file").performClick()
         waitForText("3 rows checked")
         compose.onNodeWithText("Import 3 cards").performClick()
-        waitForText("3 cards added.")
+        waitForText("3 cards added")
         compose.onNodeWithText("Done").performClick()
         compose.waitUntil(10_000) { cardsNow().size == 3 }
 
         openImportCards()
-        compose.onNodeWithText("Cards from a spreadsheet").performClick()
-        waitForText("Proceed")
-        compose.onNodeWithText("Proceed").performClick()
-        waitForText("Every card in this sheet is already in QuickCards. Nothing to import.")
+        compose.onNodeWithText("Spreadsheet").performClick()
+        waitForText("Choose file")
+        compose.onNodeWithText("Choose file").performClick()
+        waitForText("All cards are already saved.")
         compose.onNodeWithText("Import 0 cards").assertIsNotEnabled()
-        compose.onNodeWithText("Cancel").performClick()
+        compose.onNodeWithContentDescription("Back").performClick()
+        waitForText("Choose file")
+        compose.onNodeWithContentDescription("Back").performClick()
         assertEquals(3, cardsNow().size)
     }
 }

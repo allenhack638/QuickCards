@@ -2,6 +2,11 @@ package com.quickcards.app.feature.details
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
+import com.quickcards.app.core.ui.adaptive.scaledFrom
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -69,11 +74,14 @@ fun CardDetailsScreen(
     bottomInset: Dp,
     onBack: () -> Unit,
     onEdit: (cardId: String) -> Unit,
-    onActions: (cardId: String) -> Unit
+    onActions: (cardId: String) -> Unit,
+    layout: DetailsLayout = DetailsLayout.STACKED,
+    showBack: Boolean = true
 ) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
-    val viewModel: CardDetailsViewModel = viewModel {
+    // Keyed by card so a reveal or Copied mark never carries over when a pane switches cards.
+    val viewModel: CardDetailsViewModel = viewModel(key = card?.id) {
         CardDetailsViewModel(ClipboardCopier(context.applicationContext))
     }
     var seen by remember { mutableStateOf(false) }
@@ -146,34 +154,79 @@ fun CardDetailsScreen(
     val copiedWord = stringResource(R.string.cards_pass_copied)
     val rows = detailsRows(shown, revealed, ::copy, ::reveal)
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    val topBar: @Composable () -> Unit = {
         QcNestedTopBar(
-            onBack = onBack,
+            onBack = onBack.takeIf { showBack },
             backLabel = stringResource(R.string.details_back),
             paneTitle = stringResource(R.string.details_pane_title, shown.bankName, shown.card.number.takeLast(4))
         ) {
             QcIconButton(QcIcons.edit, stringResource(R.string.details_edit), ::edit)
             QcIconButton(QcIcons.more, stringResource(R.string.details_more), { onActions(shown.id) })
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(start = QcSpacing.s4, end = QcSpacing.s4, bottom = QcSpacing.s8 + bottomInset),
-            verticalArrangement = Arrangement.spacedBy(QcSpacing.s6)
-        ) {
-            CardHero(card = shown, status = status)
-            QcGroup {
-                rows.forEach { (field, spec) ->
-                    DetailsRow(
-                        spec = spec,
-                        copied = copied == field,
-                        hueInk = hueInk,
-                        hueFill = hue.c2,
-                        copiedWord = copiedWord,
-                        drain = drain.takeIf { revealed == field }
-                    )
+    }
+    val hero: @Composable (Modifier) -> Unit = { modifier -> CardHero(card = shown, status = status, modifier = modifier) }
+    val keysStacked = rememberKeysStacked(rows.map { it.second.label })
+    val group: @Composable (Modifier) -> Unit = { modifier ->
+        QcGroup(modifier = modifier) {
+            rows.forEach { (field, spec) ->
+                DetailsRow(
+                    spec = spec,
+                    copied = copied == field,
+                    hueInk = hueInk,
+                    hueFill = hue.c2,
+                    copiedWord = copiedWord,
+                    drain = drain.takeIf { revealed == field },
+                    keyStacked = keysStacked
+                )
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        when (layout) {
+            DetailsLayout.STACKED -> {
+                topBar()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = QcSpacing.s4, end = QcSpacing.s4, bottom = QcSpacing.s8 + bottomInset)
+                        .widthIn(max = QcDimens.PageMax),
+                    verticalArrangement = Arrangement.spacedBy(QcSpacing.s6)
+                ) {
+                    hero(Modifier.scaledFrom(QcDimens.HeroDesign))
+                    group(Modifier)
+                }
+            }
+            DetailsLayout.SPLIT -> {
+                topBar()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = QcSpacing.s6, end = QcSpacing.s6, top = QcSpacing.s2, bottom = QcSpacing.s8 + bottomInset)
+                        .widthIn(max = QcDimens.DetailMax),
+                    horizontalArrangement = Arrangement.spacedBy(QcSpacing.s6)
+                ) {
+                    hero(Modifier.width(QcDimens.HeroDesign))
+                    group(Modifier.weight(1f))
+                }
+            }
+            DetailsLayout.SIDE -> Row(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.width(QcDimens.ListPane).fillMaxHeight()) {
+                    topBar()
+                    hero(Modifier.padding(horizontal = QcSpacing.s4))
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = QcSpacing.s4, end = QcSpacing.s4, top = QcSpacing.s4, bottom = QcSpacing.s4 + bottomInset)
+                ) {
+                    group(Modifier)
                 }
             }
         }
@@ -185,6 +238,9 @@ fun CardDetailsScreen(
         )
     }
 }
+
+/** Stacked (phone, narrow pane), card left of the rows under one bar (wide pane), or card and bar left of the rows (landscape). */
+enum class DetailsLayout { STACKED, SPLIT, SIDE }
 
 @Composable
 private fun detailsRows(
@@ -271,7 +327,7 @@ private fun detailsRows(
                     value = AnnotatedString(card.holderName),
                     mono = false,
                     spokenValue = stringResource(R.string.cards_a11y_field_value, holderLabel, card.holderName),
-                    copyLabel = stringResource(R.string.details_copy_name),
+                    copyLabel = stringResource(R.string.details_copy_holder),
                     copiedLabel = stringResource(R.string.details_copied_name),
                     onCopy = { onCopy(DetailsField.HOLDER) }
                 )

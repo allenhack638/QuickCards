@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -67,6 +68,25 @@ fun QcDialog(
     title: String? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null
+) = DialogWindow(onDismissRequest, scrollState, title?.let(::AnnotatedString), actions, content)
+
+/** A [QcDialog] whose title carries spans (the masked card number). */
+@Composable
+fun QcDialog(
+    onDismissRequest: () -> Unit,
+    title: AnnotatedString,
+    scrollState: ScrollState = rememberScrollState(),
+    actions: (@Composable RowScope.() -> Unit)? = null,
+    content: (@Composable ColumnScope.() -> Unit)? = null
+) = DialogWindow(onDismissRequest, scrollState, title, actions, content)
+
+@Composable
+private fun DialogWindow(
+    onDismissRequest: () -> Unit,
+    scrollState: ScrollState,
+    title: AnnotatedString?,
+    actions: (@Composable RowScope.() -> Unit)?,
+    content: (@Composable ColumnScope.() -> Unit)?
 ) {
     if (LocalAppLocked.current) return
     val colors = QcTheme.colors
@@ -113,7 +133,7 @@ fun QcDialog(
 @Composable
 private fun DialogLayout(
     scrollState: ScrollState,
-    title: String?,
+    title: AnnotatedString?,
     actions: (@Composable RowScope.() -> Unit)?,
     content: (@Composable ColumnScope.() -> Unit)?
 ) {

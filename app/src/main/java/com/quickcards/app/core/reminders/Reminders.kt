@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
+import android.text.format.DateFormat
 import com.quickcards.app.MainActivity
 import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
@@ -17,8 +18,8 @@ import com.quickcards.app.core.notifications.NotificationPermission
 import com.quickcards.domain.ReminderRules
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Calendar
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -91,7 +92,7 @@ object Reminders {
                     if (!PaidStore.isPaid(context, period) && !prefs.contains(todayKey)) {
                         val text = context.getString(
                             R.string.reminder_due_text,
-                            due.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+                            due.format(dayMonth())
                         )
                         post(context, manager, period, title, text, paidAction = true)
                         prefs.edit().putLong(todayKey, System.currentTimeMillis()).apply()
@@ -116,14 +117,15 @@ object Reminders {
         val publicVersion = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_quickcards)
             .setContentTitle(context.getString(R.string.app_name))
+            .setColor(context.getColor(R.color.primary_brand))
             .setContentText(context.getString(R.string.reminder_public_text))
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .build()
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_quickcards)
             .setContentTitle(title)
+            .setColor(context.getColor(R.color.primary_brand))
             .setContentText(text)
-            .setStyle(Notification.BigTextStyle().bigText(text))
             .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setPublicVersion(publicVersion)
             .setLocalOnly(true)
@@ -167,6 +169,12 @@ object Reminders {
     fun markPaid(context: Context, key: String) {
         PaidStore.markPaid(context, key)
         context.getSystemService(NotificationManager::class.java)?.cancel(key.hashCode())
+    }
+
+    /** "22 Nov" (or the locale's own day-month order), matching the in-app Due strip. */
+    private fun dayMonth(): DateTimeFormatter {
+        val locale = Locale.getDefault()
+        return DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dMMM"), locale)
     }
 
     private fun ensureChannel(context: Context, manager: NotificationManager) {

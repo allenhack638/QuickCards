@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Archived cards screen -->
-    <string name="archive_title">Archived cards</string>
+    <string name="archive_title">Archived</string>
     <string name="archive_search">Search archived cards</string>
-    <string name="archive_search_close">Close search</string>
-    <string name="archive_search_clear">Clear search</string>
+    <string name="archive_search_placeholder">Search</string>
 
-    <!-- Empty and no-result states -->
+    <!-- Empty state; no results reuse cards_no_result_* -->
     <string name="archive_empty_title">No archived cards</string>
     <string name="archive_empty_body">Hold a card to archive it</string>
-    <string name="archive_no_result_query">No archived cards match “%1$s”</string>
 </resources>
