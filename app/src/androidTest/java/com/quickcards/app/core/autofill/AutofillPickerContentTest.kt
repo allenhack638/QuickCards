@@ -1,6 +1,13 @@
 package com.quickcards.app.core.autofill
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
@@ -12,6 +19,8 @@ import androidx.compose.ui.test.performScrollToKey
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.quickcards.app.core.ui.theme.QcSpacing
+import com.quickcards.app.core.ui.theme.QcTheme
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -34,6 +43,25 @@ class AutofillPickerContentTest {
         QuickCardsTheme(darkTheme = true) {
             AutofillPickerContent(cards = shown, requester = "shop.example", onPick = onPick, onCancel = {})
         }
+    }
+
+    @Test
+    fun lightRowsMeetWithoutGapsAtTheSeams() {
+        var surface = Color.Unspecified
+        var inset = 0
+        compose.setContent {
+            QuickCardsTheme(darkTheme = false) {
+                surface = QcTheme.colors.surface
+                inset = with(LocalDensity.current) { QcSpacing.s2.roundToPx() }
+                Box(Modifier.background(QcTheme.colors.bg)) {
+                    AutofillPickerContent(cards = cards, requester = "shop.example", onPick = {}, onCancel = {})
+                }
+            }
+        }
+        val pixels = compose.onAllNodesWithTag(PICKER_ROW)[1].captureToImage().toPixelMap()
+        val x = pixels.width - inset
+        assertEquals(surface, pixels[x, inset / 2 + 1])
+        assertEquals(surface, pixels[x, pixels.height - inset / 2])
     }
 
     private fun search(text: String) {

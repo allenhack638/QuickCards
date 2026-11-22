@@ -84,7 +84,7 @@ fun Modifier.qcGroupItem(index: Int, count: Int, colors: QcColors): Modifier {
     val shadow = if (colors.dark) {
         Modifier
     } else {
-        Modifier.shadow(QcElevation.e1, SeamInsetShape(shape, top = !first, bottom = !last), ambientColor = colors.shadow, spotColor = colors.shadow)
+        Modifier.shadow(QcElevation.e1, SeamInsetShape(shape, top = !first, bottom = !last), clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
     }
     return this
         .fillMaxWidth()

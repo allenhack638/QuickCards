@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.Dp
 import com.quickcards.app.R
 import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.repository.BankColourRules
-import com.quickcards.app.core.ui.art.ArtDimens
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import com.quickcards.app.core.ui.art.ArtKind
 import com.quickcards.app.core.ui.art.CardArt
 import com.quickcards.app.core.ui.components.NetworkMark
@@ -129,14 +129,14 @@ private fun networkLeadSlot(entities: List<ManagedEntity>): Dp {
     val measurer = rememberTextMeasurer()
     val widths = entities.map { entity ->
         if (NetworkMarks.drawable(entity.network?.id) != null) {
-            ArtDimens.SlotWidth
+            QcArtDimens.SlotWidth
         } else {
             with(density) {
                 measurer.measure(entity.network?.code.orEmpty(), QcText.F1Semibold).size.width.toDp() + QcSpacing.s2 * 2
             }
         }
     }
-    return networkLeadWidth(widths, ArtDimens.SlotWidth, QcSize.row2)
+    return networkLeadWidth(widths, QcArtDimens.SlotWidth, QcSize.row2)
 }
 
 @Composable
@@ -210,8 +210,8 @@ private fun EntityLead(kind: EntityKind, entity: ManagedEntity) {
             } else {
                 Box(
                     modifier = Modifier
-                        .widthIn(min = ArtDimens.SlotWidth)
-                        .heightIn(min = ArtDimens.SlotHeight)
+                        .widthIn(min = QcArtDimens.SlotWidth)
+                        .heightIn(min = QcArtDimens.SlotHeight)
                         .border(QcSize.hairline, colors.outline, QcShapes.xs)
                         .padding(horizontal = QcSpacing.s2),
                     contentAlignment = Alignment.Center

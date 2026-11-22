@@ -1,6 +1,7 @@
 package com.quickcards.app.core.ui.theme
 
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /** DESIGN.md › Layout: the 4dp grid. Paddings, margins and gaps use only these (or 0). */
@@ -61,6 +62,40 @@ object QcMotion {
     const val TOAST_MS = 3_000L
     const val TOAST_A11Y_MS = 4_500L
     val ease = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+}
+
+/** A soft shadow under card art: CSS `0 offsetY blur spread`. */
+data class QcArtShadow(val offsetY: Dp, val blur: Dp, val spread: Dp)
+
+/** Card-art sizes (DESIGN.md › Card Art, Network marks). */
+object QcArtDimens {
+    val CornerTile = QcRadius.lg
+    val CornerSwatch = QcRadius.sm
+    val CornerMini = QcRadius.xs
+    val Padding = QcSpacing.s4
+    val HeroMinHeight = 207.dp
+
+    val SwatchWidth = 64.dp
+    val SwatchHeight = 40.dp
+    val MiniWidth = 40.dp
+    val MiniHeight = 24.dp
+
+    val MarkWidth = 56.dp
+    val MarkHeight = 28.dp
+    val SlotWidth = 40.dp
+    val SlotHeight = 24.dp
+    val MiniMarkWidth = 20.dp
+    val MiniMarkHeight = 12.dp
+
+    val GrainTile = 160.dp
+    /** Art narrower than this drops the fine pattern detail. */
+    val SmallArt = 120.dp
+
+    val GlowTileLight = QcArtShadow(16.dp, 24.dp, (-12).dp)
+    val GlowTileDark = QcArtShadow(16.dp, 32.dp, (-12).dp)
+    val GlowSwatch = QcArtShadow(2.dp, 6.dp, (-2).dp)
+    val GlowMini = QcArtShadow(2.dp, 4.dp, (-1).dp)
+    val ContactShadow = QcArtShadow(2.dp, 4.dp, 0.dp)
 }
 
 /** Legacy names kept so features compile; each resolves to a Daylight token. */

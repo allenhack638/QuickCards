@@ -25,7 +25,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.ui.semantics.selected
 import com.quickcards.app.core.ui.components.metaLine
 import com.quickcards.app.core.ui.adaptive.selectionRing
-import com.quickcards.app.core.ui.art.ArtDimens
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -185,7 +185,7 @@ internal fun HomeTile(card: HomeCard, tile: TileState, actions: TileActions, mod
     PassCard(
         card = card,
         modifier = modifier
-            .selectionRing(selected, ArtDimens.CornerTile, QcTheme.colors.ink)
+            .selectionRing(selected, QcArtDimens.CornerTile, QcTheme.colors.ink)
             .semantics { this.selected = selected }
             .sharedPass(card.id),
         maskNumber = tile.options.maskNumbers,

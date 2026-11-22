@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import com.quickcards.domain.ArtPattern
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -102,7 +103,7 @@ internal object ArtCache {
 
     /** A tileable, deterministic grey value-noise tile (feTurbulence-like, 0.9 per dp, 2 octaves). */
     fun grain(density: Float): ImageBitmap? = get(GrainKey(density)) {
-        val tileDp = ArtDimens.GrainTile.value
+        val tileDp = QcArtDimens.GrainTile.value
         val target = (tileDp * density).roundToInt()
         val size = minOf(target, GRAIN_SOURCE_PX)
         val cells = (tileDp * GRAIN_FREQUENCY).roundToInt()

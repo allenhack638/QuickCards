@@ -41,7 +41,7 @@ import com.quickcards.app.core.data.model.BandColor
 import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.components.CardHero
-import com.quickcards.app.core.ui.art.ArtDimens
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import com.quickcards.app.core.ui.components.PassCard
 import com.quickcards.app.core.ui.theme.QcElevation
 import com.quickcards.app.core.ui.theme.QcFilledButton
@@ -190,7 +190,7 @@ private fun Wallet(samples: TipSamples) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(ArtDimens.HeroMinHeight + QcSpacing.s10 * 2),
+            .height(QcArtDimens.HeroMinHeight + QcSpacing.s10 * 2),
         contentAlignment = Alignment.TopCenter
     ) {
         listOf(samples.icici to WALLET_BACK, samples.axis to WALLET_MIDDLE, samples.hdfc to 1f)

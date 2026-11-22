@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.em
 import com.quickcards.app.core.ui.HomeCard
-import com.quickcards.app.core.ui.art.ArtDimens
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import com.quickcards.app.core.ui.art.ArtKind
 import com.quickcards.app.core.ui.art.CardArt
 import com.quickcards.app.core.ui.art.EmvChip
@@ -57,7 +57,7 @@ fun CardHero(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = ArtDimens.HeroMinHeight - ArtDimens.Padding * 2),
+                .heightIn(min = QcArtDimens.HeroMinHeight - QcArtDimens.Padding * 2),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             HeroHead(card, status)

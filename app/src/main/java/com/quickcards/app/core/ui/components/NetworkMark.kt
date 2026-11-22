@@ -19,7 +19,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import com.quickcards.app.R
-import com.quickcards.app.core.ui.art.ArtDimens
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import kotlin.math.max
 import kotlin.math.min
 
@@ -110,11 +110,11 @@ enum class MarkFit(val width: Dp, val height: Dp) {
      * Card header: the 56x28 canvas with the logo grown to fill its centred 48x20 box (never
      * shrunk), shifted so the logo's right edge is the box's right edge.
      */
-    HEAD(ArtDimens.MarkWidth, ArtDimens.MarkHeight),
+    HEAD(QcArtDimens.MarkWidth, QcArtDimens.MarkHeight),
     /** Lists, fields and autofill: the logo's own bounds fitted into 40x24. */
-    SLOT(ArtDimens.SlotWidth, ArtDimens.SlotHeight),
+    SLOT(QcArtDimens.SlotWidth, QcArtDimens.SlotHeight),
     /** On mini card art: the logo fitted into 20x12. */
-    MINI(ArtDimens.MiniMarkWidth, ArtDimens.MiniMarkHeight)
+    MINI(QcArtDimens.MiniMarkWidth, QcArtDimens.MiniMarkHeight)
 }
 
 private val WhiteTone = ColorFilter.colorMatrix(ColorMatrix(NetworkMarks.whiteTone))

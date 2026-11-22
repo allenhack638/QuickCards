@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -47,7 +48,9 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.em
 import com.quickcards.app.R
@@ -151,19 +154,13 @@ fun PassCard(
                 }
             }
             Spacer(Modifier.size(if (note != null || tags.isNotEmpty()) QcSpacing.s4 else QcSpacing.s6))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = QcSize.ctl),
-                horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            val fullNumber = shownNumber(card, maskNumber)
+            DigitsAndCopy(fullNumber = fullNumber) {
                 PassDigits(
                     last4 = last4,
-                    fullNumber = shownNumber(card, maskNumber),
+                    fullNumber = fullNumber,
                     expiry = card.card.expiry,
-                    expired = expired,
-                    modifier = Modifier.weight(1f)
+                    expired = expired
                 )
                 CopyPill(
                     bank = card.bankName,
@@ -325,19 +322,52 @@ private fun PassTag(name: String) {
 }
 
 /**
+ * The digits beside Copy, centred in a `ctl`-tall row. When large text would wrap the full number
+ * past [BESIDE_COPY_LINES] lines there, the number takes the whole width and Copy drops below it,
+ * right-aligned.
+ */
+@Composable
+private fun DigitsAndCopy(fullNumber: String?, content: @Composable () -> Unit) {
+    val measurer = rememberTextMeasurer()
+    Layout(content = content, modifier = Modifier.fillMaxWidth()) { measurables, constraints ->
+        val (digits, pill) = measurables
+        val width = constraints.maxWidth
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val pillPlaceable = pill.measure(loose)
+        val beside = (width - pillPlaceable.width - QcSpacing.s3.roundToPx()).coerceAtLeast(0)
+        val fits = fullNumber == null ||
+            measurer.measure(fullNumber, QcText.MonoF3, constraints = Constraints(maxWidth = beside)).lineCount <= BESIDE_COPY_LINES
+        if (fits) {
+            val digitsPlaceable = digits.measure(loose.copy(minWidth = beside, maxWidth = beside))
+            val height = maxOf(digitsPlaceable.height, pillPlaceable.height, QcSize.ctl.roundToPx())
+            layout(width, height) {
+                digitsPlaceable.place(0, (height - digitsPlaceable.height) / 2)
+                pillPlaceable.place(width - pillPlaceable.width, (height - pillPlaceable.height) / 2)
+            }
+        } else {
+            val digitsPlaceable = digits.measure(loose.copy(minWidth = width, maxWidth = width))
+            layout(width, digitsPlaceable.height + pillPlaceable.height) {
+                digitsPlaceable.place(0, 0)
+                pillPlaceable.place(width - pillPlaceable.width, digitsPlaceable.height)
+            }
+        }
+    }
+}
+
+/**
  * "•• 1234  12/28", or "4111 1111 1111 1234  12/28" in f3 so it fits beside Copy; when larger
  * text leaves no room the expiry drops below the number.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PassDigits(last4: String, fullNumber: String?, expiry: String, expired: Boolean, modifier: Modifier) {
+private fun PassDigits(last4: String, fullNumber: String?, expiry: String, expired: Boolean) {
     FlowRow(
-        modifier = modifier.clearAndSetSemantics { },
+        modifier = Modifier.clearAndSetSemantics { },
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3),
         verticalArrangement = Arrangement.Center
     ) {
         if (fullNumber != null) {
-            Text(text = fullNumber, style = QcText.MonoF3, color = PassColors.OnArt, maxLines = 2, modifier = Modifier.alignByBaseline())
+            Text(text = fullNumber, style = QcText.MonoF3, color = PassColors.OnArt, modifier = Modifier.alignByBaseline())
         } else {
             Row(modifier = Modifier.alignByBaseline()) {
                 Text(
@@ -520,6 +550,7 @@ private fun Modifier.bleed(inset: Dp): Modifier = layout { measurable, constrain
     }
 }
 
+private const val BESIDE_COPY_LINES = 2
 private const val DOTS = "••"
 private const val DOTS_ALPHA = 0.72f
 private const val PIN_ALPHA = 0.9f

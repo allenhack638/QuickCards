@@ -2,7 +2,13 @@ package com.quickcards.app.core.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -18,8 +24,11 @@ import com.quickcards.app.core.data.model.VaultCard
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.theme.QuickCardsTheme
 import com.quickcards.domain.CardNetwork
+import com.quickcards.domain.CardNumberRules
 import com.quickcards.domain.CardStatus
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,11 +62,14 @@ class PassCardTest {
         copied: Boolean = false,
         copyEnabled: Boolean = true,
         maskNumber: Boolean = true,
+        fontScale: Float = 1f,
         taps: Taps = Taps()
     ): Taps {
         compose.setContent {
-            QuickCardsTheme(darkTheme = false) {
-                Box(modifier = Modifier.width(328.dp)) {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                QuickCardsTheme(darkTheme = false) {
+                    Box(modifier = Modifier.width(328.dp)) {
                     PassCard(
                         card = shown,
                         maskNumber = maskNumber,
@@ -70,6 +82,7 @@ class PassCardTest {
                         onCopy = { taps.copy++ },
                         onCopyNote = { taps.note++ }
                     )
+                    }
                 }
             }
         }
@@ -152,9 +165,55 @@ class PassCardTest {
         assertEquals(0, taps.actions)
     }
 
+    @Test
+    fun fullNumberSitsBesideCopyAtNormalSize() {
+        show(maskNumber = false)
+        val number = numberBounds()
+        val copy = copyBounds()
+        assertTrue(copy.left >= number.right)
+        assertTrue(copy.top < number.bottom)
+    }
+
+    @Test
+    fun sixteenDigitsAtDoubleTextStayWholeBesideCopy() {
+        show(maskNumber = false, fontScale = 2f)
+        val layout = numberLayout()
+        assertFalse(layout.hasVisualOverflow)
+        assertEquals(FULL.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+        assertTrue(copyBounds().left >= numberBounds().right)
+    }
+
+    @Test
+    fun nineteenDigitsAtDoubleTextAreWholeWithCopyBelowOnTheRight() {
+        val long = card.copy(card = card.card.copy(number = LONG), network = null)
+        show(shown = long, maskNumber = false, fontScale = 2f)
+        val shown = CardNumberRules.format(LONG, null, masked = false)
+        val layout = numberLayout(shown)
+        assertFalse(layout.hasVisualOverflow)
+        assertEquals(shown.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+        val number = numberBounds(shown)
+        val copy = copyBounds()
+        assertTrue(copy.top >= number.bottom)
+        assertTrue(copy.right >= number.right)
+    }
+
+    private fun numberNode(text: String) = compose.onNodeWithText(text, useUnmergedTree = true)
+
+    private fun numberBounds(text: String = FULL) = numberNode(text).fetchSemanticsNode().boundsInRoot
+
+    private fun numberLayout(text: String = FULL): TextLayoutResult {
+        val results = mutableListOf<TextLayoutResult>()
+        numberNode(text).fetchSemanticsNode().config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+        return results.single()
+    }
+
+    private fun copyBounds() =
+        compose.onNodeWithContentDescription("Copy HDFC Bank card number ending", substring = true).fetchSemanticsNode().boundsInRoot
+
     private companion object {
         const val HEAD_FRACTION = 0.12f
         const val FULL = "4532 7180 2299 0366"
+        const val LONG = "6011000990139424123"
         const val NOTE = "Travel card. 2 free lounge visits a quarter, 1% forex markup. Call the bank before a trip abroad."
     }
 }

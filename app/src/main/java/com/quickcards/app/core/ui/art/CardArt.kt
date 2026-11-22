@@ -36,14 +36,17 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.quickcards.app.core.ui.theme.ArtHue
 import com.quickcards.app.core.ui.theme.PassColors
+import com.quickcards.app.core.ui.theme.QcArtDimens
+import com.quickcards.app.core.ui.theme.QcArtShadow
+import com.quickcards.app.core.ui.theme.QcSize
 import kotlin.math.roundToInt
 
 /** The art surfaces: Home tile, details hero, picker swatch (64x40) and list mini (40x24). */
 enum class ArtKind(val corner: Dp) {
-    TILE(ArtDimens.CornerTile),
-    HERO(ArtDimens.CornerTile),
-    SWATCH(ArtDimens.CornerSwatch),
-    MINI(ArtDimens.CornerMini)
+    TILE(QcArtDimens.CornerTile),
+    HERO(QcArtDimens.CornerTile),
+    SWATCH(QcArtDimens.CornerSwatch),
+    MINI(QcArtDimens.CornerMini)
 }
 
 /**
@@ -63,11 +66,11 @@ fun CardArt(
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val sized = when (kind) {
         ArtKind.TILE -> Modifier
-        ArtKind.HERO -> Modifier.defaultMinSize(minHeight = ArtDimens.HeroMinHeight)
-        ArtKind.SWATCH -> Modifier.size(ArtDimens.SwatchWidth, ArtDimens.SwatchHeight)
-        ArtKind.MINI -> Modifier.size(ArtDimens.MiniWidth, ArtDimens.MiniHeight)
+        ArtKind.HERO -> Modifier.defaultMinSize(minHeight = QcArtDimens.HeroMinHeight)
+        ArtKind.SWATCH -> Modifier.size(QcArtDimens.SwatchWidth, QcArtDimens.SwatchHeight)
+        ArtKind.MINI -> Modifier.size(QcArtDimens.MiniWidth, QcArtDimens.MiniHeight)
     }
-    val padding = if (kind == ArtKind.TILE || kind == ArtKind.HERO) ArtDimens.Padding else 0.dp
+    val padding = if (kind == ArtKind.TILE || kind == ArtKind.HERO) QcArtDimens.Padding else 0.dp
     Box(
         modifier = modifier
             .then(sized)
@@ -86,7 +89,7 @@ fun Modifier.cardArt(hue: ArtHue, kind: ArtKind, expired: Boolean, dark: Boolean
         .drawWithCache {
             val grain = ArtCache.grain(density)?.let { ShaderBrush(ImageShader(it, TileMode.Repeated, TileMode.Repeated)) }
             val corner = kind.corner.toPx()
-            val small = kind == ArtKind.SWATCH || kind == ArtKind.MINI || size.width < SMALL_ART.toPx()
+            val small = kind == ArtKind.SWATCH || kind == ArtKind.MINI || size.width < QcArtDimens.SmallArt.toPx()
             val fade = when {
                 expired -> PatternFade.EXPIRED
                 kind == ArtKind.HERO -> PatternFade.HERO
@@ -96,7 +99,7 @@ fun Modifier.cardArt(hue: ArtHue, kind: ArtKind, expired: Boolean, dark: Boolean
             val h = size.height.roundToInt().coerceAtLeast(1)
             val pattern = ArtCache.pattern(hue.pattern, fade, small, w, h, density)
             val gradient = linearGradient135(size, hue.c1, hue.c2)
-            val edge = ArtDimens.Hairline.toPx()
+            val edge = QcSize.hairline.toPx()
             val outline = Path().apply { addRoundRect(RoundRect(0f, 0f, size.width, size.height, CornerRadius(corner))) }
             fun shifted(dy: Float) = Path().apply {
                 addRoundRect(RoundRect(0f, dy, size.width, size.height + dy, CornerRadius(corner)))
@@ -142,21 +145,19 @@ private fun linearGradient135(size: Size, c1: Color, c2: Color): Brush {
     )
 }
 
-private data class Shadow(val offsetY: Dp, val blur: Dp, val spread: Dp)
-
 private fun DrawScope.drawGlow(hue: ArtHue, kind: ArtKind, dark: Boolean) {
     val glow = when (kind) {
-        ArtKind.TILE, ArtKind.HERO -> Shadow(16.dp, if (dark) 32.dp else 24.dp, (-12).dp)
-        ArtKind.SWATCH -> Shadow(2.dp, 6.dp, (-2).dp)
-        ArtKind.MINI -> Shadow(2.dp, 4.dp, (-1).dp)
+        ArtKind.TILE, ArtKind.HERO -> if (dark) QcArtDimens.GlowTileDark else QcArtDimens.GlowTileLight
+        ArtKind.SWATCH -> QcArtDimens.GlowSwatch
+        ArtKind.MINI -> QcArtDimens.GlowMini
     }
     drawShadow(glow, hue.glow, kind.corner.toPx(), GLOW_SCALE)
     if (kind == ArtKind.TILE || kind == ArtKind.HERO) {
-        drawShadow(Shadow(2.dp, 4.dp, 0.dp), if (dark) PassColors.ContactShadowDark else PassColors.ContactShadowLight, kind.corner.toPx(), 1)
+        drawShadow(QcArtDimens.ContactShadow, if (dark) PassColors.ContactShadowDark else PassColors.ContactShadowLight, kind.corner.toPx(), 1)
     }
 }
 
-private fun DrawScope.drawShadow(shadow: Shadow, color: Color, corner: Float, scale: Int) {
+private fun DrawScope.drawShadow(shadow: QcArtShadow, color: Color, corner: Float, scale: Int) {
     val spread = shadow.spread.toPx()
     val w = (size.width + 2 * spread).roundToInt()
     val h = (size.height + 2 * spread).roundToInt()
@@ -172,6 +173,5 @@ private fun DrawScope.drawShadow(shadow: Shadow, color: Color, corner: Float, sc
     )
 }
 
-private val SMALL_ART = 120.dp
 private const val GRAIN_ALPHA = .14f
 private const val GLOW_SCALE = 4
