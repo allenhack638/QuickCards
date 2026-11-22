@@ -75,7 +75,7 @@ The app has no server, no account, no analytics/ads SDK and no `INTERNET` permis
 - Icon: `docs/brand/stub-lock/play-store-512.png` (512×512).
 - Feature graphic: `docs/brand/stub-lock/feature-1024x500.png`.
 - Screenshots: at least 2, 9:16, no real card data; `docs/screenshots/*` are 540×960 and use
-  test numbers. Prefer exporting 1080×1920 for quality.
+  test numbers. The 1080×1920 upload set is in `docs/play-listing/`.
 - Short and full description: say "offline card organizer", not "bank", "wallet" or
   "payment app"; do not imply bank/network affiliation. Network marks are trademarks and are
   identified as such in `THIRD_PARTY_NOTICES.md`.

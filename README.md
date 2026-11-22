@@ -8,11 +8,11 @@ PIN. The app has no internet or camera permission; data leaves the phone only as
 encrypted backup that you export yourself and open with its backup password.
 
 <p align="center">
-  <img src="docs/screenshots/cards-dark.png" alt="Card list: pinned HDFC Visa card with official Visa mark, tags and a Bill due in 2 days strip with Mark paid" width="240">
+  <img src="docs/screenshots/cards-dark.png" alt="Card list: pinned HDFC Bank Visa card with a Travel tag and a Due in 2 days strip with Mark paid, above an American Express card" width="240">
   &nbsp;
-  <img src="docs/screenshots/autofill-dark.png" alt="Checkout form offering three QuickCards cards as autofill suggestions" width="240">
+  <img src="docs/screenshots/autofill-dark.png" alt="Card form offering QuickCards autofill suggestions: search all cards, HDFC Bank Visa and American Express" width="240">
   &nbsp;
-  <img src="docs/screenshots/lock-dark.png" alt="Lock screen with the Stub Lock mark and Unlock button" width="240">
+  <img src="docs/screenshots/lock-dark.png" alt="Lock screen with the QuickCards mark, Unlock button and Encrypted on this phone" width="240">
 </p>
 
 <p align="center"><sub>Demo data with public test card numbers. Release builds block screenshots.</sub></p>
@@ -21,18 +21,18 @@ encrypted backup that you export yourself and open with its backup password.
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/networks-dark.png" alt="Card networks list with official Visa, Mastercard, Amex, RuPay, Diners, Discover, JCB, Maestro and UnionPay marks" width="240"><br><sub>Official network marks</sub></td>
+    <td align="center"><img src="docs/screenshots/networks-dark.png" alt="Card networks list with official Visa, Mastercard, Amex, RuPay, Diners, Discover, JCB, Maestro, UnionPay and Mir marks" width="240"><br><sub>Official network marks</sub></td>
     <td align="center"><img src="docs/screenshots/edit-dark.png" alt="Edit card form under a live card preview with the Visa mark" width="240"><br><sub>Edit with a live preview</sub></td>
-    <td align="center"><img src="docs/screenshots/share-dark.png" alt="Share this card dialog with an Include CVV switch" width="240"><br><sub>Share, CVV only if you choose</sub></td>
+    <td align="center"><img src="docs/screenshots/share-dark.png" alt="Share card dialog with an Include CVV switch" width="240"><br><sub>Share, CVV only if you choose</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/notes-dark.png" alt="American Express card with a tag and a note" width="240"><br><sub>Tags and notes on the card</sub></td>
+    <td align="center"><img src="docs/screenshots/notes-dark.png" alt="American Express card with a two-line note and a Travel tag" width="240"><br><sub>Tags and notes on the card</sub></td>
     <td align="center"><img src="docs/screenshots/expires-soon-dark.png" alt="ICICI Mastercard labelled Expires soon above a RuPay card" width="240"><br><sub>Expires soon</sub></td>
     <td align="center"><img src="docs/screenshots/expired-dark.png" alt="Expired JCB card in graphite" width="240"><br><sub>Expired cards turn graphite</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/settings-reminders-dark.png" alt="Settings with Reminders and Copying sections" width="240"><br><sub>Expiry and payment reminders</sub></td>
-    <td align="center"><img src="docs/screenshots/card-colours-dark.png" alt="Card colour swatches and custom colour picker" width="240"><br><sub>15 colours plus a custom picker</sub></td>
+    <td align="center"><img src="docs/screenshots/settings-reminders-dark.png" alt="Settings with Copying, Security and Reminders sections" width="240"><br><sub>Expiry and payment reminders</sub></td>
+    <td align="center"><img src="docs/screenshots/card-colours-dark.png" alt="Card colour sheet with a live preview, Bank colour and the swatch grid" width="240"><br><sub>Jewel colours plus a custom picker</sub></td>
     <td align="center"><img src="docs/screenshots/filter-dark.png" alt="Filter sheet by holder and bank" width="240"><br><sub>Filter by holder, bank, network, tag</sub></td>
   </tr>
   <tr>
