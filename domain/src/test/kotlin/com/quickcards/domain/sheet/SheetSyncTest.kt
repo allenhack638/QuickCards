@@ -29,22 +29,12 @@ class SheetSyncTest {
 
     @Test
     fun `the public sheet's headings are the schema's headings`() {
-        val generated = XlsxReader.cardsSheet(XlsxReader.read(fixture("generated-empty.xlsx")))!!
-        assertEquals(ImportSchema.headers, generated.rows[1].take(ImportSchema.headers.size))
-        val published = XlsxReader.cardsSheet(XlsxReader.read(fixture("google-sheets-export-empty.xlsx")))!!
-        assertEquals(PublishedSheet.headers, published.rows[1].take(PublishedSheet.headers.size))
+        listOf("generated-empty.xlsx", "google-sheets-export-empty.xlsx").forEach { name ->
+            val cards = XlsxReader.cardsSheet(XlsxReader.read(fixture(name)))!!
+            assertEquals(name, ImportSchema.headers, cards.rows[1].take(ImportSchema.headers.size))
+        }
         val csv = CsvReader.read(String(fixture("google-sheets-export-empty.csv"), Charsets.UTF_8))
-        assertEquals(PublishedSheet.headers, csv[1])
-    }
-
-    @Test
-    fun `the published sheet still imports while it trails the schema`() {
-        assertTrue(PublishedSheet.VERSION <= ImportSchema.VERSION)
-        val context = SheetContext(DefaultNetworks.all, BankCatalog.all.map { it.name }, builtInTypes, emptyList(), { null }, YearMonth.of(2026, 11))
-        val row = listOf("Priya S", "4111111111111111", "08 - August", "2029", "123", "Visa", "HDFC Bank", "Credit", "5", "")
-        val report = SheetChecker.check(listOf(PublishedSheet.headers, row), context)
-        assertEquals(null, report.fileProblem)
-        assertEquals(RowStatus.READY, report.rows.single().status)
+        assertEquals(ImportSchema.headers, csv[1])
     }
 
     @Test
@@ -61,8 +51,7 @@ class SheetSyncTest {
             assertEquals(name, (1..31).toList(), lists.getValue("Days").map { ImportSchema.parseDay(it) })
             val years = lists.getValue("Years").map { ImportSchema.parseYear(it) }
             assertEquals(name, ImportSchema.YEARS_AHEAD + 1, years.size)
-            val version = if (name.startsWith("google")) PublishedSheet.VERSION else ImportSchema.VERSION
-            assertEquals(name, lists.getValue("qc_schema"), listOf(version.toString()))
+            assertEquals(name, lists.getValue("qc_schema"), listOf(ImportSchema.VERSION.toString()))
             assertEquals(name, lists.getValue("qc_catalog"), listOf(BankCatalog.VERSION))
         }
     }
