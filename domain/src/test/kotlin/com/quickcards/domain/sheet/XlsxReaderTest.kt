@@ -22,7 +22,7 @@ class XlsxReaderTest {
     @Test
     fun `a Google Sheets export reads the same way`() {
         val cards = XlsxReader.cardsSheet(XlsxReader.read(fixture("google-sheets-export-empty.xlsx")))!!
-        assertEquals(PublishedSheet.headers, cards.rows[1].take(PublishedSheet.headers.size))
+        assertEquals(ImportSchema.headers, cards.rows[1].take(ImportSchema.headers.size))
     }
 
     @Test

@@ -518,9 +518,8 @@ digits + Luhn.
   equal the schema, `DefaultNetworks`, `BankCatalog` and `SeedData`. After changing any of
   those, regenerate the sheet (`SheetTemplateTest` writes it to `domain/build/sheet/`),
   republish it and re-export the fixtures, or the test fails.
-- The public sheet may trail the schema by optional columns: `PublishedSheet` (test code) says
-  which version and headings it has today (version 1, no "Statement day"); the importer accepts
-  both. After republishing, set it to the schema and re-export the google-sheets-export fixtures.
+- Re-export the google-sheets-export fixtures from the public sheet's own export URLs
+  (`.../export?format=xlsx` and `.../export?format=csv`, the Cards tab).
 - End to end: `SheetImporterTest` (androidTest, API 26 emulator) imports the fixture files
   into an in-memory vault and re-imports them to prove the duplicate rule.
 - UI: `BackupHostState` owns the flow (`importChoiceOpen`, `sheetOpen`, `SheetStep`
