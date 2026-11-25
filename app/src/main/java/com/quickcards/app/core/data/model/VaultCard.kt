@@ -20,6 +20,7 @@ data class VaultCard(
     val cardName: String = "",
     val note: String = "",
     val dueDay: Int? = null,
+    val statementDay: Int? = null,
     val bandColor: String = BandColor.NAVY,
     /** False: [bandColor] follows the bank's colour. True: chosen by hand ("Bank colour" resets it). */
     val bandColorManual: Boolean = false,

@@ -124,6 +124,8 @@ object SheetImporter {
                 networkId = null,
                 note = card.note,
                 dueDay = card.dueDay,
+                statementDay = card.statementDay,
+                statementDayKnown = card.statementDay != null,
                 colorManual = false,
                 sortOrder = index
             )

@@ -27,13 +27,13 @@ class SheetCheckerTest {
     )
 
     private val headers = ImportSchema.headers
-    private val banner = listOf("First make your own copy: File > Make a copy.") + List(9) { "" }
+    private val banner = listOf("First make your own copy: File > Make a copy.") + List(10) { "" }
 
     private fun row(
         holder: String = "Priya S", number: String = visa, month: String = "08 - August", year: String = "2029",
         cvv: String = "123", network: String = "Visa", bank: String = "HDFC Bank", type: String = "Credit",
-        due: String = "5", note: String = "Fuel card"
-    ) = listOf(holder, number, month, year, cvv, network, bank, type, due, note)
+        statement: String = "", due: String = "5", note: String = "Fuel card"
+    ) = listOf(holder, number, month, year, cvv, network, bank, type, statement, due, note)
 
     private fun check(vararg rows: List<String>, header: List<String> = headers, withBanner: Boolean = true): SheetReport =
         SheetChecker.check(listOfNotNull(banner.takeIf { withBanner }, header) + rows, context)
@@ -47,7 +47,7 @@ class SheetCheckerTest {
         assertEquals(RowStatus.READY, result.status)
         assertEquals(3, result.row)
         assertEquals(
-            ImportedCard("Priya S", visa, "08/29", "123", "visa", "HDFC Bank", "Credit", 5, "Fuel card"),
+            ImportedCard("Priya S", visa, "08/29", "123", "visa", "HDFC Bank", "Credit", null, 5, "Fuel card"),
             result.card
         )
         assertTrue(report.newHolders.isEmpty())
@@ -64,6 +64,15 @@ class SheetCheckerTest {
     }
 
     @Test
+    fun `a sheet from before the statement day column still imports`() {
+        val oldHeaders = headers.filterNot { it == "Statement day" }
+        val report = check(row().filterIndexed { i, _ -> i != 8 }, header = oldHeaders)
+        assertEquals(RowStatus.READY, report.rows.single().status)
+        assertNull(report.rows.single().card?.statementDay)
+        assertEquals(5, report.rows.single().card?.dueDay)
+    }
+
+    @Test
     fun `the whole file is refused when columns are missing, unknown or there are no rows`() {
         assertEquals(
             SheetFileProblem.MissingColumns(listOf("CVV*", "Network*")),
@@ -74,7 +83,7 @@ class SheetCheckerTest {
             check(row() + "X", header = headers + "Name on card").fileProblem
         )
         assertEquals(SheetFileProblem.NoHeaderRow, SheetChecker.check(listOf(banner, row()), context).fileProblem)
-        assertEquals(SheetFileProblem.NoRows, check(List(10) { "" }).fileProblem)
+        assertEquals(SheetFileProblem.NoRows, check(List(11) { "" }).fileProblem)
         assertEquals(
             SheetFileProblem.TooManyRows(ImportSchema.MAX_ROWS + 1, ImportSchema.MAX_ROWS),
             check(*Array(ImportSchema.MAX_ROWS + 1) { row() }).fileProblem
@@ -135,6 +144,8 @@ class SheetCheckerTest {
         assertEquals(listOf(RowProblem.BankUnknown("Foo Bank")), problems(row(bank = "Foo Bank")))
         assertEquals(listOf(RowProblem.TypeUnknown("Gold")), problems(row(type = "Gold")))
         assertEquals(listOf(RowProblem.DueDayInvalid), problems(row(due = "32")))
+        assertEquals(18, check(row(statement = "18")).rows.single().card?.statementDay)
+        assertEquals(listOf(RowProblem.StatementDayInvalid), problems(row(statement = "0")))
         assertEquals(listOf(RowProblem.NoteTooLong(80)), problems(row(note = "n".repeat(81))))
         assertEquals(listOf(RowProblem.HolderTooLong(40)), problems(row(holder = "h".repeat(41))))
         assertEquals(listOf("Arjun"), check(row(holder = " Arjun  "), row(number = mastercard, network = "Mastercard", holder = "arjun")).newHolders)
@@ -156,7 +167,7 @@ class SheetCheckerTest {
 
     @Test
     fun `blank rows are skipped and row numbers follow the sheet`() {
-        val report = check(List(10) { "" }, row(), List(10) { "" }, row(number = mastercard, network = "Mastercard"))
+        val report = check(List(11) { "" }, row(), List(11) { "" }, row(number = mastercard, network = "Mastercard"))
         assertEquals(listOf(4, 6), report.rows.map { it.row })
         assertEquals(2, report.ready.size)
     }

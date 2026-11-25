@@ -36,6 +36,7 @@ object SheetTemplate {
         ImportColumn.NETWORK to "Pick the card's network from the list. It must match the card number.",
         ImportColumn.BANK to "Pick your bank from the list. Not there? Add that card in the app instead.",
         ImportColumn.TYPE to "Pick from the list: Credit, Debit, Prepaid or Forex.",
+        ImportColumn.STATEMENT_DAY to "Optional. Pick the day of the month your bill is made, on your bill as ‘statement date’.",
         ImportColumn.DUE_DAY to "Optional. Pick the day of the month your bill is due.",
         ImportColumn.NOTE to "Optional. Up to 80 characters."
     )
@@ -50,6 +51,7 @@ object SheetTemplate {
         listOf("Network", "Yes", "Pick from the list. It must match the card number: QuickCards checks this when you import and refuses a row where they disagree (for example a Visa number with Network set to RuPay).", "Visa"),
         listOf("Bank", "Yes", "Pick from the list.", "HDFC Bank"),
         listOf("Card type", "Yes", "Pick from the list: Credit, Debit, Prepaid or Forex.", "Credit"),
+        listOf("Statement day", "No", "Pick the day of the month your bill is made (1 to 31), on your bill as ‘statement date’. With the due day, QuickCards shows which card gives you the longest time to pay.", "18"),
         listOf("Payment due day", "No", "Pick the day of the month your bill is due (1 to 31).", "5"),
         listOf("Note", "No", "Anything you want to remember. Up to 80 characters.", "Fuel card")
     )
@@ -179,7 +181,7 @@ object SheetTemplate {
     private fun cell(ref: String, text: String, style: Int, strings: SharedStrings): String =
         """<c r="$ref" s="$style" t="s"><v>${strings.id(text)}</v></c>"""
 
-    private val widths = listOf(20, 24, 14, 13, 8, 18, 30, 12, 16, 30)
+    private val widths = listOf(20, 24, 14, 13, 8, 18, 30, 12, 14, 16, 30)
 
     private fun cardsSheet(lists: Lists, rows: List<List<String>>, strings: SharedStrings): String {
         val columns = ImportSchema.columns
@@ -199,7 +201,7 @@ object SheetTemplate {
         }
         val listNames = mapOf(
             ImportColumn.MONTH to "Months", ImportColumn.YEAR to "Years", ImportColumn.NETWORK to "Networks",
-            ImportColumn.BANK to "Banks", ImportColumn.TYPE to "CardTypes", ImportColumn.DUE_DAY to "Days"
+            ImportColumn.BANK to "Banks", ImportColumn.TYPE to "CardTypes", ImportColumn.STATEMENT_DAY to "Days", ImportColumn.DUE_DAY to "Days"
         )
         val validations = columns.mapIndexed { i, c ->
             val ref = "${col(i + 1)}$FIRST_DATA_ROW:${col(i + 1)}$lastRow"

@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
@@ -93,7 +94,8 @@ fun PassCard(
     onActions: (() -> Unit)? = null,
     onCopy: (() -> Unit)? = null,
     onCopyNote: (() -> Unit)? = null,
-    onMarkPaid: (() -> Unit)? = null
+    onMarkPaid: (() -> Unit)? = null,
+    onStatus: (() -> Unit)? = null
 ) {
     val expired = card.expiryState == ExpiryState.EXPIRED
     val last4 = card.card.number.takeLast(4)
@@ -105,7 +107,7 @@ fun PassCard(
             if (status == null) {
                 stringResource(R.string.cards_a11y_tile, card.bankName, last4)
             } else {
-                stringResource(R.string.cards_a11y_tile_status, card.bankName, last4, spokenStatus(status, archiveReason))
+                stringResource(R.string.cards_a11y_tile_status, card.bankName, last4, spokenStatus(status, archiveReason, card.bestDays))
             }
         )
         if (card.card.pinned && !card.card.archived) append(", ").append(stringResource(R.string.cards_pass_pinned))
@@ -140,7 +142,7 @@ fun PassCard(
             )
         }
         Column(modifier = Modifier.fillMaxWidth()) {
-            PassHead(card = card, status = status, archiveReason = archiveReason, inArchive = inArchive)
+            PassHead(card, status, archiveReason, inArchive, onStatus, onHold = onActions, holdLabel = actionsLabel)
             if (note != null) {
                 PassNote(note = note, onOpen = onOpen, onCopyNote = onCopyNote)
             }
@@ -181,16 +183,25 @@ fun PassCard(
 private val ArtPad: Dp = QcSpacing.s4
 
 @Composable
-private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?, inArchive: Boolean) {
+private fun PassHead(
+    card: HomeCard,
+    status: CardStatus?,
+    archiveReason: String?,
+    inArchive: Boolean,
+    onStatus: (() -> Unit)?,
+    onHold: (() -> Unit)?,
+    holdLabel: String
+) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val networkId = card.network?.id
     val hasMark = networkId != null && NetworkMarks.drawable(networkId) != null
     val meta = metaLine(card.typeName, card.holderName)
-    Column(
-        modifier = Modifier.clearAndSetSemantics { },
-        verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
+    Column(verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)) {
+        Row(
+            modifier = Modifier.clearAndSetSemantics { },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)
+        ) {
             Row(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
@@ -240,17 +251,25 @@ private fun PassHead(card: HomeCard, status: CardStatus?, archiveReason: String?
                 color = PassColors.OnArtSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).clearAndSetSemantics { }
             )
             if (status != null) {
-                CardStatusChip(status = status, archiveReason = archiveReason, inArchive = inArchive)
+                CardStatusChip(
+                    status = status,
+                    archiveReason = archiveReason,
+                    inArchive = inArchive,
+                    bestDays = card.bestDays,
+                    onClick = onStatus,
+                    onLongClick = onHold,
+                    onLongClickLabel = holdLabel
+                )
             }
         }
     }
 }
 
 @Composable
-private fun spokenStatus(status: CardStatus, archiveReason: String?): String = when (status) {
+private fun spokenStatus(status: CardStatus, archiveReason: String?, bestDays: Int?): String = when (status) {
     CardStatus.ARCHIVED -> if (archiveReason.isNullOrBlank()) {
         stringResource(R.string.cards_status_archived)
     } else {
@@ -259,6 +278,8 @@ private fun spokenStatus(status: CardStatus, archiveReason: String?): String = w
     CardStatus.EXPIRED -> stringResource(R.string.cards_status_expired)
     CardStatus.CHECK -> stringResource(R.string.cards_a11y_status_check)
     CardStatus.EXPIRES_SOON -> stringResource(R.string.cards_status_expires_soon)
+    CardStatus.BEST_TODAY -> bestDays?.let { pluralStringResource(R.plurals.cards_a11y_best_today, it, it) }
+        ?: stringResource(R.string.cards_status_best_today)
     CardStatus.LAST_USED -> stringResource(R.string.cards_last_used)
 }
 

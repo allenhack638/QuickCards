@@ -78,7 +78,7 @@ internal fun FormPreview(session: CardFormSession, bankName: String?, holderName
                             fit = MarkFit.HEAD
                         )
                     }
-                    if (expired) QcStatusChip(text = stringResource(R.string.cards_status_expired), danger = true)
+                    if (expired) QcStatusChip(text = stringResource(R.string.cards_status_expired))
                 }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {

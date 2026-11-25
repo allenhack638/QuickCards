@@ -1,16 +1,16 @@
 # Reference screens (target UI)
 
-Captured from the Daylight debug build (2.7.0) on a 1080×2400 phone emulator at 420 dpi (2.625 px per dp: divide pixel measurements by 2.625 to get dp). Phone shots are 1080 px wide; the tablet shot is downscaled to 1280×800 (1 px = 1 dp). Card-art-heavy images are 256-colour PNGs to keep the set small, so judge colour from `DESIGN.md` tokens and `prototype/inspo/10-daylight.html`. All data is made up: holders Aarav and Diya Mehta, public test card numbers. Light theme unless the name says dark.
+Captured from the Daylight debug build (2.7.0) on a 1080×2400 phone emulator at 420 dpi (2.625 px per dp: divide pixel measurements by 2.625 to get dp). Phone shots are 1080 px wide; the tablet shot is downscaled to 1280×800 (1 px = 1 dp). Card-art-heavy images are 256-colour PNGs to keep the set small, so judge colour from `DESIGN.md` tokens and `prototype/inspo/10-daylight.html`. All data is made up: holders Aarav and Diya Mehta, public test card numbers. Light theme unless the name says dark. 02, 07, 23 and 24 were re-captured on the Best today branch (status chips as slim Copy pills, the Statement day field) (256-colour PNGs like the rest).
 
 | File | Screen |
 |---|---|
 | 01-lock-screen.png | App lock screen behind the system prompt (launch / auto-lock / leave) |
-| 02-home-dark.png | Home, dark theme: holder chips, filter, card tiles, bottom nav |
+| 02-home-dark.png | Home, dark theme: holder chips, filter, card tiles with Last used, Best today and Expires soon chips, bottom nav |
 | 03-home-copied-notification.png | After copying a number: the silent notification with masked expiry/CVV and Copy expiry / Copy CVV actions |
 | 04-search.png | Search mode (no bottom nav), results for "diya" |
 | 05-filter-sheet.png | Filter sheet: holder, bank, network, type, tag, status chips with Show N cards |
 | 06-card-actions-sheet.png | Card actions sheet (hold a tile): copy details, share, edit, pin, archive, delete |
-| 07-add-card.png | Add card, first step: preview, holder, number, expiry, CVV |
+| 07-add-card.png | Add card: preview, holder, number, expiry, CVV, bank, type, colour, tags, Statement day |
 | 08-add-card-errors-amex.png | Add card with errors: Amex detected (4-6-5), "Check the digits", "Month: 1 to 12" |
 | 09-type-sheet.png | Type picker sheet with search and New type |
 | 10-bank-sheet.png | Bank picker sheet with bank colours, search and New bank |
@@ -26,8 +26,8 @@ Captured from the Daylight debug build (2.7.0) on a 1080×2400 phone emulator at
 | 20-settings-backup-about.png | Settings: Backup, About, Erase all data |
 | 21-export-dialog.png | Export backup: password rules, confirm, Include settings |
 | 22-import-review.png | Import review: per-list new/changed/same, formats, Restore settings |
-| 23-home-light.png | Home, light theme |
-| 24-edit-card-light.png | Edit card (full number shown), light theme |
+| 23-home-light.png | Home, light theme: Last used, Best today and Expires soon chips |
+| 24-edit-card-light.png | Edit card (full number shown), light theme, down to the Statement day field |
 | 25-empty-state.png | Empty state after erase: Add card and Import |
 | 26-network-custom-rules.png | Built-in network edited away from its standard rules: "Custom rules" row with Reset |
 | 27-change-rules-confirm.png | Saving a changed built-in rule asks first |

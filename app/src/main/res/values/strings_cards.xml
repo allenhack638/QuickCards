@@ -44,6 +44,47 @@
     <string name="cards_status_check_details">Check</string>
     <string name="cards_a11y_status_check">Check details</string>
     <string name="cards_last_used">Last used</string>
+    <string name="cards_status_best_today">Best today</string>
+    <plurals name="cards_a11y_best_today">
+        <item quantity="one">Best card today: %d day to pay</item>
+        <item quantity="other">Best card today: %d days to pay</item>
+    </plurals>
+    <string name="cards_status_why">see why</string>
+
+    <!-- Status explanation sheet (tap a status chip) -->
+    <string name="cards_why_got_it">Got it</string>
+    <string name="cards_why_edit">Edit card</string>
+    <string name="cards_why_change_days">Change days</string>
+    <string name="cards_why_best_title">Best card to use today</string>
+    <string name="cards_why_best_body">Spends today land on the bill closing %1$s, due %2$s: %3$s to pay.</string>
+    <string name="cards_why_best_basis">Based on the statement and due days you entered.</string>
+    <plurals name="cards_why_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="cards_why_soon_title">Expires %1$s</string>
+    <string name="cards_why_soon_body">Its last day is %1$s, %2$s. Ask %3$s for the new card, then update it here.</string>
+    <string name="cards_why_soon_today_body">Its last day is %1$s. Ask %2$s for the new card, then update it here.</string>
+    <string name="cards_why_today">today</string>
+    <string name="cards_why_tomorrow">tomorrow</string>
+    <plurals name="cards_why_in_days">
+        <item quantity="one">in %d day</item>
+        <item quantity="other">in %d days</item>
+    </plurals>
+    <string name="cards_why_expired_title">Expired %1$s</string>
+    <string name="cards_why_expired_body">It stopped working after %1$s. Ask %2$s for the new card, then update it here.</string>
+    <string name="cards_why_check_title">Some details need a look</string>
+    <string name="cards_why_check_body">%1$s doesn’t fit this card’s rules. Fix it in Edit card.</string>
+    <string name="cards_why_check_body_many">%1$s don’t fit this card’s rules. Fix them in Edit card.</string>
+    <string name="cards_why_check_number">the number</string>
+    <string name="cards_why_check_expiry">the expiry</string>
+    <string name="cards_why_check_cvv">the CVV</string>
+    <string name="cards_why_check_two">%1$s and %2$s</string>
+    <string name="cards_why_check_three">%1$s, %2$s and %3$s</string>
+    <string name="cards_why_last_body">You copied this card most recently, %1$s. It’s first in Recent when you search.</string>
+    <string name="cards_why_last_body_plain">You copied this card most recently. It’s first in Recent when you search.</string>
+    <string name="cards_why_today_at">today at %1$s</string>
+    <string name="cards_why_archived_body">Kept out of Cards, autofill and reminders. Restore it from Manage › Archived.</string>
     <string name="cards_status_archived">Archived</string>
     <string name="cards_status_archived_reason">Archived · %1$s</string>
 

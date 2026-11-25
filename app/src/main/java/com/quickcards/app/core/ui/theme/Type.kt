@@ -2,6 +2,7 @@ package com.quickcards.app.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -59,6 +60,9 @@ object QcText {
     val F1 = style(11, 16, FontWeight.Medium)
     val F1Regular = style(11, 16, FontWeight.Normal)
     val F1Semibold = style(11, 16, FontWeight.SemiBold)
+
+    /** The values set in semibold inside running text (dates and counts in a sheet's sentence). */
+    val Emphasis = SpanStyle(fontWeight = FontWeight.SemiBold)
 
     /** Card number, expiry and CVV: Geist Mono 500 with tabular figures. */
     val MonoF5 = style(24, 32, FontWeight.Medium, GeistMono, 0.04f, "tnum")

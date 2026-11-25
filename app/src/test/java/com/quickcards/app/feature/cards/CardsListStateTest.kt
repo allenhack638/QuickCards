@@ -12,6 +12,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class CardsListStateTest {
 
@@ -321,5 +322,75 @@ class CardsListStateTest {
         val due = card("x").copy(dueInDays = 2)
 
         assertEquals(null, CardUseStatus.of(due, "x"))
+    }
+
+    private fun credit(
+        id: String,
+        statementDay: Int?,
+        dueDay: Int?,
+        state: ExpiryState? = ExpiryState.VALID,
+        archived: Boolean = false,
+        needsReview: Boolean = false,
+        typeName: String = "Credit"
+    ) =
+        card(id, state = state, archived = archived, needsReview = needsReview).let {
+            it.copy(
+                card = it.card.copy(typeId = "type-$id", statementDay = statementDay, dueDay = dueDay),
+                typeName = typeName
+            )
+        }
+
+    @Test
+    fun bestTodayMarksOnlyTheCreditCardWithTheLongestWait() {
+        val today = LocalDate.of(2026, 11, 26)
+        val cards = listOf(credit("hdfc", 25, 15), credit("icici", 15, 5), credit("axis", 26, 16))
+
+        val marked = CardUseStatus.withBestToday(cards, today)
+
+        assertEquals(listOf(50, null, null), marked.map { it.bestDays })
+        assertEquals(CardStatus.BEST_TODAY, CardUseStatus.of(marked[0], "hdfc"))
+        assertEquals(CardStatus.EXPIRES_SOON, CardUseStatus.of(marked[0].copy(expiryState = ExpiryState.EXPIRES_SOON), null))
+    }
+
+    @Test
+    fun aRestoredCreditTypeWithANewIdAndAnyCaseStillCounts() {
+        val today = LocalDate.of(2026, 11, 26)
+        val cards = listOf(credit("hdfc", 25, 15, typeName = " credit "), credit("icici", 15, 5))
+
+        assertEquals(listOf(50, null), CardUseStatus.withBestToday(cards, today).map { it.bestDays })
+    }
+
+    @Test
+    fun aBestCardThatCannotShowTheChipGivesItToTheRunnerUp() {
+        val today = LocalDate.of(2026, 11, 26)
+        val axis = credit("axis", 26, 16)
+        listOf(
+            credit("hdfc", 25, 15, needsReview = true),
+            credit("hdfc", 25, 15, state = ExpiryState.EXPIRES_SOON),
+            credit("hdfc", 25, 15).copy(dueInDays = 2)
+        ).forEach { hdfc ->
+            val marked = CardUseStatus.withBestToday(listOf(hdfc, credit("icici", 15, 5), axis), today)
+
+            assertEquals(listOf(null, 40, null), marked.map { it.bestDays })
+            assertEquals(CardStatus.BEST_TODAY, CardUseStatus.of(marked[1], null))
+        }
+    }
+
+    @Test
+    fun bestTodayIgnoresArchivedExpiredAndNonCreditCards() {
+        val today = LocalDate.of(2026, 11, 26)
+        val debit = credit("debit", 25, 15, typeName = "Debit")
+        val cards = listOf(
+            credit("icici", 15, 5),
+            credit("archived", 25, 15, archived = true),
+            credit("expired", 25, 15, state = ExpiryState.EXPIRED),
+            debit
+        )
+
+        assertTrue(CardUseStatus.withBestToday(cards, today).all { it.bestDays == null })
+        assertEquals(
+            listOf(40, null),
+            CardUseStatus.withBestToday(listOf(credit("icici", 15, 5), credit("axis", 26, 16)), today).map { it.bestDays }
+        )
     }
 }

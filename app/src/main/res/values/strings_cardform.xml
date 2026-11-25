@@ -82,6 +82,8 @@
     <string name="form_save_bad_cvv">Check the CVV</string>
     <string name="form_save_missing_bank">Choose a bank</string>
     <string name="form_save_missing_type">Choose a type</string>
+    <string name="form_save_bad_statement_day">Check the statement day</string>
+    <string name="form_save_bad_due_day">Check the due day</string>
     <string name="form_paste_number">Number pasted</string>
     <string name="form_paste_number_and_expiry">Number and expiry pasted</string>
     <string name="form_saved_changes">Saved</string>
@@ -145,6 +147,9 @@
     <string name="form_nfc_try_again">Try again</string>
     <string name="form_nfc_cancel">Cancel</string>
 
+    <string name="form_statement_day_label">Statement day (optional)</string>
+    <string name="form_statement_day_error">Enter 1 to 31</string>
+    <string name="form_statement_day_helper">On your bill as ‘statement date’</string>
     <string name="form_due_day_label">Due day (optional)</string>
     <string name="form_due_day_error">Enter 1 to 31</string>
     <string name="form_due_day_helper">1 to 31</string>

@@ -37,6 +37,7 @@
     <string name="import_problem_bank_unknown">Bank “%1$s” isn’t in the list. Add this card in the app.</string>
     <string name="import_problem_type_unknown">Type “%1$s” isn’t in the list</string>
     <string name="import_problem_holder_too_long">Holder: up to %1$d characters</string>
+    <string name="import_problem_statement_day_invalid">Statement day: 1 to 31</string>
     <string name="import_problem_due_day_invalid">Due day: 1 to 31</string>
     <string name="import_problem_note_too_long">Note: up to %1$d characters</string>
     <string name="import_problem_repeated_in_file">Same number as row %1$d</string>

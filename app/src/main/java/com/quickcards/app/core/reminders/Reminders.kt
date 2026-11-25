@@ -10,16 +10,14 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
-import android.text.format.DateFormat
 import com.quickcards.app.MainActivity
 import com.quickcards.app.QuickCardsApplication
 import com.quickcards.app.R
 import com.quickcards.app.core.notifications.NotificationPermission
+import com.quickcards.app.core.ui.dayMonth
 import com.quickcards.domain.ReminderRules
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -172,12 +170,6 @@ object Reminders {
     fun markPaid(context: Context, key: String) {
         PaidStore.markPaid(context, key)
         context.getSystemService(NotificationManager::class.java)?.cancel(key.hashCode())
-    }
-
-    /** "22 Nov" (or the locale's own day-month order), matching the in-app Due strip. */
-    private fun dayMonth(): DateTimeFormatter {
-        val locale = Locale.getDefault()
-        return DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dMMM"), locale)
     }
 
     private fun ensureChannel(context: Context, manager: NotificationManager) {

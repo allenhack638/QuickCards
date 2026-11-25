@@ -29,7 +29,8 @@ private val SplitDetailMin = QcDimens.HeroDesign * 2 + QcSpacing.s6 * 3
 internal class CardsPaneActions(
     val home: @Composable (selectedId: String?, onOpen: (String) -> Unit) -> Unit,
     val onEdit: (cardId: String) -> Unit,
-    val onActions: (cardId: String) -> Unit
+    val onActions: (cardId: String) -> Unit,
+    val onStatus: (cardId: String) -> Unit
 )
 
 /**
@@ -67,6 +68,7 @@ internal fun CardsWithDetail(
                 onBack = onGone,
                 onEdit = actions.onEdit,
                 onActions = actions.onActions,
+                onStatus = actions.onStatus,
                 layout = if (paneWidth >= SplitDetailMin) DetailsLayout.SPLIT else DetailsLayout.STACKED,
                 showBack = false,
                 maskNumber = home.options.maskNumbers

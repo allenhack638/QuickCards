@@ -17,7 +17,9 @@ data class HomeCard(
     val expiryState: ExpiryState? = null,
     /** Days until the payment due date while its reminder window is open and unpaid. */
     val dueInDays: Int? = null,
-    val dueKey: String? = null
+    val dueKey: String? = null,
+    /** Days to pay for a purchase made today, set only on today's best credit card. */
+    val bestDays: Int? = null
 ) {
     val id: String get() = card.id
 

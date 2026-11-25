@@ -285,6 +285,45 @@ class BackupPlannerTest {
     }
 
     @Test
+    fun `a new statement day on a saved card counts as a change`() {
+        val content = backupContent()
+        val withStatement = content.cards[0].copy(statementDay = 18)
+
+        val card = BackupPlanner.plan(content.copy(cards = listOf(withStatement)), phone).cards.single()
+
+        assertTrue(card.changed)
+        assertEquals(18, card.resolved.statementDay)
+    }
+
+    @Test
+    fun `a backup without statement days keeps the phone's`() {
+        val phoneWithStatement = phone.copy(
+            cards = phone.cards.mapIndexed { i, c -> if (i == 0) c.copy(statementDay = 18) else c }
+        )
+        val content = backupContent()
+        val old = content.cards[0].copy(statementDay = null, statementDayKnown = false)
+
+        val card = BackupPlanner.plan(content.copy(cards = listOf(old)), phoneWithStatement).cards.single()
+
+        assertFalse(card.changed)
+        assertEquals(18, card.resolved.statementDay)
+    }
+
+    @Test
+    fun `a backup that clears the statement day applies it`() {
+        val phoneWithStatement = phone.copy(
+            cards = phone.cards.mapIndexed { i, c -> if (i == 0) c.copy(statementDay = 18) else c }
+        )
+        val content = backupContent()
+        val cleared = content.cards[0].copy(statementDay = null)
+
+        val card = BackupPlanner.plan(content.copy(cards = listOf(cleared)), phoneWithStatement).cards.single()
+
+        assertTrue(card.changed)
+        assertNull(card.resolved.statementDay)
+    }
+
+    @Test
     fun `backups from before archiving stay active and unreviewed`() {
         val plan = BackupPlanner.plan(backupContent(), phone)
         val card = plan.cards.first { !it.isNew && !it.changed }.resolved

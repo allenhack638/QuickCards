@@ -35,6 +35,7 @@ data class PhoneCard(
     val colorManual: Boolean = true,
     val note: String = "",
     val dueDay: Int? = null,
+    val statementDay: Int? = null,
     val tagIds: List<String> = emptyList(),
     val pinned: Boolean = false,
     val pinnedAt: Long? = null,
@@ -67,6 +68,7 @@ data class ResolvedCard(
     val color: String,
     val note: String,
     val dueDay: Int?,
+    val statementDay: Int?,
     val colorManual: Boolean = true,
     val pinned: Boolean = false,
     val pinnedAt: Long? = null,
@@ -129,7 +131,7 @@ object BackupPlanner {
                 tagMap,
                 networkMap,
                 legacyNetworkIds
-            )
+            ).let { keepPhoneValues(it, card, existing) }
             PlannedCard(
                 card = card,
                 existingId = existing?.id,
@@ -188,6 +190,7 @@ object BackupPlanner {
             color = card.color,
             note = card.note,
             dueDay = card.dueDay,
+            statementDay = card.statementDay,
             colorManual = card.colorManual,
             pinned = card.pinned,
             pinnedAt = if (card.pinned) card.pinnedAt else null,
@@ -196,6 +199,10 @@ object BackupPlanner {
             archiveReason = if (card.archived) card.archiveReason else ""
         )
     }
+
+    /** A file without a statement day (older backups, sheets) keeps the phone's own. */
+    fun keepPhoneValues(resolved: ResolvedCard, card: BackupCard, existing: PhoneCard?): ResolvedCard =
+        if (!card.statementDayKnown && existing != null) resolved.copy(statementDay = existing.statementDay) else resolved
 
     fun differs(existing: PhoneCard, resolved: ResolvedCard): Boolean {
         if (existing.holderId != resolved.holderId) return true
@@ -211,6 +218,7 @@ object BackupPlanner {
         if (existing.colorManual != resolved.colorManual) return true
         if (existing.note != resolved.note) return true
         if (existing.dueDay != resolved.dueDay) return true
+        if (existing.statementDay != resolved.statementDay) return true
         if (existing.pinned != resolved.pinned) return true
         if (existing.pinnedAt != resolved.pinnedAt) return true
         if (existing.archived != resolved.archived) return true

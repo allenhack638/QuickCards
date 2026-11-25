@@ -59,6 +59,10 @@ data class BackupCard(
     val note: String = "",
     /** Payment due day of the month; older backups omit it. */
     val dueDay: Int? = null,
+    /** Statement day of the month; older backups omit it. */
+    val statementDay: Int? = null,
+    /** False when the file has no statement day key (older backups, sheets): the phone keeps its own value. */
+    val statementDayKnown: Boolean = true,
     val color: String = "navy",
     /** False when the card follows its bank's colour; older backups always kept the card's own. */
     val colorManual: Boolean = true,

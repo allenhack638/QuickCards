@@ -55,5 +55,7 @@ data class Card(
     @ColumnInfo(defaultValue = "0")
     val needsReview: Int = 0,
     /** Day of the month the bill is due (1-31); not sensitive, so stored in the clear. */
-    val dueDay: Int? = null
+    val dueDay: Int? = null,
+    /** Day of the month the statement is generated (1-31); stored in the clear like [dueDay]. */
+    val statementDay: Int? = null
 )

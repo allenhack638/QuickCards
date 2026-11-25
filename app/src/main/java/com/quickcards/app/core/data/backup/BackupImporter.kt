@@ -265,7 +265,7 @@ object BackupImporter {
             if (number.isEmpty()) return@forEach
             // A second copy of a number in the same file is rejected, never merged over the first.
             if (!seenInFile.add(number)) return@forEach
-            val resolved = BackupPlanner.resolve(
+            val resolvedFromFile = BackupPlanner.resolve(
                 backupCard,
                 holderMap,
                 bankMap,
@@ -284,6 +284,7 @@ object BackupImporter {
             }
             val existing = cardsByNumber[number]
             val existingPhone = existing?.toPhoneCard(encryption, linksByCard[existing.id].orEmpty())
+            val resolved = BackupPlanner.keepPhoneValues(resolvedFromFile, backupCard, existingPhone)
             val changed = existingPhone != null && BackupPlanner.differs(existingPhone, resolved)
             val reviewMask = CardFieldMask.encode(entry.result.needsReview)
             when (BackupPlanner.disposition(existing?.id, changed, mode)) {
@@ -397,6 +398,7 @@ object BackupImporter {
         owner = encryption.encryptMetadata(holderName),
         description = encryption.encryptMetadata(resolved.note),
         dueDay = resolved.dueDay,
+        statementDay = resolved.statementDay,
         cardColor = BandColor.hexFor(resolved.color),
         createdAt = createdAt,
         updatedAt = updatedAt,
@@ -442,6 +444,7 @@ object BackupImporter {
                 colorManual = bandColorManual,
                 note = encryption.decryptMetadata(description),
                 dueDay = dueDay,
+                statementDay = statementDay,
                 tagIds = tagIds,
                 pinned = pinned,
                 pinnedAt = pinnedAt,
