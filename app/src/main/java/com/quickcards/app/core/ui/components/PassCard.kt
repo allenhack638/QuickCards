@@ -58,6 +58,7 @@ import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.art.ArtKind
 import com.quickcards.app.core.ui.art.CardArt
 import com.quickcards.app.core.ui.theme.PassColors
+import com.quickcards.app.core.ui.theme.QcArtDimens
 import com.quickcards.app.core.ui.theme.QcIcons
 import com.quickcards.app.core.ui.theme.QcMotion
 import com.quickcards.app.core.ui.theme.QcShapes
@@ -471,19 +472,22 @@ private fun CopyPill(
     }
 }
 
-/** "Due in 2 days" + Mark paid, inset 8 from the card edge so Mark paid ends on the Copy pill's edge. */
+/**
+ * "Due in 2 days" + Mark paid. The strip sits [QcArtDimens.DueEdgeGap] from the card's sides and
+ * bottom with radius tile − gap, so the band around its corners is even; Mark paid nests the same way.
+ */
 @Composable
 private fun DueStrip(text: String, onMarkPaid: (() -> Unit)?) {
     val markLabel = stringResource(R.string.cards_due_mark_paid_a11y)
     Row(
         modifier = Modifier
-            .padding(top = QcSpacing.s6)
-            .bleed(QcSpacing.s2)
+            .padding(top = QcArtDimens.DueTop)
+            .bleed(QcArtDimens.Padding - QcArtDimens.DueEdgeGap)
             .fillMaxWidth()
             .heightIn(min = QcSize.hit)
-            .background(PassColors.OnArt.copy(alpha = DUE_FILL), QcShapes.md)
-            .border(QcSize.hairline, PassColors.OnArt.copy(alpha = DUE_RING), QcShapes.md)
-            .padding(horizontal = QcSpacing.s2),
+            .background(PassColors.OnArt.copy(alpha = DUE_FILL), QcShapes.tileDue)
+            .border(QcSize.hairline, PassColors.OnArt.copy(alpha = DUE_RING), QcShapes.tileDue)
+            .padding(start = QcSpacing.s2, end = QcArtDimens.DueActionInset),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(QcSpacing.s2)
     ) {
@@ -508,16 +512,20 @@ private fun DueStrip(text: String, onMarkPaid: (() -> Unit)?) {
                     .semantics { contentDescription = markLabel },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.cards_due_mark_paid),
-                    style = QcText.F2Semibold,
-                    color = PassColors.OnArt,
+                Box(
                     modifier = Modifier
-                        .heightIn(min = QcSize.ctl)
-                        .background(PassColors.OnArtFill, QcShapes.full)
-                        .border(QcSize.hairline, PassColors.OnArtFillRing, QcShapes.full)
-                        .padding(horizontal = QcSpacing.s3, vertical = QcSpacing.s1 + QcSpacing.s1 / 2)
-                )
+                        .heightIn(min = QcSize.hit - QcArtDimens.DueActionInset * 2)
+                        .background(PassColors.OnArtFill, QcShapes.tileDueAction)
+                        .border(QcSize.hairline, PassColors.OnArtFillRing, QcShapes.tileDueAction)
+                        .padding(horizontal = QcSpacing.s3),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.cards_due_mark_paid),
+                        style = QcText.F2Semibold,
+                        color = PassColors.OnArt
+                    )
+                }
             }
         }
     }

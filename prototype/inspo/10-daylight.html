@@ -302,12 +302,13 @@ body.shot-mode .topbar{display:none}
    radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.20),rgba(255,255,255,0) 55%),linear-gradient(135deg,var(--c1),var(--c2))}   /* a quiet shade under the digits band */
 /* P1-1: the Expired chip text is white on a dark fill (>=7:1); the warning tone sits only on its 1dp ring and the date */
 .is-expired-tile .tile-flag{color:#fff;background:var(--on-art-chip);box-shadow:0 0 0 1px var(--on-art-danger) inset}
-/* bill-due strip: inset s2 from the card edge, so icon starts on the text column and the action ends on the Copy pill edge */
-.tile-due{display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--s2);min-height:var(--hit);margin:var(--s6) calc(-1 * var(--s2)) calc(-1 * var(--s2));padding:0 var(--s2);border-radius:var(--r-md);
+/* bill-due strip: s8 below the digits row, --due-gap from the card's sides and bottom (it bleeds tile padding - gap);
+   concentric: strip r = r-lg - gap (12) so the band around its corners is even; Mark paid sits s1 inside at 12 - s1 (8), 40 in the 48 strip */
+.tile-due{--due-gap:var(--s2);display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--s2);min-height:var(--hit);margin:var(--s8) calc(var(--due-gap) - var(--s4)) calc(var(--due-gap) - var(--s4));padding:0 var(--s1) 0 var(--s2);border-radius:calc(var(--r-lg) - var(--due-gap));
   background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset;font-size:var(--f2);line-height:var(--lh2);font-weight:var(--w-medium)}
 .tile-due > .ic{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .tile-due > span{flex:1 0 auto;white-space:nowrap}
-.tile-due > .pill-act{margin:var(--s2) 0 var(--s2) auto}
+.tile-due > .pill-act{margin:var(--s1) 0 var(--s1) auto;min-height:calc(var(--hit) - 2 * var(--s1));padding:0 var(--s3);border-radius:calc(var(--r-lg) - var(--due-gap) - var(--s1))}
 
 /* copy pill on art: 32 visible, 48 hit */
 .pill-copy,.pill-act{position:relative;flex:none;min-height:var(--ctl);padding:var(--s1) var(--s3) var(--s1) var(--s2);border-radius:var(--r-full);display:inline-flex;align-items:center;gap:var(--s1);

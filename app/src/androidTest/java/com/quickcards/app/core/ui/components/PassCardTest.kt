@@ -54,6 +54,7 @@ class PassCardTest {
         var actions = 0
         var copy = 0
         var note = 0
+        var paid = 0
     }
 
     private fun show(
@@ -63,6 +64,7 @@ class PassCardTest {
         copyEnabled: Boolean = true,
         maskNumber: Boolean = true,
         fontScale: Float = 1f,
+        dueText: String? = null,
         taps: Taps = Taps()
     ): Taps {
         compose.setContent {
@@ -80,7 +82,9 @@ class PassCardTest {
                         onOpen = { taps.open++ },
                         onActions = { taps.actions++ },
                         onCopy = { taps.copy++ },
-                        onCopyNote = { taps.note++ }
+                        onCopyNote = { taps.note++ },
+                        dueText = dueText,
+                        onMarkPaid = { taps.paid++ }
                     )
                     }
                 }
@@ -197,6 +201,22 @@ class PassCardTest {
         assertTrue(copy.right >= number.right)
     }
 
+    @Test
+    fun dueStripNestsInTheCardAndMarkPaidIsItsOwnTarget() {
+        val taps = show(dueText = "Due in 2 days")
+        val mark = compose.onNodeWithContentDescription("Mark this payment as paid")
+        mark.performClick()
+        compose.waitForIdle()
+        assertEquals(1, taps.paid)
+        assertEquals(0, taps.open)
+
+        val px = compose.density.density
+        val card = compose.onNodeWithContentDescription("HDFC Bank, ending 0366", substring = true).fetchSemanticsNode().boundsInRoot
+        val hit = mark.fetchSemanticsNode().boundsInRoot
+        assertEquals(card.bottom - DUE_EDGE_GAP * px, hit.bottom, 1f)
+        assertEquals(card.right - (DUE_EDGE_GAP + DUE_ACTION_INSET) * px, hit.right, 1f)
+    }
+
     private fun numberNode(text: String) = compose.onNodeWithText(text, useUnmergedTree = true)
 
     private fun numberBounds(text: String = FULL) = numberNode(text).fetchSemanticsNode().boundsInRoot
@@ -212,6 +232,8 @@ class PassCardTest {
 
     private companion object {
         const val HEAD_FRACTION = 0.12f
+        const val DUE_EDGE_GAP = 8f
+        const val DUE_ACTION_INSET = 4f
         const val FULL = "4532 7180 2299 0366"
         const val LONG = "6011000990139424123"
         const val NOTE = "Travel card. 2 free lounge visits a quarter, 1% forex markup. Call the bank before a trip abroad."
