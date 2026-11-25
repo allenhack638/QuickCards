@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.8.0] - 2026-11-25
+
+- Added: Best today. Give a credit card its statement day (on your bill as 'statement date') and due day, and the card that gives you the most days to pay for a purchase made today shows a "Best today" chip. Tap it to see the bill dates and how many days you get.
+- Added: tap any status chip (Best today, Expires soon, Expired, Check, Last used, Archived) to see why it is there and what to do next.
+- Changed: status chips are slimmer and match the Copy button on the card.
+- Added: backups and the import spreadsheet carry the statement day; older backups and sheets still import and keep the statement days already on your phone.
+- Fixed: the "Due in N days" strip now sits evenly inside the card's rounded corners.
+
 ## [2.7.1] - 2026-11-22
 
 - Changed: after you copy a card number, the notification shows that card's expiry and CVV directly (no copy buttons). It still disappears after the notification time, never appears on the lock screen, and can be turned off in Settings › Copying.
