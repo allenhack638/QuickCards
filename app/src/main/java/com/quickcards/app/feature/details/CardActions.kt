@@ -36,6 +36,7 @@ import com.quickcards.app.core.security.AppLockController
 import com.quickcards.app.core.security.ClipboardHelper
 import com.quickcards.app.core.security.UnlockSession
 import com.quickcards.app.core.ui.CardCopyField
+import com.quickcards.app.core.ui.CardUseStatus
 import com.quickcards.app.core.ui.HomeCard
 import com.quickcards.app.core.ui.LocalAppLocked
 import com.quickcards.app.core.ui.components.LocalSnackbar
@@ -50,6 +51,7 @@ import com.quickcards.app.core.ui.theme.QcSize
 import com.quickcards.app.core.ui.theme.QcSpacing
 import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTheme
+import java.time.LocalDate
 import kotlinx.coroutines.launch
 
 /** Which card's actions sheet is open, and which follow-up dialog; reset whenever the app locks. */
@@ -59,10 +61,16 @@ class CardActionsState {
     internal var shareId by mutableStateOf<String?>(null)
     internal var archiveId by mutableStateOf<String?>(null)
     internal var deleteId by mutableStateOf<String?>(null)
+    internal var statusId by mutableStateOf<String?>(null)
 
     /** Opens the card actions sheet (hold a tile on Home, or ⋮ on Card details). */
     fun open(cardId: String) {
         sheetId = cardId
+    }
+
+    /** Opens the explanation of the card's status chip. */
+    fun explain(cardId: String) {
+        statusId = cardId
     }
 
     internal fun closeAll() {
@@ -70,6 +78,7 @@ class CardActionsState {
         shareId = null
         archiveId = null
         deleteId = null
+        statusId = null
     }
 }
 
@@ -77,13 +86,18 @@ class CardActionsState {
 fun rememberCardActionsState(): CardActionsState = remember { CardActionsState() }
 
 /**
- * The card actions sheet and its dialogs, drawn once above every screen. [cards] must hold any
- * card that can be opened (archived ones included); [onEdit] runs after the unlock.
+ * The card actions sheet, the status explanation and their dialogs, drawn once above every screen.
+ * [cards] must hold any card that can be opened (archived ones included); [onEdit] runs after the
+ * unlock. [lastUsedId] and [lastUsedAt] name the card copied last and when; [today] is the day the
+ * statuses were worked out for.
  */
 @Composable
 fun CardActionsHost(
     state: CardActionsState,
     cards: List<HomeCard>,
+    lastUsedId: String?,
+    lastUsedAt: Long?,
+    today: LocalDate,
     onEdit: (cardId: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -153,6 +167,26 @@ fun CardActionsHost(
                 }
             },
             onDelete = { act { if (unlocked(R.string.cards_unlock_delete)) state.deleteId = card.id } }
+        )
+    }
+
+    val explained = find(state.statusId)
+    val explainedStatus = explained?.let { CardUseStatus.of(it, lastUsedId) }
+    LaunchedEffect(explained != null && explainedStatus == null) {
+        if (explained != null && explainedStatus == null) state.statusId = null
+    }
+    if (explained != null && explainedStatus != null) {
+        val card = explained
+        CardStatusSheet(
+            card = card,
+            status = explainedStatus,
+            lastUsedAt = lastUsedAt,
+            today = today,
+            onEdit = {
+                state.statusId = null
+                scope.launch { if (unlocked(R.string.cards_unlock_edit)) onEdit(card.id) }
+            },
+            onDismiss = { state.statusId = null }
         )
     }
 

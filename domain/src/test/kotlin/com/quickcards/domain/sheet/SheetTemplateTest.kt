@@ -48,7 +48,7 @@ class SheetTemplateTest {
         assertEquals(ImportSchema.columns.size, Regex("<dataValidation ").findAll(xml).count())
         assertEquals(ImportSchema.columns.size, Regex("""errorStyle="stop"""").findAll(xml).count())
         assertFalse(Regex("<c [^>]*><f[ >]").containsMatchIn(xml))
-        assertTrue(xml.contains("""<mergeCell ref="A1:J1"/>"""))
+        assertTrue(xml.contains("""<mergeCell ref="A1:K1"/>"""))
     }
 
     @Test
@@ -57,7 +57,7 @@ class SheetTemplateTest {
         SheetTemplate.columnRules.forEach { assertTrue(it[0], rules.contains(it[0])) }
         assertTrue(rules.any { it.startsWith("4. After the import, delete the file") })
 
-        val filled = SheetTemplate.xlsx(lists, rows = listOf(listOf("Priya", "4111111111111111", "08 - August", "2029", "123", "Visa", "HDFC Bank", "Credit", "", "")))
+        val filled = SheetTemplate.xlsx(lists, rows = listOf(listOf("Priya", "4111111111111111", "08 - August", "2029", "123", "Visa", "HDFC Bank", "Credit", "", "", "")))
         val context = SheetContext(DefaultNetworks.all, BankCatalog.all.map { it.name }, types, emptyList(), { null }, today)
         val report = SheetChecker.check(XlsxReader.cardsSheet(XlsxReader.read(filled))!!.rows, context)
         assertEquals(1, report.ready.size)

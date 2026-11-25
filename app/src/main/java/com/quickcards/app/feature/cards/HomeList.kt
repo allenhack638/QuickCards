@@ -78,7 +78,8 @@ internal class TileActions(
     val actions: (HomeCard) -> Unit,
     val copy: (HomeCard) -> Unit,
     val copyNote: (HomeCard) -> Unit,
-    val markPaid: (HomeCard) -> Unit
+    val markPaid: (HomeCard) -> Unit,
+    val status: (HomeCard) -> Unit
 )
 
 /** The frame-wide tile state: which card shows Copied and whether copying can work at all. */
@@ -200,7 +201,8 @@ internal fun HomeTile(card: HomeCard, tile: TileState, actions: TileActions, mod
         onActions = { actions.actions(card) },
         onCopy = { actions.copy(card) },
         onCopyNote = { actions.copyNote(card) },
-        onMarkPaid = { actions.markPaid(card) }
+        onMarkPaid = { actions.markPaid(card) },
+        onStatus = { actions.status(card) }
     )
 }
 

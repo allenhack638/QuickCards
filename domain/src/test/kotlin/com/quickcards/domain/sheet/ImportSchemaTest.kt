@@ -15,11 +15,11 @@ class ImportSchemaTest {
         assertEquals(
             listOf(
                 "Card holder*", "Card number*", "Expiry month*", "Expiry year*", "CVV*",
-                "Network*", "Bank*", "Card type*", "Payment due day", "Note"
+                "Network*", "Bank*", "Card type*", "Statement day", "Payment due day", "Note"
             ),
             ImportSchema.headers
         )
-        assertEquals(1, ImportSchema.VERSION)
+        assertEquals(2, ImportSchema.VERSION)
     }
 
     @Test
@@ -27,6 +27,7 @@ class ImportSchemaTest {
         assertEquals(ImportColumn.HOLDER, ImportSchema.columnFor("card holder*"))
         assertEquals(ImportColumn.HOLDER, ImportSchema.columnFor("  CARD  HOLDER "))
         assertEquals(ImportColumn.DUE_DAY, ImportSchema.columnFor("Payment due day"))
+        assertEquals(ImportColumn.STATEMENT_DAY, ImportSchema.columnFor("statement day"))
         assertNull(ImportSchema.columnFor("Name on card"))
         assertNull(ImportSchema.columnFor(""))
     }
@@ -49,10 +50,10 @@ class ImportSchemaTest {
     }
 
     @Test
-    fun `due days are 1 to 31`() {
-        assertEquals(5, ImportSchema.parseDueDay("5"))
-        assertEquals(5, ImportSchema.parseDueDay("05"))
-        listOf("", "0", "32", "5th").forEach { assertNull(it, ImportSchema.parseDueDay(it)) }
+    fun `statement and due days are 1 to 31`() {
+        assertEquals(5, ImportSchema.parseDay("5"))
+        assertEquals(5, ImportSchema.parseDay("05"))
+        listOf("", "0", "32", "5th").forEach { assertNull(it, ImportSchema.parseDay(it)) }
         assertEquals(31, ImportSchema.dayLabels.size)
     }
 

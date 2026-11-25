@@ -22,13 +22,13 @@ class XlsxReaderTest {
     @Test
     fun `a Google Sheets export reads the same way`() {
         val cards = XlsxReader.cardsSheet(XlsxReader.read(fixture("google-sheets-export-empty.xlsx")))!!
-        assertEquals(ImportSchema.headers, cards.rows[1].take(ImportSchema.headers.size))
+        assertEquals(PublishedSheet.headers, cards.rows[1].take(PublishedSheet.headers.size))
     }
 
     @Test
     fun `filled rows keep their text exactly, including a number the spreadsheet mangled`() {
         val cards = XlsxReader.cardsSheet(XlsxReader.read(fixture("generated-rows.xlsx")))!!
-        assertEquals(listOf("Priya S", "4111111111111111", "08 - August", "2029", "123", "Visa", "HDFC Bank", "Credit", "5", "Fuel card"), cards.rows[2])
+        assertEquals(listOf("Priya S", "4111111111111111", "08 - August", "2029", "123", "Visa", "HDFC Bank", "Credit", "18", "5", "Fuel card"), cards.rows[2])
         assertEquals("4.11111E+15", cards.rows[7][1])
         assertEquals("", cards.rows[7][0])
     }

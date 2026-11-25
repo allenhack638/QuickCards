@@ -288,13 +288,13 @@ function seed() {
   const B = n => banks.find(b => b.name === n).id, T = n => n ? types.find(t => t.name === n).id : null, G = (...n) => n.map(x => tags.find(t => t.name === x).id);
   const mk = (holderId, bank, prefix, exp, cvv, color, type, tg, note, extra = {}) => ({ id: uid(), holderId, bankId: B(bank), networkAuto: true, networkId: null, typeId: T(type), number: prefix + luhnDigit(prefix), exp, cvv, color, note, tagIds: G(...tg), pinned: false, pinnedAt: null, archived: false, archivedAt: null, archiveReason: null, needsReview: [], repairs: {}, ...extra });
   const cards = [
-    mk('h1', 'HDFC Bank', '453277810349221', '12/29', '381', 'navy', 'Credit', ['Travel', 'Online'], 'Everyday spending'),
-    mk('h1', 'ICICI Bank', '431581026674093', '08/28', '902', 'rust', 'Credit', ['Online'], ''),
+    mk('h1', 'HDFC Bank', '453277810349221', '12/29', '381', 'navy', 'Credit', ['Travel', 'Online'], 'Everyday spending', { statementDay: 25, dueDay: 15 }),
+    mk('h1', 'ICICI Bank', '431581026674093', '08/28', '902', 'rust', 'Credit', ['Online'], '', { statementDay: 15, dueDay: 5 }),
     mk('h1', 'HDFC Bank', '3622720627166', '05/30', '447', 'graphite', null, ['Travel'], 'Lounge access'),
     mk('h1', 'State Bank of India', '652188047712993', '03/27', '117', 'forest', 'Credit', ['Fuel'], ''),
     mk('h2', 'American Express', '37828224631000', '09/28', '4821', 'plum', 'Credit', ['Business', 'Travel'], ''),
     mk('h2', 'Kotak Mahindra Bank', '416622095583107', '06/29', '228', 'navy', 'Debit', ['Bills'], ''),
-    mk('h2', 'Axis Bank', '524199001137448', '11/30', '645', 'rust', 'Credit', [], ''),
+    mk('h2', 'Axis Bank', '524199001137448', '11/30', '645', 'rust', 'Credit', [], '', { statementDay: 26, dueDay: 16 }),
     mk('h1', 'Federal Bank', '402400718392016', '01/24', '533', 'graphite', 'Debit', ['Bills'], '', { repairs: { exp: { before: '1/24' } } }),
     mk('h1', 'Axis Bank', '524199001137455', '11/26', '118', 'rust', 'Credit', ['Travel'], ''),
     mk('h2', 'ICICI Bank', '601111111111111', '11/28', '229', 'forest', 'Credit', ['Online'], 'Used for the family account and the joint savings. Renewal is due before the annual fee posts in November; ask Priya for the latest statement.'),
@@ -482,7 +482,7 @@ Who we are
 QuickCards (package com.quickcards.app) is a local-first card organizer published by Surety. Privacy contact: support@surety.money.
 
 What the app stores
-You can enter card details (card number, expiry, CVV, name on card), plus a bank, card type, network, tags, a note and an optional payment due day. Holder, bank, card type, network and tag names are stored too.
+You can enter card details (card number, expiry, CVV, name on card), plus a bank, card type, network, tags, a note and optional statement and payment due days. Holder, bank, card type, network and tag names are stored too.
 
 All of it stays in the app’s private storage on your device. Card number, expiry, CVV, holder name, note, archive reason and the bank name stored on each card are encrypted with a key held by the Android Keystore. Bank, card type, network, tag and card-variant names are plain labels because they are not card data. There is no QuickCards account, no QuickCards server, no analytics, no advertising and no crash-reporting SDK.
 
@@ -555,6 +555,25 @@ function visibleCards() {
   }));
 }
 const filterCount = () => ['banks', 'networks', 'types', 'tags', 'status'].reduce((a, g) => a + S.filters[g].size, 0) + (S.filters.review ? 1 : 0);
+/* ---------- Best today ---------- */
+// Mirrors BestCardRules: days from today to the due date of the statement a purchase made today lands on.
+function interestFreeDays(statementDay, dueDay, now) {
+  const onOrAfter = (day, from) => {
+    const at = (y, m) => new Date(y, m, Math.min(day, new Date(y, m + 1, 0).getDate()));
+    const d = at(from.getFullYear(), from.getMonth());
+    return d >= from ? d : at(from.getFullYear(), from.getMonth() + 1);
+  };
+  const statement = onOrAfter(statementDay, now);
+  const due = onOrAfter(dueDay, new Date(statement.getFullYear(), statement.getMonth(), statement.getDate() + 1));
+  return Math.round((due - now) / 86400000);
+}
+// The one credit card with no other status (active, not expired or expiring soon, nothing to check, no bill strip) and a strictly longest wait; none with fewer than two or a tie.
+function bestToday() {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const ranked = S.cards.filter(c => !c.archived && !isExpired(c) && !isSoon(c) && !(c.needsReview ?? c.review ?? []).length && !dueInfo(c) && (byId('types', c.typeId)?.name || '').trim().toLowerCase() === 'credit' && c.statementDay && c.dueDay)
+    .map(c => ({ id: c.id, days: interestFreeDays(c.statementDay, c.dueDay, now) })).sort((a, b) => b.days - a.days);
+  return ranked.length >= 2 && ranked[0].days !== ranked[1].days ? ranked[0] : null;
+}
 const statusCount = id => S.cards.filter(c => !c.archived && (id === 'expired' ? isExpired(c) : isSoon(c))).length;
 
 /* ---------- Pass ---------- */
@@ -564,6 +583,8 @@ function passFlags(c) {
   const review = c.needsReview ?? c.review;
   if (review && review.length) return `<span class="passlabel checklab">${I('info')}<span class="t">Check details</span></span>`;
   if (isSoon(c)) return '<span class="passlabel">Expires soon</span>';
+  const best = bestToday();
+  if (best && best.id === c.id) return `<span class="passlabel" aria-label="Best card today: ${best.days} day${best.days === 1 ? '' : 's'} to pay">Best today</span>`;
   return '';
 }
 function typePillHTML(c, preview) {
@@ -904,12 +925,12 @@ function radioDialog(title, body, opts, cur, onOk) {
 }
 
 /* ---------- Form ---------- */
-function formSignature() { const F = S.form; return JSON.stringify({ holderId: F.holderId, number: F.number, exp: F.exp, cvv: F.cvv, bankId: F.bankId, typeId: F.typeId, tagIds: F.tagIds, color: F.color, note: F.note, repairs: F.repairs, review: F.review }); }
+function formSignature() { const F = S.form; return JSON.stringify({ holderId: F.holderId, number: F.number, exp: F.exp, cvv: F.cvv, bankId: F.bankId, typeId: F.typeId, tagIds: F.tagIds, color: F.color, note: F.note, statementDay: F.statementDay, dueDay: F.dueDay, repairs: F.repairs, review: F.review }); }
 const formDirty = () => !!S.form && formSignature() !== S.form.base;
 function startForm(mode, id) {
   const c = id ? S.cards.find(x => x.id === id) : null;
-  S.form = c ? { mode, id, holderId: c.holderId, number: c.number, exp: c.exp, cvv: c.cvv, bankId: c.bankId, typeId: c.typeId, tagIds: [...(c.tagIds || [])], color: c.color, note: c.note || '', archived: !!c.archived, archiveReason: c.archiveReason || null, repairs: { ...(c.repairs || {}) }, review: [...(c.needsReview || [])], errors: {} }
-    : { mode, id: null, holderId: S.filters.holders.size === 1 ? [...S.filters.holders][0] : (S.holders[0]?.id || null), number: '', exp: '', cvv: '', bankId: null, typeId: null, tagIds: [], color: 'navy', note: '', archived: false, archiveReason: null, repairs: {}, review: [], errors: {} };
+  S.form = c ? { mode, id, holderId: c.holderId, number: c.number, exp: c.exp, cvv: c.cvv, bankId: c.bankId, typeId: c.typeId, tagIds: [...(c.tagIds || [])], color: c.color, note: c.note || '', statementDay: c.statementDay ? String(c.statementDay) : '', dueDay: c.dueDay ? String(c.dueDay) : '', archived: !!c.archived, archiveReason: c.archiveReason || null, repairs: { ...(c.repairs || {}) }, review: [...(c.needsReview || [])], errors: {} }
+    : { mode, id: null, holderId: S.filters.holders.size === 1 ? [...S.filters.holders][0] : (S.holders[0]?.id || null), number: '', exp: '', cvv: '', bankId: null, typeId: null, tagIds: [], color: 'navy', note: '', statementDay: '', dueDay: '', archived: false, archiveReason: null, repairs: {}, review: [], errors: {} };
   S.form.base = formSignature();
   S.form.backStack = S.stack.slice();
   push({ name: 'form' });
@@ -944,7 +965,8 @@ function formHTML() {
       ${isCurated(F.color)
         ? `<button type="button" class="swatch custom" role="radio" aria-label="Custom" aria-checked="false" data-act="fcustom">${I('palette')}</button>`
         : `<button type="button" class="swatch custom" role="radio" aria-label="Custom colour, ${esc(F.color)}" aria-checked="true" data-act="fcustom" style="--sw:${esc(F.color)}">${I('check')}</button>`}</div></div>
-    ${tf('dueDay', 'Payment due day (optional)', F.dueDay || '', 'Day of the month your bill is due, 1 to 31', { attrs: 'inputmode="numeric" enterkeyhint="next" maxlength="2"' })}
+    ${tf('statementDay', 'Statement day (optional)', F.statementDay, { help: 'On your bill as ‘statement date’', attrs: 'inputmode="numeric" enterkeyhint="next" maxlength="2"' })}
+    ${tf('dueDay', 'Due day (optional)', F.dueDay, { help: '1 to 31', attrs: 'inputmode="numeric" enterkeyhint="next" maxlength="2"' })}
     ${tf('note', 'Note (optional)', F.note, { max: 80, help: 'For example Everyday spending', attrs: 'maxlength="80" enterkeyhint="done"' })}
   </div></div>
   <div class="footer"><button class="btn filled lg" data-act="save" ${edit && !formDirty() ? 'disabled' : ''}>${edit ? 'Save changes' : 'Save card'}</button></div>`;
@@ -975,6 +997,7 @@ function validate(key) {
   if (key === 'bank' && !F.bankId) m = 'Choose the bank';
   if (key === 'type' && !F.typeId) m = 'Choose the card type';
   if (key === 'holder' && !F.holderId) m = 'Choose who this card belongs to';
+  if ((key === 'statementDay' || key === 'dueDay') && F[key] && !(+F[key] >= 1 && +F[key] <= 31)) m = 'Enter 1 to 31';
   setErr(key, m); if (key === 'number') syncDupOpen(dup); syncFormStd(); return !m;
 }
 /* A number already saved: the error line ends in Open, which leaves the form for that card (its actions sheet here; Card details in the app). */
@@ -1014,8 +1037,8 @@ function updatePreview() {
 }
 function mountForm() {
   const F = S.form;
-  // Next walks number → expiry → CVV → due day → note; the note's Done closes the keyboard.
-  const chain = ['number', 'exp', 'cvv', 'dueDay', 'note'];
+  // Next walks number → expiry → CVV → statement day → due day → note; the note's Done closes the keyboard.
+  const chain = ['number', 'exp', 'cvv', 'statementDay', 'dueDay', 'note'];
   chain.forEach((key, i) => $('#f-' + key)?.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return; e.preventDefault();
     const next = chain[i + 1] && $('#f-' + chain[i + 1]);
@@ -1037,6 +1060,7 @@ function mountForm() {
   onIn('exp', el => { let d = el.value.replace(/\D/g, ''); if (d.length === 6) d = d.slice(0, 2) + d.slice(4); d = d.slice(0, 4); if (d.length === 1 && +d > 1) d = '0' + d; F.exp = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; setFieldValue(el, F.exp); });
   onIn('cvv', el => { F.cvv = el.value.replace(/\D/g, '').slice(0, fNet()?.cvv || 4); setFieldValue(el, F.cvv); });
   onIn('note', el => { F.note = el.value.slice(0, 80); setFieldValue(el, F.note); }, true);
+  ['statementDay', 'dueDay'].forEach(key => onIn(key, el => { F[key] = el.value.replace(/\D/g, '').slice(0, 2); setFieldValue(el, F[key]); validate(key); }, true));
   $('#f-number').addEventListener('blur', e => { setFieldValue(e.target, fmt(F.number, fNet(), false)); updatePreview(); if (F.number) validate('number'); });
   updatePreview();
   (F.review || []).forEach(k => validate(k));
@@ -1044,11 +1068,11 @@ function mountForm() {
 }
 function saveForm() {
   S.form.tried = true;
-  const bad = ['holder', 'number', 'exp', 'cvv', 'bank', 'type'].filter(k => !validate(k));
+  const bad = ['holder', 'number', 'exp', 'cvv', 'bank', 'type', 'statementDay', 'dueDay'].filter(k => !validate(k));
   if (bad.length) { const el = $('#f-' + bad[0]); scrollToEl(el, 'smooth'); if (!el.readOnly) el.focus({ preventScroll: true }); return; }
   const F = S.form, net = fNet();
   const still = (F.review || []).filter(k => { validate(k); return !!S.form.errors[k]; });
-  const data = { holderId: F.holderId, bankId: F.bankId, networkAuto: true, networkId: null, typeId: F.typeId, number: F.number, exp: F.exp, cvv: F.cvv, color: F.color, note: F.note.trim(), tagIds: [...F.tagIds], repairs: { ...(F.repairs || {}) }, needsReview: still };
+  const data = { holderId: F.holderId, bankId: F.bankId, networkAuto: true, networkId: null, typeId: F.typeId, number: F.number, exp: F.exp, cvv: F.cvv, color: F.color, note: F.note.trim(), statementDay: +F.statementDay || null, dueDay: +F.dueDay || null, tagIds: [...F.tagIds], repairs: { ...(F.repairs || {}) }, needsReview: still };
   let id = F.id;
   if (F.mode === 'edit') Object.assign(S.cards.find(c => c.id === id), data); else { id = uid(); S.cards.push({ id, ...data, pinned: false, pinnedAt: null, archived: false, archivedAt: null, archiveReason: null }); }
   S.stack = F.backStack && F.backStack.length ? F.backStack : [{ name: 'home' }];

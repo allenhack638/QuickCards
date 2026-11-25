@@ -38,6 +38,7 @@ sealed interface RowProblem {
     data class BankUnknown(val value: String) : RowProblem
     data class TypeUnknown(val value: String) : RowProblem
     data class HolderTooLong(val max: Int) : RowProblem
+    data object StatementDayInvalid : RowProblem
     data object DueDayInvalid : RowProblem
     data class NoteTooLong(val max: Int) : RowProblem
     data class RepeatedInFile(val firstRow: Int) : RowProblem
@@ -55,6 +56,7 @@ data class ImportedCard(
     val networkId: String,
     val bankName: String,
     val typeName: String,
+    val statementDay: Int?,
     val dueDay: Int?,
     val note: String
 )
@@ -214,7 +216,7 @@ object SheetChecker {
         if (yearRaw.isNotEmpty() && year == null) problems += RowProblem.YearInvalid
         val expiry = if (month != null && year != null) "%02d/%02d".format(Locale.ROOT, month, year % 100) else ""
 
-        // CVV, bank, type, due day, note.
+        // CVV, bank, type, statement and due days, note.
         val cvv = cell(ImportColumn.CVV)
         val cvvDigits = cvv.all(Char::isDigit)
         val bankRaw = cell(ImportColumn.BANK)
@@ -223,8 +225,11 @@ object SheetChecker {
         val typeRaw = cell(ImportColumn.TYPE)
         val typeName = if (typeRaw.isEmpty()) null else context.types.firstOrNull { ImportSchema.key(it) == ImportSchema.key(typeRaw) }
         if (typeRaw.isNotEmpty() && typeName == null) problems += RowProblem.TypeUnknown(typeRaw)
+        val statementRaw = cell(ImportColumn.STATEMENT_DAY)
+        val statementDay = ImportSchema.parseDay(statementRaw)
+        if (statementRaw.isNotEmpty() && statementDay == null) problems += RowProblem.StatementDayInvalid
         val dueRaw = cell(ImportColumn.DUE_DAY)
-        val dueDay = ImportSchema.parseDueDay(dueRaw)
+        val dueDay = ImportSchema.parseDay(dueRaw)
         if (dueRaw.isNotEmpty() && dueDay == null) problems += RowProblem.DueDayInvalid
         val note = cell(ImportColumn.NOTE)
         if (note.length > CardValidator.NOTE_MAX_LENGTH) problems += RowProblem.NoteTooLong(CardValidator.NOTE_MAX_LENGTH)
@@ -277,6 +282,7 @@ object SheetChecker {
                 networkId = picked!!.id,
                 bankName = bankName!!,
                 typeName = typeName!!,
+                statementDay = statementDay,
                 dueDay = dueDay,
                 note = note
             )

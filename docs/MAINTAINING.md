@@ -339,7 +339,7 @@ NFC reader instead.
 
 ### Database
 
-- Room database `quickcards_database`, **version 15**, `exportSchema = true`.
+- Room database `quickcards_database`, **version 16**, `exportSchema = true`.
 - Schema JSON: `app/schemas/com.quickcards.app.core.data.database.QuickCardsDatabase/<version>.json`.
 - Tables: `cards`, `banks`, `holders`, `networks`, `card_types`, `tags`, `card_tags`,
   `card_repairs`.
@@ -350,7 +350,8 @@ NFC reader instead.
   `archivedAt`, `archiveReason`, `needsReview`; create `card_repairs`),
   `MIGRATION_12_13` (add `dueDay`), `MIGRATION_13_14` (add `networks.cvvOptional`, on for
   built-in Maestro), `MIGRATION_14_15` (add `banks.color`, `cards.bandColorManual`; every
-  existing card is marked manual so none changes its look). No `fallbackToDestructiveMigration`.
+  existing card is marked manual so none changes its look), `MIGRATION_15_16` (add
+  `cards.statementDay`, nullable). No `fallbackToDestructiveMigration`.
 - Bank colours: `banks.color TEXT` (palette key or `#RRGGBB`, plaintext like the bank name;
   null = the built-in default from `BankColours`). `cards.bandColorManual` 1 = colour chosen
   by hand; 0 = `bandColor` follows the bank and `VaultRepository.setBankColour` repaints it.
@@ -380,8 +381,8 @@ NFC reader instead.
   when “Include settings” is ticked, which is the default).
   Card keys: `id, holderId, bankId, networkAuto, networkId, typeId, variant, number, exp,
   cvv, nameOnCard, color, note, tagIds, sortOrder, pinned, pinnedAt` and the
-  optional archive/review keys `archived, archivedAt, archiveReason, needsReview` and
-  `colorManual`. Older files lack the optional keys and import with `archived=false`,
+  optional archive/review keys `archived, archivedAt, archiveReason, needsReview`,
+  `colorManual` and the optional days `dueDay`, `statementDay` (1-31, anything else is dropped; `statementDay` is always written, null when empty, and a file without the key keeps the phone's value). Older files lack the optional keys and import with `archived=false`,
   `archivedAt=null`, `archiveReason=""`, `needsReview=0`, `colorManual=true` (like the
   14→15 migration) and banks with no stored colour.
 - Every import (format 1 and 2) runs `LegacyCardNormalizer` before the review and
@@ -493,7 +494,7 @@ digits + Luhn.
 - `domain/sheet/ImportSchema` is the single description of the sheet: columns and headings
   (`ImportColumn`), `VERSION` (bump on any column change), month/year/day labels, the network
   and bank list labels, and how typed values are read (`parseMonth`, `parseYear`,
-  `parseDueDay`, `columnFor`). Nothing else may spell a heading or a list value.
+  `parseDay`, `columnFor`). Nothing else may spell a heading or a list value.
 - Readers: `CsvReader` (comma/semicolon/tab, quotes, BOM, CRLF) and `XlsxReader` (zip + SAX,
   no library; "Cards" tab or the first; numbers arrive as stored, so `4.11111E+15` can be
   named). `SheetImporter.open` decides the kind from the bytes, never the file name, and
@@ -501,9 +502,9 @@ digits + Luhn.
 - `SheetChecker.check(grid, SheetContext)` is pure: finds the heading row (a banner above is
   fine), refuses a file with missing or unknown columns, then checks every row with the card
   form's rules (`CardValidator`, picked network as `assigned`) plus the sheet rules: all
-  columns but due day and note required; number digits only (spaces/dashes forgiven, nothing
+  columns but statement day, due day and note required; number digits only (spaces/dashes forgiven, nothing
   else); picked network must be the number's network; month/year lists; CVV required and the
-  network's length; bank = phone bank or catalog name/alias; type = phone type; due day 1-31;
+  network's length; bank = phone bank or catalog name/alias; type = phone type; statement day and due day 1-31;
   note <= 80; repeats in the file and cards already on the phone (same number+expiry+CVV =
   `ALREADY_IN_APP`, else "different details"). Every reason is a `RowProblem`;
   `SheetMessages` turns them into the user's sentences (`strings_import.xml`).
@@ -517,6 +518,9 @@ digits + Luhn.
   equal the schema, `DefaultNetworks`, `BankCatalog` and `SeedData`. After changing any of
   those, regenerate the sheet (`SheetTemplateTest` writes it to `domain/build/sheet/`),
   republish it and re-export the fixtures, or the test fails.
+- The public sheet may trail the schema by optional columns: `PublishedSheet` (test code) says
+  which version and headings it has today (version 1, no "Statement day"); the importer accepts
+  both. After republishing, set it to the schema and re-export the google-sheets-export fixtures.
 - End to end: `SheetImporterTest` (androidTest, API 26 emulator) imports the fixture files
   into an in-memory vault and re-imports them to prove the duplicate rule.
 - UI: `BackupHostState` owns the flow (`importChoiceOpen`, `sheetOpen`, `SheetStep`

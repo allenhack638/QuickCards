@@ -41,9 +41,8 @@
 
   /* on-art status tone (same in both themes; art is theme-independent): the expired date; >=7:1 on every pixel behind it (stripes masked + shade, Round 6) */
   --on-art-danger:#FFCBC2;
-  /* Round 7 (AUDIT6 P1-1): the ONE status chip fill on art (Expires soon, Check, Archived, Expired). White f1 text on it is >=7:1 on every
-     pixel of all 16 bands incl. graphite, measured from rendered pixels with the glyphs hidden (tools/r8/chip.mjs). "Last used" and the archive reason (.quiet) share the fill, without the ring, at 500 */
-  --on-art-chip:rgba(0,0,0,.30);
+  /* the Copy pill's frost on art: white 14% fill + 1dp white 26% ring; the status chip (D) reuses both */
+  --on-art-fill:rgba(255,255,255,.14); --on-art-ring:rgba(255,255,255,.26);
 }
 /* light (default) */
 :root,[data-theme="light"]{
@@ -281,11 +280,31 @@ body.shot-mode .topbar{display:none}
 .tile-num .dots{opacity:.72;margin-right:var(--s2)}
 .tile-exp{font-size:var(--f2);margin-left:var(--s3)}
 .tile .net{margin:calc(-1 * var(--s1)) calc(-1 * var(--s1)) calc(-1 * var(--s1)) 0}
-/* Round 8 (owner 5): ONE status chip for every status (Archived, Expired, Check, Expires soon, Last used, the archive reason): text only, never an
-   icon; f1/600 white on --on-art-chip, 1dp white 30% ring, min 20 (the meta line), r-xs. ONE slot: row 2 of the header grid (the subtitle line),
-   right-aligned and centred on that line; its right edge = the network mark's artwork right edge = the Copy pill's right edge (DOM, 0 px).
-   One chip per pass, by priority Archived > Expired > Check > Expires soon > Last used (QC.flag). .quiet only marks Last used / reason for scripts */
-.tile-flag{display:inline-flex;align-items:center;min-height:var(--lh2);padding:0 var(--s2);border-radius:var(--r-xs);font-size:var(--f1);line-height:var(--lh2);font-weight:var(--w-semibold);white-space:nowrap;color:#fff;background:var(--on-art-chip);box-shadow:0 0 0 1px rgba(255,255,255,.3) inset}
+/* Status chip (Round 9c, owner: "copy the chip styling from the Copy button, just slightly slimmer"): ONE chip for every status (Archived, Expired,
+   Check, Expires soon, Best today, Last used, the archive reason), one per pass by priority Archived > Expired > Check > Expires soon > Best today >
+   Last used (QC.flag). A slim, icon-free clone of .pill-copy: r-full, the Copy pill's fill + hairline ring (--on-art-fill, --on-art-ring), white,
+   weight medium (the Copy label), f1, 20 tall (= the meta line, adds 0 px), side padding s2. All statuses neutral: the word carries the meaning.
+   The pattern shows through (owner's choice over AA on some hues; worst 3.40 on ocean). ONE slot: row 2 of the header grid, right-aligned, centred
+   on the meta line; its right edge = the mark's artwork edge = the Copy pill's edge (0 px). .quiet only marks Last used / reason for scripts.
+   It is a button: tap opens the "why" sheet (QC.why). Hit area 48 tall (::before), its own width + 4, so a tap anywhere else on the pass still
+   opens the card. Compose: Text in a pill with Modifier.clickable(role = Button); Compose widens a sub-48 clickable's TOUCH bounds to 48 without
+   changing layout; do NOT add minimumInteractiveComponentSize(). The chip consumes its own tap. */
+.tile-flag{position:relative;z-index:2;display:inline-flex;align-items:center;min-height:var(--lh2);margin:0;padding:0 var(--s2);border-radius:var(--r-full);
+  font-size:var(--f1);line-height:var(--lh2);font-weight:var(--w-medium);letter-spacing:0;white-space:nowrap;color:#fff;background:var(--on-art-fill);box-shadow:0 0 0 1px var(--on-art-ring) inset;
+  cursor:pointer;transition:background var(--dur-state)}
+button.tile-flag{font-family:inherit}
+span.tile-flag{cursor:default}
+span.tile-flag::before{content:none}
+.tile-flag::before{content:"";position:absolute;left:calc(-1 * var(--s1));right:calc(-1 * var(--s1));top:50%;height:var(--hit);transform:translateY(-50%)}
+.tile-flag:active,.tile-flag.is-pressed{background:rgba(255,255,255,.24)}
+.tile-flag:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* the "why" sheet (QC.why): title + card line, <= 2 short body lines with the real dates, optional quiet basis line, footer [action] [Got it] */
+.why-body{padding:0 var(--s6);font-size:var(--f3);line-height:var(--lh3);color:var(--ink)}
+.why-body b{font-weight:var(--w-semibold)}
+/* why-sheet footer: [action outline] [Got it filled]; each label stays on one line; when both don't fit (large text) they stack, Got it on top */
+.sheet-actions.full.why{flex-wrap:wrap-reverse;row-gap:var(--s2)}
+.sheet-actions.full.why > .btn{flex:1 1 max-content;white-space:nowrap}
+.why-basis{padding:var(--s2) var(--s6) 0;font-size:var(--f2);line-height:var(--lh2);color:var(--ink-2)}
 /* Round 8 (owner 1): the note on the pass (Settings › Notes on cards): body-small, white 80%, AT MOST 2 lines with an ellipsis, and nothing else
    (no More/Less, no expanded state). The full note lives only on Card details. It sits above the open target, so a 500 ms hold copies it
    ("Note copied") and a tap still opens the card. TalkBack reads the whole note. Compose: Text(maxLines = 2, overflow = TextOverflow.Ellipsis) */
@@ -300,8 +319,6 @@ body.shot-mode .topbar{display:none}
 .is-expired-tile > .art-pat{-webkit-mask-image:linear-gradient(180deg,#000 25%,transparent 55%);mask-image:linear-gradient(180deg,#000 25%,transparent 55%)}
 .is-expired-tile > .art-bg{background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.24) 75%),
    radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.20),rgba(255,255,255,0) 55%),linear-gradient(135deg,var(--c1),var(--c2))}   /* a quiet shade under the digits band */
-/* P1-1: the Expired chip text is white on a dark fill (>=7:1); the warning tone sits only on its 1dp ring and the date */
-.is-expired-tile .tile-flag{color:#fff;background:var(--on-art-chip);box-shadow:0 0 0 1px var(--on-art-danger) inset}
 /* bill-due strip: s8 below the digits row, --due-gap from the card's sides and bottom (it bleeds tile padding - gap);
    concentric: strip r = r-lg - gap (12) so the band around its corners is even; Mark paid sits s1 inside at 12 - s1 (8), 40 in the 48 strip */
 .tile-due{--due-gap:var(--s2);display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--s2);min-height:var(--hit);margin:var(--s8) calc(var(--due-gap) - var(--s4)) calc(var(--due-gap) - var(--s4));padding:0 var(--s1) 0 var(--s2);border-radius:calc(var(--r-lg) - var(--due-gap));
@@ -775,6 +792,7 @@ button.row:active,.row.is-pressed{background:var(--state)}
 .ok{color:var(--ok)} .warn{color:var(--warn)}
 </style>
 <script>
+
 /* =====================================================================
    QC: shared data + string helpers. Parts may call these in inline
    <script> blocks; 99-foot hydrates icons, marks and art afterwards.
@@ -804,9 +822,9 @@ QC.hashHex = hex => { let h = 0x811c9dc5; for (const ch of String(hex).replace("
 QC.patFor = band => typeof band === "string" && QC.HUES[band] ? QC.HUES[band].pat : QC.PATS[QC.hashHex(typeof band === "string" ? band : band.c2) % QC.PATS.length];
 for (const k in QC.HUES){const h=QC.HUES[k];const n=parseInt(h.c2.slice(1),16);h.glow=`rgba(${n>>16},${(n>>8)&255},${n&255},.45)`;const w=k.replace("_"," ");h.name=w[0].toUpperCase()+w.slice(1)}
 QC.CARDS = { /* made-up data only. hue = the bank default from QC.BANK_COLOURS (part 25): HDFC navy, ICICI rust, Axis wine, SBI ocean */
-  hdfc:{id:"hdfc",bank:"HDFC Bank",type:"Credit",net:"visa",last:"0366",groups:["4532","7180","2299","0366"],holder:"Aarav Mehta",exp:"12/29",cvv:"482",note:"Use for fuel",hue:"navy",pinned:true,tags:["Fuel"],dueDay:22},
+  hdfc:{id:"hdfc",bank:"HDFC Bank",type:"Credit",net:"visa",last:"0366",groups:["4532","7180","2299","0366"],holder:"Aarav Mehta",exp:"12/29",cvv:"482",note:"Use for fuel",hue:"navy",pinned:true,tags:["Fuel"],statementDay:1,dueDay:22},
   icici:{id:"icici",bank:"ICICI Bank",type:"Debit",net:"mc",last:"4417",groups:["5312","8840","1733","4417"],holder:"Aarav Mehta",exp:"08/27",cvv:"915",note:"",hue:"rust"},
-  axis:{id:"axis",bank:"Axis Bank",type:"Credit",net:"rupay",last:"9021",groups:["6521","4408","3312","9021"],holder:"Diya Mehta",exp:"03/28",cvv:"307",note:"Travel card. 2 free lounge visits a quarter, 1% forex markup. Call the bank before a trip abroad.",hue:"wine",tags:["Travel"]},
+  axis:{id:"axis",bank:"Axis Bank",type:"Credit",net:"rupay",last:"9021",groups:["6521","4408","3312","9021"],holder:"Diya Mehta",exp:"03/28",cvv:"307",note:"Travel card. 2 free lounge visits a quarter, 1% forex markup. Call the bank before a trip abroad.",hue:"wine",tags:["Travel"],statementDay:5,dueDay:25},
   sbi:{id:"sbi",bank:"SBI",type:"Debit",net:"visa",last:"5530",groups:["4716","2205","8148","5530"],holder:"Aarav Mehta",exp:"11/26",cvv:"664",note:"",hue:"ocean"},
   /* an older SBI card, expired and archived (not in QC.ORDER) */
   sbiOld:{id:"sbiOld",bank:"SBI",type:"Credit",net:"rupay",last:"8812",groups:["6080","3127","4450","8812"],holder:"Diya Mehta",exp:"09/26",cvv:"190",note:"",hue:"slate",archived:true},
@@ -832,6 +850,16 @@ QC.dueN = c => { if (!c.dueDay || c.archived) return null; const T = QC.TODAY;
   const n = at(T.y, T.m); return n >= QC.todayN ? n : at(T.y + (T.m === 12 ? 1 : 0), T.m === 12 ? 1 : T.m + 1); };
 QC.dueText = c => { const n = QC.dueN(c); if (n === null) return ""; const k = n - QC.todayN;
   return k > QC.PREFS.dueWindow ? "" : k === 0 ? "Due today" : k === 1 ? "Due tomorrow" : `Due in ${k} days`; };
+/* Best today (BestCardRules): days from today to the due date of the statement a purchase made today lands on (a purchase on the statement
+   day lands on that day's bill; days clamp to short months). Among active Credit cards (type name, any case) with both days, no other status and no bill strip, the strict longest wait wins;
+   fewer than two or a tie = none. Today: axis 35 days, hdfc 32 */
+QC.onOrAfter = (day, from) => { const t = new Date(from * 864e5), y = t.getUTCFullYear(), m = t.getUTCMonth() + 1;
+  const at = (y, m) => QC.dayN(y, m, Math.min(day, new Date(Date.UTC(y, m, 0)).getUTCDate()));
+  const n = at(y, m); return n >= from ? n : at(y + (m === 12 ? 1 : 0), m === 12 ? 1 : m + 1); };
+QC.payDays = c => { const statement = QC.onOrAfter(c.statementDay, QC.todayN); return QC.onOrAfter(c.dueDay, statement + 1) - QC.todayN; };
+QC.best = () => { const ranked = Object.values(QC.CARDS).filter(c => !c.archived && !QC.status(c) && !QC.dueText(c) && c.type.trim().toLowerCase() === "credit" && c.statementDay && c.dueDay)
+  .map(c => ({id: c.id, days: QC.payDays(c)})).sort((a, b) => b.days - a.days);
+  return ranked.length >= 2 && ranked[0].days !== ranked[1].days ? ranked[0] : null; };
 /* lists: active cards in stored order, expired ones per PREFS.expired ("end" | "keep" | "hide"); archived cards never reach Home */
 QC.STORED = Object.keys(QC.CARDS);
 QC.ARCHIVED = QC.STORED.filter(id => QC.CARDS[id].archived);
@@ -883,17 +911,49 @@ QC.mini = (c, withMark=true) => { const card=QC.card(c);
    check (repair flag), inArchive (the Archived list: reason in the status chip), copyDisabled, holder:false, note:false}
    status sits on the meta line under the mark; the digits row never wraps; due adds the bill strip */
 /* AUDIT6 P2-1 + Round 8 (owner 5): ONE status slot and ONE chip for every pass (tile, details hero, Archived, adaptive, gallery). Derived from the
-   card + QC.TODAY + QC.PREFS; returns {flag (chip HTML), said (TalkBack suffix)}. One chip, by priority Archived > Expired > Check > Expires soon > Last used.
+   card + QC.TODAY + QC.PREFS; returns {flag (chip HTML), said (TalkBack suffix)}. One chip, by priority Archived > Expired > Check > Expires soon > Best today > Last used.
    Archived outside the Archived list = "Archived · reason"; inside it (o.inArchive) the chip is the reason alone. o.check: legacy repair flag ("Check",
    read as "Check details"; no icon). o.last: "Last used". o.srCheck: the chip itself carries "Check details" (hero: no button label) */
 QC.flag = (c, o={}) => { const status = QC.status(c);
   const arch = !c.archived ? "" : o.inArchive ? (c.reason || "") : (c.reason ? `Archived · ${c.reason}` : "Archived");
-  const kind = arch ? (o.inArchive ? "reason" : "arch") : status === "Expired" ? "expired" : o.check ? "check" : status ? "soon" : o.last ? "last" : "";
-  const text = {arch, reason:arch, expired:status, check:"Check", soon:status, last:"Last used"}[kind] || "";
-  const flag = !kind ? "" : kind === "check" ? `<span class="tile-flag"><span aria-hidden="true">Check</span>${o.srCheck?'<span class="sr">Check details</span>':""}</span>`
-    : `<span class="tile-flag${kind === "reason" || kind === "last" ? " quiet" : ""}">${text}</span>`;
-  const said = !kind ? "" : ", " + (kind === "check" ? "Check details" : text);
+  const best = QC.best(), bestDays = !c.archived && best && best.id === c.id ? best.days : null;
+  const kind = arch ? (o.inArchive ? "reason" : "arch") : status === "Expired" ? "expired" : o.check ? "check" : status ? "soon" : bestDays ? "best" : o.last ? "last" : "";
+  const text = {arch, reason:arch, expired:status, check:"Check", soon:status, best:"Best today", last:"Last used"}[kind] || "";
+  const bestSaid = `Best card today: ${bestDays} day${bestDays === 1 ? "" : "s"} to pay`;
+  /* Round 9: the chip is a button (tap = QC.why sheet) */
+  const vis = kind === "check" ? `<span aria-hidden="true">Check</span>${o.srCheck?'<span class="sr">Check details</span>':""}`
+    : kind === "best" ? `<span aria-hidden="true">Best today</span>${o.srCheck?`<span class="sr">${bestSaid}</span>`:""}` : text;
+  const flag = !kind ? "" : `<button type="button" class="tile-flag${kind === "reason" || kind === "last" ? " quiet" : ""}" data-why="${kind}" data-why-card="${c.id}" aria-haspopup="dialog" aria-description="Opens why">${vis}</button>`;
+  const said = !kind ? "" : ", " + (kind === "check" ? "Check details" : kind === "best" ? bestSaid : text);
   return {flag, said}; };
+/* Round 9 (owner): tapping a status chip explains it. One bottom sheet per status (QcHelpSheet family: hugs content, 24 inset, heading 2):
+   title (what) + the card (bank ••last), <= 2 short body lines with the real dates from the card + QC.TODAY, an optional quiet basis line,
+   footer [action] [Got it] (action outline, Got it filled; the action closes the sheet and opens Edit card, at the field when it has one).
+   Fail-closed: the action goes through Edit card's own unlock. kind = QC.flag's data-why. Compose: QcStatusSheet(status, card) in QcOverlays. */
+QC.why = (c, kind, o={}) => { c = QC.card(c); const T = QC.todayN, b = s => `<b>${s}</b>`, days = n => `${n} day${n === 1 ? "" : "s"}`;
+  const whenEnd = d => d === 0 ? "today" : d === 1 ? "tomorrow" : `in ${days(d)}`;
+  let title = "", body = "", basis = "", act = "";
+  if (kind === "best") { const st = QC.onOrAfter(c.statementDay, T), due = QC.onOrAfter(c.dueDay, st + 1);
+    title = "Best card to use today";
+    body = `Spends today land on the bill closing ${b(QC.fmtDay(st))}, due ${b(QC.fmtDay(due))}: ${b(days(due - T))} to pay.`;
+    basis = "Based on the statement and due days you entered."; act = "Change days"; }
+  else if (kind === "soon") { const d = QC.daysToExpiry(c);
+    title = `Expires ${c.exp}`;
+    body = `${d === 0 ? `Its last day is ${b("today")}` : `Its last day is ${b(QC.fmtDay(QC.expEnd(c)))}, ${whenEnd(d)}`}. Ask ${c.bank} for the new card, then update it here.`;
+    act = "Edit card"; }
+  else if (kind === "expired") { title = `Expired ${c.exp}`;
+    body = `It stopped working after ${b(QC.fmtDay(QC.expEnd(c)))}. Ask ${c.bank} for the new card, then update it here.`; act = "Edit card"; }
+  else if (kind === "check") { title = "Some details need a look";
+    body = `${o.what || "The expiry"} doesn’t fit this card’s rules. Fix it in Edit card.`; act = "Edit card"; }
+  else if (kind === "last") { title = "Last used";
+    body = `You copied this card most recently${o.at ? `, ${b(o.at)}` : ""}. It’s first in Recent when you search.`; }
+  else { title = c.reason ? `Archived · ${c.reason}` : "Archived";
+    body = `Kept out of Cards, autofill and reminders. Restore it from Manage › Archived.`; }
+  const id = `why-${kind}-${c.id}`;
+  return `<div class="scrim" data-why-close></div><div class="sheet" role="dialog" aria-labelledby="${id}" data-why-sheet><div class="sheet-handle"></div>
+    <div class="sheet-head col"><div class="sheet-title" id="${id}" role="heading" aria-level="2">${title}</div><div class="row-sub">${c.bank} ${QC.masked(c.last)}</div></div>
+    <p class="why-body">${body}</p>${basis ? `<p class="why-basis">${basis}</p>` : ""}
+    ${QC.sheetActions({primary:"Got it", tone:"filled", secondary:act || undefined, attrs:"data-why-close", secondaryAttrs:`data-why-act="${kind}"`}).replace("sheet-actions full", "sheet-actions full why")}</div>`; };
 QC.tile = (c, o={}) => { c=QC.card(c); const expired=QC.isExpired(c); const hue=expired?"graphite":c.hue; const pin=c.pinned&&!c.archived;
   /* o.copyDisabled: no screen lock, copying cannot succeed (fail-closed) */
   const status = QC.status(c), dueT = o.paid ? "" : QC.dueText(c);
@@ -1177,6 +1237,10 @@ const checkChips = `<div class="chips" role="group" aria-label="Filters"><button
 const checkView = QC.homeBar() + checkChips + `<div class="content">${tiles(RP.check, checkOpts)}</div>` + QC.navbar("cards");
 /* notes (Round 8, owner 1): Axis has a long note, shown as 2 lines + ellipsis (no More/Less); the full note is on Card details; a hold copies it */
 const noteView = homeView({body: tiles(QC.ORDER)});
+/* Round 9: one tile per chip. Best today (Axis, derived), Expires soon (SBI 11/26), Last used (ICICI), Expired (old SBI shown unarchived).
+   Notes off and no holder chips so all four passes fit one phone. */
+const expiredCard = {...QC.CARDS.sbiOld, archived:false};
+const chipsView = QC.homeBar() + `<div class="content pad-top"><div class="list">${QC.tile("axis",{note:false})}${QC.tile("sbi")}${QC.tile("icici",{lastId:"icici"})}${QC.tile(expiredCard)}</div></div>` + QC.navbar("cards");
 
 /* (b) long-press a tile: pressed layer while held, then the card actions sheet (same sheet as ⋮) */
 const pressed = list(QC.ORDER).replace('class="art tile" data-hue="navy"', 'class="art tile is-pressed" data-hue="navy"');
@@ -1211,8 +1275,28 @@ QC.addScreens("#shots-cards", [
   ["card-pinlimit", `Pin limit · if ${QC.PREFS.pinLimit} pinned`, QC.detailsScreen("icici"), QC.actionsSheet("icici", {pinnedCount:QC.PREFS.pinLimit})],
   ["home-repair", "Formats fixed", QC.homeBar() + QC.holderChips() + `<div class="content">${repairBanner}${tiles(QC.ORDER, checkOpts)}</div>` + QC.navbar("cards")],
   ["home-check", "Needs check", checkView],
-  ["home-search-archived", "Archived in search", homeView({search:true, q:"axis", body:tiles(find("axis"))})]
+  ["home-search-archived", "Archived in search", homeView({search:true, q:"axis", body:tiles(find("axis"))})],
+  /* Round 9 (owner): status chips (slim Copy pill) + tap -> "why" sheet */
+  ["home-chips", "Status chips", chipsView],
+  ["home-why-best", "Why · Best today", chipsView, QC.why("axis","best")],
+  ["home-why-soon", "Why · Expires soon", chipsView, QC.why("sbi","soon")],
+  ["home-why-expired", "Why · Expired", chipsView, QC.why(expiredCard,"expired")],
+  ["home-why-check", "Why · Check", checkView, QC.why("sbi","check")],
+  ["home-why-last", "Why · Last used", chipsView, QC.why("icici","last",{at:"today at 9:38"})],
+  ["home-why-archived", "Why · Archived", homeView({search:true, q:"axis", body:tiles(find("axis"))}), QC.why("axisOld","arch")]
 ]);
+/* Round 9: tap a status chip in any phone -> its why sheet over that phone; scrim, Got it or the action closes it. The chip is its own target:
+   the tile's open button never sees the tap (Compose: the chip's clickable consumes it). */
+document.addEventListener("click", e => {
+  const f = e.target.closest(".phone button.tile-flag[data-why]");
+  if (f) { e.preventDefault(); e.stopPropagation(); const p = f.closest(".phone"); p.querySelectorAll(":scope > [data-why-live]").forEach(x => x.remove());
+    const c = QC.CARDS[f.dataset.whyCard] || QC.CARDS[f.closest("[data-card]").dataset.card];
+    const card = f.closest(".is-expired-tile") && c.archived ? {...c, archived:false} : c;
+    const w = document.createElement("div"); w.setAttribute("data-why-live", ""); w.style.display = "contents"; w.innerHTML = QC.why(card, f.dataset.why); p.appendChild(w); QC.hydrate(w);
+    const g = w.querySelector("[data-why-close].btn"); if (g) g.focus(); return; }
+  const x = e.target.closest("[data-why-live] [data-why-close], [data-why-live] [data-why-act]");
+  if (x) { const w = x.closest("[data-why-live]"); const p = w.closest(".phone"); w.remove(); const back = p && p.querySelector("button.tile-flag[data-why]"); if (back) back.focus(); }
+}, true);
 
 /* keep overlays in sync with the card opened in the live phone */
 const syncOv = (p, id) => { p.querySelector("[data-sheet]").innerHTML = QC.actionsSheet(id); p.querySelector("[data-dialog]").innerHTML = QC.deleteDialog(id); QC.hydrate(p); };
@@ -1235,7 +1319,7 @@ const markUsed = (p, id) => {
   if (!p.matches("#home .phone, .phone[data-live]")) return;
   p.querySelectorAll(".tile .tile-flag.quiet").forEach(f => f.remove());
   const tile = p.querySelector(`.tile[data-card="${id}"]`), head = tile && tile.querySelector(".tile-head");
-  if (head && !head.querySelector(".tile-flag") && !tile.querySelector(".tile-due")) head.insertAdjacentHTML("beforeend", `<span class="tile-flag quiet">Last used</span>`);
+  if (head && !head.querySelector(".tile-flag") && !tile.querySelector(".tile-due")) head.insertAdjacentHTML("beforeend", `<button type="button" class="tile-flag quiet" data-why="last" data-why-card="${id}" aria-haspopup="dialog" aria-description="Opens why">Last used</button>`);
   const box = p.querySelector("[data-recent] .group"); if (!box) return;
   const ids = [id, ...[...box.querySelectorAll(".p10-rc")].map(r => r.dataset.card).filter(x => x !== id)].slice(0, 3);
   box.innerHTML = ids.map(x => rc(x)).join(""); QC.hydrate(box); };
@@ -1349,6 +1433,7 @@ const formMore = (f={}) => `<div class="content pad-top"><div class="stack">
   <div class="tf-row">${fld("Type", f.type, {pick:1, ph:"Credit or debit"})}${C().colourField(f.hue)}</div>
   <div><div class="p20-gh"><span>Tags</span><span class="p20-count">${(f.tags||[]).length} of 10</span></div>
     <div class="p20-wrap">${(f.tags||[]).map(t=>`<button class="chip has-x" aria-label="Remove tag ${t}">${t}${ic("close","xs")}</button>`).join("")}<button class="chip">${ic("add")}Add tag</button></div></div>
+  ${fld("Statement day (optional)", f.statement, {help:"On your bill as ‘statement date’", data:'inputmode="numeric"'})}
   ${fld("Due day (optional)", f.due, {ph:"1 to 31", data:'inputmode="numeric"'})}
   ${fld("Note (optional)", f.note, {ph:"Everyday spending"})}
 </div></div>`;
@@ -2641,6 +2726,7 @@ document.getElementById("p70-fnd").innerHTML = F.join("");
   <h2 class="sec-h">Components</h2>
   <div class="gal" id="gal"></div>
 </section>
+<style>.p80-chips{display:flex;flex-wrap:wrap;gap:var(--s3) var(--s2);padding:var(--s4)}</style>
 <script>
 (function(){
 const ic = QC.ic, st = (l, h, cls="") => `<div class="st ${cls}">${h}<span class="st-l">${l}</span></div>`;
@@ -2671,7 +2757,7 @@ G.push(cmp("Card tile",
   st("Note · fits in 2 lines", QC.tile("axis"), "full") + st("Note · longer: 2 lines + ellipsis", QC.tile(W("axis",{note:QC.CARDS.axis.note+" Lounge list and forex rates are on the bank site."})), "full") +
   st("Check (legacy repair)", QC.tile("sbi",{check:true}), "full") + st("Archived · in Archived (reason)", QC.tile("axisOld",{inArchive:true}), "full") +
   st("Archived · in main search", QC.tile("axisOld"), "full"),
-  ".art.tile · pad s4 · r-lg 20 · bank f3/600 · meta f2 white 80% · status chip f1 h20 on meta line · number f4 mono, one line, pill on its centre · gap s6 · due strip 48, inset s2, gap s6 · list gap s3 · open = full-bleed sibling button, Copy and Mark paid are separate buttons above it (never nested) · Last used: the most recently copied card, in the status chip, only when no status or due bill applies; never reorders · long-press (500ms, LONG_PRESS haptic) = card actions sheet; pressed layer white 10% · no ⋮ on the tile (it crowds the mark): actions = long-press, the details ⋮ and TalkBack customActions; tip 1 teaches the hold · status, bill strip and Last used are derived from the card's dates (no status parameter) · Expired chip: white f1/600 on --on-art-chip, 1dp --on-art-danger ring; the stripes fade out above the digits so the date (--on-art-danger) is ≥7:1 on every pixel behind it · Round 8: note (Notes on cards on) f2 white 80% under the meta, at most 2 lines with an ellipsis and nothing else (no More/Less, never expanded); the full note is on Card details; a 500 ms hold copies it (“Note copied” snackbar), a tap opens the card · ONE status chip (Archived, Expired, Check, Expires soon, Last used, archive reason): text only, no icon, f1/600 white on --on-art-chip, 1dp white 30% ring, min 20, r-xs; one slot on the subtitle line, right-aligned, centred on that line, right edge = mark artwork = Copy pill (0 px); one chip by priority Archived > Expired > Check > Expires soon > Last used · Check reads “Check details” · archived: the reason chip in Archived, “Archived · reason” in main search, never Last used · pattern follows colour (Foundations › Card art) · chips and pills use min-height, so they grow at 200%", "wide"));
+  ".art.tile · pad s4 · r-lg 20 · bank f3/600 · meta f2 white 80% · status chip f1 h20 on meta line · number f4 mono, one line, pill on its centre · gap s6 · due strip 48, inset s2, gap s6 · list gap s3 · open = full-bleed sibling button, Copy and Mark paid are separate buttons above it (never nested) · Last used: the most recently copied card, in the status chip, only when no status or due bill applies; never reorders · long-press (500ms, LONG_PRESS haptic) = card actions sheet; pressed layer white 10% · no ⋮ on the tile (it crowds the mark): actions = long-press, the details ⋮ and TalkBack customActions; tip 1 teaches the hold · status, bill strip and Last used are derived from the card's dates (no status parameter) · Expired: the same neutral chip; the stripes fade out above the digits so the date (--on-art-danger) is ≥7:1 on every pixel behind it · Round 8: note (Notes on cards on) f2 white 80% under the meta, at most 2 lines with an ellipsis and nothing else (no More/Less, never expanded); the full note is on Card details; a 500 ms hold copies it (“Note copied” snackbar), a tap opens the card · ONE status chip (Archived, Expired, Check, Expires soon, Best today, Last used, archive reason): text only, no icon, the slim Copy pill (white 14% fill, 1dp white 26% ring, f1/500 white, 20 tall, r-full); one slot on the subtitle line, right-aligned, centred on that line, right edge = mark artwork = Copy pill (0 px); one chip by priority Archived > Expired > Check > Expires soon > Best today > Last used · Check reads “Check details” · archived: the reason chip in Archived, “Archived · reason” in main search, never Last used · pattern follows colour (Foundations › Card art) · chips and pills use min-height, so they grow at 200%", "wide"));
 G.push(cmp("Recent (search)",
   st("Search open · empty query", `<div style="width:100%">${QC.p10.recent()}</div>`, "full") + st("Copied", `<div style="width:100%">${QC.p10.recent(QC.RECENT,{copied:"icici"})}</div>`, "full"),
   "last 3 copied cards, most recent first · group-label Recent · row 64: mini 40×26, bank + masked f3, type · holder f2 · copy disc 36 in 48 (in place: check on card hue + Copied, polite announcement, no snackbar) · row opens the card · hides once the query has text · search matches digits anywhere in the number, bank, holder, network, type, tag and note; results show only the last 4", "wide"));
@@ -2680,6 +2766,11 @@ G.push(cmp("Copy pill (on art)",
   st("Pressed", QC.art("wine","",`<div style="padding:var(--s4)"><button class="pill-copy" style="background:rgba(255,255,255,.24)">${ic("content_copy")}Copy</button></div>`)) +
   st("Copied", QC.art("forest","",`<div style="padding:var(--s4)"><button class="pill-copy is-copied"><span class="when-copied">${ic("check")}Copied</span></button></div>`)),
   "32 visible / 48 hit · white 14% + 1px white 26% ring · copied: white, text c2, check · 150ms · name “Copy HDFC Bank card number ending 0366” · announces “Card number copied” (polite)"));
+/* Round 9 (owner): the status chip, a slim clone of the Copy pill; six chips by priority on four bands (the lightest c2 stops + graphite) */
+const CHIPS = [["Archived","arch"],["Expired","expired"],["Check","check"],["Expires soon","soon"],["Best today","best"],["Last used","last"]];
+const chipBand = h => QC.art(h,"",`<div class="p80-chips">${CHIPS.map(([t,k]) => `<button type="button" class="tile-flag${k==="last"?" quiet":""}" data-why="${k}">${t}</button>`).join("")}</div>`);
+G.push(cmp("Status chip (on art)", ["ocean","burnt_orange","violet","graphite"].map(h => st(QC.HUES[h].name, chipBand(h), "full")).join(""),
+  "one per pass, priority Archived > Expired > Check > Expires soon > Best today > Last used · text only, all neutral · slim Copy pill: r-full, white 14% fill + white 26% 1dp ring (the Copy pill's own), white f1/500, 20 tall (= meta line, adds 0 px), side padding s2; the pattern shows through (owner's choice over AA on some hues: worst 3.40 on ocean) · 48 hit, own width + 4 · tap = why sheet", "wide"));
 G.push(cmp("Hero card", st("Details header", QC.hero("hdfc"), "full") + st("Revealed (hold)", QC.hero("axis",{revealNumber:true}), "full") +
   st("Expires soon · 11/26", QC.hero("sbi"), "full") + st("Expired · 09/26", QC.hero(W("sbiOld",{archived:false})), "full") + st("Check (legacy repair)", QC.hero("icici",{check:true}), "full"),
   ".art.hero · 328×207 (ISO ID-1) · number f5 mono · EMV chip 40×32 · mark white tone · status slot = QC.flag, shared with the tile: the same text-only chip on the type line, right edge = the mark's artwork edge; expired = graphite + Expired chip + date tone"));
@@ -2949,6 +3040,7 @@ F.push(box("Recovery · every error has a fix", `<table class="tbl"><tr><th>Erro
 F.push(box("Search, shortcuts, help", `<table class="tbl"><tr><th>Rule</th><th>Value</th></tr>
   <tr><td>Search matches</td><td>digits anywhere in the number (spaces ignored), bank, holder, network, type, tag and note (PRODUCT) · results show only the last 4, never more digits · no-match line “Try a bank, holder, tag or digits”</td></tr>
   <tr><td>Search opens on</td><td>Recent: the last 3 copied cards above the list; typing replaces it with matches</td></tr>
+  <tr><td>Best today</td><td>the one credit card with no other status whose bill for a purchase made today is due the furthest away (statement day + due day, both optional, 1 to 31); none with fewer than two such cards or a tie · status slot, above Last used · TalkBack “Best card today: N days to pay”</td></tr>
   <tr><td>Last used</td><td>the most recently copied card, in the tile's status slot when nothing else is there; the list never reorders</td></tr>
   <tr><td>Sample data</td><td>one dataset (4 active, 2 archived) + one today, Fri 20 Nov 2026 · Expired, Expires soon (within 1 month, PRODUCT default; order unchanged), the bill strip (3 days ahead), Last used, list order, archived (never on Home) and every count are derived from it · frames add only events: a copy, Paid, a repair flag, a removed card</td></tr>
   <tr><td>Long-press a tile</td><td>card actions sheet (same as ⋮) · TalkBack: tile customActions · no ⋮ on the tile (it crowds the mark); tip 1 teaches “Hold for more”</td></tr>

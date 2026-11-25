@@ -405,4 +405,54 @@ class CardFormViewModelTest {
         assertEquals("12/29", CardFieldInput.expiry("ab12xy29"))
         assertEquals(80, CardFieldInput.note("9".repeat(100)).length)
     }
+
+    @Test
+    fun statementDayLoadsFromTheCardAndKeepsTheFormClean() {
+        val card = VaultCard(
+            id = "c1",
+            number = visa,
+            expiry = "12/29",
+            cvv = "381",
+            holderId = "h1",
+            bankId = "b1",
+            typeId = "t1",
+            statementDay = 18,
+            dueDay = 5
+        )
+
+        val state = CardFormSession.forEdit(card, lists(), CardFormOptions(), today)
+
+        assertEquals("18", state.form.statementDay)
+        assertEquals("5", state.form.dueDay)
+        assertFalse(state.isDirty())
+        assertTrue(state.updateStatementDay("20").isDirty())
+        assertFalse(state.updateStatementDay("18").isDirty())
+    }
+
+    @Test
+    fun statementDayKeepsTwoDigitsAndFlagsADayOutsideTheMonth() {
+        val ready = session().updateNumber(visa).updateExpiry("12/29").updateCvv("381").selectBank("b1").selectType("t1")
+        assertTrue(ready.canSave())
+
+        assertEquals("12", ready.updateStatementDay("1a2 3").form.statementDay)
+        listOf("0", "32", "99").forEach { day ->
+            val state = ready.updateStatementDay(day)
+            assertFalse(day, state.form.statementDayValid)
+            assertFalse(day, state.canSave())
+        }
+        listOf("", "1", "31").forEach { day ->
+            val state = ready.updateStatementDay(day)
+            assertTrue(day, state.form.statementDayValid)
+            assertTrue(day, state.canSave())
+        }
+    }
+
+    @Test
+    fun aBadStatementOrDueDayNamesItselfOnTheDisabledSave() {
+        val ready = session().updateNumber(visa).updateExpiry("12/29").updateCvv("381").selectBank("b1").selectType("t1")
+
+        assertNull(ready.saveIssue())
+        assertEquals(SaveIssue.STATEMENT_DAY, ready.updateStatementDay("32").updateDueDay("40").saveIssue())
+        assertEquals(SaveIssue.DUE_DAY, ready.updateStatementDay("18").updateDueDay("0").saveIssue())
+    }
 }

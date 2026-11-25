@@ -77,4 +77,11 @@ class ExpiryStatusTest {
         assertEquals(ExpiryState.EXPIRES_SOON, ExpiryStatus.expiryState("10/26", today, 0))
         assertEquals(ExpiryState.VALID, ExpiryStatus.expiryState("11/26", today, 0))
     }
+
+    @Test
+    fun lastDayIsTheEndOfTheExpiryMonth() {
+        assertEquals(LocalDate.of(2026, 11, 30), ExpiryStatus.lastDay("11/26"))
+        assertEquals(LocalDate.of(2028, 2, 29), ExpiryStatus.lastDay("02/28"))
+        assertEquals(null, ExpiryStatus.lastDay("13/26"))
+    }
 }

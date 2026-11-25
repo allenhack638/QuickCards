@@ -1,6 +1,18 @@
 package com.quickcards.app.core.ui.components
 
 import androidx.compose.foundation.background
+import com.quickcards.app.R
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.layout.Layout
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,43 +43,69 @@ import com.quickcards.app.core.ui.theme.QcText
 import com.quickcards.app.core.ui.theme.QcTheme
 
 /**
- * The one status chip on card art (Check, Expires soon, Expired, Last used, Archived): text
- * only, white `f1` on `on-art-chip`, 1dp ring ([danger] rings it in `on-art-danger`).
- * [quiet] drops the ring for Last used and the archive reason.
+ * The one status chip on card art: a slim, icon-free Copy pill (its fill and hairline ring), white
+ * `f1`, 20 tall so it adds nothing to the meta line. Without [onClick] it is decoration (the card's
+ * own label says the status). With it, it is a button whose tap area is at least 48 tall and
+ * [QcSpacing.s1] wider each side, laid over the art without moving anything; [onLongClick] keeps
+ * the card's hold working on that area.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QcStatusChip(
     text: String,
     modifier: Modifier = Modifier,
-    danger: Boolean = false,
-    quiet: Boolean = false,
-    spokenText: String? = null
+    spokenText: String? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null
 ) {
-    Box(
-        modifier = modifier
-            .heightIn(min = QcSize.statusChip)
-            .background(PassColors.OnArtChip, QcShapes.xs)
-            .then(
-                if (quiet) {
-                    Modifier
-                } else {
-                    Modifier.border(
-                        QcSize.hairline,
-                        if (danger) PassColors.OnArtDanger else PassColors.OnArtChipRing,
-                        QcShapes.xs
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pill: @Composable () -> Unit = {
+        Box(
+            modifier = Modifier
+                .heightIn(min = QcSize.statusChip)
+                .background(if (pressed) PassColors.OnArtFillPressed else PassColors.OnArtFill, QcShapes.full)
+                .border(QcSize.hairline, PassColors.OnArtFillRing, QcShapes.full)
+                .padding(horizontal = QcSpacing.s2)
+                .clearAndSetSemantics { },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = text, style = QcText.F1, color = PassColors.OnArt, maxLines = 1)
+        }
+    }
+    if (onClick == null) {
+        Box(modifier) { pill() }
+        return
+    }
+    val whyLabel = stringResource(R.string.cards_status_why)
+    Layout(
+        modifier = modifier,
+        content = {
+            pill()
+            Box(
+                Modifier
+                    .combinedClickable(
+                        interactionSource = interaction,
+                        indication = null,
+                        role = Role.Button,
+                        onClickLabel = whyLabel,
+                        onLongClickLabel = onLongClickLabel,
+                        onLongClick = onLongClick,
+                        onClick = onClick
                     )
-                }
+                    .semantics { contentDescription = spokenText ?: text }
             )
-            .padding(horizontal = QcSpacing.s2)
-            .then(if (spokenText != null) Modifier.semantics { contentDescription = spokenText } else Modifier),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = if (quiet) QcText.F1 else QcText.F1Semibold,
-            color = PassColors.OnArt,
-            maxLines = 1
-        )
+        }
+    ) { measurables, constraints ->
+        val chip = measurables[0].measure(constraints.copy(minWidth = 0, minHeight = 0))
+        val dx = QcSpacing.s1.roundToPx()
+        val hitHeight = maxOf(chip.height, QcSize.hit.roundToPx())
+        val target = measurables[1].measure(Constraints.fixed(chip.width + 2 * dx, hitHeight))
+        layout(chip.width, chip.height) {
+            chip.place(0, 0)
+            target.place(-dx, (chip.height - hitHeight) / 2)
+        }
     }
 }
 

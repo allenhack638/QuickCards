@@ -174,6 +174,7 @@ class BackupCodecPropertyTest {
             variant = if (random.nextBoolean()) "" else word(random),
             note = note(random),
             dueDay = if (random.nextBoolean()) null else random.nextInt(1, 32),
+            statementDay = if (random.nextBoolean()) null else random.nextInt(1, 32),
             color = BandColor.ALL.random(random),
             tagIds = tags.filter { random.nextBoolean() }.map { it.id },
             sortOrder = random.nextInt(-5, 6),

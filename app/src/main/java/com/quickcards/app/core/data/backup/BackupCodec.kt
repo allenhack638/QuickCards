@@ -3,6 +3,7 @@ package com.quickcards.app.core.data.backup
 import com.quickcards.domain.BACKUP_FORMAT
 import com.quickcards.domain.BACKUP_APP_NAME
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
@@ -92,6 +93,7 @@ object BackupCodec {
                     addProperty("colorManual", card.colorManual)
                     addProperty("note", card.note)
                     card.dueDay?.let { addProperty("dueDay", it) }
+                    addNullableInt("statementDay", card.statementDay)
                     add("tagIds", JsonArray().apply { card.tagIds.forEach(::add) })
                     addProperty("sortOrder", card.sortOrder)
                     addProperty("pinned", card.pinned)
@@ -106,7 +108,8 @@ object BackupCodec {
         content.settings?.let { settings ->
             root.add("cfg", Gson().toJsonTree(settings))
         }
-        return Gson().toJson(root)
+        // Nulls are written so an empty statement day still reads as known (a missing key keeps the phone's value).
+        return GsonBuilder().serializeNulls().create().toJson(root)
     }
 
     fun isEncrypted(fileText: String): Boolean {
@@ -226,6 +229,7 @@ object BackupCodec {
                     }
                 }
             }
+            val statementDay = item.intOrNull("statementDay")?.takeIf { it in 1..31 }
             cards += BackupCard(
                 id = item.stringOrNull("id") ?: "card-$index",
                 number = number,
@@ -240,6 +244,9 @@ object BackupCodec {
                 variant = item.string("variant"),
                 note = item.string("note"),
                 dueDay = item.intOrNull("dueDay")?.takeIf { it in 1..31 },
+                statementDay = statementDay,
+                // An empty day (null) still applies; a missing or unreadable one keeps the phone's.
+                statementDayKnown = statementDay != null || item.get("statementDay")?.isJsonNull == true,
                 color = normalizeBand(item.stringOrNull("color")),
                 colorManual = item.booleanOrNull("colorManual") ?: true,
                 tagIds = tagIds.distinct(),
@@ -331,6 +338,7 @@ object BackupCodec {
 
             cards += BackupCard(
                 id = "legacy-card-${index + 1}",
+                statementDayKnown = false,
                 number = number,
                 exp = item.string("expiryDate"),
                 cvv = item.string("cvv"),
@@ -452,6 +460,14 @@ object BackupCodec {
     }
 
     private fun JsonObject.addNullableString(key: String, value: String?) {
+        if (value == null) {
+            add(key, JsonNull.INSTANCE)
+        } else {
+            addProperty(key, value)
+        }
+    }
+
+    private fun JsonObject.addNullableInt(key: String, value: Int?) {
         if (value == null) {
             add(key, JsonNull.INSTANCE)
         } else {

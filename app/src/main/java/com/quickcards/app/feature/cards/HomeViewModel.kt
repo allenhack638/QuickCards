@@ -71,6 +71,10 @@ data class HomeUiState(
     val repairSummary: RepairSummary? = null,
     /** The last three copied cards, newest first; the first one is "Last used". */
     val recentCards: List<HomeCard> = emptyList(),
+    /** When the "Last used" card was copied. */
+    val lastUsedAt: Long? = null,
+    /** The day every status (expiry, due strip, Best today) was worked out for. */
+    val today: LocalDate = LocalDate.now(),
     val showTips: Boolean = false,
     val searchOn: Boolean = false,
     val query: String = "",
@@ -314,7 +318,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     ): HomeUiState {
         val mapper = HomeCardMapper(lists.networks, lists.holders, lists.banks, lists.types, tags, bankFallback)
         val today = due.day
-        val allCards = lists.cards.map { card ->
+        val mapped = lists.cards.map { card ->
             val dueDate = if (due.enabled && !card.archived) ReminderRules.dueReminderDate(card.dueDay, today) else null
             val dueKey = dueDate?.let { ReminderRules.dueKey(card.id, it) }
             mapper.map(card, today, options.expiresSoonMonths).copy(
@@ -323,7 +327,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 dueKey = dueKey
             )
         }
+        val allCards = CardUseStatus.withBestToday(mapped, today)
         val cards = allCards.filterNot { it.card.archived }
+        val recent = CardUseStatus.recentCards(cards, extras.usage)
         val entries = cards.map { it.entry }
         val holderRefs = lists.holders.map { NamedRef(it.id, it.name) }
         val bankRefs = lists.banks.map { NamedRef(it.id, it.name) }
@@ -367,7 +373,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     ui.reviewOnly
             ),
             repairSummary = repair,
-            recentCards = CardUseStatus.recentCards(cards, extras.usage),
+            recentCards = recent,
+            lastUsedAt = recent.firstOrNull()?.let { extras.usage[it.id] },
+            today = today,
             showTips = !extras.tipsSeen && allCards.isEmpty(),
             searchOn = ui.search.on,
             query = ui.search.query,

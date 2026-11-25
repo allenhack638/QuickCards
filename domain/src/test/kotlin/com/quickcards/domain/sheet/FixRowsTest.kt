@@ -19,8 +19,8 @@ class FixRowsTest {
 
     @Test
     fun `rows to fix carry the original cells, the row number and the reasons, and read back`() {
-        val good = listOf("Priya", "4111111111111111", "8", "2029", "123", "Visa", "HDFC Bank", "Credit", "", "")
-        val bad = listOf("Priya", "4111111111111112", "13", "2029", "12", "Visa", "HDFC Bank", "Credit", "", "x, y")
+        val good = listOf("Priya", "4111111111111111", "8", "2029", "123", "Visa", "HDFC Bank", "Credit", "", "", "")
+        val bad = listOf("Priya", "4111111111111112", "13", "2029", "12", "Visa", "HDFC Bank", "Credit", "", "", "x, y")
         val report = SheetChecker.check(listOf(ImportSchema.headers, good, bad), context)
 
         val grid = report.fixRows { it::class.simpleName.orEmpty() }

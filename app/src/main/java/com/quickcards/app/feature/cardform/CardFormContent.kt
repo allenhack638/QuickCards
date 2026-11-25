@@ -145,6 +145,7 @@ internal fun CardFormContent(
     val numberFocus = remember { FocusRequester() }
     val expiryFocus = remember { FocusRequester() }
     val cvvFocus = remember { FocusRequester() }
+    val statementDayFocus = remember { FocusRequester() }
     val dueDayFocus = remember { FocusRequester() }
     val noteFocus = remember { FocusRequester() }
     fun nextTo(target: FocusRequester) = KeyboardActions(onNext = { runCatching { target.requestFocus() } })
@@ -153,6 +154,7 @@ internal fun CardFormContent(
     var expiryValue by remember { mutableStateOf(TextFieldValue("")) }
     var cvvValue by remember { mutableStateOf(TextFieldValue("")) }
     var noteValue by remember { mutableStateOf(TextFieldValue("")) }
+    var statementDayValue by remember { mutableStateOf(TextFieldValue(form.statementDay)) }
     var dueDayValue by remember { mutableStateOf(TextFieldValue(form.dueDay)) }
 
     val numberDisplay = form.formattedNumber(lists.networks, typing = numberFocused)
@@ -167,6 +169,11 @@ internal fun CardFormContent(
     }
     LaunchedEffect(form.note) {
         if (noteValue.text != form.note) noteValue = TextFieldValue(form.note, TextRange(form.note.length))
+    }
+    LaunchedEffect(form.statementDay) {
+        if (statementDayValue.text != form.statementDay) {
+            statementDayValue = TextFieldValue(form.statementDay, TextRange(form.statementDay.length))
+        }
     }
     LaunchedEffect(form.dueDay) {
         if (dueDayValue.text != form.dueDay) dueDayValue = TextFieldValue(form.dueDay, TextRange(form.dueDay.length))
@@ -425,7 +432,7 @@ internal fun CardFormContent(
                     helper = cvvRepair?.let { stringResource(R.string.form_repair_changed_from, it) }.orEmpty(),
                     error = cardErrorText(form.errors[Field.CVV]),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
-                    keyboardActions = nextTo(dueDayFocus),
+                    keyboardActions = nextTo(statementDayFocus),
                     visualTransformation = if (cvvShown) VisualTransformation.None else QcMask,
                     fieldTag = "form_cvv",
                     focusRequester = cvvFocus,
@@ -512,6 +519,22 @@ internal fun CardFormContent(
                     if (session.canAddTag()) AddTagChip(onClick = { sheet = FormSheet.Tags })
                 }
             }
+
+            FormTextField(
+                value = statementDayValue,
+                onValueChange = { input ->
+                    val next = input.text.filter(Char::isDigit).take(2)
+                    viewModel.updateStatementDay(next)
+                    statementDayValue = TextFieldValue(next, TextRange(next.length))
+                },
+                label = stringResource(R.string.form_statement_day_label),
+                helper = stringResource(R.string.form_statement_day_helper),
+                error = if (form.statementDayValid) null else stringResource(R.string.form_statement_day_error),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                keyboardActions = nextTo(dueDayFocus),
+                fieldTag = "form_statement_day",
+                focusRequester = statementDayFocus
+            )
 
             FormTextField(
                 value = dueDayValue,

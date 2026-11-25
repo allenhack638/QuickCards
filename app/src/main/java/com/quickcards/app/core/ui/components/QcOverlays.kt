@@ -42,6 +42,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -169,7 +171,8 @@ private fun QcSheetDragHandle() {
  * Sheet footer, 24 below the content and 16 above the gesture area. A lone [primary] is a
  * full-width tonal button (Done); with a [secondary] (Cancel, outlined) the primary is filled
  * brand. [note] names what a disabled primary is missing, in one line above it. [primaryIcon]
- * leads the primary's label (Choose file, Delete file).
+ * leads the primary's label (Choose file, Delete file). [stackWhenTight] stacks the pair, primary on
+ * top, only when either label would not fit its half on one line (large text).
  */
 @Composable
 fun QcSheetActions(
@@ -183,7 +186,8 @@ fun QcSheetActions(
     note: String? = null,
     stack: Boolean = false,
     sideInset: Dp = QcSpacing.s6,
-    primaryIcon: ImageVector? = null
+    primaryIcon: ImageVector? = null,
+    stackWhenTight: Boolean = false
 ) {
     Column(
         modifier = modifier
@@ -215,10 +219,40 @@ fun QcSheetActions(
         if (stack) {
             primaryButton(Modifier.fillMaxWidth())
             secondaryButton(Modifier.fillMaxWidth())
+        } else if (stackWhenTight && secondary != null) {
+            SideBySideOrStacked(first = { secondaryButton(Modifier) }, second = { primaryButton(Modifier) })
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(QcSpacing.s3)) {
                 secondaryButton(Modifier.weight(1f))
                 primaryButton(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** [first] and [second] in equal halves, or stacked full width with [second] on top when either needs more than its half. */
+@Composable
+private fun SideBySideOrStacked(first: @Composable () -> Unit, second: @Composable () -> Unit) {
+    Layout(contents = listOf(first, second)) { (firstItems, secondItems), constraints ->
+        val gap = QcSpacing.s3.roundToPx()
+        val stackGap = QcSpacing.s2.roundToPx()
+        val half = (constraints.maxWidth - gap) / 2
+        val a = firstItems.single()
+        val b = secondItems.single()
+        val fits = a.maxIntrinsicWidth(Constraints.Infinity) <= half && b.maxIntrinsicWidth(Constraints.Infinity) <= half
+        if (fits) {
+            val pa = a.measure(Constraints.fixedWidth(half))
+            val pb = b.measure(Constraints.fixedWidth(half))
+            layout(constraints.maxWidth, maxOf(pa.height, pb.height)) {
+                pa.place(0, 0)
+                pb.place(half + gap, 0)
+            }
+        } else {
+            val pb = b.measure(Constraints.fixedWidth(constraints.maxWidth))
+            val pa = a.measure(Constraints.fixedWidth(constraints.maxWidth))
+            layout(constraints.maxWidth, pb.height + stackGap + pa.height) {
+                pb.place(0, 0)
+                pa.place(0, pb.height + stackGap)
             }
         }
     }

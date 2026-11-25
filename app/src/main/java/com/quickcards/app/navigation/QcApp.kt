@@ -266,12 +266,14 @@ fun QcApp() {
                                                     onOpenArchived = { navController.navigate(ROUTE_ARCHIVED) },
                                                     onOpenCard = onOpen,
                                                     onCardActions = cardActions::open,
+                                                    onStatus = cardActions::explain,
                                                     selectedId = selectedId,
                                                     chipsInBar = window.compactHeight
                                                 )
                                             },
                                             onEdit = openEdit,
-                                            onActions = cardActions::open
+                                            onActions = cardActions::open,
+                                            onStatus = cardActions::explain
                                         )
                                         val cardsWithDetail: @Composable (String?, (String) -> Unit, () -> Unit) -> Unit = { selectedId, onOpen, onGone ->
                                             CardsWithDetail(window, homeState, selectedId, contentBottomInset, paneActions, onOpen, onGone)
@@ -388,6 +390,7 @@ fun QcApp() {
                                                     onBack = { navController.popBackStack() },
                                                     onEdit = openEdit,
                                                     onActions = cardActions::open,
+                                                    onStatus = cardActions::explain,
                                                     layout = if (window.sideBySideDetails) DetailsLayout.SIDE else DetailsLayout.STACKED,
                                                     maskNumber = homeState.options.maskNumbers
                                                 )
@@ -466,7 +469,14 @@ fun QcApp() {
                 }
             }
             BackupHost(state = backupHostState, onHelpTopic = openHelpTopic)
-            CardActionsHost(state = cardActions, cards = homeState.allCards, onEdit = openEdit)
+            CardActionsHost(
+                state = cardActions,
+                cards = homeState.allCards,
+                lastUsedId = homeState.lastUsedId,
+                lastUsedAt = homeState.lastUsedAt,
+                today = homeState.today,
+                onEdit = openEdit
+            )
             AppLockHost(locked = locked)
         }
     }

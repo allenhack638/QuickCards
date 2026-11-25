@@ -81,6 +81,7 @@ fun CardDetailsScreen(
     onBack: () -> Unit,
     onEdit: (cardId: String) -> Unit,
     onActions: (cardId: String) -> Unit,
+    onStatus: (cardId: String) -> Unit,
     layout: DetailsLayout = DetailsLayout.STACKED,
     showBack: Boolean = true,
     maskNumber: Boolean = true
@@ -175,7 +176,13 @@ fun CardDetailsScreen(
             QcIconButton(QcIcons.more, stringResource(R.string.details_more), { onActions(shown.id) })
         }
     }
-    val hero: @Composable (Modifier) -> Unit = { modifier -> CardHero(card = shown, status = status, modifier = modifier, maskNumber = maskNumber) }
+    val hero: @Composable (Modifier) -> Unit = { modifier -> CardHero(
+        card = shown,
+        status = status,
+        modifier = modifier,
+        maskNumber = maskNumber,
+        onStatus = { onStatus(shown.id) }
+    ) }
     val keysStacked = rememberKeysStacked(rows.map { it.second.label })
     val group: @Composable (Modifier) -> Unit = { modifier ->
         QcGroup(modifier = modifier) {

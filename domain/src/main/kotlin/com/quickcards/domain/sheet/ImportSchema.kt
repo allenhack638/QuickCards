@@ -15,6 +15,7 @@ enum class ImportColumn(val key: String, val header: String, val required: Boole
     NETWORK("network", "Network", true),
     BANK("bank", "Bank", true),
     TYPE("type", "Card type", true),
+    STATEMENT_DAY("statementDay", "Statement day", false),
     DUE_DAY("dueDay", "Payment due day", false),
     NOTE("note", "Note", false);
 
@@ -30,7 +31,7 @@ enum class ImportColumn(val key: String, val header: String, val required: Boole
 object ImportSchema {
 
     /** Bumped whenever a column is added, removed or renamed; stamped into generated sheets. */
-    const val VERSION = 1
+    const val VERSION = 2
 
     const val MAX_ROWS = 2_000
     const val MAX_FILE_BYTES = 5L * 1024 * 1024
@@ -98,5 +99,5 @@ object ImportSchema {
     }
 
     /** 1..31 from "5" or "05"; null for blank or anything else. */
-    fun parseDueDay(raw: String): Int? = raw.trim().takeIf { it.isNotEmpty() && it.all(Char::isDigit) }?.toIntOrNull()?.takeIf { it in 1..31 }
+    fun parseDay(raw: String): Int? = raw.trim().takeIf { it.isNotEmpty() && it.all(Char::isDigit) }?.toIntOrNull()?.takeIf { it in 1..31 }
 }

@@ -69,7 +69,7 @@ object CardFieldInput {
 
 /** The one line above a disabled Save: the first missing or wrong item, in form order. */
 enum class SaveIssue {
-    HOLDER, NUMBER_MISSING, NUMBER_BAD, EXPIRY_MISSING, EXPIRY_BAD, CVV_MISSING, CVV_BAD, BANK, TYPE
+    HOLDER, NUMBER_MISSING, NUMBER_BAD, EXPIRY_MISSING, EXPIRY_BAD, CVV_MISSING, CVV_BAD, BANK, TYPE, STATEMENT_DAY, DUE_DAY
 }
 
 /** A saved card with the same number: its id (for Open) and bank name. */
@@ -95,6 +95,7 @@ data class CardFormModel(
     /** True once the colour was chosen by hand; otherwise it follows the bank. */
     val bandColorManual: Boolean = false,
     val note: String = "",
+    val statementDay: String = "",
     val dueDay: String = "",
     val errors: Map<Field, CardError> = emptyMap(),
     val tried: Boolean = false
@@ -103,6 +104,8 @@ data class CardFormModel(
 
     /** Empty means no reminder; anything else must be a day of the month. */
     val dueDayValid: Boolean get() = dueDay.isEmpty() || dueDay.toIntOrNull() in 1..31
+
+    val statementDayValid: Boolean get() = statementDay.isEmpty() || statementDay.toIntOrNull() in 1..31
 
     fun network(networks: List<CardNetwork>): CardNetwork? =
         CardNumberRules.detect(number, networks)
@@ -138,6 +141,7 @@ data class CardFormModel(
         bandColor,
         bandColorManual,
         note,
+        statementDay,
         dueDay
     )
 
@@ -168,6 +172,7 @@ data class CardFormModel(
             bandColor = card.bandColor,
             bandColorManual = card.bandColorManual,
             note = card.note,
+            statementDay = card.statementDay?.toString().orEmpty(),
             dueDay = card.dueDay?.toString().orEmpty()
         )
     }
@@ -293,12 +298,14 @@ data class CardFormSession(
             Field.CVV in errors -> SaveIssue.CVV_BAD
             Field.BANK in errors -> SaveIssue.BANK
             Field.TYPE in errors -> SaveIssue.TYPE
+            !form.statementDayValid -> SaveIssue.STATEMENT_DAY
+            !form.dueDayValid -> SaveIssue.DUE_DAY
             else -> null
         }
     }
 
     /** Save is on once the form is valid; Edit also needs a real change. */
-    fun canSave(): Boolean = saveIssue() == null && form.dueDayValid && (!form.isEdit || isDirty())
+    fun canSave(): Boolean = saveIssue() == null && (!form.isEdit || isDirty())
 
     fun withError(field: Field, message: CardError?): CardFormSession =
         withForm(form.withError(field, message))
@@ -352,6 +359,9 @@ data class CardFormSession(
     /** Digits only, at most two; an out-of-range day is kept and flagged so typing never vanishes. */
     fun updateDueDay(raw: String): CardFormSession =
         withForm(form.copy(dueDay = raw.filter(Char::isDigit).take(2)))
+
+    fun updateStatementDay(raw: String): CardFormSession =
+        withForm(form.copy(statementDay = raw.filter(Char::isDigit).take(2)))
 
     fun updateNote(raw: String): CardFormSession = withForm(
         form.copy(note = raw.take(CardValidator.NOTE_MAX_LENGTH))

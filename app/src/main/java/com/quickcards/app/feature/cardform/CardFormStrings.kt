@@ -52,5 +52,7 @@ internal fun saveIssueText(issue: SaveIssue): String = stringResource(
         SaveIssue.CVV_BAD -> R.string.form_save_bad_cvv
         SaveIssue.BANK -> R.string.form_save_missing_bank
         SaveIssue.TYPE -> R.string.form_save_missing_type
+        SaveIssue.STATEMENT_DAY -> R.string.form_save_bad_statement_day
+        SaveIssue.DUE_DAY -> R.string.form_save_bad_due_day
     }
 )

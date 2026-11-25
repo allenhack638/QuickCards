@@ -152,7 +152,7 @@
 <section class="hero">
   <h1>From a card list to a multi-holder vault</h1>
   <p>Every iteration of the QuickCards redesign in one place: what we started from, the direction we chose, each working prototype, and the complete design system the Android build follows. The v2 prototype below is live; tap inside it.</p>
-  <div class="stats"><div><b>13</b>iterations</div><div><b>1</b>live prototype</div><div><b id="statNets">10</b>card networks supported</div><div><b>5</b>managed lists</div></div>
+  <div class="stats"><div><b>14</b>iterations</div><div><b>1</b>live prototype</div><div><b id="statNets">10</b>card networks supported</div><div><b>5</b>managed lists</div></div>
 </section>
 
 <h2 class="sec" id="timeline">Timeline</h2>
@@ -386,8 +386,8 @@
   </article>
 
   <!-- it13 — Breathing room, status row & colours (2026-10-25) -->
-  <article class="step now" id="it13"><span class="dot">13</span>
-    <div class="meta">25 Oct 2026 <span class="pill red">Current</span> <span class="pill">Form &amp; palette</span></div>
+  <article class="step" id="it13"><span class="dot">13</span>
+    <div class="meta">25 Oct 2026 <span class="pill">Form &amp; palette</span></div>
     <h3>Breathing room, status row &amp; colours</h3>
     <p>The Add/Edit form gets more space around its fields, the pass status flags move onto one compact row, and the palette grows from five bands to sixteen plus a custom colour. The card's colour still lives in the same TEXT column, so nothing migrates and nothing leaves the phone.</p>
     <div class="box"><ul>
@@ -398,6 +398,19 @@
       <li><b>Custom colour.</b> A seventeenth swatch with a conic rainbow outline opens <b>Custom colour</b>: an HSV wheel and brightness slider, a six-character uppercase <b>Hex</b> field with the reserved helper line, a live mini pass preview (“Preview” band over its body tint) and up to five <b>Recent</b> swatches. A colour under 4.5:1 against white shows “Too light for white card text. Choose a darker shade.” and disables <b>Use colour</b>. Actions are Cancel / Use colour.</li>
       <li><b>Stored as text.</b> The band column accepts a curated key or <code>#RRGGBB</code>; <code>PassColors.band(key)</code> parses the hex and an unknown value falls back to navy. No schema change. Format 2 round-trips a custom hex; format 1 keeps a readable legacy hex exactly and snaps an unreadable one to the nearest of the sixteen curated bands.</li>
       <li><b>Accessible names.</b> “{Name} colour” for each curated swatch and “Custom colour, #RRGGBB” for a selected custom colour. Labels stay flush with the field outline and dark and light both keep the derived body tint and 1px edge.</li>
+    </ul></div>
+  </article>
+
+  <!-- it14 — Best card today (2026-11-25) -->
+  <article class="step now" id="it14"><span class="dot">14</span>
+    <div class="meta">25 Nov 2026 <span class="pill red">Current</span> <span class="pill">Cards</span></div>
+    <h3>Best card today</h3>
+    <p>A card can carry an optional statement day next to its due day. With both set on at least two credit cards, the one that gives the longest wait before a purchase made today must be paid shows a quiet <b>Best today</b> status chip.</p>
+    <div class="box"><ul>
+      <li><b>The rule.</b> A purchase made today lands on the next statement on or after today (a purchase on the statement day lands on that day's bill); it is due on the first due day after that statement. Days past a short month's end count as its last day. Only credit cards (type named Credit) with no other status compete; a tie or a lone card shows nothing.</li>
+      <li><b>One chip.</b> Same slot, text and style as the other statuses, no icon, priority Archived &gt; Expired &gt; Check &gt; Expires soon &gt; Best today &gt; Last used. TalkBack reads “Best card today: N days to pay”. It rolls over at midnight.</li>
+      <li><b>Status chips, round 9.</b> Every chip is a slim, icon-free Copy pill (white 14% fill, white 26% ring, 20 tall, all statuses neutral; the pattern shows through by owner choice, worst 3.40:1 on ocean). Tapping one opens a short sheet that explains it with the card's real dates (Best today, Expires soon, Expired, Check, Last used, Archived) and offers Edit card or Change days. Best today skips a card that shows a due strip.</li>
+      <li><b>Data.</b> <code>cards.statementDay INTEGER</code> (Room 15 → 16, non-destructive); backups carry the optional <code>statementDay</code> key and older files keep the phone's statement days.</li>
     </ul></div>
   </article>
 </div>
@@ -618,6 +631,8 @@
   <tr><td>Bank</td><td class="m">Required. Searchable list, or a new bank created in place.</td><td>Choose the bank</td></tr>
   <tr><td>Card type</td><td class="m">Required. Pick one; cards saved before 2.6 without a type ask for one when edited.</td><td>Choose the card type</td></tr>
   <tr><td>Tags</td><td class="m">Up to the per-card limit; Add tag disappears at the limit.</td><td>Up to 3 tags per card</td></tr>
+  <tr><td>Statement day</td><td class="m">Optional, 1 to 31 (digits only, two at most). With the due day it decides Best today.</td><td>Enter 1 to 31</td></tr>
+  <tr><td>Due day</td><td class="m">Optional, 1 to 31 (digits only, two at most). Drives the payment reminder.</td><td>Enter 1 to 31</td></tr>
   <tr><td>Note</td><td class="m">Optional, up to 80 characters, with counter.</td><td>—</td></tr>
 </tbody></table></div>
  <p>The network is detected from the longest matching start of the number and is never set by hand. An unknown number shows no badge and is checked as 12 to 19 digits with Luhn. <b>Past dates are valid:</b> a card is expired after the last day of its expiry month, and that is never a form error.</p>

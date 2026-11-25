@@ -167,6 +167,45 @@ class BackupCodecTest {
     }
 
     @Test
+    fun `format 2 round trip keeps the statement day and drops an out of range one`() {
+        val base = sampleContent()
+        val withStatement = base.copy(
+            cards = base.cards.mapIndexed { i, card -> card.copy(statementDay = if (i == 0) 18 else 32) }
+        )
+        val decoded = BackupCodec.decodePayload(BackupCodec.encode(withStatement))
+
+        assertEquals(18, decoded.content.cards[0].statementDay)
+        assertNull(decoded.content.cards[1].statementDay)
+    }
+
+    @Test
+    fun `an empty statement day is written so it still applies on restore`() {
+        val json = BackupCodec.encode(sampleContent())
+        val decoded = BackupCodec.decodePayload(json)
+
+        assertTrue(json.contains("\"statementDay\":null"))
+        assertTrue(decoded.content.cards.all { it.statementDay == null && it.statementDayKnown })
+    }
+
+    @Test
+    fun `an unreadable statement day keeps the phone's`() {
+        listOf("0", "40", "\"x\"").forEach { bad ->
+            val json = BackupCodec.encode(sampleContent()).replace("\"statementDay\":null", "\"statementDay\":$bad")
+            val decoded = BackupCodec.decodePayload(json)
+
+            assertTrue(bad, decoded.content.cards.all { it.statementDay == null && !it.statementDayKnown })
+        }
+    }
+
+    @Test
+    fun `a backup from before statement days marks them unknown`() {
+        val old = BackupCodec.encode(sampleContent()).replace(Regex("\"statementDay\":null,?"), "")
+        val decoded = BackupCodec.decodePayload(old)
+
+        assertTrue(decoded.content.cards.all { it.statementDay == null && !it.statementDayKnown })
+    }
+
+    @Test
     fun `format 2 without settings decodes cfg as absent`() {
         val decoded = BackupCodec.decodePayload(BackupCodec.encode(sampleContent()))
 

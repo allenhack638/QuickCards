@@ -80,6 +80,7 @@ class SheetImporterTest {
         val sbi = cards.first { it.number == "5500000000000004" }
         assertEquals("SBI Card", database.bankDao().getBankById(sbi.bankId!!)?.name)
         assertEquals(15, sbi.dueDay)
+        assertEquals(18, cards.first { it.number == "4111111111111111" }.statementDay)
         assertEquals("Salary account", sbi.note)
 
         // Importing the same file again: nothing is added, every good row is already in the app.

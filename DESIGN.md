@@ -5,7 +5,8 @@ colors:
   brand: "#C8202B"
   on-brand: "#FFFFFF"
   on-art-danger: "#FFCBC2"
-  on-art-chip: "rgba(0,0,0,.30)"
+  on-art-fill: "rgba(255,255,255,.14)"
+  on-art-fill-ring: "rgba(255,255,255,.26)"
   light-bg: "#F4F6F9"
   light-surface: "#FFFFFF"
   light-surface-hi: "#FFFFFF"
@@ -162,11 +163,13 @@ components:
     minHeight: "207dp (ISO ID-1 at 328dp)"
     rounded: "{rounded.lg}"
   status-chip:
-    backgroundColor: "{colors.on-art-chip}"
+    backgroundColor: "{colors.on-art-fill}"
+    borderColor: "{colors.on-art-fill-ring}"
     textColor: "#FFFFFF"
     typography: "{typography.f1}"
-    rounded: "{rounded.xs}"
-    minHeight: "20dp"
+    rounded: "{rounded.full}"
+    height: "20dp"
+    padding: "0 8dp"
   copy-pill:
     rounded: "{rounded.full}"
     minHeight: "32dp"
@@ -251,8 +254,9 @@ components:
 |---|---|---|
 | white | #FFFFFF | Primary text and the network mark on art |
 | `t2` | white 80% | Secondary text on art (≥ 4.5:1 on every hue) |
-| `on-art-chip` | black 30% | The one status-chip fill on art |
-| `on-art-danger` | #FFCBC2 | Expired date and the Expired chip ring (7.78:1 on graphite) |
+| `on-art-fill` | white 14% | Copy pill and status chip fill on art |
+| `on-art-fill-ring` | white 26% | Their 1dp inner ring |
+| `on-art-danger` | #FFCBC2 | Expired date (7.78:1 on graphite) |
 
 ### Named rules
 
@@ -309,7 +313,7 @@ Dark theme lifts with tone (`surface` → `surface-hi`); shadows only under floa
 
 | Token | Value | Use |
 |---|---|---|
-| `r-xs` | 4 | Checkbox, mini art, status chips |
+| `r-xs` | 4 | Checkbox, mini art |
 | `r-sm` | 8 | Tags, colour swatches |
 | `r-md` | 12 | Fields, menus, snackbar |
 | `r-lg` | 20 | Card art, groups, banners |
@@ -408,7 +412,20 @@ Pill, min 32 tall, min 88 wide, 48 hit. Idle: copy icon + "Copy" (`f2`/500) on w
 
 ### Status chip
 
-One component for Check, Expires soon, Expired, Last used, Archived (and "Archived · reason"; inside Manage › Archived the chip is the reason alone, and the card keeps its own colour): text only, no icon, `f1`/600 white on `on-art-chip`, 1dp white 30% inner ring (Expired: `on-art-danger` ring), `r-xs`, min height 20. One chip per card, priority Archived > Expired > Check > Expires soon > Last used. Same slot and style on tiles, the details hero, Archived, adaptive panes and the gallery. Check reads "Check details" to TalkBack.
+One component for Check, Expires soon, Expired, Best today, Last used, Archived (and "Archived · reason"; inside Manage › Archived the chip is the reason alone, and the card keeps its own colour): a slim, icon-free clone of the Copy pill. `r-full`, the Copy pill's own fill and ring (`on-art-fill`, 1dp `on-art-fill-ring`), white `f1`/500 (the Copy label's weight), 20 tall (the meta line, so a pass with a chip is exactly as tall as one without), 8 side padding. Every status is neutral: the word carries the meaning (Expired has no danger ring). One chip per card, priority Archived > Expired > Check > Expires soon > Best today > Last used. Best today never sits beside a "Due in N days" strip (like Last used); it goes to the best card without one. Same slot and style on tiles, the details hero, Archived, adaptive panes and the gallery.
+
+**Owner decision (Round 9):** the card pattern shows through the chip's translucent fill. The owner chose this look over AA contrast on some hues; the measured worst case is 3.40:1 (white on ocean). Do not "fix" it with an opaque backdrop without asking.
+
+Tapping the chip explains it (tiles and the details hero; not in Manage › Archived or the form preview). The chip is its own button: its tap area is 48 tall and 4 wider each side, laid over the art without changing layout, and it consumes the tap so the rest of the tile still opens the card. TalkBack: "Best card today: N days to pay", "Check details" or the chip's text, then "double-tap to see why". Holding the chip's tap area still opens the card actions. Where the chip is not a button (Manage › Archived, the form preview) it is hidden from TalkBack; the card's own label already names the status. The explanation is a bottom sheet that hugs its content: a heading, the card ("HDFC Bank •• 0366"), one or two lines with the real values in semibold, an optional quiet line, then [action, outlined] [Got it, filled] side by side, stacked with Got it on top when a label would not fit (large text). The action closes the sheet and opens Edit card after the unlock.
+
+| Status | Heading | Body | Action |
+|---|---|---|---|
+| Best today | Best card to use today | Spends today land on the bill closing **25 Dec**, due **15 Jan**: **50 days** to pay. + quiet "Based on the statement and due days you entered." | Change days |
+| Expires soon | Expires 11/26 | Its last day is **30 Nov**, in 5 days. Ask SBI for the new card, then update it here. (Last day: "Its last day is **today**. …"; one day: "tomorrow") | Edit card |
+| Expired | Expired 09/26 | It stopped working after **30 Sep**. Ask SBI for the new card, then update it here. | Edit card |
+| Check | Some details need a look | The expiry doesn’t fit this card’s rules. Fix it in Edit card. (Several fields: “The number and the expiry don’t fit this card’s rules. Fix them in Edit card.”) | Edit card |
+| Last used | Last used | You copied this card most recently, **today at 9:38** (or **22 Nov**). It’s first in Recent when you search. | — |
+| Archived | Archived · reason | Kept out of Cards, autofill and reminders. Restore it from Manage › Archived. | — |
 
 ### Card details
 
@@ -429,7 +446,7 @@ Min height 36 (large 44), `r-full`, pressed = currentColor 12% layer. Full-width
 
 ### Inputs
 
-Outlined field, min 48, `r-md`, 1dp `outline`; focus 2dp accent; error = `danger` outline + help line tied to the field; warning = help in `warn` only (never blocks). Placeholders in `ink-ph`, mono for number, expiry and CVV. Password, CVV and PIN fields mask with real bullets (Geist Mono, same size as masked digits). Picker fields (Holder, Bank, Type, Colour) are buttons that open the picker sheet ("Holder, Diya Mehta, double-tap to choose"). Search field: only the outer pill shows state; no inner border or ring. Keyboard: number, expiry, CVV and due day show Next (number → expiry → CVV → due day → note); the note shows Done.
+Outlined field, min 48, `r-md`, 1dp `outline`; focus 2dp accent; error = `danger` outline + help line tied to the field; warning = help in `warn` only (never blocks). Placeholders in `ink-ph`, mono for number, expiry and CVV. Password, CVV and PIN fields mask with real bullets (Geist Mono, same size as masked digits). Picker fields (Holder, Bank, Type, Colour) are buttons that open the picker sheet ("Holder, Diya Mehta, double-tap to choose"). Search field: only the outer pill shows state; no inner border or ring. Keyboard: number, expiry, CVV, statement day and due day show Next (number → expiry → CVV → statement day → due day → note); the note shows Done.
 
 ### Lists and groups
 

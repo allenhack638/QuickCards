@@ -74,6 +74,7 @@ object SheetMessages {
         is RowProblem.BankUnknown -> resources.getString(R.string.import_problem_bank_unknown, problem.value)
         is RowProblem.TypeUnknown -> resources.getString(R.string.import_problem_type_unknown, problem.value)
         is RowProblem.HolderTooLong -> resources.getString(R.string.import_problem_holder_too_long, problem.max)
+        RowProblem.StatementDayInvalid -> resources.getString(R.string.import_problem_statement_day_invalid)
         RowProblem.DueDayInvalid -> resources.getString(R.string.import_problem_due_day_invalid)
         is RowProblem.NoteTooLong -> resources.getString(R.string.import_problem_note_too_long, problem.max)
         is RowProblem.RepeatedInFile -> resources.getString(R.string.import_problem_repeated_in_file, problem.firstRow)

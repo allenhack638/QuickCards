@@ -206,6 +206,7 @@ class CardFormViewModel(
     fun cvvBlur() = update { it.cvvBlur() }
     fun updateNote(text: String) = update { it.updateNote(text) }
     fun updateDueDay(text: String) = update { it.updateDueDay(text) }
+    fun updateStatementDay(text: String) = update { it.updateStatementDay(text) }
 
     /** Puts a built-in network back on its standard rules; the form revalidates when lists refresh. */
     fun resetNetworkRules(networkId: String) {
@@ -272,6 +273,7 @@ class CardFormViewModel(
             cardName = base?.cardName.orEmpty(),
             note = form.note.trim(),
             dueDay = form.dueDay.toIntOrNull()?.takeIf { it in 1..31 },
+            statementDay = form.statementDay.toIntOrNull()?.takeIf { it in 1..31 },
             bandColor = form.bandColor,
             bandColorManual = form.bandColorManual,
             sortOrder = base?.sortOrder ?: 0,

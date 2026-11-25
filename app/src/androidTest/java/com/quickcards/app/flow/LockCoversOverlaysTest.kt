@@ -110,7 +110,8 @@ class LockCoversOverlaysTest {
                         bottomInset = 0.dp,
                         onImport = {},
                         onOpenCard = {},
-                        onCardActions = {}
+                        onCardActions = {},
+                        onStatus = {}
                     )
                 }
             }

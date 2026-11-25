@@ -54,6 +54,7 @@ fun HomeScreen(
     onOpenArchived: () -> Unit = {},
     onOpenCard: (String) -> Unit,
     onCardActions: (String) -> Unit,
+    onStatus: (String) -> Unit,
     modifier: Modifier = Modifier,
     selectedId: String? = null,
     chipsInBar: Boolean = false
@@ -144,7 +145,8 @@ fun HomeScreen(
         actions = { card -> onCardActions(card.id) },
         copy = ::copyNumber,
         copyNote = ::copyNote,
-        markPaid = ::markPaid
+        markPaid = ::markPaid,
+        status = { card -> onStatus(card.id) }
     )
     val tileState = TileState(
         options = state.options,

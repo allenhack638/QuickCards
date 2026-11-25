@@ -38,6 +38,7 @@ import com.quickcards.domain.ExpiryState
 /**
  * The details pass: bank (+ pin) | mark, type | status chip, EMV chip, •••• last 4, holder | expiry.
  * With [maskNumber] off the full grouped number shows in f4, the size that fits the card's width.
+ * [onStatus] opens the status chip's explanation.
  */
 @Composable
 fun CardHero(
@@ -45,7 +46,8 @@ fun CardHero(
     status: CardStatus?,
     modifier: Modifier = Modifier,
     mask: String = MASK_GROUP,
-    maskNumber: Boolean = true
+    maskNumber: Boolean = true,
+    onStatus: (() -> Unit)? = null
 ) {
     val expired = card.expiryState == ExpiryState.EXPIRED
     CardArt(
@@ -60,7 +62,7 @@ fun CardHero(
                 .heightIn(min = QcArtDimens.HeroMinHeight - QcArtDimens.Padding * 2),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            HeroHead(card, status)
+            HeroHead(card, status, onStatus)
             EmvChip(Modifier.clearAndSetSemantics { })
             Column(modifier = Modifier.clearAndSetSemantics { }) {
                 val fullNumber = shownNumber(card, maskNumber)
@@ -110,7 +112,7 @@ fun CardHero(
 }
 
 @Composable
-private fun HeroHead(card: HomeCard, status: CardStatus?) {
+private fun HeroHead(card: HomeCard, status: CardStatus?, onStatus: (() -> Unit)?) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val networkId = card.network?.id?.takeIf { NetworkMarks.drawable(it) != null }
     Column(verticalArrangement = Arrangement.spacedBy(QcSpacing.s1)) {
@@ -165,7 +167,12 @@ private fun HeroHead(card: HomeCard, status: CardStatus?) {
                 modifier = Modifier.weight(1f).clearAndSetSemantics { }
             )
             if (status != null) {
-                CardStatusChip(status = status, archiveReason = card.card.archiveReason)
+                CardStatusChip(
+                    status = status,
+                    archiveReason = card.card.archiveReason,
+                    bestDays = card.bestDays,
+                    onClick = onStatus
+                )
             }
         }
     }

@@ -454,6 +454,60 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate15To16_addsStatementDayAndKeepsCards() {
+        helper.createDatabase(TEST_DB_15_16, 15).apply {
+            execSQL(
+                """
+                INSERT INTO cards
+                (id, panHash, bankId, cardColor, bandColor, bandColorManual, cardNumber, expiryDate,
+                 cvv, bankName, cardType, cardIssuer, cardVariant, owner, description, createdAt,
+                 updatedAt, networkAuto, nameOnCard, sortOrder, pinned, archived, needsReview, dueDay)
+                VALUES ('card-16a', 'hash-16a', 'bank-16a', '#7C2D12', 'rust', 1,
+                 'encrypted-number-16a', 'encrypted-expiry-16a', 'encrypted-cvv-16a',
+                 'encrypted-bank-16a', 'Credit', 'Visa', 'Regalia', 'encrypted-owner-16a',
+                 'encrypted-note-16a', 16, 16, 1, '', 4, 1, 0, 0, 5)
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB_15_16,
+            16,
+            true,
+            QuickCardsDatabase.MIGRATION_15_16
+        )
+
+        db.query(
+            """
+            SELECT cardNumber, expiryDate, cvv, description, bandColor, bandColorManual, sortOrder,
+                   pinned, dueDay, panHash, statementDay
+            FROM cards WHERE id = 'card-16a'
+            """.trimIndent()
+        ).use { cursor ->
+            assertEquals(1, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("encrypted-number-16a", cursor.getString(0))
+            assertEquals("encrypted-expiry-16a", cursor.getString(1))
+            assertEquals("encrypted-cvv-16a", cursor.getString(2))
+            assertEquals("encrypted-note-16a", cursor.getString(3))
+            assertEquals("rust", cursor.getString(4))
+            assertEquals(1, cursor.getInt(5))
+            assertEquals(4, cursor.getInt(6))
+            assertEquals(1, cursor.getInt(7))
+            assertEquals(5, cursor.getInt(8))
+            assertEquals("hash-16a", cursor.getString(9))
+            assertTrue(cursor.isNull(10))
+        }
+        db.execSQL("UPDATE cards SET statementDay = 18 WHERE id = 'card-16a'")
+        db.query("SELECT statementDay FROM cards WHERE id = 'card-16a'").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(18, cursor.getInt(0))
+        }
+        db.close()
+    }
+
+    @Test
     fun migrate11To12_addsArchiveAndReviewColumnsAndCreatesRepairs() {
         helper.createDatabase(TEST_DB_11_12, 11).apply {
             execSQL(
@@ -546,5 +600,6 @@ class MigrationTest {
         const val TEST_DB_12_13 = "quickcards-migration-12-13-test"
         const val TEST_DB_13_14 = "quickcards-migration-13-14-test"
         const val TEST_DB_14_15 = "quickcards-migration-14-15-test"
+        const val TEST_DB_15_16 = "quickcards-migration-15-16-test"
     }
 }
