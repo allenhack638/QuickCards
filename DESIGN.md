@@ -316,6 +316,8 @@ Dark theme lifts with tone (`surface` → `surface-hi`); shadows only under floa
 | `r-xl` | 28 | Sheets, dialogs, notifications |
 | `r-full` | pill | Buttons, chips, Copy pill |
 
+Nested shapes are concentric: inner radius = outer radius − inset (`nestedCorners` in `Shape.kt`).
+
 ## Card Art
 
 ### Hues
@@ -398,7 +400,7 @@ Drawables: `net_<key>` (colour) plus `net_<key>_mono` for the eight white-on-art
 
 ### Card tile (Home)
 
-Header grid: row 1 bank (+ pin) | network mark; row 2 type · holder | status chip. Then the note (Notes on cards on: ≤ 2 lines, ellipsis, nothing else), then the number "••0366" and expiry with the Copy pill on the right. Tap = Card details; hold (500 ms, or the context-menu key) = white 10% pressed layer, then the card actions sheet. The tile and the pill are separate focus targets. A due bill adds a strip "Due in N days" + "Mark paid" under the card.
+Header grid: row 1 bank (+ pin) | network mark; row 2 type · holder | status chip. Then the note (Notes on cards on: ≤ 2 lines, ellipsis, nothing else), then the number "••0366" and expiry with the Copy pill on the right. Tap = Card details; hold (500 ms, or the context-menu key) = white 10% pressed layer, then the card actions sheet. The tile and the pill are separate focus targets. A due bill adds a strip "Due in N days" + "Mark paid" at the foot of the card: 32 below the digits row, an even 8 gap to the card's sides and bottom (the strip bleeds 16 − 8 into the tile padding), min 48, white 12% with a white 20% ring. Corners are concentric with the card: strip radius = `r-lg` 20 − the real gap 8 = 12, so the band stays 8 along the sides, around both bottom curves and along the bottom. Mark paid sits 4 inside the strip (40 visible, 48 hit) at 12 − 4 = 8.
 
 ### Copy pill
 

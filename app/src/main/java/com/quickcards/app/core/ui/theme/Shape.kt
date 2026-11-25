@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 /** DESIGN.md › Shapes: one radius scale. */
 object QcShapes {
@@ -18,7 +20,12 @@ object QcShapes {
     val xl = RoundedCornerShape(QcRadius.xl)
     val sheet = RoundedCornerShape(topStart = QcRadius.xl, topEnd = QcRadius.xl)
     val full = CircleShape
+    val tileDue = nestedCorners(QcArtDimens.CornerTile, QcArtDimens.DueEdgeGap)
+    val tileDueAction = nestedCorners(QcArtDimens.CornerTile - QcArtDimens.DueEdgeGap, QcArtDimens.DueActionInset)
 }
+
+/** Concentric corners: a shape inset [inset] inside an [outer]-radius shape takes radius outer − inset. */
+fun nestedCorners(outer: Dp, inset: Dp) = RoundedCornerShape((outer - inset).coerceAtLeast(0.dp))
 
 val Shapes = Shapes(
     extraSmall = QcShapes.xs,
