@@ -76,6 +76,14 @@ object QcArtDimens {
     val Padding = QcSpacing.s4
     val HeroMinHeight = 207.dp
 
+    /**
+     * The bill strip: [DueTop] below the digits row, [DueEdgeGap] from the card's sides and bottom
+     * (it bleeds Padding − DueEdgeGap into the tile padding); Mark paid sits [DueActionInset] inside it.
+     */
+    val DueTop = QcSpacing.s8
+    val DueEdgeGap = QcSpacing.s2
+    val DueActionInset = QcSpacing.s1
+
     val SwatchWidth = 64.dp
     val SwatchHeight = 40.dp
     val MiniWidth = 40.dp
